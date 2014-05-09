@@ -4,18 +4,31 @@ grammar Query;
 //    package qp.parser;
 //}
 
-query: booleanClause booleanOperator booleanClause
-		| query booleanOperator booleanClause
-		| query booleanClause+
-		| booleanClause+ ;
 
-booleanClause: 
-	booleanPrefix? 
-	(
-		'(' query ')'
-		|
-		termQuery
-	);
+query: (booleanQuery | noopQuery)+ ;
+
+noopQuery:
+	clause+
+	;
+	
+booleanQuery: 
+    
+	clause (opAnd clause)+ 
+	|
+	clause (opOr clause)+
+	|
+	booleanQuery (opAnd clause)+
+	|
+	booleanQuery (opOr clause)+
+    
+	;
+	
+clause: 
+	(booleanPrefix? '(' booleanQuery ')')
+	| (booleanPrefix? '(' termQuery ')')
+	| (booleanPrefix? '(' noopQuery ')')
+	| (booleanPrefix? termQuery )
+	;
 
 booleanOperator: opAnd | opOr;
 booleanPrefix: must | mustNot;
@@ -25,7 +38,7 @@ opAnd: AND;
 must:  PLUS;
 mustNot: MINUS;
 
-termQuery: TERMSTRING ;
+termQuery: TERMSTRING;
 
 fragment
 TermChar :   [:a-zA-Z];
