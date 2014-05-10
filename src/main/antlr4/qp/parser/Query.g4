@@ -1,10 +1,5 @@
 grammar Query;
 
-//@header {
-//    package qp.parser;
-//}
-
-
 query: (booleanQuery | noopQuery)+ ;
 
 noopQuery:
@@ -24,10 +19,14 @@ booleanQuery:
 	;
 	
 clause: 
-	(booleanPrefix? '(' booleanQuery ')')
-	| (booleanPrefix? '(' termQuery ')')
-	| (booleanPrefix? '(' noopQuery ')')
-	| (booleanPrefix? termQuery )
+	(booleanPrefix? '('+ booleanQuery ')')
+	| (booleanPrefix? '('+ termQuery ')')
+	| (booleanPrefix? '('+ noopQuery ')')
+	| (booleanPrefix? termQuery)
+	| (booleanPrefix? '('+ booleanQuery ')'*)
+	| (booleanPrefix? '('+ termQuery ')'*)
+	| (booleanPrefix? '('+ noopQuery ')'*)
+	| (booleanPrefix? termQuery ')'+)
 	;
 
 booleanOperator: opAnd | opOr;
