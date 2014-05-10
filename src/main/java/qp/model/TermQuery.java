@@ -3,13 +3,16 @@
  */
 package qp.model;
 
+import java.io.PrintWriter;
+
 /**
  * @author rene
  *
  */
-public class TermQuery extends BooleanClause {
+public class TermQuery extends Clause {
 	
 	protected String text;
+	
 	
 	public TermQuery(String text, Occur occur) {
 		super(occur);
@@ -30,8 +33,8 @@ public class TermQuery extends BooleanClause {
 	}
 
 	@Override
-	public void prettyPrint(String prefix) {
-		System.out.println(prefix + "TQ " + occur + " " + text);
+	public void prettyPrint(String prefix, PrintWriter writer) {
+		writer.println(prefix + occur + "TQ " + text);
 		
 	}
 
