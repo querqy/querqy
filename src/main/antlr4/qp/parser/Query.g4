@@ -29,6 +29,10 @@ clause:
 	| (booleanPrefix? termQuery ')'+)
 	;
 
+termQuery:
+	(fieldName ':')? term
+	;
+
 booleanOperator: opAnd | opOr;
 booleanPrefix: must | mustNot;
 
@@ -37,10 +41,14 @@ opAnd: AND;
 must:  PLUS;
 mustNot: MINUS;
 
-termQuery: TERMSTRING;
+term: TERMSTRING;
+fieldName : FIELDNAME;
 
 fragment
-TermChar :   [:a-zA-Z];
+TermChar :   [a-zA-Z];
+
+fragment
+FieldNameChar : [a-zA-Z0-9_];
 
 AND 	: 'AND';
 OR  	: 'OR';
@@ -48,6 +56,7 @@ PLUS	: '+';
 MINUS	: '-';
 
 TERMSTRING : TermChar+ ;
+FIELDNAME : FieldNameChar+ ;
 
 WS : [ \t]+ -> skip;
 
