@@ -8,18 +8,21 @@ import java.util.List;
 
 import qp.model.BooleanQuery;
 import qp.model.BooleanQuery.Operator;
-import qp.model.Clause.Occur;
+import qp.model.DisjunctionMaxQuery;
 import qp.model.Node;
 import qp.model.Query;
-import qp.model.TermQuery;
+import qp.model.SubQuery.Occur;
+import qp.model.Term;
 import qp.parser.QueryBaseVisitor;
 import qp.parser.QueryParser.BooleanPrefixContext;
 import qp.parser.QueryParser.BooleanQueryContext;
 import qp.parser.QueryParser.ClauseContext;
+import qp.parser.QueryParser.FieldNameContext;
 import qp.parser.QueryParser.NoopQueryContext;
 import qp.parser.QueryParser.OpAndContext;
 import qp.parser.QueryParser.OpOrContext;
 import qp.parser.QueryParser.QueryContext;
+import qp.parser.QueryParser.TermContext;
 import qp.parser.QueryParser.TermQueryContext;
 
 /**
@@ -54,7 +57,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 			case '-' : occurBuffer = Occur.MUST_NOT; break;
 			}
 		}
-		return occurBuffer;
+		return super.visitBooleanPrefix(ctx);
 	}
 	
 	@Override
@@ -88,61 +91,30 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		return booleanQueryStack.removeLast();
 	}
 	
-	@Override
-	public Node visitOpAnd(OpAndContext ctx) {
-		return Operator.AND;
-	}
-	
-	@Override
-	public Node visitOpOr(OpOrContext ctx) {
-		return Operator.OR;
-	}
 	
 	@Override
 	public Node visitTermQuery(TermQueryContext ctx) {
-		TermQuery tq = new TermQuery(ctx.getText(), occurBuffer);
-		booleanQueryStack.getLast().addClause(tq);
-		return tq;
-	}
-	/*
-	
-	;
-	
-	@Override
-	public Node visitBooleanPrefix(BooleanPrefixContext ctx) {
-		String prf = ctx.getText();
-		if (prf.length() == 1) {
-			switch (prf.charAt(0)) {
-			case '+' : occurBuffer = Occur.MUST; break;
-			case '-' : occurBuffer = Occur.MUST_NOT; break;
+		
+		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(occurBuffer);
+
+		String text = ctx.getRuleContext(TermContext.class, 0).getText();
+
+		
+		
+		List<FieldNameContext> fieldNameContexts = ctx.getRuleContexts(FieldNameContext.class);
+		if (fieldNameContexts != null && !fieldNameContexts.isEmpty()) {
+			for (FieldNameContext fieldNameContext: fieldNameContexts) {
+				String fieldName = fieldNameContext.getText();
+				dmq.addClause(new Term(fieldName, text));
 			}
+		} else {
+			dmq.addClause(new Term(text));
 		}
-		return occurBuffer;
+		
+		
+		
+		booleanQueryStack.getLast().addClause(dmq);
+		return dmq;
 	}
-	
-	@Override
-	public Node visitBooleanClause(BooleanClauseContext ctx) {
-		occurBuffer = Occur.SHOULD;
-		return super.visitBooleanClause(ctx);
-	}
-	
-	@Override
-	public Node visitQuery(QueryContext ctx) {
-		Query bq = new Query(occurBuffer);
-		booleanQueryStack.add(bq);
-		super.visitQuery(ctx);
-		booleanQueryStack.removeLast();
-		if (!booleanQueryStack.isEmpty()) {
-			booleanQueryStack.getLast().addClause(bq);
-		}
-		return bq;
-	}
-	
-	@Override
-	public Node visitTermQuery(TermQueryContext ctx) {
-		TermQuery tq = new TermQuery(ctx.getText(), occurBuffer);
-		booleanQueryStack.getLast().addClause(tq);
-		return tq;
-	}*/
 
 }

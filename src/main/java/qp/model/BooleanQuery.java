@@ -3,17 +3,14 @@
  */
 package qp.model;
 
-import java.io.PrintWriter;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author rene
  *
  */
-public class BooleanQuery extends Clause {
+public class BooleanQuery extends SubQuery<BooleanClause> implements DisjunctionMaxClause, BooleanClause {
 	
-	public enum Operator implements Node {
+	public enum Operator {
 		
 		NONE(""), AND("AND"), OR("OR");
 		final String txt;
@@ -27,44 +24,34 @@ public class BooleanQuery extends Clause {
 			return txt;
 		}
 
-		@Override
-		public void prettyPrint(String prefix, PrintWriter writer) {
-			writer.print(prefix + toString());
-		}
 		
 	}
 	
 	protected Operator operator = Operator.NONE;
+	
 	public Operator getOperator() {
 		return operator;
 	}
 
 
-	protected List<Clause> clauses = new LinkedList<>();
 	
 	public BooleanQuery(Operator operator, Occur occur) {
 		super(occur);
 		this.operator = operator;
 	}
 	
-	public void addClause(Clause clause) {
-		clauses.add(clause);
-	}
-	
-	public List<Clause> getClauses() { return clauses; }
-	 
 
-	/* (non-Javadoc)
-	 * @see qp.model.Node#prettyPrint(java.lang.String)
-	 */
 	@Override
-	public void prettyPrint(String prefix, PrintWriter writer) {
-		writer.print(prefix);
-		writer.println(occur + "BQ: " + operator + "(");
-		for (Clause clause: clauses) {
-			clause.prettyPrint(prefix + prefix, writer);
-		}
-		writer.println(prefix + ")");
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visit(this);
+	}
+
+
+
+	@Override
+	public String toString() {
+		return "BooleanQuery [operator=" + operator + ", occur=" + occur
+				+ ", clauses=" + clauses + "]";
 	}
 
 }

@@ -3,7 +3,6 @@
  */
 package qp.model;
 
-import java.io.PrintWriter;
 
 /**
  * @author rene
@@ -11,6 +10,6 @@ import java.io.PrintWriter;
  */
 public interface Node {
 	
-	void prettyPrint(String prefix, PrintWriter writer);
+	<T> T accept(NodeVisitor<T> visitor);
 
 }
