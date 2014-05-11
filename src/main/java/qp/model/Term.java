@@ -12,29 +12,24 @@ public class Term implements DisjunctionMaxClause {
 	
 	protected String field;
 	protected String value;
-	protected SubQuery<?> query = null;
+	protected final SubQuery<?> parentQuery;
 	
-	public Term(String value) {
-		this(null, value);
+	public Term(SubQuery<?> parentQuery, String value) {
+		this(parentQuery, null, value);
 	}
 	
-	public Term(String field, String value) {
+	public Term(SubQuery<?> parentQuery, String field, String value) {
 		this.field = field;
 		this.value = value;
+		this.parentQuery = parentQuery;
 	}
 	
-	public void setQuery(SubQuery<?> query) {
-		this.query = query;
-	}
-	
-	public SubQuery<?> getQuery() {
-		return query;
+	public SubQuery<?> getParentQuery() {
+		return parentQuery;
 	}
 	
 	public Term clone(SubQuery<?> newParent) {
-		Term term = new Term(field, value);
-		term.query = newParent;
-		return term;
+		return new Term(newParent, field, value);
 	}
 	
 	@Override

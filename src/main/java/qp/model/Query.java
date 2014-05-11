@@ -11,7 +11,7 @@ package qp.model;
 public class Query extends BooleanQuery {
 	
 	public Query() {
-		super(Operator.NONE, Occur.SHOULD);
+		super(null, Operator.NONE, Occur.SHOULD);
 	}
 	
 	

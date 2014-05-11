@@ -35,8 +35,8 @@ public class BooleanQuery extends SubQuery<BooleanClause> implements Disjunction
 
 
 	
-	public BooleanQuery(Operator operator, Occur occur) {
-		super(occur);
+	public BooleanQuery(SubQuery<?> parentQuery, Operator operator, Occur occur) {
+		super(parentQuery, occur);
 		this.operator = operator;
 	}
 	

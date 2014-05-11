@@ -12,8 +12,8 @@ import java.util.List;
  */
 public class DisjunctionMaxQuery extends SubQuery<DisjunctionMaxClause> implements BooleanClause {
 	
-	public DisjunctionMaxQuery(Occur occur) {
-		super(occur);
+	public DisjunctionMaxQuery(SubQuery<?> parentQuery, Occur occur) {
+		super(parentQuery, occur);
 	}
 
 	public List<Term> getTerms() {

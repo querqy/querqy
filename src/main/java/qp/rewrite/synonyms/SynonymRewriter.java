@@ -64,7 +64,7 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 							Set<List<Term>> syns = synonyms.lookup(newElement);
 							if (syns != null && !syns.isEmpty()) {
 								for (Term input: newElement) {
-									DisjunctionMaxQuery parentDmq = (DisjunctionMaxQuery) input.getQuery();
+									DisjunctionMaxQuery parentDmq = (DisjunctionMaxQuery) input.getParentQuery();
 									for (List<Term> replacement: syns) {
 										
 										switch (replacement.size()) {
@@ -73,20 +73,20 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 										
 										case 1: 
 										{
-											BooleanQuery bq = new BooleanQuery(Operator.AND, Occur.SHOULD);
-											DisjunctionMaxQuery rDmq = new DisjunctionMaxQuery(Occur.MUST);
-											rDmq.addClause(replacement.get(0));
+											BooleanQuery bq = new BooleanQuery(parentDmq, Operator.AND, Occur.SHOULD);
+											DisjunctionMaxQuery rDmq = new DisjunctionMaxQuery(bq, Occur.MUST);
+											rDmq.addClause(replacement.get(0).clone(rDmq));
 											bq.addClause(rDmq);
-											bq.addClause(termsToBooleanQuery(newElement, Occur.MUST_NOT));
+											bq.addClause(termsToBooleanQuery(bq, newElement, Occur.MUST_NOT));
 											
 											parentDmq.addClause(bq);
 										}
 										break;
 										
 										default:
-											BooleanQuery bq = new BooleanQuery(Operator.AND, Occur.SHOULD);
-											bq.addClause(termsToBooleanQuery(replacement, Occur.MUST));
-											bq.addClause(termsToBooleanQuery(newElement, Occur.MUST_NOT));
+											BooleanQuery bq = new BooleanQuery(parentDmq, Operator.AND, Occur.SHOULD);
+											bq.addClause(termsToBooleanQuery(bq, replacement, Occur.MUST));
+											bq.addClause(termsToBooleanQuery(bq, newElement, Occur.MUST_NOT));
 											parentDmq.addClause(bq);
 //											// single token replaced be more than one tokens --> add as Boolean AND
 //											dmq.addClause(termsToBooleanQuery(replacement, Occur.SHOULD));
@@ -109,10 +109,10 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 							for (List<Term> replacement: syns) {
 								switch (replacement.size()) {
 								case 0: break;
-								case 1: dmq.addClause(replacement.get(0)); break;
+								case 1: dmq.addClause(replacement.get(0).clone(dmq)); break;
 								default:
 									// single token replaced be more than one tokens --> add as Boolean AND
-									dmq.addClause(termsToBooleanQuery(replacement, Occur.SHOULD));
+									dmq.addClause(termsToBooleanQuery(dmq, replacement, Occur.SHOULD));
 								}
 							}
 						}
@@ -131,13 +131,13 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 		return booleanQuery;
 	}
 	
-	public BooleanQuery termsToBooleanQuery(List<Term> terms, Occur bqOccur) {
+	public BooleanQuery termsToBooleanQuery(SubQuery<?> parentQuery, List<Term> terms, Occur bqOccur) {
 		if (terms.size() < 2) {
 			throw new IllegalArgumentException("At least two operands expected for BooleanQuery: " + terms);
 		}
-		BooleanQuery bq = new BooleanQuery(Operator.AND, bqOccur);
+		BooleanQuery bq = new BooleanQuery(parentQuery, Operator.AND, bqOccur);
 		for (Term newTerm: terms) {
-			DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(Occur.MUST);
+			DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(bq, Occur.MUST);
 			newDmq.addClause(newTerm.clone(newDmq));
 			bq.addClause(newDmq);
 		}

@@ -23,9 +23,9 @@ public class Synonyms {
 	public Synonyms() {
 		dictionary = new HashMap<List<Term>, Set<List<Term>>>();
 		dictionary.put(
-				Arrays.asList(new Term("a"), new Term("b")), 
+				Arrays.asList(new Term(null, "a"), new Term(null, "b")), 
 				new HashSet<List<Term>>(
-						Arrays.asList(asList(new Term("j"), new Term("k")))
+						Arrays.asList(asList(new Term(null, "j"), new Term(null, "k")))
 						));
 		
 //		dictionary.put(Arrays.asList(new Term("d")), new HashSet<List<Term>>(Arrays.asList(asList(new Term("l")))));

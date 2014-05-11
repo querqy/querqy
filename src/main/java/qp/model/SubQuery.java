@@ -38,15 +38,16 @@ public abstract class SubQuery<T extends Clause> implements Node {
 		return occur;
 	}
 
-	protected SubQuery<?> parentQuery = null;
+	protected final SubQuery<?> parentQuery;
 	
 	protected final List<T> clauses = new LinkedList<>();
 	
-	public SubQuery() {
-		this(Occur.SHOULD);
+	public SubQuery(SubQuery<?> parentQuery) {
+		this(parentQuery, Occur.SHOULD);
 	}
 	
-	public SubQuery(Occur occur) {
+	public SubQuery(SubQuery<?> parentQuery, Occur occur) {
+		this.parentQuery = parentQuery;
 		this.occur = occur;
 	}
 	
@@ -62,26 +63,16 @@ public abstract class SubQuery<T extends Clause> implements Node {
 		return result;
 	}
 	
-	public void replaceClause(T oldClause, T newClause) {
-		int idx = clauses.indexOf(oldClause);
-		if (idx < 0) {
-			throw new IllegalArgumentException("Clause to replace does not exist. Old " + oldClause + ", replacement " + newClause);
-		}
-		clauses.set(idx, newClause);
-		newClause.setQuery(this);
-	}
-	
-	public void setQuery(SubQuery<?> query) {
-		this.parentQuery = query;
-	}
-	
-	public SubQuery<?> getQuery() {
+	public SubQuery<?> getParentQuery() {
 		return parentQuery;
 	}
 	
 	public void addClause(T clause) {
+		if (clause.getParentQuery() != this) {
+			throw new IllegalArgumentException("This query is not a parent of " + clause);
+		}
 		clauses.add(clause);
-		clause.setQuery(this);
+		//clause.setParentQuery(this);
 	}
 	
 	public List<T> getClauses() {

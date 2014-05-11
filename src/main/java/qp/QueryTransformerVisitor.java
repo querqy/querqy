@@ -62,9 +62,11 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	
 	@Override
 	public Node visitNoopQuery(NoopQueryContext ctx) {
-		BooleanQuery query = new BooleanQuery(Operator.NONE, occurBuffer);
+
+		BooleanQuery parent = booleanQueryStack.getLast();
+		BooleanQuery query = new BooleanQuery(parent, Operator.NONE, occurBuffer);
+		parent.addClause(query);
 		
-		booleanQueryStack.getLast().addClause(query);
 		booleanQueryStack.add(query);
 		super.visitNoopQuery(ctx);
 		return booleanQueryStack.removeLast();
@@ -83,11 +85,14 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 			}
 		}
 		
-		BooleanQuery query = new BooleanQuery(op, occurBuffer);
+		BooleanQuery parent = booleanQueryStack.getLast();
+		BooleanQuery query = new BooleanQuery(parent, op, occurBuffer);
+		parent.addClause(query);
 		
-		booleanQueryStack.getLast().addClause(query);
 		booleanQueryStack.add(query);
+		
 		super.visitBooleanQuery(ctx);
+		
 		return booleanQueryStack.removeLast();
 	}
 	
@@ -95,7 +100,9 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	@Override
 	public Node visitTermQuery(TermQueryContext ctx) {
 		
-		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(occurBuffer);
+		BooleanQuery parent = booleanQueryStack.getLast();
+		
+		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(parent, occurBuffer);
 
 		String text = ctx.getRuleContext(TermContext.class, 0).getText();
 
@@ -105,15 +112,15 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		if (fieldNameContexts != null && !fieldNameContexts.isEmpty()) {
 			for (FieldNameContext fieldNameContext: fieldNameContexts) {
 				String fieldName = fieldNameContext.getText();
-				dmq.addClause(new Term(fieldName, text));
+				dmq.addClause(new Term(dmq, fieldName, text));
 			}
 		} else {
-			dmq.addClause(new Term(text));
+			dmq.addClause(new Term(dmq, text));
 		}
 		
 		
 		
-		booleanQueryStack.getLast().addClause(dmq);
+		parent.addClause(dmq);
 		return dmq;
 	}
 
