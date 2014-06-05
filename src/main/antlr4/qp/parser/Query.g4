@@ -8,25 +8,26 @@ noopQuery:
 	
 booleanQuery: 
     
-	clause (opAnd clause)+ 
+	clause (opAnd clause)+
 	|
 	clause (opOr clause)+
-	|
-	booleanQuery (opAnd clause)+
-	|
-	booleanQuery (opOr clause)+
+//	|
+//	booleanQuery (opAnd clause)+
+//	|
+//	booleanQuery (opOr clause)+
     
 	;
 	
 clause: 
-	(booleanPrefix? '('+ booleanQuery ')')
+	 (booleanPrefix? termQuery)
+	| (booleanPrefix? '('+ booleanQuery ')')
 	| (booleanPrefix? '('+ termQuery ')')
 	| (booleanPrefix? '('+ noopQuery ')')
-	| (booleanPrefix? termQuery)
 	| (booleanPrefix? '('+ booleanQuery ')'*)
 	| (booleanPrefix? '('+ termQuery ')'*)
 	| (booleanPrefix? '('+ noopQuery ')'*)
 	| (booleanPrefix? termQuery ')'+)
+	//| (booleanPrefix? booleanQuery)
 	;
 
 termQuery:

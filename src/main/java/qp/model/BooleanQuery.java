@@ -27,13 +27,11 @@ public class BooleanQuery extends SubQuery<BooleanClause> implements Disjunction
 		
 	}
 	
-	protected Operator operator = Operator.NONE;
+	private final Operator operator; 
 	
 	public Operator getOperator() {
 		return operator;
 	}
-
-
 	
 	public BooleanQuery(SubQuery<?> parentQuery, Operator operator, Occur occur) {
 		super(parentQuery, occur);

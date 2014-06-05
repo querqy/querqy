@@ -3,19 +3,14 @@
  */
 package qp.rewrite.synonyms;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 import qp.model.AbstractNodeVisitor;
 import qp.model.BooleanClause;
 import qp.model.BooleanQuery;
 import qp.model.BooleanQuery.Operator;
-import qp.model.DisjunctionMaxClause;
 import qp.model.DisjunctionMaxQuery;
 import qp.model.Node;
 import qp.model.Query;
@@ -45,7 +40,7 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 				DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) clause;
 				List<Term> dmqTerms = dmq.getTerms();
 				if (dmqTerms.isEmpty()) {
-					buffer.clear();
+					buffer.clear(); // FIXME
 				
 				} else {
 					

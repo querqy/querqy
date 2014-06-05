@@ -7,9 +7,8 @@ package qp.model;
  * @author rene
  *
  */
-public interface Clause extends Node {
+public interface Clause<P extends SubQuery<?>> extends Node {
 
-	SubQuery<?> getParentQuery();
-	//void setParentQuery(SubQuery<?> clause);
+	P getParentQuery();
 	
 }

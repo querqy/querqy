@@ -6,6 +6,9 @@ package qp;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+
 import qp.model.BooleanQuery;
 import qp.model.BooleanQuery.Operator;
 import qp.model.DisjunctionMaxQuery;
@@ -45,20 +48,25 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	
 	@Override
 	public Node visitClause(ClauseContext ctx) {
+		occurBuffer = getOccur(ctx);
+		Node result = super.visitClause(ctx);
 		occurBuffer = Occur.SHOULD;
-		return super.visitClause(ctx);
+		return result;
 	}
-	@Override
-	public Node visitBooleanPrefix(BooleanPrefixContext ctx) {
-		String prf = ctx.getText();
-		if (prf.length() == 1) {
-			switch (prf.charAt(0)) {
-			case '+' : occurBuffer = Occur.MUST; break;
-			case '-' : occurBuffer = Occur.MUST_NOT; break;
-			}
-		}
-		return super.visitBooleanPrefix(ctx);
-	}
+//	@Override
+//	public Node visitBooleanPrefix(BooleanPrefixContext ctx) {
+//		String prf = ctx.getText();
+//		if (prf.length() == 1) {
+//			switch (prf.charAt(0)) {
+//			case '+' : occurBuffer = Occur.MUST; break;
+//			case '-' : occurBuffer = Occur.MUST_NOT; break;
+//			default: occurBuffer = Occur.SHOULD;
+//			}
+//		} else {
+//			occurBuffer = Occur.SHOULD;
+//		}
+//		return super.visitBooleanPrefix(ctx);
+//	}
 	
 	@Override
 	public Node visitNoopQuery(NoopQueryContext ctx) {
@@ -70,6 +78,23 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		booleanQueryStack.add(query);
 		super.visitNoopQuery(ctx);
 		return booleanQueryStack.removeLast();
+	}
+	
+	Occur getOccur(ParserRuleContext ctx) {
+		List<BooleanPrefixContext> contexts = ctx.getRuleContexts(BooleanPrefixContext.class);
+		if (contexts == null || contexts.isEmpty()) {
+			return Occur.SHOULD;
+		}
+		
+		String prf =contexts.get(0).getText();
+		if (prf.length() == 1) {
+			switch (prf.charAt(0)) {
+			case '+' :return Occur.MUST; 
+			case '-' : return Occur.MUST_NOT; 
+			}
+		} 
+		return Occur.SHOULD;
+		
 	}
 	
 	@Override
@@ -103,10 +128,14 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		BooleanQuery parent = booleanQueryStack.getLast();
 		
 		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(parent, occurBuffer);
-
-		String text = ctx.getRuleContext(TermContext.class, 0).getText();
-
 		
+		TermContext tc = ctx.getRuleContext(TermContext.class, 0);
+
+		String text = tc.getText();
+
+//		Token startToken = tc.getStart();
+//		System.out.println(text + " " + startToken.getStartIndex());
+//		System.out.println(text + " " + startToken.getStopIndex());
 		
 		List<FieldNameContext> fieldNameContexts = ctx.getRuleContexts(FieldNameContext.class);
 		if (fieldNameContexts != null && !fieldNameContexts.isEmpty()) {

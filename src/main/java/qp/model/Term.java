@@ -10,9 +10,11 @@ package qp.model;
  */
 public class Term implements DisjunctionMaxClause {
 	
-	protected String field;
-	protected String value;
+	protected final String field;
+	protected final String value;
 	protected final SubQuery<?> parentQuery;
+	
+
 	
 	public Term(SubQuery<?> parentQuery, String value) {
 		this(parentQuery, null, value);
@@ -35,6 +37,14 @@ public class Term implements DisjunctionMaxClause {
 	@Override
 	public <T> T accept(NodeVisitor<T> visitor) {
 		return visitor.visit(this);
+	}
+	
+	public String getField() {
+		return field;
+	}
+
+	public String getValue() {
+		return value;
 	}
 
 	@Override
