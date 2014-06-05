@@ -72,7 +72,6 @@ public abstract class SubQuery<T extends Clause> implements Node {
 			throw new IllegalArgumentException("This query is not a parent of " + clause);
 		}
 		clauses.add(clause);
-		//clause.setParentQuery(this);
 	}
 	
 	public List<T> getClauses() {

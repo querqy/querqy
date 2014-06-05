@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
+import qp.AbstractQueryTest;
 import qp.QueryTransformerVisitor;
 import qp.model.Query;
 import qp.parser.QueryLexer;
@@ -14,7 +15,7 @@ import qp.parser.QueryParser;
 import qp.parser.QueryParser.QueryContext;
 import qp.rewrite.QueryRewriter;
 
-public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
+public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	
 	QueryRewriter rewriter;
 
@@ -42,9 +43,7 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 		
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						noOp(), 
 						bq(
-								noOp(), 
 								dmq(
 										term("a"),
 										term("x")
@@ -60,9 +59,7 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 		
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						noOp(), 
 						bq(
-								noOp(), 
 								dmq(
 										term("abc"),
 										term("def")
@@ -78,13 +75,10 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 		
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						noOp(), 
 						bq(
-								noOp(), 
 								dmq(
 										term("f"),
 										bq(
-												and(),
 												dmq(must(), term("k")),
 												dmq(must(), term("l"))
 										)
@@ -101,9 +95,7 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
        
 	    assertThat(rewriter.rewrite(q),
                 bq(
-                        noOp(), 
                         bq(
-                                noOp(), 
                                 dmq(term("ab")),
                                 dmq(term("c"))
                         )
@@ -117,13 +109,10 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 		Query q = makeQuery("j");
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						noOp(), 
 						bq(
-								noOp(), 
 								dmq(
 										term("j"),
 										bq(
-												and(),
 												dmq(must(), term("s")),
 												dmq(must(), term("t"))
 										),
@@ -138,17 +127,13 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 	    Query q = makeQuery("b c");
 	    assertThat(rewriter.rewrite(q), 
                 bq(
-                        noOp(), 
                         bq(
-                                noOp(), 
                                 dmq(
                                         term("b"),
                                         bq(
-                                                and(),
                                                 dmq(must(), term("y")),
                                                 bq(
                                                         mustNot(), 
-                                                        and(),
                                                         dmq(must(), term("b")),
                                                         dmq(must(), term("c")))
                                         )
@@ -157,11 +142,9 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
                                         term("c"),
                                         bq(
                                                 
-                                                and(),
                                                 dmq(must(), term("y")),
                                                 bq(
                                                         mustNot(), 
-                                                        and(),
                                                         dmq(must(), term("b")),
                                                         dmq(must(), term("c")))
                                                 
@@ -177,21 +160,16 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 	    Query q = makeQuery("bb cc dd");
 	    assertThat(rewriter.rewrite(q), 
 	            bq(
-	                        noOp(), 
 	                        bq(
-	                                noOp(), 
 	                                dmq(
 	                                        term("bb"),
 	                                        bq(
-	                                                and(),
 	                                                bq(
                                                             must(), 
-                                                            and(),
                                                             dmq(must(), term("z")),
                                                             dmq(must(), term("x"))),
 	                                                bq(
 	                                                        mustNot(), 
-	                                                        and(),
 	                                                        dmq(must(), term("bb")),
 	                                                        dmq(must(), term("cc")),
 	                                                        dmq(must(), term("dd"))
@@ -202,15 +180,12 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
                                             term("cc"),
                                             bq(
                                                     
-                                                    and(),
                                                     bq(
                                                             must(), 
-                                                            and(),
                                                             dmq(must(), term("z")),
                                                             dmq(must(), term("x"))),
                                                     bq(
                                                             mustNot(), 
-                                                            and(),
                                                             dmq(must(), term("bb")),
                                                             dmq(must(), term("cc")),
                                                             dmq(must(), term("dd"))
@@ -221,15 +196,12 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
                                             term("dd"),
                                             bq(
                                                     
-                                                    and(),
                                                     bq(
                                                             must(), 
-                                                            and(),
                                                             dmq(must(), term("z")),
                                                             dmq(must(), term("x"))),
                                                     bq(
                                                             mustNot(), 
-                                                            and(),
                                                             dmq(must(), term("bb")),
                                                             dmq(must(), term("cc")),
                                                             dmq(must(), term("dd"))
@@ -266,31 +238,24 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 	    Query q = makeQuery("b c d");
         assertThat(rewriter.rewrite(q), 
                 bq(
-                            noOp(), 
                             bq(
-                                    noOp(), 
                                     dmq(
                                             term("b"),
                                             bq(
-                                                 and(),
                                                  dmq(must(), term("y")),
                                                  bq(
                                                          mustNot(),
-                                                         and(),
                                                          dmq(must(), term("b")),
                                                          dmq(must(), term("c"))
                                                  )
                                             ),
                                             bq(
-                                                 and(),
                                                  bq(
                                                          must(), 
-                                                         and(),
                                                          dmq(must(), term("z")),
                                                          dmq(must(), term("x"))),
                                                  bq(
                                                          mustNot(), 
-                                                         and(),
                                                          dmq(must(), term("b")),
                                                          dmq(must(), term("c")),
                                                          dmq(must(), term("d")))
@@ -299,25 +264,20 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
                                     dmq(
                                             term("c"),
                                             bq(
-                                                 and(),
                                                  dmq(must(), term("y")),
                                                  bq(
                                                          mustNot(),
-                                                         and(),
                                                          dmq(must(), term("b")),
                                                          dmq(must(), term("c"))
                                                  )
                                             ),
                                             bq(
-                                                 and(),
                                                  bq(
                                                          must(), 
-                                                         and(),
                                                          dmq(must(), term("z")),
                                                          dmq(must(), term("x"))),
                                                  bq(
                                                          mustNot(), 
-                                                         and(),
                                                          dmq(must(), term("b")),
                                                          dmq(must(), term("c")),
                                                          dmq(must(), term("d")))
@@ -327,15 +287,12 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
                                             term("d"),
                                             bq(
                                                     
-                                                 and(),
                                                  bq(
                                                          must(), 
-                                                         and(),
                                                          dmq(must(), term("z")),
                                                          dmq(must(), term("x"))),
                                                  bq(
                                                          mustNot(), 
-                                                         and(),
                                                          dmq(must(), term("b")),
                                                          dmq(must(), term("c")),
                                                          dmq(must(), term("d"))

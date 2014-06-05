@@ -10,7 +10,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
 import qp.model.BooleanQuery;
-import qp.model.BooleanQuery.Operator;
 import qp.model.DisjunctionMaxQuery;
 import qp.model.Node;
 import qp.model.Query;
@@ -33,8 +32,12 @@ import qp.parser.QueryParser.TermQueryContext;
  *
  */
 public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
+    
+    enum Operator { NONE, AND, OR;}
+
 	
 	LinkedList<BooleanQuery> booleanQueryStack = new LinkedList<>();
+	LinkedList<Operator> operatorStack = new LinkedList<>();
 	
 	Occur occurBuffer = Occur.SHOULD;
 	
@@ -47,8 +50,10 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	@Override
 	public Node visitQuery(QueryContext ctx) {
 		Query query = new Query();
+		operatorStack.add(Operator.NONE);
 		booleanQueryStack.add(query);
 		super.visitQuery(ctx);
+		operatorStack.removeLast();
 		return booleanQueryStack.removeLast();
 	}
 	
@@ -59,30 +64,19 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		occurBuffer = Occur.SHOULD;
 		return result;
 	}
-//	@Override
-//	public Node visitBooleanPrefix(BooleanPrefixContext ctx) {
-//		String prf = ctx.getText();
-//		if (prf.length() == 1) {
-//			switch (prf.charAt(0)) {
-//			case '+' : occurBuffer = Occur.MUST; break;
-//			case '-' : occurBuffer = Occur.MUST_NOT; break;
-//			default: occurBuffer = Occur.SHOULD;
-//			}
-//		} else {
-//			occurBuffer = Occur.SHOULD;
-//		}
-//		return super.visitBooleanPrefix(ctx);
-//	}
+
 	
 	@Override
 	public Node visitNoopQuery(NoopQueryContext ctx) {
 
 		BooleanQuery parent = booleanQueryStack.getLast();
-		BooleanQuery query = new BooleanQuery(parent, Operator.NONE, occurBuffer);
+		BooleanQuery query = new BooleanQuery(parent, getOccur());
 		parent.addClause(query);
 		
+		operatorStack.add(Operator.NONE);
 		booleanQueryStack.add(query);
 		super.visitNoopQuery(ctx);
+		operatorStack.removeLast();
 		return booleanQueryStack.removeLast();
 	}
 	
@@ -117,23 +111,37 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		}
 		
 		BooleanQuery parent = booleanQueryStack.getLast();
-		BooleanQuery query = new BooleanQuery(parent, op, occurBuffer);
+		BooleanQuery query = new BooleanQuery(parent, getOccur());
 		parent.addClause(query);
 		
+		operatorStack.add(op);
 		booleanQueryStack.add(query);
 		
 		super.visitBooleanQuery(ctx);
 		
+		operatorStack.removeLast();
 		return booleanQueryStack.removeLast();
 	}
 	
+	Occur getOccur() {
+	    
+	    if (occurBuffer == Occur.SHOULD && operatorStack.getLast() == Operator.AND) {
+	        
+	        return Occur.MUST;
+	        
+	    } else {
+	        
+	        return occurBuffer;
+	        
+	    }
+	}
 	
 	@Override
 	public Node visitTermQuery(TermQueryContext ctx) {
 		
 		BooleanQuery parent = booleanQueryStack.getLast();
 		
-		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(parent, occurBuffer);
+		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(parent, getOccur());
 		
 		TermContext tc = ctx.getRuleContext(TermContext.class, 0);
 
@@ -156,3 +164,4 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	}
 
 }
+

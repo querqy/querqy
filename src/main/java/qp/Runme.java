@@ -3,29 +3,22 @@
  */
 package qp;
 
-import java.util.LinkedList;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashSet;
 
-import qp.model.BooleanClause;
-import qp.model.BooleanClause.Occur;
-import qp.model.BooleanQuery;
-import qp.model.Node;
-import qp.parser.QueryBaseListener;
-import qp.parser.QueryBaseVisitor;
-import qp.parser.QueryLexer;
-import qp.parser.QueryParser;
-import qp.parser.QueryParser.BooleanClauseContext;
-import qp.parser.QueryParser.BooleanPrefixContext;
-import qp.parser.QueryParser.QueryContext;
-import qp.parser.QueryParser.TermQueryContext;
-
-import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeVisitor;
-import org.antlr.v4.runtime.tree.Tree;
+import org.apache.lucene.search.BooleanQuery;
+
+import qp.model.Node;
+import qp.model.PrettyPrinter;
+import qp.model.Query;
+import qp.parser.QueryLexer;
+import qp.parser.QueryParser;
+import qp.parser.QueryParser.QueryContext;
+import qp.rewrite.QueryRewriter;
+import qp.rewrite.synonyms.SynonymRewriter;
 /**
  * @author rene
  *
@@ -36,33 +29,36 @@ public class Runme {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		QueryLexer lex = new QueryLexer(new ANTLRInputStream("a AND b AND (c f)"));
+		// de fg +(a b)
+	    
+	    char[] input = "a b".toCharArray();
+	    
+		QueryLexer lex = new QueryLexer(new ANTLRInputStream(input, input.length));// f2:c OR +f3:d"));//"de fg +(a AND b)"));//a AND b AND (c f)"));
 		CommonTokenStream tokens = new CommonTokenStream(lex);
 		QueryParser parser = new QueryParser(tokens);
 		
-		//QueryTransformerListener listener = new QueryTransformerListener();
-		//parser.addParseListener(listener);
-		
 		QueryContext t = parser.query();
-		//System.out.println(listener.getQuery());
-//		QueryBaseVisitor<Object> visitor = new QueryBaseVisitor<Object>() {
-//			@Override
-//			public Object visitTermSequence(TermSequenceContext ctx) {
-//				// TODO Auto-generated method stub
-//				return super.visitTermSequence(ctx);
-//			}
-//			public Object visitPhrase(qp.parser.QueryParser.PhraseContext ctx) {
-//				for (TermContext tctx : ctx.termSequence().term()) {
-//					System.out.println(tctx.getText());
-//				}
-//				return "NONE";
-//			};
-//		};
-//		t.accept(visitor);
-		Node node = t.accept(new QueryTransformerVisitor());
-		node.prettyPrint("   ");
+		Node node = t.accept(new QueryTransformerVisitor(input));
+		
+		PrintWriter writer = new PrintWriter(System.out);
+		PrettyPrinter printer = new PrettyPrinter(writer, 4);
+		printer.visit((Query) node);
+		writer.flush();
+		System.out.println("----");
+		
+		QueryRewriter rewriter = new SynonymRewriter();
+		Query query = rewriter.rewrite((Query) node);
+		printer = new PrettyPrinter(writer, 4);
+		printer.visit(query);
+		writer.flush();
 		System.out.println();
-
+		
+		org.apache.lucene.search.Query lq = new LuceneQueryGenerator(query, 
+				new HashSet<>(Arrays.asList("f1", "f39"))).getLuceneQuery();
+		
+		System.out.println(lq);
+		System.out.println();
+		
 	}
 
 }

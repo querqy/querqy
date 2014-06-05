@@ -20,7 +20,6 @@ import org.apache.lucene.util.UnicodeUtil;
 import org.apache.lucene.util.fst.FST;
 
 import qp.model.BooleanQuery;
-import qp.model.BooleanQuery.Operator;
 import qp.model.DisjunctionMaxClause;
 import qp.model.DisjunctionMaxQuery;
 import qp.model.SubQuery.Occur;
@@ -176,7 +175,7 @@ public class Sequences {
 		    for (int i = 0; i < scratchChars.length; i++) {
 		    	if (scratchChars.charAt(i) == ' ' && (i > start)) {
 		        	if (add == null) {
-		        		add = new BooleanQuery(currentDmq, Operator.AND, Occur.SHOULD);
+		        		add = new BooleanQuery(currentDmq, Occur.SHOULD);
 		       		}
 		       		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
 		       		newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start));

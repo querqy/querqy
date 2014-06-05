@@ -4,7 +4,6 @@
 package qp.rewrite.synonyms.lucene;
 
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +19,6 @@ import qp.model.BooleanQuery;
 import qp.model.DisjunctionMaxClause;
 import qp.model.DisjunctionMaxQuery;
 import qp.model.Term;
-import qp.model.BooleanQuery.Operator;
 import qp.model.SubQuery.Occur;
 
 /**
@@ -71,10 +69,10 @@ public class Sequence {
                 // FIXME fix parent type of term to always DMQ?
                 DisjunctionMaxQuery currentDmq = (DisjunctionMaxQuery) term.getParentQuery();
                 
-                BooleanQuery add = new BooleanQuery(currentDmq, Operator.AND, Occur.SHOULD);
+                BooleanQuery add = new BooleanQuery(currentDmq, Occur.SHOULD);
                 
                 if (replacementIsMultiTerm) {
-                    BooleanQuery replaceSeq = new BooleanQuery(add, Operator.AND, Occur.MUST);
+                    BooleanQuery replaceSeq = new BooleanQuery(add, Occur.MUST);
                     
                     int start = 0;
                     for (int i = 0; i < scratchChars.length; i++) {
@@ -101,7 +99,7 @@ public class Sequence {
                     add.addClause(replaceDmq);
                 }
                 
-                BooleanQuery neq = new BooleanQuery(add, Operator.AND, Occur.MUST_NOT);
+                BooleanQuery neq = new BooleanQuery(add, Occur.MUST_NOT);
                 
                 for (Term negTerm: terms) {
                     DisjunctionMaxQuery neqDmq = new DisjunctionMaxQuery(neq, Occur.MUST);

@@ -1,4 +1,4 @@
-package qp.rewrite.synonyms.lucene;
+package qp;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,14 +13,9 @@ import qp.model.DisjunctionMaxQuery;
 import qp.model.SubQuery;
 import qp.model.SubQuery.Occur;
 import qp.model.Term;
-import qp.model.BooleanQuery.Operator;
 import qp.model.DisjunctionMaxClause;
 
-public class AbtractQueryTest {
-
-	public AbtractQueryTest() {
-		super();
-	}
+public class AbstractQueryTest {
 
 	public TermMatcher term(String field, String value) {
 		return new TermMatcher(field, value);
@@ -40,20 +35,14 @@ public class AbtractQueryTest {
 	}
 
 	@SafeVarargs
-	public final BQMatcher bq(OperatorMatcher operator, TypeSafeMatcher<? extends BooleanClause>... clauses) {
-		return new BQMatcher(operator, clauses);
+	public final BQMatcher bq(TypeSafeMatcher<? extends BooleanClause>... clauses) {
+		return new BQMatcher(clauses);
 	}
 	@SafeVarargs
-	public final BQMatcher bq(OccurMatcher occur, OperatorMatcher operator, TypeSafeMatcher<? extends BooleanClause>... clauses) {
-	    return new BQMatcher(occur, operator, clauses);
+	public final BQMatcher bq(OccurMatcher occur, TypeSafeMatcher<? extends BooleanClause>... clauses) {
+	    return new BQMatcher(occur, clauses);
 	}
 
-	public OperatorMatcher and() {return new OperatorMatcher(Operator.AND); }
-
-	public OperatorMatcher or() {return new OperatorMatcher(Operator.OR); }
-
-	public OperatorMatcher noOp() {return new OperatorMatcher(Operator.NONE); }
-	
 	public OccurMatcher must() {return new OccurMatcher(Occur.MUST); }
 	
 	public OccurMatcher mustNot() {return new OccurMatcher(Occur.MUST_NOT); }
@@ -114,22 +103,17 @@ public class AbtractQueryTest {
 	
 	class BQMatcher extends SubQueryMatcher<BooleanQuery> {
 		
-		final OperatorMatcher operator;
-		
-		public BQMatcher(OccurMatcher occur, OperatorMatcher operator, TypeSafeMatcher<? extends BooleanClause>[] clauses) {
+		public BQMatcher(OccurMatcher occur, TypeSafeMatcher<? extends BooleanClause>[] clauses) {
 			super(occur, clauses);
-			this.operator = operator;
 		}
-		public BQMatcher(OperatorMatcher operator, TypeSafeMatcher<? extends BooleanClause>[] clauses) {
+		public BQMatcher(TypeSafeMatcher<? extends BooleanClause>[] clauses) {
 		    super(should(), clauses);
-		    this.operator = operator;
 		}
 		
 
 		@Override
 		public void describeTo(Description description) {
 			description.appendText("BQ: ");
-			operator.describeTo(description);
 			description.appendText("\n (");
 			super.describeTo(description);
 			description.appendText(")\n");
@@ -137,35 +121,11 @@ public class AbtractQueryTest {
 
 		@Override
 		protected boolean matchesSafely(BooleanQuery bq ) {
-			if (!operator.matchesSafely(bq.getOperator())) {
-				return false;
-			}
-			
 			return super.matchesSafely(bq);
 		}
 		
 	}
 	
-	class OperatorMatcher extends TypeSafeMatcher<BooleanQuery.Operator> {
-		
-		final Operator expected;
-
-		public OperatorMatcher(Operator expected) {
-			this.expected = expected;
-		}
-		
-		@Override
-		public void describeTo(Description description) {
-			description.appendText("operator: " + expected.name());
-			
-		}
-
-		@Override
-		protected boolean matchesSafely(Operator operator) {
-			return operator == expected;
-		}
-		
-	}
 	
 	class OccurMatcher extends TypeSafeMatcher<Occur> {
 	    

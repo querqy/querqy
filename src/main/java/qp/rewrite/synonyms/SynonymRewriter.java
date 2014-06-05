@@ -10,7 +10,6 @@ import java.util.Set;
 import qp.model.AbstractNodeVisitor;
 import qp.model.BooleanClause;
 import qp.model.BooleanQuery;
-import qp.model.BooleanQuery.Operator;
 import qp.model.DisjunctionMaxQuery;
 import qp.model.Node;
 import qp.model.Query;
@@ -68,7 +67,7 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 										
 										case 1: 
 										{
-											BooleanQuery bq = new BooleanQuery(parentDmq, Operator.AND, Occur.SHOULD);
+											BooleanQuery bq = new BooleanQuery(parentDmq, Occur.SHOULD);
 											DisjunctionMaxQuery rDmq = new DisjunctionMaxQuery(bq, Occur.MUST);
 											rDmq.addClause(replacement.get(0).clone(rDmq));
 											bq.addClause(rDmq);
@@ -79,7 +78,7 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 										break;
 										
 										default:
-											BooleanQuery bq = new BooleanQuery(parentDmq, Operator.AND, Occur.SHOULD);
+											BooleanQuery bq = new BooleanQuery(parentDmq, Occur.SHOULD);
 											bq.addClause(termsToBooleanQuery(bq, replacement, Occur.MUST));
 											bq.addClause(termsToBooleanQuery(bq, newElement, Occur.MUST_NOT));
 											parentDmq.addClause(bq);
@@ -130,7 +129,7 @@ public class SynonymRewriter extends AbstractNodeVisitor<Node> implements
 		if (terms.size() < 2) {
 			throw new IllegalArgumentException("At least two operands expected for BooleanQuery: " + terms);
 		}
-		BooleanQuery bq = new BooleanQuery(parentQuery, Operator.AND, bqOccur);
+		BooleanQuery bq = new BooleanQuery(parentQuery, bqOccur);
 		for (Term newTerm: terms) {
 			DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(bq, Occur.MUST);
 			newDmq.addClause(newTerm.clone(newDmq));

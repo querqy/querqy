@@ -36,7 +36,7 @@ public class PrettyPrinter extends AbstractNodeVisitor<Node> {
 	public Node visit(BooleanQuery booleanQuery) {
 		String indend = makeIndend();
 		writer.print(indend);
-		writer.println(booleanQuery.getOccur() + "BQ: " + booleanQuery.getOperator() + "(");
+		writer.println(booleanQuery.getOccur() + "BQ: (");
 		depth++;
 		super.visit(booleanQuery);
 		depth--;

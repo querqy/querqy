@@ -10,32 +10,8 @@ package qp.model;
  */
 public class BooleanQuery extends SubQuery<BooleanClause> implements DisjunctionMaxClause, BooleanClause {
 	
-	public enum Operator {
-		
-		NONE(""), AND("AND"), OR("OR");
-		final String txt;
-		
-		private Operator(String txt) {
-			this.txt = txt;
-		}
-		
-		@Override
-		public String toString() {
-			return txt;
-		}
-
-		
-	}
-	
-	private final Operator operator; 
-	
-	public Operator getOperator() {
-		return operator;
-	}
-	
-	public BooleanQuery(SubQuery<?> parentQuery, Operator operator, Occur occur) {
+	public BooleanQuery(SubQuery<?> parentQuery, Occur occur) {
 		super(parentQuery, occur);
-		this.operator = operator;
 	}
 	
 
@@ -48,7 +24,7 @@ public class BooleanQuery extends SubQuery<BooleanClause> implements Disjunction
 
 	@Override
 	public String toString() {
-		return "BooleanQuery [operator=" + operator + ", occur=" + occur
+		return "BooleanQuery [occur=" + occur
 				+ ", clauses=" + clauses + "]";
 	}
 

@@ -76,84 +76,8 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node>  implement
 		
 		sequencesStack.removeLast().apply();
 		
-		
-//		List<List<Term>> sequence = new LinkedList<>();
-//		
-//		for (BooleanClause clause : booleanQuery.getClauses()) {
-//			// REVISIT: uses idx instead of start/class
-//			if (clause instanceof DisjunctionMaxQuery) {
-//				DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) clause;
-//				
-//				List<Term> dmqTerms = dmq.getTerms();
-//				if (dmqTerms.isEmpty()) {
-//					sequence.clear(); // FIXME - visit clauses of different types
-//				} else {
-//					
-//				}
-//			}
-//		}
-		
 		return null;
 	}
 	
-	
-	// Interleaves all output tokens onto the futureOutputs:
-	/* private void addOutput(BytesRef bytes) {
-	    bytesReader.reset(bytes.bytes, bytes.offset, bytes.length);
-
-	    final int code = bytesReader.readVInt();
-	    final boolean keepOrig = (code & 0x1) == 0;
-	    System.out.println(keepOrig);
-	    final int count = code >>> 1;
-	    
-	    //System.out.println("  addOutput count=" + count + " keepOrig=" + keepOrig);
-	    for (int outputIDX=0; outputIDX<count; outputIDX++) {
-	    	
-	    	synonymMap.words.get(bytesReader.readVInt(),
-	                         scratchBytes);
-	      //System.out.println("    outIDX=" + outputIDX + " bytes=" + scratchBytes.length);
-	      UnicodeUtil.UTF8toUTF16(scratchBytes, scratchChars);
-	      System.out.println(scratchChars);
-	      
-	    
-	    }
-
-	  }*/
-	
-	
-	public static void main(String[] args) throws Exception {
-		/*SolrSynonymsRewriterFactory factory = new SolrSynonymsRewriterFactory(SolrSynonymsRewriter.class.getClassLoader().getResourceAsStream("synonyms.txt")) ;
-		SolrSynonymsRewriter rewriter = (SolrSynonymsRewriter) factory.getRewriter();
-		SynonymMap map = factory.synonymMap;//rewriter.synonymMap;
-		char[] buffer = "aa c".toCharArray();
-		
-		FST.Arc<BytesRef> scratchArc = new FST.Arc<BytesRef>();
-		 map.fst.getFirstArc(scratchArc);
-		System.out.println(scratchArc);
-		BytesRef pendingOutput = map.fst.outputs.getNoOutput();
-		
-		FST.BytesReader fstReader = map.fst.getBytesReader();
-		
-		boolean ok = true;
-		int pos = 0;
-		while (ok &&  pos < buffer.length) {
-			int codePoint = Character.codePointAt(buffer, pos, buffer.length);
-			ok = null != map.fst.findTargetArc(codePoint, scratchArc, scratchArc, fstReader);
-			
-			pendingOutput = map.fst.outputs.add(pendingOutput, scratchArc.output);
-			
-			pos += Character.charCount(pos);
-		}
-		if (ok) {
-			if (scratchArc.isFinal()) {
-				rewriter.addOutput(
-						map.fst.outputs.add(pendingOutput, scratchArc.nextFinalOutput));
-//				System.out.println(scratchArc);
-//				System.out.println(scratchArc.output.toString());
-			}
-		}
-		
-		*/
-	}
 
 }
