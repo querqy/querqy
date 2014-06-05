@@ -32,7 +32,7 @@ public class LuceneSynonymsRewriterTest extends AbtractQueryTest {
 		QueryParser parser = new QueryParser(tokens);
 		
 		QueryContext t = parser.query();
-		return (Query) t.accept(new QueryTransformerVisitor());
+		return (Query) t.accept(new QueryTransformerVisitor(input.toCharArray()));
 	}
 
 	@Test

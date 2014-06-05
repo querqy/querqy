@@ -80,7 +80,7 @@ public class Sequence {
                     for (int i = 0; i < scratchChars.length; i++) {
                         if (scratchChars.charAt(i) == ' ' && (i > start)) {
                             DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST);
-                            newDmq.addClause(new Term(newDmq, new String(scratchChars.chars, start, i - start)));
+                            newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start));
                             replaceSeq.addClause(newDmq);
                             start = i + 1;
                         }
@@ -88,7 +88,7 @@ public class Sequence {
                     
                     if (start < scratchChars.length) {
                         DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST);
-                        newDmq.addClause(new Term(newDmq, new String(scratchChars.chars, start, scratchChars.length - start)));
+                        newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start));
                         replaceSeq.addClause(newDmq);
                     }
                     
@@ -97,7 +97,7 @@ public class Sequence {
                 } else {
                     
                     DisjunctionMaxQuery replaceDmq = new DisjunctionMaxQuery(add, Occur.MUST);
-                    replaceDmq.addClause(new Term(replaceDmq, new String(scratchChars.chars, 0, scratchChars.length)));
+                    replaceDmq.addClause(new Term(replaceDmq, scratchChars.chars, 0, scratchChars.length));
                     add.addClause(replaceDmq);
                 }
                 

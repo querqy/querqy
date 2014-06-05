@@ -11,27 +11,43 @@ package qp.model;
 public class Term implements DisjunctionMaxClause {
 	
 	protected final String field;
-	protected final String value;
+	protected final char[] value;
+	public final int start;
+	public final int length;
 	protected final SubQuery<?> parentQuery;
 	
 
 	
-	public Term(SubQuery<?> parentQuery, String value) {
-		this(parentQuery, null, value);
+	public Term(SubQuery<?> parentQuery, char[] value, int start, int length) {
+		this(parentQuery, null, value, start, length);
 	}
 	
-	public Term(SubQuery<?> parentQuery, String field, String value) {
+	public Term(SubQuery<?> parentQuery, char[] value) {
+        this(parentQuery, null, value);
+    }
+	
+	public Term(SubQuery<?> parentQuery, String field, char[] value, int start, int length) {
 		this.field = field;
 		this.value = value;
+		this.start = start;
+		this.length = length;
 		this.parentQuery = parentQuery;
 	}
+	
+	public Term(SubQuery<?> parentQuery, String field, char[] value) {
+        this.field = field;
+        this.value = value;
+        this.start = 0;
+        this.length = value.length;
+        this.parentQuery = parentQuery;
+    }
 	
 	public SubQuery<?> getParentQuery() {
 		return parentQuery;
 	}
 	
 	public Term clone(SubQuery<?> newParent) {
-		return new Term(newParent, field, value);
+		return new Term(newParent, field, value, start, length);
 	}
 	
 	@Override
@@ -42,14 +58,22 @@ public class Term implements DisjunctionMaxClause {
 	public String getField() {
 		return field;
 	}
-
+	
+	public char charAt(int index) {
+	    return value[start + index];
+	}
+	
+	public int codePointAt(int index) {
+	    return Character.codePointAt(value, index + start, start + length);
+	}
+	
 	public String getValue() {
-		return value;
+		return new String(value, start, length);
 	}
 
 	@Override
 	public String toString() {
-		return ((field == null) ? "*" : field) + ":" + value;
+		return ((field == null) ? "*" : field) + ":" + getValue();
 	}
 
 	@Override

@@ -6,7 +6,6 @@ package qp.rewrite.synonyms.lucene;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +19,6 @@ import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.UnicodeUtil;
 import org.apache.lucene.util.fst.FST;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import qp.model.BooleanQuery;
 import qp.model.BooleanQuery.Operator;
 import qp.model.DisjunctionMaxClause;
@@ -35,7 +33,7 @@ import qp.model.Term;
 public class Sequences {
 	
 	final FST<BytesRef> fst;
-	//LinkedList<List<FST.Arc<BytesRef>>> positions = new LinkedList<>();
+	
 	Map<DisjunctionMaxQuery, Set<DisjunctionMaxClause>> addenda = new HashMap<DisjunctionMaxQuery, Set<DisjunctionMaxClause>>();
 	
 	Set<Sequence> sequences = new LinkedHashSet<>();
@@ -45,7 +43,6 @@ public class Sequences {
 	ByteArrayDataInput bytesReader = new ByteArrayDataInput();
 	private final SynonymMap map;
 	BytesRef scratchBytes = new BytesRef();
-	CharsRef scratchChars = new CharsRef();
 	
 	public Sequences(SynonymMap map) {
 		this.fst = map.fst;
@@ -77,7 +74,6 @@ public class Sequences {
 	    FST.Arc<BytesRef> scratchArc = new FST.Arc<BytesRef>();
 	    
 	    boolean ok = true;
-	    char[] buffer = term.getValue().toCharArray();
 	    
 	    for (Sequence sequence: sequences) {
 	        
@@ -87,10 +83,10 @@ public class Sequences {
 	            // pending contains sequence + ' ' now
 	            BytesRef pendingOutput = fst.outputs.add(sequence.output, scratchArc.output);
 
-	            // iterate over term chars (in buffer) and try to append them to the sequence
+	            // iterate over term chars and try to append them to the sequence
 	            int pos = 0;
-	            while (ok &&  pos < buffer.length) {
-	                int codePoint = Character.codePointAt(buffer, pos, buffer.length);
+	            while (ok &&  pos < term.length) {
+	                int codePoint = term.codePointAt(pos); //Character.codePointAt(buffer, pos, buffer.length);
 	                ok = null != fst.findTargetArc(codePoint, scratchArc, scratchArc, fstReader);
 	                
 	                pendingOutput = fst.outputs.add(pendingOutput, scratchArc.output);
@@ -111,8 +107,6 @@ public class Sequences {
 	                if (scratchArc.isFinal()) {
 	                    // the term completes the lookup key --> output the dictionary values
 	                    newSequence.addOutputs(addenda, map, bytesReader);
-	                    //addOutput(fst.outputs.add(pendingOutput, scratchArc.nextFinalOutput));
-	                    // TODOC
 	                }
 	            }
 	        }
@@ -126,12 +120,12 @@ public class Sequences {
 		BytesRef pendingOutput = fst.outputs.getNoOutput();
 		
 		FST.BytesReader fstReader = fst.getBytesReader();
-		char[] buffer = term.getValue().toCharArray();
+		//char[] buffer = term.getValue().toCharArray();
 		
 		boolean ok = true;
 		int pos = 0;
-		while (ok &&  pos < buffer.length) {
-			int codePoint = Character.codePointAt(buffer, pos, buffer.length);
+		while (ok &&  pos < term.length) {
+			int codePoint = term.codePointAt(pos);//Character.codePointAt(buffer, pos, buffer.length);
 			ok = null != fst.findTargetArc(codePoint, scratchArc, scratchArc, fstReader);
 			
 			pendingOutput = fst.outputs.add(pendingOutput, scratchArc.output);
@@ -169,7 +163,10 @@ public class Sequences {
 		 
 		    
 		for (int outputIDX = 0; outputIDX < count; outputIDX++) {
-		    	
+		    
+		    // not re-using scratchChars globally -> would have to copy to Terms anyway
+		    CharsRef scratchChars = new CharsRef();
+		    
 		    map.words.get(bytesReader.readVInt(), scratchBytes);
 		    UnicodeUtil.UTF8toUTF16(scratchBytes, scratchChars);
 		        
@@ -182,7 +179,7 @@ public class Sequences {
 		        		add = new BooleanQuery(currentDmq, Operator.AND, Occur.SHOULD);
 		       		}
 		       		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
-		       		newDmq.addClause(new Term(newDmq, new String(scratchChars.chars, start, i - start)));
+		       		newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start));
 		       		add.addClause(newDmq);
 		       		start = i + 1;
 		        }
@@ -191,12 +188,12 @@ public class Sequences {
 		    if (add != null) {
 		    	if (start < scratchChars.length) {
 		    		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
-		        	newDmq.addClause(new Term(newDmq, new String(scratchChars.chars, start, scratchChars.length - start)));
+		        	newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start));
 		        	add.addClause(newDmq);
 		        }
 		       	adds.add(add);
 		    } else {
-		       	adds.add(new Term(currentDmq, new String(scratchChars.chars, 0, scratchChars.length)));
+		       	adds.add(new Term(currentDmq, scratchChars.chars, 0, scratchChars.length));
 		    }
 		    
 		 }

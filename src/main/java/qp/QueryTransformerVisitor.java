@@ -38,6 +38,12 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	
 	Occur occurBuffer = Occur.SHOULD;
 	
+	final char[] input;
+	
+	public QueryTransformerVisitor(char[] input) {
+	    this.input = input;
+	}
+	
 	@Override
 	public Node visitQuery(QueryContext ctx) {
 		Query query = new Query();
@@ -131,20 +137,16 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		
 		TermContext tc = ctx.getRuleContext(TermContext.class, 0);
 
-		String text = tc.getText();
-
-//		Token startToken = tc.getStart();
-//		System.out.println(text + " " + startToken.getStartIndex());
-//		System.out.println(text + " " + startToken.getStopIndex());
+		Token startToken = tc.getStart();
 		
 		List<FieldNameContext> fieldNameContexts = ctx.getRuleContexts(FieldNameContext.class);
 		if (fieldNameContexts != null && !fieldNameContexts.isEmpty()) {
 			for (FieldNameContext fieldNameContext: fieldNameContexts) {
 				String fieldName = fieldNameContext.getText();
-				dmq.addClause(new Term(dmq, fieldName, text));
+				dmq.addClause(new Term(dmq, fieldName, input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex() ));
 			}
 		} else {
-			dmq.addClause(new Term(dmq, text));
+			dmq.addClause(new Term(dmq, input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex()));
 		}
 		
 		
