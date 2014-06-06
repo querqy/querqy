@@ -46,7 +46,15 @@ term: TERMSTRING;
 fieldName : FIELDNAME;
 
 fragment
-TermChar :   [a-zA-Z];
+// this is the BMP in Unicode, excl. punctuation that has a meaning in our grammar 
+// http://en.wikipedia.org/wiki/Unicode_block, http://en.wikipedia.org/wiki/Basic_Latin_(Unicode_block)
+TermChar :  
+	'!'
+	| '\u0023' .. '\u0027'
+	| '*'
+	| ','
+	| '\u002e' .. '\uffff'
+	;
 
 fragment
 FieldNameChar : [a-zA-Z0-9_];
