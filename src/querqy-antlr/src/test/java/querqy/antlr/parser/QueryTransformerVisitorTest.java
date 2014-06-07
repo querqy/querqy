@@ -2,25 +2,17 @@ package querqy.antlr.parser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import querqy.antlr.QueryTransformerVisitor;
-import querqy.antlr.parser.QueryParser.QueryContext;
+import querqy.antlr.ANTLRQueryParser;
 import querqy.model.Query;
 
 
 public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
 
     protected Query makeQuery(String input) {
-        QueryLexer lex = new QueryLexer(new ANTLRInputStream(input));
-        CommonTokenStream tokens = new CommonTokenStream(lex);
-        QueryParser parser = new QueryParser(tokens);
-        
-        QueryContext t = parser.query();
-        return (Query) t.accept(new QueryTransformerVisitor(input.toCharArray()));
+        return new ANTLRQueryParser().parse(input);
     }
 
     
