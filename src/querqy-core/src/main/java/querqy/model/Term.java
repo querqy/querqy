@@ -3,6 +3,9 @@
  */
 package querqy.model;
 
+import java.io.CharArrayReader;
+import java.io.Reader;
+
 
 /**
  * @author rene
@@ -48,6 +51,10 @@ public class Term implements DisjunctionMaxClause {
 	
 	public Term clone(SubQuery<?> newParent) {
 		return new Term(newParent, field, value, start, length);
+	}
+	
+	public Reader reader() {
+	    return new CharArrayReader(value, start, length);
 	}
 	
 	@Override

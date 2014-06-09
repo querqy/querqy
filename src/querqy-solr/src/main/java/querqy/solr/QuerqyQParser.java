@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -27,6 +28,8 @@ import querqy.rewrite.lucene.LuceneQueryBuilder;
  *
  */
 public class QuerqyQParser extends QParser {
+    
+    static final String MATCH_ALL = "*:*";
     
     // the QF parsing code is copied from org.apache.solr.util.SolrPluginUtils and 
     // org.apache.solr.search.DisMaxQParser, replacing the default boost factor null with 1f
@@ -48,6 +51,20 @@ public class QuerqyQParser extends QParser {
     @Override
     public Query parse() throws SyntaxError {
         
+        // TODO q.alt
+        String userQuery = getString();
+        if (userQuery == null) {
+            throw new SyntaxError("query string is null");
+        }
+        userQuery = userQuery.trim();
+        if (userQuery.length() == 0) {
+            throw new SyntaxError("query string is empty");
+        }
+        
+        if ((userQuery.charAt(0) == '*') && (userQuery.length() == 1 || MATCH_ALL.equals(userQuery))) {
+            return new MatchAllDocsQuery();
+        }
+        
         SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
         Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
         
@@ -58,6 +75,22 @@ public class QuerqyQParser extends QParser {
         return builder.createQuery(q);
         
     }
+    
+    /**
+     * Copied from DisMaxQParser
+     * @param solrParams
+     * @return
+     * @throws SyntaxError
+     */
+    public Query getAlternateUserQuery(SolrParams solrParams) throws SyntaxError {
+        String altQ = solrParams.get(DisMaxParams.ALTQ);
+        if (altQ != null) {
+          QParser altQParser = subQuery(altQ, null);
+          return altQParser.getQuery();
+        } else {
+          return null;
+        }
+      }
     
     /**
      * Given a string containing fieldNames and boost info,

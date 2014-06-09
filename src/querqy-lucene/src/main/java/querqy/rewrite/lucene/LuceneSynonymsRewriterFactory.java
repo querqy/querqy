@@ -12,7 +12,7 @@ import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.synonym.SolrSynonymParser;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 
-import qp.rewrite.QueryRewriter;
+import querqy.rewrite.QueryRewriter;
 
 /**
  * @author rene

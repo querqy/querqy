@@ -11,13 +11,13 @@ import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.CharsRef;
 
-import qp.rewrite.QueryRewriter;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Node;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.QueryRewriter;
 
 /**
  * @author rene

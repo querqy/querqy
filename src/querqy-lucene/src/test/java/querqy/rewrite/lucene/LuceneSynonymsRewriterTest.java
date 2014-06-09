@@ -7,14 +7,13 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import qp.rewrite.QueryRewriter;
 import querqy.antlr.QueryTransformerVisitor;
-
 import querqy.AbstractQueryTest;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.model.Query;
+import querqy.rewrite.QueryRewriter;
 
 public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	

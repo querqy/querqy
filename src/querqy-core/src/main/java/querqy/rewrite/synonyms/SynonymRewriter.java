@@ -1,13 +1,12 @@
 /**
  * 
  */
-package qp.rewrite.synonyms;
+package querqy.rewrite.synonyms;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import qp.rewrite.QueryRewriter;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
@@ -17,6 +16,7 @@ import querqy.model.Query;
 import querqy.model.SubQuery;
 import querqy.model.Term;
 import querqy.model.SubQuery.Occur;
+import querqy.rewrite.QueryRewriter;
 
 /**
  * @author rene

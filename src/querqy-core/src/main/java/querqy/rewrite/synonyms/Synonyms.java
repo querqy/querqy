@@ -1,7 +1,7 @@
 /**
  * 
  */
-package qp.rewrite.synonyms;
+package querqy.rewrite.synonyms;
 
 import java.util.Arrays;
 import java.util.HashMap;

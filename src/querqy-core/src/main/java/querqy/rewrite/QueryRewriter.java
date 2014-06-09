@@ -1,7 +1,7 @@
 /**
  * 
  */
-package qp.rewrite;
+package querqy.rewrite;
 
 import querqy.model.Query;
 
