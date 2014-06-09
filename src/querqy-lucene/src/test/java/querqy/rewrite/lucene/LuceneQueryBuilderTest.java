@@ -1,25 +1,18 @@
 package querqy.rewrite.lucene;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 import org.junit.Before;
 import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
-import querqy.antlr.QueryTransformerVisitor;
-import querqy.antlr.parser.QueryLexer;
-import querqy.antlr.parser.QueryParser;
-import querqy.antlr.parser.QueryParser.QueryContext;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     

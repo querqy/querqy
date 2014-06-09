@@ -4,12 +4,9 @@
 package querqy.antlr;
 
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashSet;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.apache.lucene.search.BooleanQuery;
 
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;

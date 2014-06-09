@@ -20,11 +20,13 @@
 	</properties>
 
 	<dependencies>
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-core</artifactId>
@@ -32,15 +34,30 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.antlr</groupId>
-			<artifactId>antlr4-maven-plugin</artifactId>
+			<artifactId>antlr4-runtime</artifactId>
 			<version>4.2.2</version>
-			<type>maven-plugin</type>
+			<exclusions>
+				<exclusion>
+					<groupId>org.abego.treelayout</groupId>
+					<artifactId>org.abego.treelayout.core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.abego.treelayout</groupId>
+			<artifactId>org.abego.treelayout.core</artifactId>
+			<version>1.0.1</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
+	
 	<build>
 		<plugins>
+		
 			<plugin>
 				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-maven-plugin</artifactId>
@@ -53,6 +70,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
