@@ -20,12 +20,10 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.UnicodeUtil;
-import org.apache.lucene.util.automaton.UTF32ToUTF8;
 
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
-import querqy.model.SubQuery;
 import querqy.model.Term;
 
 /**
@@ -34,11 +32,14 @@ import querqy.model.Term;
  */
 public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     
+    enum ParentType {BQ, DMQ}
+    
     final Analyzer analyzer;
     final Map<String, Float> searchFieldsAndBoostings;
     LinkedList<LinkedList<BooleanClause>> clauseStack = new LinkedList<>();
     LinkedList<LinkedList<Query>> subQueryStack = new LinkedList<>();
     
+    protected ParentType parentType = ParentType.BQ;
     
     public LuceneQueryBuilder(Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings) {
         this.analyzer = analyzer;
@@ -51,34 +52,61 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     
     @Override
     public Query visit(querqy.model.Query query) {
-        
+        parentType = ParentType.BQ;
         return visit((BooleanQuery) query);
     }
     
     @Override
     public Query visit(BooleanQuery booleanQuery) {
+        
+        ParentType myParentType = parentType;
+        parentType = ParentType.BQ;
+        
         LinkedList<BooleanClause> clauses = new LinkedList<>();
+        
         clauseStack.add(clauses);
         super.visit(booleanQuery);
         clauseStack.removeLast();
         
+        parentType = myParentType;
+        
+        BooleanClause result = null;
+        
         switch (clauses.size()) {
         case 0: throw new IllegalArgumentException("No subqueries found for BQ. Parent: " + booleanQuery.getParentQuery());
         case 1: 
-            BooleanClause child =  clauses.getFirst();
-            if (!clauseStack.isEmpty()) {
-                clauseStack.getLast().add(child);
-            }
-            return child.getQuery();
+            result = clauses.getFirst();
+            break;
         default:
             org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery();
             for (BooleanClause clause: clauses) {
                 bq.add(clause);
             }
+            
+            result = new BooleanClause(bq, occur(booleanQuery.occur));
+        }
+        
+        Query query = result.getQuery();
+        
+        switch (parentType) {
+        case BQ:
             if (!clauseStack.isEmpty()) {
-                clauseStack.getLast().add(new BooleanClause(bq, occur(booleanQuery.occur)));
+                clauseStack.getLast().add(result);
+            } // else we are the top BQ
+            return query;
+        case DMQ:
+            if (result.getOccur() != Occur.SHOULD) {
+                // create a wrapper query
+                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
+                bq.add(result);
+                query = bq;
             }
-            return bq; 
+            
+            subQueryStack.getLast().add(query);
+            return query;
+          
+        default:
+            throw new RuntimeException("Unknown parentType " + parentType);
         }
     }
     
@@ -93,11 +121,17 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     
     @Override
     public Query visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+        
+        ParentType myParentType = parentType;
+        parentType = ParentType.DMQ;
+        
         LinkedList<Query> subQueries = new LinkedList<>();
         
         subQueryStack.add(subQueries);
         super.visit(disjunctionMaxQuery);
         subQueryStack.removeLast();
+        
+        parentType = myParentType;
         
         switch (subQueries.size()) {
         case 0: throw new IllegalArgumentException("No subqueries found for DMQ. Parent: " + disjunctionMaxQuery.getParentQuery());

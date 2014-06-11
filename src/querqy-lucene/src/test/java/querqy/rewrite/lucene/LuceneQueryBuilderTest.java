@@ -2,6 +2,7 @@ package querqy.rewrite.lucene;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
+import querqy.rewrite.QueryRewriter;
 
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
@@ -65,6 +67,18 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
         return builder.createQuery(q);
+    }
+    
+    protected Query buildWithSynonyms(String input, String...names) throws IOException {
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names));
+        
+        ANTLRQueryParser parser = new ANTLRQueryParser();
+        querqy.model.Query q = parser.parse(input);
+        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(
+                getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+        QueryRewriter rewriter = factory.createRewriter(null, null);
+        return builder.createQuery(rewriter.rewrite(q));
+        
     }
 
     @Test
@@ -209,6 +223,20 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     ));
         
         
+    }
+    
+    @Test
+    public void test13() throws Exception {
+        Query q = buildWithSynonyms("j", "f1");
+        assertThat(q, dmq(1f, 
+                        tq(1f, "f1", "j"),
+                        bq(1f,
+                                tq(Occur.MUST, 1f, "f1", "s"),
+                                tq(Occur.MUST, 1f, "f1", "t")
+                        ), 
+                        tq(1f, "f1", "q")
+                    )
+                );
     }
     
     
