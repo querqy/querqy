@@ -230,7 +230,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         Query q = buildWithSynonyms("j", "f1");
         assertThat(q, dmq(1f, 
                         tq(1f, "f1", "j"),
-                        bq(1f,
+                        bq(0.5f,
                                 tq(Occur.MUST, 1f, "f1", "s"),
                                 tq(Occur.MUST, 1f, "f1", "t")
                         ), 

@@ -3,6 +3,7 @@
  */
 package querqy.solr;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -21,6 +22,7 @@ import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.antlr.ANTLRQueryParser;
+import querqy.rewrite.RewriteChain;
 import querqy.rewrite.lucene.LuceneQueryBuilder;
 
 /**
@@ -37,12 +39,14 @@ public class QuerqyQParser extends QParser {
     private static final Pattern caratPattern = Pattern.compile("\\^");
     
     final Analyzer queryAnalyzer;
+    final RewriteChain rewriteChain;
 
     public QuerqyQParser(String qstr, SolrParams localParams, SolrParams params,
-            SolrQueryRequest req) {
+            SolrQueryRequest req, RewriteChain rewriteChain) {
         super(qstr, localParams, params, req);
         IndexSchema schema = req.getSchema();
         queryAnalyzer = schema.getQueryAnalyzer();
+        this.rewriteChain = rewriteChain;
     }
 
     /* (non-Javadoc)
@@ -72,7 +76,8 @@ public class QuerqyQParser extends QParser {
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(qstr);
-        return builder.createQuery(q);
+        
+        return builder.createQuery(rewriteChain.rewrite(q, Collections.<String,Object>emptyMap()));
         
     }
     

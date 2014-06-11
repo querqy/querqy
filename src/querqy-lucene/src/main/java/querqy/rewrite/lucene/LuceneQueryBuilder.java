@@ -101,7 +101,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
                 bq.add(result);
                 query = bq;
             }
-            
+//            if (clauses.size() > 1) {
+//                query.setBoost(1f / (float) clauses.size());
+//            }
             subQueryStack.getLast().add(query);
             return query;
           
