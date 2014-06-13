@@ -40,15 +40,23 @@ public abstract class SubQuery<T extends Clause> implements Node {
 
 	protected final SubQuery<?> parentQuery;
 	
+	protected final boolean generated;
+	
 	protected final List<T> clauses = new LinkedList<>();
 	
-	public SubQuery(SubQuery<?> parentQuery) {
-		this(parentQuery, Occur.SHOULD);
+	public SubQuery(SubQuery<?> parentQuery, boolean generated) {
+		this(parentQuery, Occur.SHOULD, generated);
 	}
 	
-	public SubQuery(SubQuery<?> parentQuery, Occur occur) {
+	public SubQuery(SubQuery<?> parentQuery, Occur occur, boolean generated) {
 		this.parentQuery = parentQuery;
 		this.occur = occur;
+		this.generated = generated;
+	}
+	
+	@Override
+	public boolean isGenerated() {
+	    return generated;
 	}
 	
 	// TODO: Use filtering iterator

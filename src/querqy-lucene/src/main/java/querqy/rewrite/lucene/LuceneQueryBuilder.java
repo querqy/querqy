@@ -37,15 +37,24 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     final Analyzer analyzer;
     final Map<String, Float> searchFieldsAndBoostings;
     final IndexStats indexStats;
+    final boolean normalizeBooleanQueryBoost;
+    
     LinkedList<LinkedList<BooleanClause>> clauseStack = new LinkedList<>();
     LinkedList<LinkedList<Query>> subQueryStack = new LinkedList<>();
     
     protected ParentType parentType = ParentType.BQ;
     
     public LuceneQueryBuilder(Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats) {
+        this(analyzer, searchFieldsAndBoostings, indexStats, true);
+    }
+
+    
+    public LuceneQueryBuilder(Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats, 
+            boolean normalizeBooleanQueryBoost) {
         this.analyzer = analyzer;
         this.searchFieldsAndBoostings = searchFieldsAndBoostings;
         this.indexStats = indexStats;
+        this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
     }
 
     public Query createQuery(querqy.model.Query query) {
@@ -80,7 +89,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
             result = clauses.getFirst();
             break;
         default:
-            org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery();
+            org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(booleanQuery.isGenerated());
             for (BooleanClause clause: clauses) {
                 bq.add(clause);
             }
@@ -103,9 +112,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
                 bq.add(result);
                 query = bq;
             }
-//            if (clauses.size() > 1) {
-//                query.setBoost(1f / (float) clauses.size());
-//            }
+            if (normalizeBooleanQueryBoost && clauses.size() > 1) {
+                query.setBoost(1f / (float) clauses.size());
+            }
             subQueryStack.getLast().add(query);
             return query;
           
@@ -146,7 +155,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
         default:
             
             if (disjunctionMaxQuery.occur == querqy.model.SubQuery.Occur.MUST_NOT) {
-                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery();
+                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
                 for (Query q : subQueries) {
                     bq.add(q, Occur.SHOULD);
                 }
@@ -263,7 +272,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
             if (backListSize == 1) {
                 org.apache.lucene.index.Term term = backList.removeFirst();
                 TermQuery tq = null;
-                // FIXME
+                
                 if (rewriteRoot == sourceTerm || termEquals(term, rewriteSourceField, rewriteSourceValue)) {
                     tq = new TermQuery(term);
                 } else {
@@ -285,7 +294,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
                     org.apache.lucene.index.Term term = backList.removeFirst();
                     TermQuery tq = null;
                    
-                    if (rewriteRoot == sourceTerm || termEquals(term, rewriteSourceField, rewriteSourceValue)) { //|| term.field().equals(rewriteSourceField)) {
+                    if (rewriteRoot == sourceTerm || termEquals(term, rewriteSourceField, rewriteSourceValue)) { 
                         tq = new TermQuery(term);
                     } else {
                         int df = indexStats.df(new org.apache.lucene.index.Term(term.field(), rewriteSourceValue));

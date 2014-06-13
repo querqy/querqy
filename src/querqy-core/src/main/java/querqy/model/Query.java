@@ -11,7 +11,7 @@ package querqy.model;
 public class Query extends BooleanQuery {
 	
 	public Query() {
-		super(null, Occur.SHOULD);
+		super(null, Occur.SHOULD, false);
 	}
 	
 	

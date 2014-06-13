@@ -70,7 +70,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	public Node visitNoopQuery(NoopQueryContext ctx) {
 
 		BooleanQuery parent = booleanQueryStack.getLast();
-		BooleanQuery query = new BooleanQuery(parent, getOccur());
+		BooleanQuery query = new BooleanQuery(parent, getOccur(), false);
 		parent.addClause(query);
 		
 		operatorStack.add(Operator.NONE);
@@ -111,7 +111,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		}
 		
 		BooleanQuery parent = booleanQueryStack.getLast();
-		BooleanQuery query = new BooleanQuery(parent, getOccur());
+		BooleanQuery query = new BooleanQuery(parent, getOccur(), false);
 		parent.addClause(query);
 		
 		operatorStack.add(op);
@@ -141,7 +141,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		
 		BooleanQuery parent = booleanQueryStack.getLast();
 		
-		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(parent, getOccur());
+		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(parent, getOccur(), false);
 		
 		TermContext tc = ctx.getRuleContext(TermContext.class, 0);
 

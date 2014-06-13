@@ -11,5 +11,6 @@ package querqy.model;
 public interface Node {
 	
 	<T> T accept(NodeVisitor<T> visitor);
+	boolean isGenerated();
 
 }

@@ -175,9 +175,9 @@ public class Sequences {
 		    for (int i = 0; i < scratchChars.length; i++) {
 		    	if (scratchChars.charAt(i) == ' ' && (i > start)) {
 		        	if (add == null) {
-		        		add = new BooleanQuery(currentDmq, Occur.SHOULD);
+		        		add = new BooleanQuery(currentDmq, Occur.SHOULD, true);
 		       		}
-		       		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
+		       		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
 		       		newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start, rewriteSource));
 		       		add.addClause(newDmq);
 		       		start = i + 1;
@@ -186,7 +186,7 @@ public class Sequences {
 		    
 		    if (add != null) {
 		    	if (start < scratchChars.length) {
-		    		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
+		    		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
 		        	newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start, rewriteSource));
 		        	add.addClause(newDmq);
 		        }

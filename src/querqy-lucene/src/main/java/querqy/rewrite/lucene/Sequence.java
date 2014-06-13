@@ -69,15 +69,15 @@ public class Sequence {
                 // FIXME fix parent type of term to always DMQ?
                 DisjunctionMaxQuery currentDmq = (DisjunctionMaxQuery) term.getParentQuery();
                 
-                BooleanQuery add = new BooleanQuery(currentDmq, Occur.SHOULD);
+                BooleanQuery add = new BooleanQuery(currentDmq, Occur.SHOULD, true);
                 
                 if (replacementIsMultiTerm) {
-                    BooleanQuery replaceSeq = new BooleanQuery(add, Occur.MUST);
+                    BooleanQuery replaceSeq = new BooleanQuery(add, Occur.MUST, true);
                     
                     int start = 0;
                     for (int i = 0; i < scratchChars.length; i++) {
                         if (scratchChars.charAt(i) == ' ' && (i > start)) {
-                            DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST);
+                            DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST, true);
                             newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start));
                             replaceSeq.addClause(newDmq);
                             start = i + 1;
@@ -85,7 +85,7 @@ public class Sequence {
                     }
                     
                     if (start < scratchChars.length) {
-                        DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST);
+                        DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST, true);
                         newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start));
                         replaceSeq.addClause(newDmq);
                     }
@@ -94,15 +94,15 @@ public class Sequence {
                     
                 } else {
                     
-                    DisjunctionMaxQuery replaceDmq = new DisjunctionMaxQuery(add, Occur.MUST);
+                    DisjunctionMaxQuery replaceDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
                     replaceDmq.addClause(new Term(replaceDmq, scratchChars.chars, 0, scratchChars.length));
                     add.addClause(replaceDmq);
                 }
                 
-                BooleanQuery neq = new BooleanQuery(add, Occur.MUST_NOT);
+                BooleanQuery neq = new BooleanQuery(add, Occur.MUST_NOT, true);
                 
                 for (Term negTerm: terms) {
-                    DisjunctionMaxQuery neqDmq = new DisjunctionMaxQuery(neq, Occur.MUST);
+                    DisjunctionMaxQuery neqDmq = new DisjunctionMaxQuery(neq, Occur.MUST, true);
                     neqDmq.addClause(negTerm.clone(neqDmq, term));
                     neq.addClause(neqDmq);
                 }

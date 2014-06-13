@@ -17,6 +17,7 @@ public class Term implements DisjunctionMaxClause {
 	protected final char[] value;
 	public final int start;
 	public final int length;
+	public final boolean generated;
 	protected final SubQuery<?> parentQuery;
 	protected final Term rewrittenFrom;
 	
@@ -53,12 +54,17 @@ public class Term implements DisjunctionMaxClause {
 	    this.length = length;
 	    this.parentQuery = parentQuery;
 	    this.rewrittenFrom = rewrittenFrom;
+	    this.generated = rewrittenFrom != null;
 	}
 	    
 	public Term(SubQuery<?> parentQuery, String field, char[] value, Term rewrittenFrom) {
 	    this(parentQuery, field, value, 0, value.length, rewrittenFrom);
 	}
 
+	@Override
+	public boolean isGenerated() {
+	    return generated;
+	}
 	
 	public SubQuery<?> getParentQuery() {
 		return parentQuery;
@@ -142,6 +148,8 @@ public class Term implements DisjunctionMaxClause {
 			return false;
 		return true;
 	}
+
+   
 
 
 }
