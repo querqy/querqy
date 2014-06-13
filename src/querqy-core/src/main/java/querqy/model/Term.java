@@ -18,6 +18,7 @@ public class Term implements DisjunctionMaxClause {
 	public final int start;
 	public final int length;
 	protected final SubQuery<?> parentQuery;
+	protected final Term rewrittenFrom;
 	
 
 	
@@ -30,27 +31,45 @@ public class Term implements DisjunctionMaxClause {
     }
 	
 	public Term(SubQuery<?> parentQuery, String field, char[] value, int start, int length) {
-		this.field = field;
-		this.value = value;
-		this.start = start;
-		this.length = length;
-		this.parentQuery = parentQuery;
+	    this(parentQuery, field, value, start, length, null);
 	}
 	
 	public Term(SubQuery<?> parentQuery, String field, char[] value) {
-        this.field = field;
-        this.value = value;
-        this.start = 0;
-        this.length = value.length;
-        this.parentQuery = parentQuery;
+	    this(parentQuery, field, value, 0, value.length);
     }
+	
+	public Term(SubQuery<?> parentQuery, char[] value, int start, int length, Term rewrittenFrom) {
+	    this(parentQuery, null, value, start, length, rewrittenFrom);
+	}
+	    
+	public Term(SubQuery<?> parentQuery, char[] value, Term rewrittenFrom) {
+	    this(parentQuery, null, value, rewrittenFrom);
+	}
+	    
+	public Term(SubQuery<?> parentQuery, String field, char[] value, int start, int length, Term rewrittenFrom) {
+	    this.field = field;
+	    this.value = value;
+	    this.start = start;
+	    this.length = length;
+	    this.parentQuery = parentQuery;
+	    this.rewrittenFrom = rewrittenFrom;
+	}
+	    
+	public Term(SubQuery<?> parentQuery, String field, char[] value, Term rewrittenFrom) {
+	    this(parentQuery, field, value, 0, value.length, rewrittenFrom);
+	}
+
 	
 	public SubQuery<?> getParentQuery() {
 		return parentQuery;
 	}
 	
-	public Term clone(SubQuery<?> newParent) {
-		return new Term(newParent, field, value, start, length);
+	public Term clone(SubQuery<?> newParent, Term rewrittenFrom) {
+		return new Term(newParent, field, value, start, length, rewrittenFrom);
+	}
+	
+	public Term getRewriteRoot() {
+	    return rewrittenFrom != null ? rewrittenFrom.getRewriteRoot() : this;
 	}
 	
 	public Reader reader() {
@@ -74,10 +93,20 @@ public class Term implements DisjunctionMaxClause {
 	    return Character.codePointAt(value, index + start, start + length);
 	}
 	
+	/**
+	 * 
+	 * @return A copy of the value chars
+	 */
+	public char[] getChars() {
+	    char[] copy = new char[length];
+	    System.arraycopy(value, start, copy, 0, length);
+	    return copy;
+	}
+	
 	public String getValue() {
 		return new String(value, start, length);
 	}
-
+	
 	@Override
 	public String toString() {
 		return ((field == null) ? "*" : field) + ":" + getValue();

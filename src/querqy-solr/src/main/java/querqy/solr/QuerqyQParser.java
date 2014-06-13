@@ -23,6 +23,7 @@ import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.antlr.ANTLRQueryParser;
 import querqy.rewrite.RewriteChain;
+import querqy.rewrite.lucene.IndexStats;
 import querqy.rewrite.lucene.LuceneQueryBuilder;
 
 /**
@@ -40,13 +41,15 @@ public class QuerqyQParser extends QParser {
     
     final Analyzer queryAnalyzer;
     final RewriteChain rewriteChain;
+    final IndexStats indexStats;
 
     public QuerqyQParser(String qstr, SolrParams localParams, SolrParams params,
-            SolrQueryRequest req, RewriteChain rewriteChain) {
+            SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats) {
         super(qstr, localParams, params, req);
         IndexSchema schema = req.getSchema();
         queryAnalyzer = schema.getQueryAnalyzer();
         this.rewriteChain = rewriteChain;
+        this.indexStats = indexStats;
     }
 
     /* (non-Javadoc)
@@ -72,7 +75,7 @@ public class QuerqyQParser extends QParser {
         SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
         Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
         
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(qstr);

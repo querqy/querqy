@@ -103,7 +103,7 @@ public class Sequence {
                 
                 for (Term negTerm: terms) {
                     DisjunctionMaxQuery neqDmq = new DisjunctionMaxQuery(neq, Occur.MUST);
-                    neqDmq.addClause(negTerm.clone(neqDmq));
+                    neqDmq.addClause(negTerm.clone(neqDmq, term));
                     neq.addClause(neqDmq);
                 }
                 

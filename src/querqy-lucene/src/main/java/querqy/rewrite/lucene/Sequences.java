@@ -85,7 +85,7 @@ public class Sequences {
 	            // iterate over term chars and try to append them to the sequence
 	            int pos = 0;
 	            while (ok &&  pos < term.length) {
-	                int codePoint = term.codePointAt(pos); //Character.codePointAt(buffer, pos, buffer.length);
+	                int codePoint = term.codePointAt(pos); 
 	                ok = null != fst.findTargetArc(codePoint, scratchArc, scratchArc, fstReader);
 	                
 	                pendingOutput = fst.outputs.add(pendingOutput, scratchArc.output);
@@ -102,7 +102,7 @@ public class Sequences {
 	                Sequence newSequence = new Sequence(arc.copyFrom(scratchArc), terms, pendingOutput);
 	                addSequences.add(newSequence);
 	                // however, it might not have consumed the complete dictionary lookup key (it might
-	                // complete at the next next position)
+	                // complete at the next term position)
 	                if (scratchArc.isFinal()) {
 	                    // the term completes the lookup key --> output the dictionary values
 	                    newSequence.addOutputs(addenda, map, bytesReader);
@@ -138,7 +138,7 @@ public class Sequences {
             addSequences.add(new Sequence(arc.copyFrom(scratchArc), terms, pendingOutput));
             
 			if (scratchArc.isFinal()) {
-				addOutput(fst.outputs.add(pendingOutput, scratchArc.nextFinalOutput));
+				addOutput(fst.outputs.add(pendingOutput, scratchArc.nextFinalOutput), term);
 			}
 			
 		}
@@ -146,7 +146,7 @@ public class Sequences {
 	}
 	
 	
-    private void addOutput(BytesRef bytes) {
+    private void addOutput(BytesRef bytes, Term rewriteSource) {
         
     	bytesReader.reset(bytes.bytes, bytes.offset, bytes.length);
 
@@ -178,7 +178,7 @@ public class Sequences {
 		        		add = new BooleanQuery(currentDmq, Occur.SHOULD);
 		       		}
 		       		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
-		       		newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start));
+		       		newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start, rewriteSource));
 		       		add.addClause(newDmq);
 		       		start = i + 1;
 		        }
@@ -187,12 +187,12 @@ public class Sequences {
 		    if (add != null) {
 		    	if (start < scratchChars.length) {
 		    		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST);
-		        	newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start));
+		        	newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start, rewriteSource));
 		        	add.addClause(newDmq);
 		        }
 		       	adds.add(add);
 		    } else {
-		       	adds.add(new Term(currentDmq, scratchChars.chars, 0, scratchChars.length));
+		       	adds.add(new Term(currentDmq, scratchChars.chars, 0, scratchChars.length, rewriteSource));
 		    }
 		    
 		 }

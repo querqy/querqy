@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
 import org.junit.Before;
@@ -20,6 +21,13 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     Analyzer keywordAnalyzer;
     Map<String, Float> searchFields;
+    IndexStats dummyIndexStats = new IndexStats() {
+        
+        @Override
+        public int df(Term term) {
+            return 10;
+        }
+    };
     
     @Before
     public void setUp() throws Exception {
@@ -62,7 +70,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     protected Query build(String input, String...names) {
         
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names));
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
@@ -70,7 +78,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
     
     protected Query buildWithSynonyms(String input, String...names) throws IOException {
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names));
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
@@ -230,7 +238,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         Query q = buildWithSynonyms("j", "f1");
         assertThat(q, dmq(1f, 
                         tq(1f, "f1", "j"),
-                        bq(0.5f,
+                        bq(1f,
                                 tq(Occur.MUST, 1f, "f1", "s"),
                                 tq(Occur.MUST, 1f, "f1", "t")
                         ), 

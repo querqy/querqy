@@ -9,16 +9,19 @@ import java.util.List;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.analysis.util.ResourceLoaderAware;
+import org.apache.lucene.index.Term;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
+import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.plugin.SolrCoreAware;
 
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.lucene.IndexStats;
 
 /**
  * @author rene
@@ -44,7 +47,7 @@ public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoader
     @Override
     public QParser createParser(String qstr, SolrParams localParams, SolrParams params,
             SolrQueryRequest req) {
-        return new QuerqyQParser(qstr, localParams, params, req, rewriteChain);
+        return new QuerqyQParser(qstr, localParams, params, req, rewriteChain, new SolrIndexStats(req.getSearcher()));
     }
 
 
@@ -64,6 +67,22 @@ public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoader
         }
         
         rewriteChain = new RewriteChain(factories);
+        
+    }
+    
+    class SolrIndexStats implements IndexStats {
+        final SolrIndexSearcher searcher;
+        public SolrIndexStats(SolrIndexSearcher searcher) {
+            this.searcher = searcher;
+        }
+        @Override
+        public int df(Term term) {
+            try {
+                return searcher.docFreq(term);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         
     }
 
