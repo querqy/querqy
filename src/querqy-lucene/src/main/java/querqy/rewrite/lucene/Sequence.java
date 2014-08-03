@@ -25,7 +25,7 @@ import querqy.model.SubQuery.Occur;
  * @author rene
  *
  */
-public class Sequence {
+class Sequence {
     
     final FST.Arc<BytesRef> arc;
     final List<Term> terms;

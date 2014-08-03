@@ -2,12 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
- 	<parent>
-                <groupId>querqy</groupId>
-                <artifactId>querqy-parent</artifactId>
-                <version>1.0-SNAPSHOT</version>
-                <relativePath>../querqy-parent/pom.xml</relativePath>
-        </parent>
+	<parent>
+		<groupId>querqy</groupId>
+		<artifactId>querqy-parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+		<relativePath>../querqy-parent/pom.xml</relativePath>
+	</parent>
 
 	<artifactId>querqy-core</artifactId>
 	<packaging>jar</packaging>
@@ -15,26 +15,31 @@
 	<name>querqy-core</name>
 	<url>http://maven.apache.org</url>
 
-	
+
 	<dependencies>
+		<dependency>
+			<groupId>eu.danieldk.dictomaton</groupId>
+			<artifactId>dictomaton</artifactId>
+			<version>1.1.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
-		    	<groupId>org.apache.maven.plugins</groupId>
-		       	<artifactId>maven-jar-plugin</artifactId>
-		       	<version>2.4</version>
-		       	<executions>
-		        	<execution>
-		           		<goals>
-		             		<goal>test-jar</goal>
-		           		</goals>
-		         	</execution>
-		       	</executions>
-		 	</plugin>
-     
-     
-			
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

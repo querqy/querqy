@@ -16,7 +16,7 @@ import querqy.model.Term;
 import querqy.model.SubQuery.Occur;
 
 public class AbstractQueryTest {
-
+    
 	public TermMatcher term(String field, String value) {
 		return new TermMatcher(field, value);
 	}

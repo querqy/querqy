@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class DisjunctionMaxQuery extends SubQuery<DisjunctionMaxClause> implements BooleanClause {
 	
-	public DisjunctionMaxQuery(SubQuery<?> parentQuery, Occur occur, boolean generated) {
+	public DisjunctionMaxQuery(SubQuery<BooleanClause> parentQuery, Occur occur, boolean generated) {
 		super(parentQuery, occur, generated);
 	}
 

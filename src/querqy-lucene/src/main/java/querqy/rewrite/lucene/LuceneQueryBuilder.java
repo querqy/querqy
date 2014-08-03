@@ -7,17 +7,14 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.UnicodeUtil;
 
@@ -25,12 +22,13 @@ import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
+import querqy.rewrite.lucene.BooleanQueryFactory.Clause;
 
 /**
  * @author rene
  *
  */
-public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
+public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?>> {
     
     enum ParentType {BQ, DMQ}
     
@@ -39,8 +37,8 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     final IndexStats indexStats;
     final boolean normalizeBooleanQueryBoost;
     
-    LinkedList<LinkedList<BooleanClause>> clauseStack = new LinkedList<>();
-    LinkedList<LinkedList<Query>> subQueryStack = new LinkedList<>();
+    LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
+    LinkedList<DisjunctionMaxQueryFactory> subQueryStack = new LinkedList<>();
     
     protected ParentType parentType = ParentType.BQ;
     
@@ -58,65 +56,70 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     }
 
     public Query createQuery(querqy.model.Query query) {
-        return visit(query);
+        return visit(query).createQuery(-1, indexStats);
     }
     
     @Override
-    public Query visit(querqy.model.Query query) {
+    public LuceneQueryFactory<?> visit(querqy.model.Query query) {
         parentType = ParentType.BQ;
         return visit((BooleanQuery) query);
     }
     
     @Override
-    public Query visit(BooleanQuery booleanQuery) {
+    public LuceneQueryFactory<?> visit(BooleanQuery booleanQuery) {
         
+        
+        BooleanQueryFactory bq = new BooleanQueryFactory(1f, booleanQuery.isGenerated(), normalizeBooleanQueryBoost && parentType == ParentType.DMQ); // FIXME: boost param?
+
         ParentType myParentType = parentType;
         parentType = ParentType.BQ;
         
-        LinkedList<BooleanClause> clauses = new LinkedList<>();
-        
-        clauseStack.add(clauses);
+        clauseStack.add(bq);
         super.visit(booleanQuery);
         clauseStack.removeLast();
         
         parentType = myParentType;
         
-        BooleanClause result = null;
+        Clause result = null;
         
-        switch (clauses.size()) {
+        switch (bq.getNumberOfClauses()) {
         case 0: throw new IllegalArgumentException("No subqueries found for BQ. Parent: " + booleanQuery.getParentQuery());
         case 1: 
-            result = clauses.getFirst();
+            result = bq.getFirstClause(); 
             break;
         default:
-            org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(booleanQuery.isGenerated());
-            for (BooleanClause clause: clauses) {
-                bq.add(clause);
-            }
+//            BooleanQueryFactory bq = new BooleanQueryFactory(1f, booleanQuery.isGenerated()); // REVISIT: boost
+           // org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery();
+//            for (BooleanClause clause: clauses) {
+//                bq.add(clause);
+//            }
             
-            result = new BooleanClause(bq, occur(booleanQuery.occur));
+            result = new Clause(bq, occur(booleanQuery.occur));
         }
         
-        Query query = result.getQuery();
+        //Query query = result.getQuery();
         
         switch (parentType) {
         case BQ:
             if (!clauseStack.isEmpty()) {
                 clauseStack.getLast().add(result);
-            } // else we are the top BQ
-            return query;
+                return bq;
+            } else {// else we are the top BQ 
+                return result.queryFactory;
+            }
         case DMQ:
-            if (result.getOccur() != Occur.SHOULD) {
+            if (result.occur != Occur.SHOULD) {
                 // create a wrapper query
-                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
-                bq.add(result);
-                query = bq;
+                BooleanQueryFactory wrapper = new BooleanQueryFactory(1f, true, false);
+                //org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
+                wrapper.add(result);
+                bq = wrapper;
             }
-            if (normalizeBooleanQueryBoost && clauses.size() > 1) {
-                query.setBoost(1f / (float) clauses.size());
-            }
-            subQueryStack.getLast().add(query);
-            return query;
+//            if (normalizeBooleanQueryBoost && clauses.size() > 1) {
+//                query.setBoost(1f / (float) clauses.size());
+//            }
+            subQueryStack.getLast().add(bq);
+            return bq;
           
         default:
             throw new RuntimeException("Unknown parentType " + parentType);
@@ -133,47 +136,55 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
     }
     
     @Override
-    public Query visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+    public LuceneQueryFactory<?> visit(DisjunctionMaxQuery disjunctionMaxQuery) {
         
         ParentType myParentType = parentType;
         parentType = ParentType.DMQ;
         
-        LinkedList<Query> subQueries = new LinkedList<>();
+        DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(1f, 0f); // FIXME params
         
-        subQueryStack.add(subQueries);
+        subQueryStack.add(dmq);
         super.visit(disjunctionMaxQuery);
         subQueryStack.removeLast();
         
         parentType = myParentType;
         
-        switch (subQueries.size()) {
+        switch (dmq.getNumberOfDisjuncts()) {
         case 0: throw new IllegalArgumentException("No subqueries found for DMQ. Parent: " + disjunctionMaxQuery.getParentQuery());
         case 1: 
-            Query child =  subQueries.getFirst();
-            clauseStack.getLast().add(new BooleanClause(child, occur(disjunctionMaxQuery.occur)));
-            return child;
+            LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
+            clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
+//            Query child =  subQueries.getFirst();
+//            clauseStack.getLast().add(new BooleanClause(child, occur(disjunctionMaxQuery.occur)));
+            return firstDisjunct;
         default:
-            
+            // FIXME: we can decide this earlier --> avoid creating DMQ in case of MUST_NOT
             if (disjunctionMaxQuery.occur == querqy.model.SubQuery.Occur.MUST_NOT) {
-                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
-                for (Query q : subQueries) {
-                    bq.add(q, Occur.SHOULD);
+                // FIXME: correct to normalize boost?
+                BooleanQueryFactory bq = new BooleanQueryFactory(1f, true, false);
+                for (LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
+                    bq.add(queryFactory, Occur.SHOULD);
                 }
-                clauseStack.getLast().add(new BooleanClause(bq, Occur.MUST_NOT));
+//                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
+//                for (Query q : subQueries) {
+//                    bq.add(q, Occur.SHOULD);
+//                }
+                clauseStack.getLast().add(bq, Occur.MUST_NOT);
                 return bq;
             }
             
-            org.apache.lucene.search.DisjunctionMaxQuery dmq = new org.apache.lucene.search.DisjunctionMaxQuery(0f);
-            dmq.add(subQueries);
-            clauseStack.getLast().add(new BooleanClause(dmq, occur(disjunctionMaxQuery.occur)));
+//            
+//            org.apache.lucene.search.DisjunctionMaxQuery dmq = new org.apache.lucene.search.DisjunctionMaxQuery(0f);
+//            dmq.add(subQueries);
+            clauseStack.getLast().add(dmq, occur(disjunctionMaxQuery.occur) );// new BooleanClause(dmq, occur(disjunctionMaxQuery.occur)));
             return dmq; 
         }
     }
     
     @Override
-    public Query visit(Term term) {
+    public LuceneQueryFactory<?> visit(Term term) {
         
-        LinkedList<Query> siblings = subQueryStack.getLast();
+        DisjunctionMaxQueryFactory siblings = subQueryStack.getLast();
         String fieldname = term.getField();
 
         try {
@@ -205,7 +216,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
         
     }
     
-    void addTerm(String fieldname, float boost, Reader reader, List<Query> target, Term sourceTerm) throws IOException {
+    void addTerm(String fieldname, float boost, Reader reader, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
         
         LinkedList<org.apache.lucene.index.Term> backList = new LinkedList<>();
       //  reader.reset();
@@ -255,55 +266,22 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<Query> {
        
         
     }
-    void applyBackList(float boost, LinkedList<org.apache.lucene.index.Term> backList, List<Query> target, Term sourceTerm) {
-       // String rewriteSourceValue = rewriteRoot.getValue(); 
-    //    System.out.println("REWRITE R " + rewriteRoot);
-      //  System.out.println("CURRENT T " + currentTerm);
+    void applyBackList(float boost, LinkedList<org.apache.lucene.index.Term> backList, DisjunctionMaxQueryFactory target, Term sourceTerm) {
         
         int backListSize = backList.size();
         
         if (backListSize > 0)  {
             
-            Term rewriteRoot = sourceTerm.getRewriteRoot();
-            BytesRef rewriteSourceValue = new BytesRef();
-            UnicodeUtil.UTF16toUTF8(rewriteRoot.getChars(), 0, rewriteRoot.length, rewriteSourceValue);
-            String rewriteSourceField = rewriteRoot.getField();
-            
             if (backListSize == 1) {
                 org.apache.lucene.index.Term term = backList.removeFirst();
-                TermQuery tq = null;
-                
-                if (rewriteRoot == sourceTerm || termEquals(term, rewriteSourceField, rewriteSourceValue)) {
-                    tq = new TermQuery(term);
-                } else {
-                    int df = indexStats.df(new org.apache.lucene.index.Term(term.field(), rewriteSourceValue));
-                    if (df == 0) {
-                        tq = new TermQuery(term);
-                    } else {
-                        tq = new TermQuery(term, df);
-                    }
-                }
-                tq.setBoost(boost);
+                TermQueryFactory tq = new TermQueryFactory(term, boost);
                 target.add(tq);
                 
             } else {
-                
-                org.apache.lucene.search.DisjunctionMaxQuery dmq = new org.apache.lucene.search.DisjunctionMaxQuery(0f);
-                dmq.setBoost(boost);
+                DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, 0f);
                 while (!backList.isEmpty()) {
                     org.apache.lucene.index.Term term = backList.removeFirst();
-                    TermQuery tq = null;
-                   
-                    if (rewriteRoot == sourceTerm || termEquals(term, rewriteSourceField, rewriteSourceValue)) { 
-                        tq = new TermQuery(term);
-                    } else {
-                        int df = indexStats.df(new org.apache.lucene.index.Term(term.field(), rewriteSourceValue));
-                        if (df == 0) {
-                            tq = new TermQuery(term);
-                        } else {
-                            tq = new TermQuery(term, df);
-                        }
-                    }
+                    TermQueryFactory tq = new TermQueryFactory(term, 1f);
                     dmq.add(tq);
                 }
                 target.add(dmq);

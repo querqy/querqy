@@ -29,7 +29,7 @@ import querqy.model.SubQuery.Occur;
  * @author rene
  *
  */
-public class Sequences {
+class Sequences {
 	
 	final FST<BytesRef> fst;
 	

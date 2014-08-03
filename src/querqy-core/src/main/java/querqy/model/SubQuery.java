@@ -82,6 +82,13 @@ public abstract class SubQuery<T extends Clause> implements Node {
 		clauses.add(clause);
 	}
 	
+	public void removeClause(@SuppressWarnings("rawtypes") Clause clause) {
+	    if (clause.getParentQuery() != this) {
+            throw new IllegalArgumentException("This query is not a parent of " + clause);
+        }
+	    clauses.remove(clause);
+	}
+	
 	public List<T> getClauses() {
 		return clauses;
 	}

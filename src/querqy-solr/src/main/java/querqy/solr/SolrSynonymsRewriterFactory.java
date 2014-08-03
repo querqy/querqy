@@ -15,7 +15,7 @@ import querqy.rewrite.lucene.LuceneSynonymsRewriterFactory;
  * @author rene
  *
  */
-public class SynonymsRewriterFactory implements RewriterFactoryAdapter {
+public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
 
     /* (non-Javadoc)
      * @see querqy.solr.SolrRewriterFactory#createRewriterFactory(org.apache.solr.common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)

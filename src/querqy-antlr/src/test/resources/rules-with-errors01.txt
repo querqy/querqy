@@ -1,0 +1,9 @@
+x =>
+	DELETE
+
+aa b =>
+	DELETE: c
+	
+k x:l =>
+	DELETE: k
+	
