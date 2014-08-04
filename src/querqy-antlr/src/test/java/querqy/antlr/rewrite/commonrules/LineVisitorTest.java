@@ -38,6 +38,7 @@ public class LineVisitorTest extends AbstractCommonRulesTest {
         return runAndExpectClass(line, clazz, null);
     }
     
+    
     @SuppressWarnings("unchecked")
     protected <T> T runAndExpectClass(String line, Class<T> clazz, Input prevInput) {
         Object result = runVisitor(line, prevInput);
@@ -102,23 +103,28 @@ public class LineVisitorTest extends AbstractCommonRulesTest {
     
     @Test
     public void testDeleteDeclaredSingleTerm() throws Exception {
-        DeleteInstruction delete = runAndExpectClass("DELETE: ab", DeleteInstruction.class);
+        DeleteInstruction delete = runAndExpectClass("DELETE: ab", DeleteInstruction.class, 
+                new Input(Arrays.asList( mkTerm("ab"))));
         assertThat(delete.getTermsToDelete(), contains(mkTerm("ab")));
         
     }
     
     @Test
     public void testDeleteDeclaredTermsWithFieldName() throws Exception {
-        DeleteInstruction delete = runAndExpectClass("DELETE: x:ab cd", DeleteInstruction.class);
+        DeleteInstruction delete = runAndExpectClass("DELETE: x:ab cd", DeleteInstruction.class, 
+                new Input(Arrays.asList(mkTerm("ab", "x"), mkTerm("cd"))));
         assertThat(delete.getTermsToDelete(), contains(mkTerm("ab", "x"), mkTerm("cd")));
         
-        delete = runAndExpectClass("DELETE: x:ab y:cd", DeleteInstruction.class);
+        delete = runAndExpectClass("DELETE: x:ab y:cd", DeleteInstruction.class, 
+                new Input(Arrays.asList(mkTerm("ab", "x"), mkTerm("cd", "y"))));
         assertThat(delete.getTermsToDelete(), contains(mkTerm("ab", "x"), mkTerm("cd", "y")));
         
-        delete = runAndExpectClass("DELETE: x:(ab cd)", DeleteInstruction.class);
+        delete = runAndExpectClass("DELETE: x:(ab cd)", DeleteInstruction.class, 
+                new Input(Arrays.asList(mkTerm("ab", "x"), mkTerm("cd", "x"))));
         assertThat(delete.getTermsToDelete(), contains(mkTerm("ab", "x"), mkTerm("cd", "x")));
         
-        delete = runAndExpectClass("delete: {y,z}:(aacd b)", DeleteInstruction.class);
+        delete = runAndExpectClass("delete: {y,z}:(aacd b)", DeleteInstruction.class, 
+                new Input(Arrays.asList(mkTerm("aacd", "y", "z"), mkTerm("b", "y", "z"))));
         assertThat(delete.getTermsToDelete(), contains(mkTerm("aacd", "y", "z"), mkTerm("b", "y", "z")));
         
     }
