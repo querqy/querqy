@@ -1,0 +1,3 @@
+[submodule "dictomaton"]
+	path = dictomaton
+	url = git@github.com:renekrie/dictomaton.git

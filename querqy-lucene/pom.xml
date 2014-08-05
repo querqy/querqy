@@ -6,23 +6,17 @@
 		<groupId>querqy</groupId>
 		<artifactId>querqy-parent</artifactId>
 		<version>1.0-SNAPSHOT</version>
-		<relativePath>../querqy-parent/pom.xml</relativePath>
 	</parent>
-
 	<artifactId>querqy-lucene</artifactId>
-	<packaging>jar</packaging>
 
-	<name>querqy-lucene</name>
-	<url>http://maven.apache.org</url>
-	
 	<dependencies>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-core</artifactId>
@@ -30,20 +24,20 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-antlr</artifactId>
 			<version>${project.version}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-analyzers-common</artifactId>
 			<version>${lucene.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 	</dependencies>
 </project>

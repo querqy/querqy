@@ -6,14 +6,9 @@
 		<groupId>querqy</groupId>
 		<artifactId>querqy-parent</artifactId>
 		<version>1.0-SNAPSHOT</version>
-		<relativePath>../querqy-parent/pom.xml</relativePath>
 	</parent>
 
 	<artifactId>querqy-solr</artifactId>
-	<packaging>jar</packaging>
-
-	<name>querqy-solr</name>
-	<url>http://maven.apache.org</url>
 
 	<dependencies>
 
@@ -22,13 +17,13 @@
 			<artifactId>querqy-lucene</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-antlr</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
@@ -36,26 +31,26 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
-  <plugins>
-    <plugin>
-      <artifactId>maven-assembly-plugin</artifactId>
-      <configuration>
-        <descriptorRefs>
-          <descriptorRef>jar-with-dependencies</descriptorRef>
-        </descriptorRefs>
-      </configuration>
-      <executions>
-      <execution>
-        <phase>package</phase>
-        <goals>
-          <goal>single</goal>
-        </goals>
-      </execution>
-    </executions>
-    </plugin>
-  </plugins>
-</build>
-	
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

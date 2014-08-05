@@ -1,5 +1,14 @@
+# root project
 .classpath
 .project
 .settings/*
 target/*
+.DS_Store
+
+# modules
+*/.classpath
+*/.project
+*/.settings
+*/target
+
 
