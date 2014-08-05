@@ -1,3 +1,4 @@
 [submodule "dictomaton"]
 	path = dictomaton
-	url = git@github.com:renekrie/dictomaton.git
+	url = https://github.com/renekrie/dictomaton.git
+	branch = master
