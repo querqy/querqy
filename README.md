@@ -1,4 +1,4 @@
-![travis ci build status](https://travis-ci.org/renekrie/querqy.png)
+![travis ci build status](https://travis-ci.org/shopping24/querqy.png)
 
 Querqy is a rule-based query rewriter for Java-based search engines.
 
