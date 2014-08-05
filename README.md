@@ -8,6 +8,7 @@ Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/l
 
 ## Building the project
 
+    $ git submodule update --init
     $ export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
     $ export MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true -Dgpg.skip=true"
     $ mvn clean install
