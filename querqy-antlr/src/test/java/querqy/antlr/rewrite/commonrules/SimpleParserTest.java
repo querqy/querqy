@@ -66,8 +66,8 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     @Test
     public void test01() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt");
-        Term t1 = new Term(null, "aa".toCharArray());
-        Term t2 = new Term(null, "l".toCharArray());
+        Term t1 = new Term(null, "aa");
+        Term t2 = new Term(null, "l");
         TermPositionSequence seq = new TermPositionSequence();
         seq.nextPosition();
         seq.addTerm(t1);
@@ -84,10 +84,10 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     @Test
     public void test02() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt");
-        Term t1 = new Term(null, "a".toCharArray());
-        Term t2 = new Term(null, "b".toCharArray());
-        Term t3 = new Term(null, "c".toCharArray());
-        Term t4 = new Term(null, "l".toCharArray());
+        Term t1 = new Term(null, "a");
+        Term t2 = new Term(null, "b");
+        Term t3 = new Term(null, "c");
+        Term t4 = new Term(null, "l");
         TermPositionSequence seq = new TermPositionSequence();
         seq.nextPosition();
         seq.addTerm(t1);

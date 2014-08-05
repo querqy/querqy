@@ -55,7 +55,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         Query query = makeQuery("a");
         DisjunctionMaxQuery dmq = query.getClauses(BooleanQuery.class).get(0)
             .getClauses(DisjunctionMaxQuery.class).get(0);
-        querqy.model.Term termB = new querqy.model.Term(dmq, null, "b".toCharArray());
+        querqy.model.Term termB = new querqy.model.Term(dmq, null, "b");
         
         dmq.addClause(termB);
         
@@ -82,7 +82,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         Query query = makeQuery("a");
         DisjunctionMaxQuery dmq = query.getClauses(BooleanQuery.class).get(0)
             .getClauses(DisjunctionMaxQuery.class).get(0);
-        querqy.model.Term termB = new querqy.model.Term(dmq, null, "a".toCharArray());
+        querqy.model.Term termB = new querqy.model.Term(dmq, null, "a");
         
         dmq.addClause(termB);
         

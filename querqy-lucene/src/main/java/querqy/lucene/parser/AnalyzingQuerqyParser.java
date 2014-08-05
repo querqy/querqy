@@ -51,7 +51,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
 
          for (CharSequence term : terms) {
             DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
-            Term t = new Term(dmq, term.toString().toCharArray());
+            Term t = new Term(dmq, term);
             dmq.addClause(t);
             query.addClause(dmq);
 
@@ -59,7 +59,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
             Collection<CharSequence> synonyms = analyze(CharSource.wrap(term), synonymAnalyzer);
             if (!synonyms.isEmpty()) {
                for (CharSequence synonym : synonyms) {
-                  dmq.addClause(new Term(dmq, synonym.toString().toCharArray(), t));
+                  dmq.addClause(new Term(dmq, synonym, true));
                }
             }
          }

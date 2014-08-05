@@ -4,8 +4,6 @@
 package querqy.rewrite.lucene;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -18,11 +16,14 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.UnicodeUtil;
 
+import querqy.CompoundCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
 import querqy.rewrite.lucene.BooleanQueryFactory.Clause;
+
+import com.google.common.io.CharSource;
 
 /**
  * @author rene
@@ -192,18 +193,18 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             if (fieldname != null) {
                 Float boost = searchFieldsAndBoostings.get(fieldname);
                 if (boost != null) {
-                    addTerm(fieldname, boost, term.reader(), siblings, term);
+                    addTerm(fieldname, boost, siblings, term);
                 } else {
                     // someone searches in a field that is not set as a search field 
                     // --> set value to fieldname + ":" + value in search in all fields
-                    String value = fieldname + ":" + term.getValue();
+                    Term termWithFieldInValue = new Term(null, new CompoundCharSequence(":", fieldname, term.getValue()));
                     for (Map.Entry<String, Float> field: searchFieldsAndBoostings.entrySet()) {
-                        addTerm(field.getKey(), field.getValue(), new StringReader(value), siblings, term);
+                        addTerm(field.getKey(), field.getValue(), siblings, termWithFieldInValue);
                     }
                 }
             } else {
                 for (Map.Entry<String, Float> field: searchFieldsAndBoostings.entrySet()) {
-                    addTerm(field.getKey(), field.getValue(), term.reader(), siblings, term);
+                    addTerm(field.getKey(), field.getValue(), siblings, term);
                 }
             }
         } catch (IOException e) {
@@ -216,13 +217,14 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         
     }
     
-    void addTerm(String fieldname, float boost, Reader reader, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
+    void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
         
         LinkedList<org.apache.lucene.index.Term> backList = new LinkedList<>();
       //  reader.reset();
         TokenStream ts = null;
         try {
-            ts = analyzer.tokenStream(fieldname, reader);
+        	CharSource termSource = CharSource.wrap(sourceTerm);
+            ts = analyzer.tokenStream(fieldname, termSource.openStream());
             CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
             PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
             ts.reset();
@@ -231,7 +233,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 int inc = posIncAttr.getPositionIncrement();
                 
                 if (inc > 0) {
-                    applyBackList(boost, backList, target, sourceTerm);
+                    applyBackList(boost, backList, target);
                 }            
                 
                 int length = termAttr.length();
@@ -239,7 +241,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 UnicodeUtil.UTF16toUTF8(termAttr.buffer(), 0, length, bytes);
                 backList.add(new org.apache.lucene.index.Term(fieldname, bytes));
             }
-            applyBackList(boost, backList, target, sourceTerm);
+            applyBackList(boost, backList, target);
         } finally {
             if (ts != null) {
                 try {
@@ -266,7 +268,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
        
         
     }
-    void applyBackList(float boost, LinkedList<org.apache.lucene.index.Term> backList, DisjunctionMaxQueryFactory target, Term sourceTerm) {
+    void applyBackList(float boost, LinkedList<org.apache.lucene.index.Term> backList, DisjunctionMaxQueryFactory target) {
         
         int backListSize = backList.size();
         

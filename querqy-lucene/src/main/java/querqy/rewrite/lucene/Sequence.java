@@ -15,6 +15,7 @@ import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.UnicodeUtil;
 import org.apache.lucene.util.fst.FST;
 
+import querqy.SimpleComparableCharSequence;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
@@ -78,7 +79,9 @@ class Sequence {
                     for (int i = 0; i < scratchChars.length; i++) {
                         if (scratchChars.charAt(i) == ' ' && (i > start)) {
                             DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST, true);
-                            newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start));
+                            newDmq.addClause(
+                            		new Term(newDmq, 
+                            				new SimpleComparableCharSequence(scratchChars.chars, start, i - start)));
                             replaceSeq.addClause(newDmq);
                             start = i + 1;
                         }
@@ -86,7 +89,7 @@ class Sequence {
                     
                     if (start < scratchChars.length) {
                         DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST, true);
-                        newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start));
+                        newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars.chars, start, scratchChars.length - start)));
                         replaceSeq.addClause(newDmq);
                     }
                     
@@ -95,7 +98,7 @@ class Sequence {
                 } else {
                     
                     DisjunctionMaxQuery replaceDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
-                    replaceDmq.addClause(new Term(replaceDmq, scratchChars.chars, 0, scratchChars.length));
+                    replaceDmq.addClause(new Term(replaceDmq, new SimpleComparableCharSequence(scratchChars.chars, 0, scratchChars.length)));
                     add.addClause(replaceDmq);
                 }
                 
@@ -103,7 +106,7 @@ class Sequence {
                 
                 for (Term negTerm: terms) {
                     DisjunctionMaxQuery neqDmq = new DisjunctionMaxQuery(neq, Occur.MUST, true);
-                    neqDmq.addClause(negTerm.clone(neqDmq, term));
+                    neqDmq.addClause(negTerm.clone(neqDmq));
                     neq.addClause(neqDmq);
                 }
                 

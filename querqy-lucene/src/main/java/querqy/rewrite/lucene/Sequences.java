@@ -19,6 +19,7 @@ import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.UnicodeUtil;
 import org.apache.lucene.util.fst.FST;
 
+import querqy.SimpleComparableCharSequence;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
@@ -82,10 +83,14 @@ class Sequences {
 	            // pending contains sequence + ' ' now
 	            BytesRef pendingOutput = fst.outputs.add(sequence.output, scratchArc.output);
 
+	            CharSequence termValue = term.getValue();
+	            
 	            // iterate over term chars and try to append them to the sequence
-	            int pos = 0;
-	            while (ok &&  pos < term.length) {
-	                int codePoint = term.codePointAt(pos); 
+	            ;
+	            for (int pos = 0, len = termValue.length(); ok &&  pos < len;) {
+	            	
+	                int codePoint = Character.codePointAt(termValue, pos); 
+	                
 	                ok = null != fst.findTargetArc(codePoint, scratchArc, scratchArc, fstReader);
 	                
 	                pendingOutput = fst.outputs.add(pendingOutput, scratchArc.output);
@@ -113,18 +118,23 @@ class Sequences {
 	}
 	
 	public void putTerm(Term term) throws IOException {
+		
 	    appendToSequences(term);
-		FST.Arc<BytesRef> scratchArc = new FST.Arc<BytesRef>();
+		
+	    FST.Arc<BytesRef> scratchArc = new FST.Arc<BytesRef>();
 		fst.getFirstArc(scratchArc);
 		BytesRef pendingOutput = fst.outputs.getNoOutput();
 		
 		FST.BytesReader fstReader = fst.getBytesReader();
-		//char[] buffer = term.getValue().toCharArray();
 		
 		boolean ok = true;
-		int pos = 0;
-		while (ok &&  pos < term.length) {
-			int codePoint = term.codePointAt(pos);//Character.codePointAt(buffer, pos, buffer.length);
+
+		CharSequence termValue = term.getValue();
+		
+		for (int pos = 0, len = termValue.length(); ok && (pos < len);) {
+			
+			int codePoint = Character.codePointAt(termValue, pos);
+			
 			ok = null != fst.findTargetArc(codePoint, scratchArc, scratchArc, fstReader);
 			
 			pendingOutput = fst.outputs.add(pendingOutput, scratchArc.output);
@@ -178,7 +188,7 @@ class Sequences {
 		        		add = new BooleanQuery(currentDmq, Occur.SHOULD, true);
 		       		}
 		       		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
-		       		newDmq.addClause(new Term(newDmq, scratchChars.chars, start, i - start, rewriteSource));
+		       		newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars.chars, start, i - start), true));
 		       		add.addClause(newDmq);
 		       		start = i + 1;
 		        }
@@ -187,12 +197,12 @@ class Sequences {
 		    if (add != null) {
 		    	if (start < scratchChars.length) {
 		    		DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
-		        	newDmq.addClause(new Term(newDmq, scratchChars.chars, start, scratchChars.length - start, rewriteSource));
+		        	newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars.chars, start, scratchChars.length - start), true));
 		        	add.addClause(newDmq);
 		        }
 		       	adds.add(add);
 		    } else {
-		       	adds.add(new Term(currentDmq, scratchChars.chars, 0, scratchChars.length, rewriteSource));
+		       	adds.add(new Term(currentDmq, new SimpleComparableCharSequence( scratchChars.chars, 0, scratchChars.length), true));
 		    }
 		    
 		 }

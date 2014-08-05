@@ -9,6 +9,7 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
+import querqy.SimpleComparableCharSequence;
 import querqy.antlr.parser.QueryBaseVisitor;
 import querqy.antlr.parser.QueryParser.BooleanPrefixContext;
 import querqy.antlr.parser.QueryParser.BooleanQueryContext;
@@ -151,13 +152,14 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		if (fieldNameContexts != null && !fieldNameContexts.isEmpty()) {
 			for (FieldNameContext fieldNameContext: fieldNameContexts) {
 				String fieldName = fieldNameContext.getText();
-				dmq.addClause(new Term(dmq, fieldName, input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex() ));
+				dmq.addClause(
+						new Term(dmq, 
+								fieldName, 
+								new SimpleComparableCharSequence(input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex())));
 			}
 		} else {
-			dmq.addClause(new Term(dmq, input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex()));
+			dmq.addClause(new Term(dmq, new SimpleComparableCharSequence(input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex())));
 		}
-		
-		
 		
 		parent.addClause(dmq);
 		return dmq;
