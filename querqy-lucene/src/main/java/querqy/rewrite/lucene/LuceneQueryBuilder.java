@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.apache.commons.io.input.CharSequenceReader;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -22,8 +23,6 @@ import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
 import querqy.rewrite.lucene.BooleanQueryFactory.Clause;
-
-import com.google.common.io.CharSource;
 
 /**
  * @author rene
@@ -223,8 +222,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       //  reader.reset();
         TokenStream ts = null;
         try {
-        	CharSource termSource = CharSource.wrap(sourceTerm);
-            ts = analyzer.tokenStream(fieldname, termSource.openStream());
+            ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
             CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
             PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
             ts.reset();

@@ -12,13 +12,12 @@ import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.lucene.index.Term;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrIndexSearcher;
-import org.apache.solr.util.plugin.SolrCoreAware;
 
+import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.lucene.IndexStats;
@@ -31,6 +30,7 @@ public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoader
 
     protected NamedList<?> initArgs = null;
     protected RewriteChain rewriteChain = null;
+    protected Class<? extends QuerqyParser> querqyParserClass;
     
     /* (non-Javadoc)
      * @see org.apache.solr.util.plugin.NamedListInitializedPlugin#init(org.apache.solr.common.util.NamedList)
@@ -47,16 +47,39 @@ public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoader
     @Override
     public QParser createParser(String qstr, SolrParams localParams, SolrParams params,
             SolrQueryRequest req) {
-        return new QuerqyQParser(qstr, localParams, params, req, rewriteChain, new SolrIndexStats(req.getSearcher()));
+    	
+    	QuerqyParser querqyParser = createQuerqyParser(qstr, localParams, params, req);
+    	
+		return new QuerqyQParser(qstr, localParams, params, req, rewriteChain, new SolrIndexStats(req.getSearcher()), querqyParser);
+		
     }
 
 
     @Override
     public void inform(ResourceLoader loader) throws IOException {
-        NamedList<?> chainConfig = (NamedList<?>) initArgs.get("rewriteChain");
+    	
+        rewriteChain = loadRewriteChain(loader);
+        querqyParserClass = loadQuerqyParserClass(loader);
+        
+    }
+    
+    public QuerqyParser createQuerqyParser(String qstr, SolrParams localParams, SolrParams params,
+            SolrQueryRequest req) {
+    	try {
+    		return querqyParserClass.newInstance();
+    	} catch (InstantiationException|IllegalAccessException e) {
+    		throw new RuntimeException("Could not create QuerqyParser", e);
+    	} 
+    }
+    
+    public RewriteChain loadRewriteChain(ResourceLoader loader) throws IOException {
+    	
+    	NamedList<?> chainConfig = (NamedList<?>) initArgs.get("rewriteChain");
         List<RewriterFactory> factories = new LinkedList<>();
+        
         if (chainConfig != null) {
-            @SuppressWarnings("unchecked")
+        
+        	@SuppressWarnings("unchecked")
             List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
             if (rewriterConfigs != null) {
                 for (NamedList<?> config: rewriterConfigs) {
@@ -66,8 +89,22 @@ public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoader
             }
         }
         
-        rewriteChain = new RewriteChain(factories);
-        
+        return new RewriteChain(factories);
+    }
+    
+    public Class<? extends QuerqyParser> loadQuerqyParserClass(ResourceLoader loader) throws IOException  {
+    	
+    	NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
+    	if (parserConfig == null) {
+    		throw new IOException("Missing querqy parser configuration");
+    	}
+    	
+    	String className = (String) parserConfig.get("class");
+    	if (className == null) {
+    		throw new IOException("Missing attribute 'class' in querqy parser configuration");
+    	}
+    	
+    	return loader.findClass(className, QuerqyParser.class);
     }
     
     class SolrIndexStats implements IndexStats {

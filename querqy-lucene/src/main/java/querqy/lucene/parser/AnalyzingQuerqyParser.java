@@ -3,19 +3,19 @@ package querqy.lucene.parser;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.apache.commons.io.input.CharSequenceReader;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.io.CharSource;
 
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
 import querqy.model.SubQuery.Occur;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}
@@ -44,7 +44,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
 
       try {
          // get dismax terms
-         Collection<CharSequence> terms = analyze(CharSource.wrap(input), queryAnalyzer);
+         Collection<CharSequence> terms = analyze(input, queryAnalyzer);
 
          // construct query while iterating terms
          Query query = new Query();
@@ -56,7 +56,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
             query.addClause(dmq);
 
             // evaluate synonyms
-            Collection<CharSequence> synonyms = analyze(CharSource.wrap(term), synonymAnalyzer);
+            Collection<CharSequence> synonyms = analyze(term, synonymAnalyzer);
             if (!synonyms.isEmpty()) {
                for (CharSequence synonym : synonyms) {
                   dmq.addClause(new Term(dmq, synonym, true));
@@ -73,11 +73,11 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
    /**
     * Analyzes the given string using the given analyzer.
     */
-   protected Collection<CharSequence> analyze(CharSource input, Analyzer analyzer) throws IOException {
+   protected Collection<CharSequence> analyze(CharSequence input, Analyzer analyzer) throws IOException {
       Preconditions.checkNotNull(input);
       Preconditions.checkNotNull(analyzer);
 
-      TokenStream tokenStream = analyzer.tokenStream("querqy", input.openStream());
+      TokenStream tokenStream = analyzer.tokenStream("querqy", new CharSequenceReader(input));
       Collection<CharSequence> result = Lists.newArrayList();
       try {
          tokenStream.reset();

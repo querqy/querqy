@@ -10,6 +10,12 @@
 	<artifactId>querqy-lucene</artifactId>
 
 	<dependencies>
+	
+		<dependency>
+  			<groupId>commons-io</groupId>
+  			<artifactId>commons-io</artifactId>
+  			<version>${commons.io.version}</version>
+  		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>

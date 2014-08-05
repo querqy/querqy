@@ -5,10 +5,14 @@ package querqy.solr;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.params.CommonParams;
@@ -16,12 +20,13 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.IndexSchema;
+import org.apache.solr.search.ExtendedDismaxQParser;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
-import querqy.antlr.ANTLRQueryParser;
+import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.lucene.IndexStats;
 import querqy.rewrite.lucene.LuceneQueryBuilder;
@@ -30,7 +35,7 @@ import querqy.rewrite.lucene.LuceneQueryBuilder;
  * @author rene
  *
  */
-public class QuerqyQParser extends QParser {
+public class QuerqyQParser extends ExtendedDismaxQParser {
     
     static final String MATCH_ALL = "*:*";
     
@@ -42,14 +47,36 @@ public class QuerqyQParser extends QParser {
     final Analyzer queryAnalyzer;
     final RewriteChain rewriteChain;
     final IndexStats indexStats;
+    final QuerqyParser querqyParser;
+    
+    protected ExtendedDismaxConfiguration config;
+    protected List<Query> boostQueries;
 
     public QuerqyQParser(String qstr, SolrParams localParams, SolrParams params,
-            SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats) {
+            SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats, QuerqyParser querqyParser) {
+    	
         super(qstr, localParams, params, req);
+        
+        this.querqyParser = querqyParser;
+        
+        if (config == null) {
+        	// this is a hack that works around ExtendedDismaxQParser keeping the config member var private
+        	// and avoids calling createConfiguration() twice
+        	config = createConfiguration(qstr, localParams, params, req);
+        }
         IndexSchema schema = req.getSchema();
         queryAnalyzer = schema.getQueryAnalyzer();
         this.rewriteChain = rewriteChain;
         this.indexStats = indexStats;
+    }
+    
+    @Override
+    protected ExtendedDismaxConfiguration createConfiguration(String qstr,
+    		SolrParams localParams, SolrParams params, SolrQueryRequest req) {
+    	// this is a hack that works around ExtendedDismaxQParser keeping the config member var private
+    	// and avoids calling createConfiguration() twice
+    	this.config = super.createConfiguration(qstr, localParams, params, req);
+    	return config;
     }
 
     /* (non-Javadoc)
@@ -68,7 +95,48 @@ public class QuerqyQParser extends QParser {
             throw new SyntaxError("query string is empty");
         }
         
-        if ((userQuery.charAt(0) == '*') && (userQuery.length() == 1 || MATCH_ALL.equals(userQuery))) {
+        Query mainQuery = makeMainQuery(userQuery);
+
+        boostQueries = getBoostQueries();
+        List<Query> boostFunctions = getBoostFunctions();
+
+        boolean hasBoost = (boostQueries != null && !boostQueries.isEmpty())
+        		|| (boostFunctions != null && !boostFunctions.isEmpty());
+        
+        if (hasBoost) {
+        	
+        	mainQuery = assureBooleanQuery(mainQuery);
+        	BooleanQuery bq = (BooleanQuery) mainQuery;
+        	
+        	if (boostQueries != null) {
+        		for(Query f : boostQueries) {
+        			bq.add(f, BooleanClause.Occur.SHOULD);
+        		}
+        	}
+        	
+        	if (boostFunctions != null) {
+        		for(Query f : boostFunctions) {
+        			bq.add(f, BooleanClause.Occur.SHOULD);
+        		}
+        	}
+        }
+        
+        return mainQuery;
+        
+    }
+        
+    public BooleanQuery assureBooleanQuery(Query mainQuery) {
+    	if (mainQuery instanceof BooleanQuery) {
+    		return (BooleanQuery) mainQuery;
+    	}
+    	
+    	BooleanQuery bq = new BooleanQuery(true);
+    	bq.add(mainQuery, Occur.MUST);
+    	return bq;
+    }
+    
+    public Query makeMainQuery(String queryString) throws SyntaxError {
+    	if ((queryString.charAt(0) == '*') && (queryString.length() == 1 || MATCH_ALL.equals(queryString))) {
             return new MatchAllDocsQuery();
         }
         
@@ -77,11 +145,9 @@ public class QuerqyQParser extends QParser {
         
         LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats);
         
-        ANTLRQueryParser parser = new ANTLRQueryParser();
-        querqy.model.Query q = parser.parse(qstr);
+        querqy.model.Query q = querqyParser.parse(qstr);
         
         return builder.createQuery(rewriteChain.rewrite(q, Collections.<String,Object>emptyMap()));
-        
     }
     
     /**
@@ -117,6 +183,7 @@ public class QuerqyQParser extends QParser {
     public static Map<String,Float> parseFieldBoosts(String in) {
       return parseFieldBoosts(new String[]{in});
     }
+    
     /**
      * Like <code>parseFieldBoosts(String)</code>, but parses all the strings
      * in the provided array (which may be null).
@@ -149,6 +216,8 @@ public class QuerqyQParser extends QParser {
     
     
     /**
+     * Copied from DisMxQParser (as we don't handle user fields/aliases yet)
+     * 
      * Uses {@link SolrPluginUtils#parseFieldBoosts(String)} with the 'qf' parameter. Falls back to the 'df' parameter
      * or {@link org.apache.solr.schema.IndexSchema#getDefaultSearchFieldName()}.
      */

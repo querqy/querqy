@@ -11,7 +11,21 @@
 	<artifactId>querqy-solr</artifactId>
 
 	<dependencies>
+	
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
+		<dependency>
+  			<groupId>commons-io</groupId>
+  			<artifactId>commons-io</artifactId>
+  			<version>${commons.io.version}</version>
+  			<scope>provided</scope>
+  		</dependency>
+  		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-lucene</artifactId>
