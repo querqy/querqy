@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queries.function.BoostedQuery;
+import org.apache.lucene.queries.function.ValueSource;
+import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -21,6 +24,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.search.ExtendedDismaxQParser;
+import org.apache.solr.search.FieldParams;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
@@ -100,9 +104,14 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
 
         boostQueries = getBoostQueries();
         List<Query> boostFunctions = getBoostFunctions();
+        List<ValueSource> multiplicativeBoosts = getMultiplicativeBoosts();
+        
+        boolean hasMultiplicativeBoosts = multiplicativeBoosts != null && !multiplicativeBoosts.isEmpty();
 
         boolean hasBoost = (boostQueries != null && !boostQueries.isEmpty())
-        		|| (boostFunctions != null && !boostFunctions.isEmpty());
+        		|| (boostFunctions != null && !boostFunctions.isEmpty())
+        		|| hasMultiplicativeBoosts
+        		;
         
         if (hasBoost) {
         	
@@ -122,6 +131,16 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
         	}
         	
         	mainQuery = bq;
+        	
+        	if (hasMultiplicativeBoosts) {
+        		
+        		if (multiplicativeBoosts.size() > 1) {
+        			ValueSource prod = new ProductFloatFunction(multiplicativeBoosts.toArray(new ValueSource[multiplicativeBoosts.size()]));
+        	        mainQuery = new BoostedQuery(query, prod);
+        	    } else {
+        	    	mainQuery = new BoostedQuery(query, multiplicativeBoosts.get(0));
+        	    }
+        	}
         	
         }
         
