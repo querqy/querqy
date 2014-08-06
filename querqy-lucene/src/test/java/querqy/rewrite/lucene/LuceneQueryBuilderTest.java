@@ -68,17 +68,17 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         return result;
     }
     
-    protected Query build(String input, String...names) {
+    protected Query build(String input, float tie, String...names) {
         
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats, tie);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
         return builder.createQuery(q);
     }
     
-    protected Query buildWithSynonyms(String input, String...names) throws IOException {
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats);
+    protected Query buildWithSynonyms(String input, float tie, String...names) throws IOException {
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats, tie);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
@@ -91,14 +91,16 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
     @Test
     public void test01() {
-        Query q = build("a", "f1");
+    	float tie = (float) Math.random();
+        Query q = build("a", tie, "f1");
         assertThat(q, tq(1f, "f1", "a"));
     }
     
     @Test
     public void test02() {
-        Query q = build("a", "f1", "f2");
-        assertThat(q, dmq(1f, 
+    	float tie = (float) Math.random();
+        Query q = build("a", tie, "f1", "f2");
+        assertThat(q, dmq(1f, tie,
                             tq(1f, "f1", "a"),
                             tq(2f, "f2", "a")
                 ));
@@ -106,8 +108,9 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test03() throws Exception {
-        Query q = build("a b", "f1");
-        assertThat(q, bq(1f,  
+    	float tie = (float) Math.random();
+        Query q = build("a b", tie, "f1");
+        assertThat(q, bq(1f,
                             tq(Occur.SHOULD, 1f, "f1", "a"),
                             tq(Occur.SHOULD, 1f, "f1", "b")
                 ));
@@ -115,7 +118,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test04() throws Exception {
-        Query q = build("a +b", "f1");
+    	float tie = (float) Math.random();
+        Query q = build("a +b", tie, "f1");
         assertThat(q, bq(1f,  
                             tq(Occur.SHOULD, 1f, "f1", "a"),
                             tq(Occur.MUST, 1f, "f1", "b")
@@ -124,7 +128,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test05() throws Exception {
-        Query q = build("-a +b", "f1");
+    	float tie = (float) Math.random();
+    	Query q = build("-a +b", tie, "f1");
         assertThat(q, bq(1f,  
                 tq(Occur.MUST_NOT, 1f, "f1", "a"),
                 tq(Occur.MUST, 1f, "f1", "b")
@@ -133,13 +138,14 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test06() throws Exception {
-        Query q = build("a b", "f1", "f2");
+    	float tie = (float) Math.random();
+        Query q = build("a b", tie, "f1", "f2");
         assertThat(q, bq(1f,  
-                dmq(Occur.SHOULD, 1f, 
+                dmq(Occur.SHOULD, 1f, tie,
                         tq(1f, "f1", "a"),
                         tq(2f, "f2", "a")
                 ),
-                dmq(Occur.SHOULD, 1f, 
+                dmq(Occur.SHOULD, 1f, tie,
                         tq(1f, "f1", "b"),
                         tq(2f, "f2", "b")
                 )
@@ -148,13 +154,14 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test07() throws Exception {
-        Query q = build("+a b", "f1", "f2");
+    	float tie = (float) Math.random();
+        Query q = build("+a b", tie, "f1", "f2");
         assertThat(q, bq(1f,  
-                dmq(Occur.MUST, 1f, 
+                dmq(Occur.MUST, 1f, tie,
                         tq(1f, "f1", "a"),
                         tq(2f, "f2", "a")
                         ),
-                dmq(Occur.SHOULD, 1f, 
+                dmq(Occur.SHOULD, 1f, tie,
                         tq(1f, "f1", "b"),
                         tq(2f, "f2", "b")
                         )
@@ -163,9 +170,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test08() throws Exception {
-        Query q = build("+a -b", "f1", "f2");
+    	float tie = (float) Math.random();
+        Query q = build("+a -b", tie, "f1", "f2");
         assertThat(q, bq(1f,  
-                dmq(Occur.MUST, 1f, 
+                dmq(Occur.MUST, 1f, tie,
                         tq(1f, "f1", "a"),
                         tq(2f, "f2", "a")
                         ),
@@ -179,9 +187,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test09() throws Exception {
-        Query q = build("a -b", "f1", "f2");
+    	float tie = (float) Math.random();
+        Query q = build("a -b", tie, "f1", "f2");
         assertThat(q, bq(1f,  
-                dmq(Occur.SHOULD, 1f, 
+                dmq(Occur.SHOULD, 1f, tie, 
                         tq(1f, "f1", "a"),
                         tq(2f, "f2", "a")
                         ),
@@ -194,9 +203,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test10() throws Exception {
-        Query q = build("-a -b c", "f1", "f2");
+    	float tie = (float) Math.random();
+        Query q = build("-a -b c", tie, "f1", "f2");
         assertThat(q, bq(1f,  
-                dmq(Occur.SHOULD, 1f, 
+                dmq(Occur.SHOULD, 1f, tie,
                         tq(1f, "f1", "c"),
                         tq(2f, "f2", "c")
                         ),
@@ -216,16 +226,18 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test11() throws Exception {
-        Query q = build("f2:a", "f1", "f2");
+    	float tie = (float) Math.random();
+        Query q = build("f2:a", tie, "f1", "f2");
         assertThat(q, tq(2f, "f2", "a"));
     }
     
     @Test
     public void test12() throws Exception {
+    	float tie = (float) Math.random();
         // query contains a field that is not contained in the search fields
-        Query q = build("x2:a", "f1", "f2");
+        Query q = build("x2:a", tie, "f1", "f2");
         
-        assertThat(q, dmq(1f, 
+        assertThat(q, dmq(1f, tie,
                 tq(1f, "f1", "x2:a"),
                 tq(2f, "f2", "x2:a")
     ));
@@ -235,8 +247,9 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     
     @Test
     public void test13() throws Exception {
-        Query q = buildWithSynonyms("j", "f1");
-        assertThat(q, dmq(1f, 
+    	float tie = (float) Math.random();
+        Query q = buildWithSynonyms("j", tie, "f1");
+        assertThat(q, dmq(1f, tie,
                         tq(1f, "f1", "j"),
                         bq(0.5f,
                                 tq(Occur.MUST, 1f, "f1", "s"),

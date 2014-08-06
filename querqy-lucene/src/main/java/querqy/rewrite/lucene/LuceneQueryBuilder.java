@@ -36,22 +36,27 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     final Map<String, Float> searchFieldsAndBoostings;
     final IndexStats indexStats;
     final boolean normalizeBooleanQueryBoost;
+    final float dmqTieBreakerMultiplier;
     
     LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
     LinkedList<DisjunctionMaxQueryFactory> subQueryStack = new LinkedList<>();
     
     protected ParentType parentType = ParentType.BQ;
     
-    public LuceneQueryBuilder(Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats) {
-        this(analyzer, searchFieldsAndBoostings, indexStats, true);
+    public LuceneQueryBuilder(Analyzer analyzer, 
+    		Map<String, Float> searchFieldsAndBoostings, 
+    		IndexStats indexStats, 
+    		float dmqTieBreakerMultiplier) {
+        this(analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, true);
     }
 
     
     public LuceneQueryBuilder(Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats, 
-            boolean normalizeBooleanQueryBoost) {
+    		float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost) {
         this.analyzer = analyzer;
         this.searchFieldsAndBoostings = searchFieldsAndBoostings;
         this.indexStats = indexStats;
+        this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
         this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
     }
 
@@ -88,16 +93,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             result = bq.getFirstClause(); 
             break;
         default:
-//            BooleanQueryFactory bq = new BooleanQueryFactory(1f, booleanQuery.isGenerated()); // REVISIT: boost
-           // org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery();
-//            for (BooleanClause clause: clauses) {
-//                bq.add(clause);
-//            }
             
             result = new Clause(bq, occur(booleanQuery.occur));
         }
-        
-        //Query query = result.getQuery();
         
         switch (parentType) {
         case BQ:
@@ -111,13 +109,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             if (result.occur != Occur.SHOULD) {
                 // create a wrapper query
                 BooleanQueryFactory wrapper = new BooleanQueryFactory(1f, true, false);
-                //org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
                 wrapper.add(result);
                 bq = wrapper;
             }
-//            if (normalizeBooleanQueryBoost && clauses.size() > 1) {
-//                query.setBoost(1f / (float) clauses.size());
-//            }
             subQueryStack.getLast().add(bq);
             return bq;
           
@@ -141,7 +135,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         ParentType myParentType = parentType;
         parentType = ParentType.DMQ;
         
-        DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(1f, 0f); // FIXME params
+        DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(1f, dmqTieBreakerMultiplier); // FIXME params
         
         subQueryStack.add(dmq);
         super.visit(disjunctionMaxQuery);
@@ -154,8 +148,6 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         case 1: 
             LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
             clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
-//            Query child =  subQueries.getFirst();
-//            clauseStack.getLast().add(new BooleanClause(child, occur(disjunctionMaxQuery.occur)));
             return firstDisjunct;
         default:
             // FIXME: we can decide this earlier --> avoid creating DMQ in case of MUST_NOT
@@ -165,18 +157,11 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 for (LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
                     bq.add(queryFactory, Occur.SHOULD);
                 }
-//                org.apache.lucene.search.BooleanQuery bq = new org.apache.lucene.search.BooleanQuery(true);
-//                for (Query q : subQueries) {
-//                    bq.add(q, Occur.SHOULD);
-//                }
                 clauseStack.getLast().add(bq, Occur.MUST_NOT);
                 return bq;
             }
             
-//            
-//            org.apache.lucene.search.DisjunctionMaxQuery dmq = new org.apache.lucene.search.DisjunctionMaxQuery(0f);
-//            dmq.add(subQueries);
-            clauseStack.getLast().add(dmq, occur(disjunctionMaxQuery.occur) );// new BooleanClause(dmq, occur(disjunctionMaxQuery.occur)));
+            clauseStack.getLast().add(dmq, occur(disjunctionMaxQuery.occur) );
             return dmq; 
         }
     }
@@ -278,7 +263,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 target.add(tq);
                 
             } else {
-                DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, 0f);
+                DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, dmqTieBreakerMultiplier);
                 while (!backList.isEmpty()) {
                     org.apache.lucene.index.Term term = backList.removeFirst();
                     TermQueryFactory tq = new TermQueryFactory(term, 1f);

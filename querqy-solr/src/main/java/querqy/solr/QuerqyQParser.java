@@ -49,7 +49,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     final IndexStats indexStats;
     final QuerqyParser querqyParser;
     
-    protected ExtendedDismaxConfiguration config;
+    protected PublicExtendedDismaxConfiguration config;
     protected List<Query> boostQueries;
 
     public QuerqyQParser(String qstr, SolrParams localParams, SolrParams params,
@@ -71,11 +71,11 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     }
     
     @Override
-    protected ExtendedDismaxConfiguration createConfiguration(String qstr,
+    protected PublicExtendedDismaxConfiguration createConfiguration(String qstr,
     		SolrParams localParams, SolrParams params, SolrQueryRequest req) {
     	// this is a hack that works around ExtendedDismaxQParser keeping the config member var private
     	// and avoids calling createConfiguration() twice
-    	this.config = super.createConfiguration(qstr, localParams, params, req);
+    	this.config = new PublicExtendedDismaxConfiguration(localParams, params, req);//super.createConfiguration(qstr, localParams, params, req);
     	return config;
     }
 
@@ -143,7 +143,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
         SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
         Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
         
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats, config.getTieBreaker());
         
         querqy.model.Query q = querqyParser.parse(qstr);
         
@@ -165,6 +165,8 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
           return null;
         }
       }
+    
+    
     
     /**
      * Given a string containing fieldNames and boost info,
@@ -233,5 +235,22 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
       }
       return queryFields;
     }
+    
+    public class PublicExtendedDismaxConfiguration extends ExtendedDismaxConfiguration {
 
+    	/**
+         * @param localParams
+         * @param params
+         * @param req
+         */
+    	public PublicExtendedDismaxConfiguration(SolrParams localParams,
+    			SolrParams params, SolrQueryRequest req) {
+    		super(localParams, params, req);
+    	}
+    	
+    	public float getTieBreaker() {
+    		return tiebreaker;
+    	}
+    }
+    
 }
