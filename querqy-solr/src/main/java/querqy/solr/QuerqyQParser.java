@@ -96,6 +96,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
         }
         
         Query mainQuery = makeMainQuery(userQuery);
+        applyMinShouldMatch(mainQuery);
 
         boostQueries = getBoostQueries();
         List<Query> boostFunctions = getBoostFunctions();
@@ -105,8 +106,8 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
         
         if (hasBoost) {
         	
-        	mainQuery = assureBooleanQuery(mainQuery);
-        	BooleanQuery bq = (BooleanQuery) mainQuery;
+        	BooleanQuery bq = new BooleanQuery(true);
+        	bq.add(mainQuery, Occur.MUST);
         	
         	if (boostQueries != null) {
         		for(Query f : boostQueries) {
@@ -119,22 +120,41 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
         			bq.add(f, BooleanClause.Occur.SHOULD);
         		}
         	}
+        	
+        	mainQuery = bq;
+        	
         }
         
         return mainQuery;
         
     }
-        
-    public BooleanQuery assureBooleanQuery(Query mainQuery) {
-    	if (mainQuery instanceof BooleanQuery) {
-    		return (BooleanQuery) mainQuery;
+    
+    /**
+     * @param query
+     */
+    public void applyMinShouldMatch(Query query) {
+    	
+    	if (!(query instanceof BooleanQuery)) {
+    		return;
     	}
     	
-    	BooleanQuery bq = new BooleanQuery(true);
-    	bq.add(mainQuery, Occur.MUST);
-    	return bq;
+    	BooleanQuery bq = (BooleanQuery) query;
+    	BooleanClause[] clauses = bq.getClauses();
+    	if (clauses.length < 2) {
+    		return;
+    	}
+    	
+    	for (BooleanClause clause: clauses) {
+    		if ((clause.getQuery() instanceof BooleanQuery) && (clause.getOccur() != Occur.MUST)) {
+    			return; // seems to be a complex query with sub queries - do not apply mm
+    		}
+    	}
+    	
+    	SolrPluginUtils.setMinShouldMatch(bq, config.getMinShouldMatch());
+    	
+    	
     }
-    
+        
     public Query makeMainQuery(String queryString) throws SyntaxError {
     	if ((queryString.charAt(0) == '*') && (queryString.length() == 1 || MATCH_ALL.equals(queryString))) {
             return new MatchAllDocsQuery();
@@ -248,9 +268,15 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     		super(localParams, params, req);
     	}
     	
-    	public float getTieBreaker() {
+    	public float getTieBreaker() { 
     		return tiebreaker;
     	}
+    	
+    	public String getMinShouldMatch() {
+    		return minShouldMatch;
+    	}
+    	
+    	
     }
     
 }
