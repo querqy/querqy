@@ -16,7 +16,7 @@ import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.TermPositionSequence;
+import querqy.rewrite.commonrules.model.PositionSequence;
 
 /**
  * @author rene
@@ -25,7 +25,7 @@ import querqy.rewrite.commonrules.model.TermPositionSequence;
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
     
     protected final RulesCollection rules;
-    protected final LinkedList<TermPositionSequence> sequencesStack;
+    protected final LinkedList<PositionSequence> sequencesStack;
 
     /**
      * 
@@ -44,11 +44,11 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     @Override
     public Node visit(BooleanQuery booleanQuery) {
         
-        sequencesStack.add(new TermPositionSequence());
+        sequencesStack.add(new PositionSequence());
         
         super.visit(booleanQuery);
         
-        TermPositionSequence sequence = sequencesStack.removeLast();
+        PositionSequence sequence = sequencesStack.removeLast();
         for (Action action: rules.getRewriteActions(sequence)) {
             for (Instructions instructions: action.getInstructions()) {
                 for (Instruction instruction: instructions) {
@@ -68,7 +68,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     
     @Override
     public Node visit(Term term) {
-        sequencesStack.getLast().addTerm(term);
+        sequencesStack.getLast().addElement(term);
         return super.visit(term);
     }
 

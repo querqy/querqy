@@ -26,7 +26,7 @@ import querqy.rewrite.lucene.IndexStats;
  * @author rene
  *
  */
-public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
+public class QuerqyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
     protected NamedList<?> initArgs = null;
     protected RewriteChain rewriteChain = null;
@@ -50,7 +50,7 @@ public class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoader
     	
     	QuerqyParser querqyParser = createQuerqyParser(qstr, localParams, params, req);
     	
-		return new QuerqyQParser(qstr, localParams, params, req, rewriteChain, new SolrIndexStats(req.getSearcher()), querqyParser);
+		return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain, new SolrIndexStats(req.getSearcher()), querqyParser);
 		
     }
 

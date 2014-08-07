@@ -20,7 +20,7 @@ import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.TermPositionSequence;
+import querqy.rewrite.commonrules.model.PositionSequence;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
     
@@ -68,11 +68,11 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         RulesCollection rules = createRulesFromResource("rules-test.txt");
         Term t1 = new Term(null, "aa");
         Term t2 = new Term(null, "l");
-        TermPositionSequence seq = new TermPositionSequence();
+        PositionSequence seq = new PositionSequence();
         seq.nextPosition();
-        seq.addTerm(t1);
+        seq.addElement(t1);
         seq.nextPosition();
-        seq.addTerm(t2);
+        seq.addElement(t2);
         List<Action> actions = rules.getRewriteActions(seq);
         assertThat(actions, contains( 
                 new Action(
@@ -88,15 +88,15 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         Term t2 = new Term(null, "b");
         Term t3 = new Term(null, "c");
         Term t4 = new Term(null, "l");
-        TermPositionSequence seq = new TermPositionSequence();
+        PositionSequence seq = new PositionSequence();
         seq.nextPosition();
-        seq.addTerm(t1);
+        seq.addElement(t1);
         seq.nextPosition();
-        seq.addTerm(t2);
+        seq.addElement(t2);
         seq.nextPosition();
-        seq.addTerm(t3);
+        seq.addElement(t3);
         seq.nextPosition();
-        seq.addTerm(t4);
+        seq.addElement(t4);
         List<Action> actions = rules.getRewriteActions(seq);
         assertThat(actions, contains( 
                 new Action(

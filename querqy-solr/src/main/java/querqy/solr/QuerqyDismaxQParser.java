@@ -46,7 +46,9 @@ import querqy.rewrite.lucene.LuceneQueryBuilder;
  * @author rene
  *
  */
-public class QuerqyQParser extends ExtendedDismaxQParser {
+public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
+	
+	public static final String GFB = "gfb"; // generated field boost
     
     static final String MATCH_ALL = "*:*";
     
@@ -63,7 +65,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     protected PublicExtendedDismaxConfiguration config;
     protected List<Query> boostQueries;
 
-    public QuerqyQParser(String qstr, SolrParams localParams, SolrParams params,
+    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
             SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats, QuerqyParser querqyParser) {
     	
         super(qstr, localParams, params, req);
@@ -283,7 +285,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     	
     	SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
     	Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
-    	LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats, config.getTieBreaker());
+    	LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
        
         
         return builder.createQuery(rewriteChain.rewrite(querqyQuery, Collections.<String,Object>emptyMap()));
@@ -376,8 +378,10 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     }
     
     public class PublicExtendedDismaxConfiguration extends ExtendedDismaxConfiguration {
+    	
+    	final float generatedFieldBoostFactor;
 
-    	/**
+		/**
          * @param localParams
          * @param params
          * @param req
@@ -385,6 +389,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     	public PublicExtendedDismaxConfiguration(SolrParams localParams,
     			SolrParams params, SolrQueryRequest req) {
     		super(localParams, params, req);
+    		generatedFieldBoostFactor = solrParams.getFloat(GFB, 1f);
     	}
     	
     	public float getTieBreaker() { 
@@ -395,6 +400,9 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     		return minShouldMatch;
     	}
     	
+    	public float getGeneratedFieldBoostFactor() {
+			return generatedFieldBoostFactor;
+		}
     	
     }
     

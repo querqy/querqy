@@ -14,7 +14,7 @@ import org.junit.Test;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.lucene.IndexStats;
 
-public class QueryQParserTest extends SolrTestCaseJ4 {
+public class QueryDismaxQParserTest extends SolrTestCaseJ4 {
 	
 	static final IndexStats DUMMY_INDEX_STATS = new IndexStats() {
         
@@ -35,7 +35,7 @@ public class QueryQParserTest extends SolrTestCaseJ4 {
 		SolrQueryRequest req = req("q", "a b c", 
 				DisMaxParams.QF, "f1 f2",
 				DisMaxParams.MM, "2");
-		QuerqyQParser parser = new QuerqyQParser("a b c", null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+		QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
 		Query query = parser.parse();
 		assertTrue(query instanceof BooleanQuery);
 		BooleanQuery bq = (BooleanQuery) query;
@@ -52,7 +52,7 @@ public class QueryQParserTest extends SolrTestCaseJ4 {
 		SolrQueryRequest req = req("q", q, 
 				DisMaxParams.QF, "f1 f2",
 				DisMaxParams.MM, "3");
-		QuerqyQParser parser = new QuerqyQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+		QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
 		Query query = parser.parse();
 		assertTrue(query instanceof BooleanQuery);
 		BooleanQuery bq = (BooleanQuery) query;
@@ -71,7 +71,7 @@ public class QueryQParserTest extends SolrTestCaseJ4 {
 				DisMaxParams.MM, "3",
 				QueryParsing.OP, "OR"
 				);
-		QuerqyQParser parser = new QuerqyQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+		QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
 		Query query = parser.parse();
 		assertTrue(query instanceof BooleanQuery);
 		BooleanQuery bq = (BooleanQuery) query;
@@ -199,7 +199,7 @@ public class QueryQParserTest extends SolrTestCaseJ4 {
 	
 	public void verifyQueryString(SolrQueryRequest req, String q, String ...expectedSubstrings) throws Exception {
 		
-		QuerqyQParser parser = new QuerqyQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+		QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
 		Query query = parser.parse();
 		assertTrue(query instanceof BooleanQuery);
 		BooleanQuery bq = (BooleanQuery) query;
