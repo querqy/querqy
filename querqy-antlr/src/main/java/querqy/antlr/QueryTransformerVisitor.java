@@ -41,6 +41,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	LinkedList<Operator> operatorStack = new LinkedList<>();
 	
 	Occur occurBuffer = Occur.SHOULD;
+	Query query = null;
 	
 	final char[] input;
 	
@@ -50,7 +51,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	
 	@Override
 	public Node visitQuery(QueryContext ctx) {
-		Query query = new Query();
+		query = new Query();
 		operatorStack.add(Operator.NONE);
 		booleanQueryStack.add(query);
 		super.visitQuery(ctx);
@@ -71,14 +72,21 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	public Node visitNoopQuery(NoopQueryContext ctx) {
 
 		BooleanQuery parent = booleanQueryStack.getLast();
-		BooleanQuery query = new BooleanQuery(parent, getOccur(), false);
-		parent.addClause(query);
 		
-		operatorStack.add(Operator.NONE);
-		booleanQueryStack.add(query);
+		if (parent != this.query) {
+			BooleanQuery bq = new BooleanQuery(parent, getOccur(), false);
+			parent.addClause(bq);
+			
+			operatorStack.add(Operator.NONE);
+			booleanQueryStack.add(query);
+		}
 		super.visitNoopQuery(ctx);
-		operatorStack.removeLast();
-		return booleanQueryStack.removeLast();
+		if (parent != this.query) {
+			operatorStack.removeLast();
+			return booleanQueryStack.removeLast();
+		} else {
+			return parent;
+		}
 	}
 	
 	Occur getOccur(ParserRuleContext ctx) {

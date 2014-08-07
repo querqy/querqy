@@ -37,7 +37,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
     @Override
     public Query rewrite(Query query) {
-        visit(query);
+        visit((BooleanQuery) query);
         return query;
     }
     

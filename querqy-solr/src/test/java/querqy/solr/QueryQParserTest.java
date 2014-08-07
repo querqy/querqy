@@ -156,6 +156,47 @@ public class QueryQParserTest extends SolrTestCaseJ4 {
 		
 	}
 	
+	
+	@Test
+	public void testThatPFWorksWithSynonymRewriting() throws Exception {
+		initCore("solrconfig-with-parser.xml", "schema.xml");
+		assertQ("ps with synonyms not working",
+				req("q", "a b",
+						DisMaxParams.QF, "f1 f2^0.9",
+			            DisMaxParams.PF, "f1^0.5",
+			            "defType", "querqy",
+			            "debugQuery", "true"),
+			            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]"
+			     );
+		 
+		 
+		
+		
+	}
+	
+	@Test
+	public void testThatPF23FWorksWithSynonymRewriting() throws Exception {
+		initCore("solrconfig-with-parser.xml", "schema.xml");
+		assertQ("ps with synonyms not working",
+				req("q", "a b c d",
+						DisMaxParams.QF, "f1 f2^0.9",
+						DisMaxParams.PF2, "f1~2^2.1",
+						DisMaxParams.PF3, "f2~3^3.9",
+			            "defType", "querqy",
+			            "debugQuery", "true"),
+			            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"~2^2.1')]",
+			            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"~2^2.1')]",
+			            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"~2^2.1')]",
+			            "//str[@name='parsedquery'][contains(.,'f2:\"a b c\"~3^3.9')]",
+			            "//str[@name='parsedquery'][contains(.,'f2:\"b c d\"~3^3.9')]"
+			     );
+		 
+		 
+		
+		
+	}
+	
+	
 	public void verifyQueryString(SolrQueryRequest req, String q, String ...expectedSubstrings) throws Exception {
 		
 		QuerqyQParser parser = new QuerqyQParser(q, null, req.getParams(), req, new RewriteChain(), DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());

@@ -43,12 +43,11 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 		
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						bq(
-								dmq(
-										term("a"),
-										term("x")
-								)
-				)));
+						dmq(
+								term("a"),
+								term("x")
+						)
+				));
 		
 	}
 	
@@ -59,12 +58,11 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 		
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						bq(
-								dmq(
-										term("abc"),
-										term("def")
-								)
-				)));
+						dmq(
+								term("abc"),
+								term("def")
+						)
+				));
 		
 	}
 	
@@ -75,15 +73,14 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 		
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						bq(
-								dmq(
-										term("f"),
-										bq(
-												dmq(must(), term("k")),
-												dmq(must(), term("l"))
-										)
+						dmq(
+								term("f"),
+								bq(
+										dmq(must(), term("k")),
+										dmq(must(), term("l"))
 								)
-				)));
+						)
+				));
 		
 	}
 	
@@ -95,10 +92,8 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
        
 	    assertThat(rewriter.rewrite(q),
                 bq(
-                        bq(
-                                dmq(term("ab")),
-                                dmq(term("c"))
-                        )
+                		dmq(term("ab")),
+                        dmq(term("c"))
                 
                 ));
     }
@@ -109,16 +104,15 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 		Query q = makeQuery("j");
 		assertThat(rewriter.rewrite(q), 
 				bq(
-						bq(
-								dmq(
-										term("j"),
-										bq(
-												dmq(must(), term("s")),
-												dmq(must(), term("t"))
-										),
-										term("q")
-								)
-				)));
+						dmq(
+								term("j"),
+								bq(
+										dmq(must(), term("s")),
+										dmq(must(), term("t"))
+								),
+								term("q")
+						)
+				));
 		
 	}
 	
@@ -127,7 +121,6 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	    Query q = makeQuery("b c");
 	    assertThat(rewriter.rewrite(q), 
                 bq(
-                        bq(
                                 dmq(
                                         term("b"),
                                         bq(
@@ -151,7 +144,7 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
                                         )
                                 )
                                 
-                )));
+                ));
         
     }
 	
@@ -160,7 +153,6 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	    Query q = makeQuery("bb cc dd");
 	    assertThat(rewriter.rewrite(q), 
 	            bq(
-	                        bq(
 	                                dmq(
 	                                        term("bb"),
 	                                        bq(
@@ -209,7 +201,7 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
                                             )
                                     ))
 	                                
-	                )));
+	                ));
 	        
 	    
     }
@@ -238,7 +230,6 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	    Query q = makeQuery("b c d");
         assertThat(rewriter.rewrite(q), 
                 bq(
-                            bq(
                                     dmq(
                                             term("b"),
                                             bq(
@@ -300,7 +291,7 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
                                             )
                                     ))
                                     
-                    )));
+                    ));
     }
 
 
