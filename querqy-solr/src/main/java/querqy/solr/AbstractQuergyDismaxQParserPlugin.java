@@ -26,7 +26,7 @@ public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin im
    protected Class<? extends QuerqyParser> querqyParserClass;
 
    @Override
-   public void init(NamedList args) {
+   public void init(@SuppressWarnings("rawtypes") NamedList args) {
       this.initArgs = args;
    }
 
@@ -37,7 +37,11 @@ public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin im
 
    }
 
-   public RewriteChain loadRewriteChain(ResourceLoader loader) throws IOException {
+   /**
+    * Loads the whole {@link RewriteChain}s from the args and returns a list of
+    * them.
+    */
+   private RewriteChain loadRewriteChain(ResourceLoader loader) throws IOException {
 
       NamedList<?> chainConfig = (NamedList<?>) initArgs.get("rewriteChain");
       List<RewriterFactory> factories = new LinkedList<>();
@@ -58,7 +62,10 @@ public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin im
       return new RewriteChain(factories);
    }
 
-   public Class<? extends QuerqyParser> loadQuerqyParserClass(ResourceLoader loader) throws IOException {
+   /**
+    * Loads the {@link QuerqyParser} from the args class to caches it.
+    */
+   private Class<? extends QuerqyParser> loadQuerqyParserClass(ResourceLoader loader) throws IOException {
 
       NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
       if (parserConfig == null) {
