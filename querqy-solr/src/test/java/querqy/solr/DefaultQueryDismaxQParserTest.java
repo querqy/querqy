@@ -353,6 +353,24 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
 		
 	}
 	
+	@Test
+	public void testThatGeneratedTermsArePanalised() throws Exception {
+		SolrQueryRequest req = req("q", "a b",
+				DisMaxParams.QF, "f1^2",
+				DisMaxParams.PF, "f1^0.5",
+				QuerqyDismaxQParser.GFB, "0.8",
+	            "defType", "querqy",
+	            "debugQuery", "true");
+		
+		assertQ("ps2/3 with synonyms not working",
+				req,
+			            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
+			            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]"
+			     );
+		
+		req.close(); 
+	}
+	
 	
 	public void verifyQueryString(SolrQueryRequest req, String q, String ...expectedSubstrings) throws Exception {
 		
