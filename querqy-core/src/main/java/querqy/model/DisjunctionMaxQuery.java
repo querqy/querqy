@@ -5,14 +5,13 @@ package querqy.model;
 
 import java.util.List;
 
-
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public class DisjunctionMaxQuery extends SubQuery<DisjunctionMaxClause> implements BooleanClause {
+public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxClause> implements BooleanClause, BooleanParent {
 	
-	public DisjunctionMaxQuery(SubQuery<BooleanClause> parentQuery, Occur occur, boolean generated) {
+	public DisjunctionMaxQuery(BooleanQuery parentQuery, Occur occur, boolean generated) {
 		super(parentQuery, occur, generated);
 	}
 

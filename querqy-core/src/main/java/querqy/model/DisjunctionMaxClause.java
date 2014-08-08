@@ -4,9 +4,9 @@
 package querqy.model;
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public interface DisjunctionMaxClause extends Clause {
+public interface DisjunctionMaxClause extends Node {
 
 }

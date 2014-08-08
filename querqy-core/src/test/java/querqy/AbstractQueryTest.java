@@ -8,9 +8,9 @@ import org.hamcrest.TypeSafeMatcher;
 
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
-import querqy.model.Clause;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.Node;
 import querqy.model.SubQuery;
 import querqy.model.Term;
 import querqy.model.SubQuery.Occur;
@@ -49,12 +49,12 @@ public class AbstractQueryTest {
 	
 	public OccurMatcher should() {return new OccurMatcher(Occur.SHOULD); }
 	
-	class SubQueryMatcher<T extends SubQuery<? extends Clause>> extends TypeSafeMatcher<T> {
+	class SubQueryMatcher<T extends SubQuery<?,?>> extends TypeSafeMatcher<T> {
 		
-		final TypeSafeMatcher<? extends Clause>[] clauses;
+		final TypeSafeMatcher<? extends Node>[] clauses;
 		final OccurMatcher occur;
 		
-		public SubQueryMatcher(OccurMatcher occur, TypeSafeMatcher<? extends Clause>[] clauses) {
+		public SubQueryMatcher(OccurMatcher occur, TypeSafeMatcher<? extends Node>[] clauses) {
 			this.clauses = clauses;
 			this.occur = occur;
 		}
@@ -71,7 +71,7 @@ public class AbstractQueryTest {
 		    if (!occur.matches(item.occur)) {
 		        return false;
 		    }
-			List<? extends Clause> itemClauses = item.getClauses();
+			List<? extends Node> itemClauses = item.getClauses();
 			if (itemClauses == null || itemClauses.size() != clauses.length) {
 				return false;
 			}

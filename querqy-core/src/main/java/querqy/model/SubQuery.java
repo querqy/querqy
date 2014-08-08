@@ -6,14 +6,11 @@ package querqy.model;
 import java.util.LinkedList;
 import java.util.List;
 
-
-
-
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public abstract class SubQuery<T extends Clause> implements Node {
+public abstract class SubQuery<P extends Node, C extends Node> extends AbstractNode<P> {
 	
 	public enum Occur {
 		
@@ -38,58 +35,44 @@ public abstract class SubQuery<T extends Clause> implements Node {
 		return occur;
 	}
 
-	protected final SubQuery<?> parentQuery;
+	protected final List<C> clauses = new LinkedList<>();
 	
-	protected final boolean generated;
-	
-	protected final List<T> clauses = new LinkedList<>();
-	
-	public SubQuery(SubQuery<?> parentQuery, boolean generated) {
+	public SubQuery(P parentQuery, boolean generated) {
 		this(parentQuery, Occur.SHOULD, generated);
 	}
 	
-	public SubQuery(SubQuery<?> parentQuery, Occur occur, boolean generated) {
-		this.parentQuery = parentQuery;
+	public SubQuery(P parentQuery, Occur occur, boolean generated) {
+		super(parentQuery, generated);
 		this.occur = occur;
-		this.generated = generated;
 	}
 	
-	@Override
-	public boolean isGenerated() {
-	    return generated;
-	}
 	
-	// TODO: Use filtering iterator
 	@SuppressWarnings("unchecked")
-	public <C extends T> List<C> getClauses(Class<C> type) {
-		List<C> result = new LinkedList<>();
-		for (T clause: clauses) {
+	public <T extends C> List<T> getClauses(Class<T> type) {
+		List<T> result = new LinkedList<>();
+		for (C clause: clauses) {
 			if (type.equals(clause.getClass())) {
-				result.add((C) clause);
+				result.add((T) clause);
 			}
 		}
 		return result;
 	}
 	
-	public SubQuery<?> getParentQuery() {
-		return parentQuery;
-	}
-	
-	public void addClause(T clause) {
-		if (clause.getParentQuery() != this) {
+	public void addClause(C clause) {
+		if (clause.getParent() != this) {
 			throw new IllegalArgumentException("This query is not a parent of " + clause);
 		}
 		clauses.add(clause);
 	}
 	
-	public void removeClause(@SuppressWarnings("rawtypes") Clause clause) {
-	    if (clause.getParentQuery() != this) {
+	public void removeClause(C clause) {
+	    if (clause.getParent() != this) {
             throw new IllegalArgumentException("This query is not a parent of " + clause);
         }
 	    clauses.remove(clause);
 	}
 	
-	public List<T> getClauses() {
+	public List<C> getClauses() {
 		return clauses;
 	}
 

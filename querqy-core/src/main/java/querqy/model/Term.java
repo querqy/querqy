@@ -6,53 +6,40 @@ package querqy.model;
 import querqy.CompoundCharSequence;
 import querqy.SimpleComparableCharSequence;
 
-
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public class Term implements DisjunctionMaxClause, CharSequence {
+public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence {
 	
 	protected final String field;
 	protected final CharSequence value;
-	protected final SubQuery<DisjunctionMaxClause> parentQuery;
-	protected final boolean generated; 
 	
-	public Term(SubQuery<DisjunctionMaxClause> parentQuery, String field, CharSequence value, boolean generated) {
+	public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value, boolean generated) {
+		super(parentQuery, generated);
 		this.field = field;
 	    this.value = value;
-	    this.parentQuery = parentQuery;
-	    this.generated = generated;
 	}
 	
-	public Term(SubQuery<DisjunctionMaxClause> parentQuery, String field, CharSequence value) {
+	public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value) {
 		this(parentQuery, field, value, false);
 	}
 	
-	public Term(SubQuery<DisjunctionMaxClause> parentQuery, CharSequence value) {
+	public Term(DisjunctionMaxQuery parentQuery, CharSequence value) {
         this(parentQuery, null, value);
     }
-	public Term(SubQuery<DisjunctionMaxClause> parentQuery, CharSequence value, boolean generated) {
+	public Term(DisjunctionMaxQuery parentQuery, CharSequence value, boolean generated) {
 		this(parentQuery, null, value, generated);
 	}
 	
 	
-	public Term(SubQuery<DisjunctionMaxClause> parentQuery, String field, char[] value, int start, int length, boolean generated) {
+	public Term(DisjunctionMaxQuery parentQuery, String field, char[] value, int start, int length, boolean generated) {
 	    this(parentQuery, field, new SimpleComparableCharSequence(value, start, length), generated);
 	}
-	    
-	@Override
-   public boolean isGenerated() {
-	    return generated;
-	}
 	
-	@Override
-   public SubQuery<DisjunctionMaxClause> getParentQuery() {
-		return parentQuery;
-	}
 	
-	public Term clone(SubQuery<DisjunctionMaxClause> newParent) {
-		return new Term(newParent, field, value, generated);
+	public Term clone(DisjunctionMaxQuery newParent) {
+		return new Term(newParent, field, value, isGenerated());
 	}
 	
 	@Override

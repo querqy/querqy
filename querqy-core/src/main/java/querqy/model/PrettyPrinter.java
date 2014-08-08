@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
 public class PrettyPrinter extends AbstractNodeVisitor<Node> {
