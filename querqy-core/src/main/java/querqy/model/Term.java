@@ -41,11 +41,13 @@ public class Term implements DisjunctionMaxClause, CharSequence {
 	    this(parentQuery, field, new SimpleComparableCharSequence(value, start, length), generated);
 	}
 	    
-	public boolean isGenerated() {
+	@Override
+   public boolean isGenerated() {
 	    return generated;
 	}
 	
-	public SubQuery<DisjunctionMaxClause> getParentQuery() {
+	@Override
+   public SubQuery<DisjunctionMaxClause> getParentQuery() {
 		return parentQuery;
 	}
 	
@@ -62,7 +64,8 @@ public class Term implements DisjunctionMaxClause, CharSequence {
 		return field;
 	}
 	
-	public char charAt(int index) {
+	@Override
+   public char charAt(int index) {
 	    return value.charAt(index);
 	}
 	

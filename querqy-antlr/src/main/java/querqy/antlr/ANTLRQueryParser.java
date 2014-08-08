@@ -19,7 +19,8 @@ import querqy.parser.QuerqyParser;
 public class ANTLRQueryParser implements QuerqyParser {
     
     
-    public Query parse(String input) {
+    @Override
+   public Query parse(String input) {
 
         char[] inputChars = input.toCharArray();
         

@@ -33,7 +33,8 @@ public class PrettyPrinter extends AbstractNodeVisitor<Node> {
 		
 	}
 	
-	public Node visit(BooleanQuery booleanQuery) {
+	@Override
+   public Node visit(BooleanQuery booleanQuery) {
 		String indend = makeIndend();
 		writer.print(indend);
 		writer.println(booleanQuery.getOccur() + "BQ: (");
@@ -45,7 +46,8 @@ public class PrettyPrinter extends AbstractNodeVisitor<Node> {
 		
 	};
 	
-	public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+	@Override
+   public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
 		String indend = makeIndend();
 		writer.print(indend);
 		writer.println(disjunctionMaxQuery.getOccur() + "DMQ: (");
@@ -56,7 +58,8 @@ public class PrettyPrinter extends AbstractNodeVisitor<Node> {
 		return null;
 	};
 	
-	public Node visit(Term term) {
+	@Override
+   public Node visit(Term term) {
 		String indend = makeIndend();
 		writer.print(indend);
 		writer.println(term);
