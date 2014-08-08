@@ -25,7 +25,7 @@ import querqy.rewrite.commonrules.model.PositionSequence;
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
     
     protected final RulesCollection rules;
-    protected final LinkedList<PositionSequence> sequencesStack;
+    protected final LinkedList<PositionSequence<Term>> sequencesStack;
 
     /**
      * 
@@ -44,11 +44,11 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     @Override
     public Node visit(BooleanQuery booleanQuery) {
         
-        sequencesStack.add(new PositionSequence());
+        sequencesStack.add(new PositionSequence<Term>());
         
         super.visit(booleanQuery);
         
-        PositionSequence sequence = sequencesStack.removeLast();
+        PositionSequence<Term> sequence = sequencesStack.removeLast();
         for (Action action: rules.getRewriteActions(sequence)) {
             for (Instructions instructions: action.getInstructions()) {
                 for (Instruction instruction: instructions) {

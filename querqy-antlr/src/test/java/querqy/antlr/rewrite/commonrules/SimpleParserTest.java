@@ -68,7 +68,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         RulesCollection rules = createRulesFromResource("rules-test.txt");
         Term t1 = new Term(null, "aa");
         Term t2 = new Term(null, "l");
-        PositionSequence seq = new PositionSequence();
+        PositionSequence<Term> seq = new PositionSequence<Term>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -88,7 +88,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         Term t2 = new Term(null, "b");
         Term t3 = new Term(null, "c");
         Term t4 = new Term(null, "l");
-        PositionSequence seq = new PositionSequence();
+        PositionSequence<Term> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
