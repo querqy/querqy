@@ -22,6 +22,7 @@ import org.apache.lucene.analysis.synonym.SolrSynonymParser;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.util.Version;
 
+import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -60,7 +61,7 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
 //	}
 
     @Override
-    public QueryRewriter createRewriter(Query input, Map<String, ?> context) {
+    public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
         return new LuceneSynonymsRewriter(synonymMap);
     }
 

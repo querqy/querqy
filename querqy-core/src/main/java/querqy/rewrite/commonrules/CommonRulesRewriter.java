@@ -8,7 +8,9 @@ import java.util.LinkedList;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.ExpandedQuery;
 import querqy.model.Node;
+import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -26,6 +28,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     
     protected final RulesCollection rules;
     protected final LinkedList<PositionSequence<Term>> sequencesStack;
+    protected ExpandedQuery expandedQuery;
 
     /**
      * 
@@ -36,8 +39,13 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     @Override
-    public Query rewrite(Query query) {
-        visit((BooleanQuery) query);
+    public ExpandedQuery rewrite(ExpandedQuery query) {
+    	
+    	QuerqyQuery userQuery = query.getUserQuery();
+    	if (userQuery instanceof Query) { 
+    		this.expandedQuery = query;
+    		visit((BooleanQuery) query.getUserQuery());
+    	}
         return query;
     }
     
@@ -52,7 +60,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
         for (Action action: rules.getRewriteActions(sequence)) {
             for (Instructions instructions: action.getInstructions()) {
                 for (Instruction instruction: instructions) {
-                    instruction.apply(sequence, action.getMatchedTerms(), action.getStartPosition(), action.getEndPosition());
+                    instruction.apply(sequence, action.getMatchedTerms(), action.getStartPosition(), action.getEndPosition(), expandedQuery);
                 }
             }
         }

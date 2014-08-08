@@ -3,7 +3,7 @@
  */
 package querqy.rewrite;
 
-import querqy.model.Query;
+import querqy.model.ExpandedQuery;
 
 /**
  * @author rene
@@ -11,6 +11,6 @@ import querqy.model.Query;
  */
 public interface QueryRewriter {
 	
-	Query rewrite(Query query);
+	ExpandedQuery rewrite(ExpandedQuery query);
 	
 }

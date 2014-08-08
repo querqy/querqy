@@ -5,7 +5,7 @@ package querqy.rewrite;
 
 import java.util.Map;
 
-import querqy.model.Query;
+import querqy.model.ExpandedQuery;
 
 /**
  * @author rene
@@ -13,6 +13,6 @@ import querqy.model.Query;
  */
 public interface RewriterFactory {
     
-    QueryRewriter createRewriter(Query input, Map<String, ?> context);
+    QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context);
     
 }

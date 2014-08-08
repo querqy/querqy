@@ -10,6 +10,7 @@ import java.util.Set;
 
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxClause;
+import querqy.model.ExpandedQuery;
 import querqy.model.SubQuery;
 
 /**
@@ -71,7 +72,7 @@ public class DeleteInstruction implements Instruction {
     @Override
     public void apply(PositionSequence<querqy.model.Term> sequence,
             List<querqy.model.Term> matchedTerms, int startPosition,
-            int endPosition) {
+            int endPosition, ExpandedQuery expandedQuery) {
         // make sure that at least one term will be left in the query after we apply this instruction
         
         int pos = 0;

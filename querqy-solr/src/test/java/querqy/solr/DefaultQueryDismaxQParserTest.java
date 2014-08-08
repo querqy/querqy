@@ -1,7 +1,5 @@
 package querqy.solr;
 
-import static org.junit.Assert.*;
-
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;

@@ -4,13 +4,14 @@ import java.util.Arrays;
 
 import querqy.AbstractQueryTest;
 import querqy.antlr.ANTLRQueryParser;
+import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.commonrules.model.Term;
 
 public abstract class AbstractCommonRulesTest extends AbstractQueryTest {
     
-    protected Query makeQuery(String input) {
-        return new ANTLRQueryParser().parse(input);
+    protected ExpandedQuery makeQuery(String input) {
+        return new ExpandedQuery(new ANTLRQueryParser().parse(input));
     }
 
     protected Term mkTerm(String s) {

@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
+import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
@@ -84,7 +85,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(
                 getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"), true, true);
         QueryRewriter rewriter = factory.createRewriter(null, null);
-        return builder.createQuery(rewriter.rewrite(q));
+        
+        return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
         
     }
 

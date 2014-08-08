@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 
 public class RulesCollectionTest {
@@ -395,7 +396,7 @@ public class RulesCollectionTest {
 
         @Override
         public void apply(PositionSequence<Term> sequence,
-                List<Term> matchedTerms, int startPosition, int endPosition) {
+                List<Term> matchedTerms, int startPosition, int endPosition, ExpandedQuery expandedQuery) {
         }
         
        

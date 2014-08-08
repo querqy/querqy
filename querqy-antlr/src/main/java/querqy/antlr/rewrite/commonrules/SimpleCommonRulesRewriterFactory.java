@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 
+import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -41,10 +42,10 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
     }
 
     /* (non-Javadoc)
-     * @see querqy.rewrite.RewriterFactory#createRewriter(querqy.model.Query, java.util.Map)
+     * @see querqy.rewrite.RewriterFactory#createRewriter(querqy.model.ExpandedQuery, java.util.Map)
      */
     @Override
-    public QueryRewriter createRewriter(Query input, Map<String, ?> context) {
+    public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
         return new CommonRulesRewriter(rules);
     }
 

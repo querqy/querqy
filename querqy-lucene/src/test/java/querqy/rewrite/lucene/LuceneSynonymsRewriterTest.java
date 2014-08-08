@@ -1,19 +1,19 @@
 package querqy.rewrite.lucene;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import querqy.antlr.QueryTransformerVisitor;
 import querqy.AbstractQueryTest;
+import querqy.antlr.QueryTransformerVisitor;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.SubQuery.Occur;
 import querqy.model.Term;
@@ -31,21 +31,21 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 		rewriter = factory.createRewriter(null, null);
 	}
 	
-	protected Query makeQuery(String input) {
+	protected ExpandedQuery makeQuery(String input) {
 		QueryLexer lex = new QueryLexer(new ANTLRInputStream(input));
 		CommonTokenStream tokens = new CommonTokenStream(lex);
 		QueryParser parser = new QueryParser(tokens);
 		
 		QueryContext t = parser.query();
-		return (Query) t.accept(new QueryTransformerVisitor(input.toCharArray()));
+		return new ExpandedQuery((Query) t.accept(new QueryTransformerVisitor(input.toCharArray())));
 	}
 
 	@Test
 	public void testSingleClauseExpansion() {
-		Query q = makeQuery("a");
+		ExpandedQuery q = makeQuery("a");
 		
 		
-		assertThat(rewriter.rewrite(q), 
+		assertThat(rewriter.rewrite(q).getUserQuery(), 
 				bq(
 						dmq(
 								term("a"),
@@ -65,7 +65,7 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 		Term term = new Term(dmq, "a", true);
 		dmq.addClause(term);
 		
-		assertThat(rewriter.rewrite(query), 
+		assertThat(rewriter.rewrite(new ExpandedQuery(query)).getUserQuery(), 
 				bq(
 						dmq(
 								term("a")
@@ -76,10 +76,10 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	
 	@Test
 	public void testSingleClauseExpansionWithMultiCharWords() {
-		Query q = makeQuery("abc");
+		ExpandedQuery q = makeQuery("abc");
 		
 		
-		assertThat(rewriter.rewrite(q), 
+		assertThat(rewriter.rewrite(q).getUserQuery(), 
 				bq(
 						dmq(
 								term("abc"),
@@ -91,10 +91,10 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	
 	@Test
 	public void testSingleClauseInputToMultiClauseOutput() {
-		Query q = makeQuery("f");
+		ExpandedQuery q = makeQuery("f");
 		
 		
-		assertThat(rewriter.rewrite(q), 
+		assertThat(rewriter.rewrite(q).getUserQuery(), 
 				bq(
 						dmq(
 								term("f"),
@@ -111,9 +111,9 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
     public void testThatPartialMatchDoesntGetExpanded() throws Exception {
 	    // abc => ...
 	    // is in the synonym dict
-	    Query q = makeQuery("ab c");
+		ExpandedQuery q = makeQuery("ab c");
        
-	    assertThat(rewriter.rewrite(q),
+	    assertThat(rewriter.rewrite(q).getUserQuery(),
                 bq(
                 		dmq(term("ab")),
                         dmq(term("c"))
@@ -124,8 +124,8 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	@Test
 	public void testSingleClauseInputToMixedOutput() {
 	    
-		Query q = makeQuery("j");
-		assertThat(rewriter.rewrite(q), 
+		ExpandedQuery q = makeQuery("j");
+		assertThat(rewriter.rewrite(q).getUserQuery(), 
 				bq(
 						dmq(
 								term("j"),
@@ -141,8 +141,8 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	
 	@Test
     public void testTwoClausesToOne() throws Exception {
-	    Query q = makeQuery("b c");
-	    assertThat(rewriter.rewrite(q), 
+		ExpandedQuery q = makeQuery("b c");
+	    assertThat(rewriter.rewrite(q).getUserQuery(), 
                 bq(
                                 dmq(
                                         term("b"),
@@ -173,8 +173,8 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	
 	@Test
     public void testThreeClausesToTwo() throws Exception {
-	    Query q = makeQuery("bb cc dd");
-	    assertThat(rewriter.rewrite(q), 
+		ExpandedQuery q = makeQuery("bb cc dd");
+	    assertThat(rewriter.rewrite(q).getUserQuery(), 
 	            bq(
 	                                dmq(
 	                                        term("bb"),
@@ -251,8 +251,8 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	 */
 	@Test
     public void test08() throws Exception {
-	    Query q = makeQuery("b c d");
-        assertThat(rewriter.rewrite(q), 
+		ExpandedQuery q = makeQuery("b c d");
+        assertThat(rewriter.rewrite(q).getUserQuery(), 
                 bq(
                                     dmq(
                                             term("b"),
