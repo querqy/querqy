@@ -12,18 +12,16 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 
-import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
 /**
  * Abstract superclass for QuerqyDismaxQParserPlugins.
  */
-public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
+public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
    protected NamedList<?> initArgs = null;
    protected RewriteChain rewriteChain = null;
-   protected Class<? extends QuerqyParser> querqyParserClass;
 
    @Override
    public void init(@SuppressWarnings("rawtypes") NamedList args) {
@@ -33,8 +31,6 @@ public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin im
    @Override
    public void inform(ResourceLoader loader) throws IOException {
       rewriteChain = loadRewriteChain(loader);
-      querqyParserClass = loadQuerqyParserClass(loader);
-
    }
 
    /**
@@ -60,24 +56,6 @@ public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin im
       }
 
       return new RewriteChain(factories);
-   }
-
-   /**
-    * Loads the {@link QuerqyParser} from the args class to caches it.
-    */
-   private Class<? extends QuerqyParser> loadQuerqyParserClass(ResourceLoader loader) throws IOException {
-
-      NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
-      if (parserConfig == null) {
-         throw new IOException("Missing querqy parser configuration");
-      }
-
-      String className = (String) parserConfig.get("class");
-      if (className == null) {
-         throw new IOException("Missing attribute 'class' in querqy parser configuration");
-      }
-
-      return loader.findClass(className, QuerqyParser.class);
    }
 
    @Override

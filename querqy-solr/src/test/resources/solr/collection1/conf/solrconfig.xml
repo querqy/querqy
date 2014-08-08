@@ -42,7 +42,7 @@
 		</lst>
 	</requestHandler>
 
-	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
+	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
 			<lst name="rewriter">
 				<str name="class">querqy.solr.SolrSynonymsRewriterFactory</str>

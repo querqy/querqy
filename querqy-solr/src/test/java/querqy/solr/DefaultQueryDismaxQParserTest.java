@@ -15,7 +15,7 @@ import org.junit.Test;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.lucene.IndexStats;
 
-public class QueryDismaxQParserTest extends SolrTestCaseJ4 {
+public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
 	
 	static final IndexStats DUMMY_INDEX_STATS = new IndexStats() {
         

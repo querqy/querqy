@@ -32,7 +32,6 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
 
    public AnalyzingQuerqyParser(Analyzer queryAnalyser, Analyzer synonymAnalyzer) {
       Preconditions.checkNotNull(queryAnalyser);
-      Preconditions.checkNotNull(synonymAnalyzer);
 
       this.queryAnalyzer = queryAnalyser;
       this.synonymAnalyzer = synonymAnalyzer;
@@ -55,11 +54,13 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
             dmq.addClause(t);
             query.addClause(dmq);
 
-            // evaluate synonyms
-            Collection<CharSequence> synonyms = analyze(term, synonymAnalyzer);
-            if (!synonyms.isEmpty()) {
-               for (CharSequence synonym : synonyms) {
-                  dmq.addClause(new Term(dmq, synonym, true));
+            if (synonymAnalyzer != null) {
+               // evaluate synonyms
+               Collection<CharSequence> synonyms = analyze(term, synonymAnalyzer);
+               if (!synonyms.isEmpty()) {
+                  for (CharSequence synonym : synonyms) {
+                     dmq.addClause(new Term(dmq, synonym, true));
+                  }
                }
             }
          }
