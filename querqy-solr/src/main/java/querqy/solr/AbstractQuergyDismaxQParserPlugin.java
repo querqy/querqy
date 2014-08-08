@@ -16,6 +16,9 @@ import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
+/**
+ * Abstract superclass for QuerqyDismaxQParserPlugins.
+ */
 public abstract class AbstractQuergyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
    protected NamedList<?> initArgs = null;
