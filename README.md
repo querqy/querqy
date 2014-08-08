@@ -6,6 +6,8 @@ This is still work in process - check back frequently, we're going to release Qu
 
 Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/licenses/LICENSE-2.0.html).
 
+[Querqy is build using Travis CI](https://travis-ci.org/shopping24/querqy).
+
 ## Building the project
 
     $ git submodule update --init

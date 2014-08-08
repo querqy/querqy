@@ -5,6 +5,7 @@ package querqy.rewrite.lucene;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.input.CharSequenceReader;
@@ -13,19 +14,20 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.UnicodeUtil;
 
 import querqy.CompoundCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
+import querqy.rewrite.commonrules.model.PositionSequence;
 import querqy.rewrite.lucene.BooleanQueryFactory.Clause;
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
 public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?>> {
@@ -37,30 +39,40 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     final IndexStats indexStats;
     final boolean normalizeBooleanQueryBoost;
     final float dmqTieBreakerMultiplier;
+    final float generatedFieldBoostFactor;
+    final IndexSearcher indexSearcher;
     
     LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
     LinkedList<DisjunctionMaxQueryFactory> subQueryStack = new LinkedList<>();
     
     protected ParentType parentType = ParentType.BQ;
     
-    public LuceneQueryBuilder(Analyzer analyzer, 
+    public LuceneQueryBuilder(IndexSearcher indexSearcher, Analyzer analyzer, 
     		Map<String, Float> searchFieldsAndBoostings, 
     		IndexStats indexStats, 
     		float dmqTieBreakerMultiplier) {
-        this(analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, true);
+        this(indexSearcher, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, 1f, true);
     }
 
+    public LuceneQueryBuilder(IndexSearcher indexSearcher, Analyzer analyzer, 
+    		Map<String, Float> searchFieldsAndBoostings, 
+    		IndexStats indexStats, 
+    		float dmqTieBreakerMultiplier, float generatedFieldBoostFactor) {
+        this(indexSearcher, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, generatedFieldBoostFactor, true);
+    }
     
-    public LuceneQueryBuilder(Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats, 
-    		float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost) {
+    public LuceneQueryBuilder(IndexSearcher indexSearcher, Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats, 
+    		float dmqTieBreakerMultiplier, float generatedFieldBoostFactor, boolean normalizeBooleanQueryBoost) {
         this.analyzer = analyzer;
         this.searchFieldsAndBoostings = searchFieldsAndBoostings;
         this.indexStats = indexStats;
         this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
         this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
+        this.generatedFieldBoostFactor = generatedFieldBoostFactor;
+        this.indexSearcher = indexSearcher;
     }
 
-    public Query createQuery(querqy.model.Query query) {
+    public Query createQuery(querqy.model.Query query) throws IOException {
         return visit(query).createQuery(-1, indexStats);
     }
     
@@ -201,10 +213,29 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         
     }
     
+    /**
+   	 * 
+   	 * <p>Applies analysis to a term and adds the result to the Lucene query factory tree.</p>
+   	 * 
+   	 * <p>The analysis might emit multiple tokens for the input term. If these tokens constitute a sequence (according
+   	 * to the position attribute), a BooleanQuery will be created and each position in the sequence constitutes a 
+   	 * MUST clause of this BooleanQuery. If multiple tokens occur at the same position, a DismaxQuery will be created in
+   	 * this position and the tokens constitute its disjuncts. The tiebreak factor will be set to the dmqTieBreakerMultiplier property
+   	 * of this LuceneQueryBuilder.</p>
+   	 *  
+   	 * 
+     * @param fieldname
+     * @param boost
+     * @param target
+     * @param sourceTerm
+     * @throws IOException
+     */
     void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
-        
-        LinkedList<org.apache.lucene.index.Term> backList = new LinkedList<>();
-      //  reader.reset();
+    	
+    	float applicableBoost = sourceTerm.isGenerated() ? generatedFieldBoostFactor * boost : boost;
+    	
+    	PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
+    	
         TokenStream ts = null;
         try {
             ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
@@ -214,17 +245,24 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             while (ts.incrementToken()) {
                 
                 int inc = posIncAttr.getPositionIncrement();
+                if (inc > 0 || sequence.isEmpty()) {
+                	sequence.nextPosition();
+                }
                 
-                if (inc > 0) {
-                    applyBackList(boost, backList, target);
-                }            
-                
-                int length = termAttr.length();
-                BytesRef bytes = new BytesRef(length * 4);
-                UnicodeUtil.UTF16toUTF8(termAttr.buffer(), 0, length, bytes);
-                backList.add(new org.apache.lucene.index.Term(fieldname, bytes));
+                sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
             }
-            applyBackList(boost, backList, target);
+            
+            
+            if (sequence.size() == 1) {
+            	target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), applicableBoost));
+            } else {
+            	BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
+	            for (List<org.apache.lucene.index.Term> posTerms : sequence) {
+	            	bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, applicableBoost), Occur.MUST);
+	            }
+	            target.add(bq);
+            }
+            
         } finally {
             if (ts != null) {
                 try {
@@ -235,43 +273,18 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         
     }
     
-    protected boolean termEquals(org.apache.lucene.index.Term luceneTerm, String termField, BytesRef termValue) {
-        
-        String fieldname = luceneTerm.field();
-        
-        boolean fieldEqual = fieldname == termField
-                || ((fieldname != null) && fieldname.equals(termField));
-        
-        if (!fieldEqual) return false;
-        
-        BytesRef luceneBytes = luceneTerm.bytes();
-        
-        return luceneBytes == termValue || (luceneBytes != null && luceneBytes.equals(termValue));
-        
-       
-        
+    protected LuceneQueryFactory<?> getLuceneQueryFactoryForStreamPosition(List<org.apache.lucene.index.Term> posTerms, float boost) {
+    	if (posTerms.size() == 1) {
+    		return new TermQueryFactory(posTerms.get(0), boost, indexSearcher);
+    	} else {
+    		// TODO: use tiebreak = 0 ?
+    		DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, dmqTieBreakerMultiplier);
+    		for (org.apache.lucene.index.Term term: posTerms) {
+    			dmq.add(new TermQueryFactory(term, 1f, indexSearcher));
+    		}
+            return dmq; 
+    	}
     }
-    void applyBackList(float boost, LinkedList<org.apache.lucene.index.Term> backList, DisjunctionMaxQueryFactory target) {
-        
-        int backListSize = backList.size();
-        
-        if (backListSize > 0)  {
-            
-            if (backListSize == 1) {
-                org.apache.lucene.index.Term term = backList.removeFirst();
-                TermQueryFactory tq = new TermQueryFactory(term, boost);
-                target.add(tq);
-                
-            } else {
-                DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, dmqTieBreakerMultiplier);
-                while (!backList.isEmpty()) {
-                    org.apache.lucene.index.Term term = backList.removeFirst();
-                    TermQueryFactory tq = new TermQueryFactory(term, 1f);
-                    dmq.add(tq);
-                }
-                target.add(dmq);
-            }
-        }
-    }
+    
 
 }

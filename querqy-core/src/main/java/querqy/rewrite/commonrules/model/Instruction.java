@@ -17,6 +17,6 @@ import querqy.model.Term;
  */
 public interface Instruction {
     
-    void apply(TermPositionSequence sequence, List<Term> matchedTerms, int startPosition, int endPosition);
+    void apply(PositionSequence<Term> sequence, List<Term> matchedTerms, int startPosition, int endPosition);
 
 }

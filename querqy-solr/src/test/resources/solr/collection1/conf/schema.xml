@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<schema name="minimal test schema" version="1.5">
+
+   <fieldtype name="string"  class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+   <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+   <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      </analyzer>
+    </fieldType>
+ 
+  <field name="id"        type="string" indexed="true"  stored="true"  multiValued="false" required="true"/>
+  <field name="f1"        type="text"   indexed="true"  stored="true"  multiValued="false" /> 
+  <field name="f2"        type="text"   indexed="true"  stored="true"  multiValued="false" /> 
+  <field name="f3"        type="text"   indexed="true"  stored="true"  multiValued="false" /> 
+  <field name="f_no_tfp"  type="text"   indexed="true"  stored="true"  multiValued="false" omitTermFreqAndPositions="true" /> 
+  <field name="f_no_tp"   type="text"   indexed="true"  stored="true"  multiValued="false" omitPositions="true" /> 
+  <field name="str"       type="string" indexed="true"  stored="true"  multiValued="false" /> 
+
+ <uniqueKey>id</uniqueKey>
+
+</schema>
+

@@ -32,9 +32,9 @@ public class RulesCollectionTest {
         builder.addRule(input, instructions);
         
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions), terms(s1), 0, 1)) );
@@ -54,9 +54,9 @@ public class RulesCollectionTest {
         builder.addRule(input, instructions);
         
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions), terms(s1), 0, 1)) );
@@ -79,9 +79,9 @@ public class RulesCollectionTest {
         builder.addRule(input, instructions2);
         
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions1, instructions2), terms(s1), 0, 1)) );
@@ -107,24 +107,24 @@ public class RulesCollectionTest {
         
         // Input is just s1
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions1), terms(s1), 0, 1)) );
         
         // Input is just s2
-        sequence = new TermPositionSequence();
+        sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s2));
+        sequence.addElement(new Term(null, s2));
         
         actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions2), terms(s2), 0, 1)) );
 
         // Input is s2 s1
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( 
@@ -155,16 +155,16 @@ public class RulesCollectionTest {
         
         // Input is just s1
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertTrue(actions.isEmpty());
         
         // Input is s1 s2
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s2));
+        sequence.addElement(new Term(null, s2));
         
         actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( 
@@ -174,7 +174,7 @@ public class RulesCollectionTest {
         
         // Input is s1 s2 s3
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s3));
+        sequence.addElement(new Term(null, s3));
         actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( 
                 new Action(Arrays.asList(instructions1), terms(s1, s2), 0, 2),
@@ -204,12 +204,12 @@ public class RulesCollectionTest {
         
         // Input is s1 s2
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s2));
+        sequence.addElement(new Term(null, s2));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( 
@@ -242,14 +242,14 @@ public class RulesCollectionTest {
         
         // Input is just s1
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(new Term(null, s1));
+        sequence.addElement(new Term(null, s1));
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions1), terms(s1), 0, 1)) );
         
-        sequence.addTerm(new Term(null, s2));
+        sequence.addElement(new Term(null, s2));
         
         actions = rulesCollection.getRewriteActions(sequence);
         assertThat(actions, contains( new Action(Arrays.asList(instructions1), terms(s1), 0, 1),
@@ -283,20 +283,20 @@ public class RulesCollectionTest {
         
         // Input is just s1
         RulesCollection rulesCollection = builder.build();
-        TermPositionSequence sequence = new TermPositionSequence();
+        PositionSequence<Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
-        sequence.addTerm(term11);
-        sequence.addTerm(term21);
+        sequence.addElement(term11);
+        sequence.addElement(term21);
         
         List<Action> actions = rulesCollection.getRewriteActions(sequence);
         assertTrue(actions.isEmpty());
         
         sequence.nextPosition();
-        sequence.addTerm(term12);
+        sequence.addElement(term12);
         actions = rulesCollection.getRewriteActions(sequence);
         assertTrue(actions.isEmpty());
         
-        sequence.addTerm(term22);
+        sequence.addElement(term22);
         actions = rulesCollection.getRewriteActions(sequence);
         
         assertThat(actions, contains( new Action(Arrays.asList(instructions1), 
@@ -306,9 +306,9 @@ public class RulesCollectionTest {
         actions = rulesCollection.getRewriteActions(sequence);
         assertTrue(actions.isEmpty());
         sequence.nextPosition();
-        sequence.addTerm(term12);
+        sequence.addElement(term12);
         sequence.nextPosition();
-        sequence.addTerm(term21);
+        sequence.addElement(term21);
         actions = rulesCollection.getRewriteActions(sequence);
         
         assertThat(actions, contains( new Action(Arrays.asList(instructions1), Arrays.asList(term12, term21), 0, 2)) );
@@ -394,7 +394,7 @@ public class RulesCollectionTest {
 
 
         @Override
-        public void apply(TermPositionSequence sequence,
+        public void apply(PositionSequence<Term> sequence,
                 List<Term> matchedTerms, int startPosition, int endPosition) {
         }
         

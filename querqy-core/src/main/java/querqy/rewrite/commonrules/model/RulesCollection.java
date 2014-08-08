@@ -45,7 +45,7 @@ public class RulesCollection {
         this.instructions = instructions;
     }
     
-    public List<Action> getRewriteActions(TermPositionSequence sequence) {
+    public List<Action> getRewriteActions(PositionSequence<Term> sequence) {
         
         List<Action> result = new ArrayList<>();
         if (sequence.isEmpty()) {

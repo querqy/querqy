@@ -6,13 +6,11 @@ package querqy.rewrite.commonrules.model;
 import java.util.LinkedList;
 import java.util.List;
 
-import querqy.model.Term;
-
 /**
  * @author rene
  *
  */
-public class TermPositionSequence extends LinkedList<List<Term>>{
+public class PositionSequence<T> extends LinkedList<List<T>>{
     
     /**
      * 
@@ -20,20 +18,20 @@ public class TermPositionSequence extends LinkedList<List<Term>>{
     private static final long serialVersionUID = 1L;
     
     
-    public TermPositionSequence() { }
+    public PositionSequence() { }
     
     public void nextPosition() {
-        add(new LinkedList<Term>());
+        super.add(new LinkedList<T>());
     }
     
     /**
      * 
-     * Adds a term at the current position
+     * Adds an element at the current position
      * 
-     * @param term
+     * @param element
      */
-    public void addTerm(Term term) {
-        getLast().add(term);
+    public void addElement(T element) {
+        getLast().add(element);
     }
     
     

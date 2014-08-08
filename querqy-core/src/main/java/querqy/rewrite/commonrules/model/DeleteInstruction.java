@@ -69,7 +69,7 @@ public class DeleteInstruction implements Instruction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void apply(TermPositionSequence sequence,
+    public void apply(PositionSequence<querqy.model.Term> sequence,
             List<querqy.model.Term> matchedTerms, int startPosition,
             int endPosition) {
         // make sure that at least one term will be left in the query after we apply this instruction
@@ -130,6 +130,7 @@ public class DeleteInstruction implements Instruction {
         
         
     }
+
     
     
 

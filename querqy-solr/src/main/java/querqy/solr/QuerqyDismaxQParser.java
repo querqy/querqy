@@ -3,29 +3,44 @@
  */
 package querqy.solr;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queries.function.BoostedQuery;
+import org.apache.lucene.queries.function.ValueSource;
+import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.util.BytesRef;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
+import org.apache.solr.schema.SchemaField;
+import org.apache.solr.schema.TextField;
 import org.apache.solr.search.ExtendedDismaxQParser;
+import org.apache.solr.search.FieldParams;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
+import querqy.model.DisjunctionMaxClause;
+import querqy.model.DisjunctionMaxQuery;
+import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.lucene.IndexStats;
@@ -35,7 +50,9 @@ import querqy.rewrite.lucene.LuceneQueryBuilder;
  * @author rene
  *
  */
-public class QuerqyQParser extends ExtendedDismaxQParser {
+public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
+	
+	public static final String GFB = "gfb"; // generated field boost
     
     static final String MATCH_ALL = "*:*";
     
@@ -52,7 +69,7 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     protected PublicExtendedDismaxConfiguration config;
     protected List<Query> boostQueries;
 
-    public QuerqyQParser(String qstr, SolrParams localParams, SolrParams params,
+    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
             SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats, QuerqyParser querqyParser) {
     	
         super(qstr, localParams, params, req);
@@ -95,18 +112,34 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
             throw new SyntaxError("query string is empty");
         }
         
-        Query mainQuery = makeMainQuery(userQuery);
+        querqy.model.Query querqyQuery = null;
+        Query mainQuery = null;
+        
+        if ((userQuery.charAt(0) == '*') && (userQuery.length() == 1 || MATCH_ALL.equals(userQuery))) {
+        	mainQuery = new MatchAllDocsQuery();
+        } else {
+        	querqyQuery = querqyParser.parse(qstr);
+        	mainQuery = makeMainQueryFromQuerqyQuery(querqyQuery);
+        	applyMinShouldMatch(mainQuery);
+        }
 
         boostQueries = getBoostQueries();
         List<Query> boostFunctions = getBoostFunctions();
+        List<ValueSource> multiplicativeBoosts = getMultiplicativeBoosts();
+        List<Query> phraseFieldQueries = getPhraseFieldQueries(querqyQuery);
+        
+        boolean hasMultiplicativeBoosts = multiplicativeBoosts != null && !multiplicativeBoosts.isEmpty();
 
         boolean hasBoost = (boostQueries != null && !boostQueries.isEmpty())
-        		|| (boostFunctions != null && !boostFunctions.isEmpty());
+        		|| (boostFunctions != null && !boostFunctions.isEmpty())
+        		|| !phraseFieldQueries.isEmpty()
+        		|| hasMultiplicativeBoosts
+        		;
         
         if (hasBoost) {
         	
-        	mainQuery = assureBooleanQuery(mainQuery);
-        	BooleanQuery bq = (BooleanQuery) mainQuery;
+        	BooleanQuery bq = new BooleanQuery(true);
+        	bq.add(mainQuery, Occur.MUST);
         	
         	if (boostQueries != null) {
         		for(Query f : boostQueries) {
@@ -119,35 +152,168 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
         			bq.add(f, BooleanClause.Occur.SHOULD);
         		}
         	}
+        	
+        	if (phraseFieldQueries != null) {
+        		for (Query pf : phraseFieldQueries) {
+        			bq.add(pf, BooleanClause.Occur.SHOULD);
+        		}
+        	}
+        	
+        	mainQuery = bq;
+        	
+        	if (hasMultiplicativeBoosts) {
+        		
+        		if (multiplicativeBoosts.size() > 1) {
+        			ValueSource prod = new ProductFloatFunction(multiplicativeBoosts.toArray(new ValueSource[multiplicativeBoosts.size()]));
+        	        mainQuery = new BoostedQuery(query, prod);
+        	    } else {
+        	    	mainQuery = new BoostedQuery(query, multiplicativeBoosts.get(0));
+        	    }
+        	}
+        	
         }
         
         return mainQuery;
         
     }
-        
-    public BooleanQuery assureBooleanQuery(Query mainQuery) {
-    	if (mainQuery instanceof BooleanQuery) {
-    		return (BooleanQuery) mainQuery;
+    
+    public List<Query> getPhraseFieldQueries(querqy.model.Query querqyQuery) {
+    	
+    	List<Query> result = new ArrayList<>();
+    	
+    	List<querqy.model.BooleanClause> clauses = querqyQuery.getClauses();
+    	
+    	if (clauses.size() > 1) {
+    		
+    		List<FieldParams> allPhraseFields = config.getAllPhraseFields();
+    		
+    		if (allPhraseFields != null && !allPhraseFields.isEmpty()) {
+    			
+	    		List<Term> sequence = new LinkedList<>();
+	    		
+	    		for (querqy.model.BooleanClause clause: clauses) {
+	    			
+	    			if ((!clause.isGenerated()) && (clause instanceof DisjunctionMaxQuery)) {
+	    				
+	    				DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) clause;
+	    				
+	    				if (dmq.occur != querqy.model.SubQuery.Occur.MUST_NOT) {
+	    					
+	    					for (DisjunctionMaxClause dmqClause : dmq.getClauses()) {
+	    						if (!(dmqClause.isGenerated()) && (dmqClause instanceof Term)) {
+	    							sequence.add((Term) dmqClause);
+	    							break;
+	    						}
+	    					}
+	    					
+	    				}
+	    			}
+	    			
+	    		}
+	    		
+	    		if (sequence.size() > 1) {
+	    			
+	    			IndexSchema schema = req.getSchema();
+	    			
+		    		for (FieldParams fieldParams: allPhraseFields) {
+		    			
+		    			if (isFieldPhraseQueryable(schema.getFieldOrNull(fieldParams.getField()))) {
+			    			
+			    			int n = fieldParams.getWordGrams();
+			    			String fieldname = fieldParams.getField();
+			    			
+			    			if (n == 0) {
+			    				
+			    				PhraseQuery pq = new PhraseQuery();
+			    				pq.setSlop(fieldParams.getSlop());
+			    				pq.setBoost(fieldParams.getBoost());
+			    				
+			    				for (Term term: sequence) {
+			    					pq.add(
+			    							new org.apache.lucene.index.Term(fieldname,
+			    							new BytesRef(term))
+			    							);
+			    				}
+			    				
+			    				result.add(pq);
+			    				
+			    			} else {
+			    				for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
+			    					PhraseQuery pq = new PhraseQuery();
+				    				pq.setSlop(fieldParams.getSlop());
+				    				pq.setBoost(fieldParams.getBoost());
+				    				for (int j = i, lenJ = j + n; j < lenJ; j++) {
+				    					pq.add(
+				    							new org.apache.lucene.index.Term(fieldname,
+				    							new BytesRef(sequence.get(j)))
+				    							);
+				    				}
+				    				result.add(pq);
+			    				}
+			    			}
+		    			
+		    			}
+		    			
+		    		}
+	    		}
+    			
+    		}
+    		
     	}
     	
-    	BooleanQuery bq = new BooleanQuery(true);
-    	bq.add(mainQuery, Occur.MUST);
-    	return bq;
+    	return result;
     }
     
-    public Query makeMainQuery(String queryString) throws SyntaxError {
-    	if ((queryString.charAt(0) == '*') && (queryString.length() == 1 || MATCH_ALL.equals(queryString))) {
-            return new MatchAllDocsQuery();
-        }
+    public boolean isFieldPhraseQueryable(SchemaField field) {
+    	if (field != null) {
+    		FieldType fieldType = field.getType();
+    		if ((fieldType instanceof  TextField) && !field.omitPositions() && !field.omitTermFreqAndPositions()) {
+    			return true;
+    		}
+    	} 
+    	
+    	return false;
+    	
+    }
+    
+    /**
+     * @param query
+     */
+    public void applyMinShouldMatch(Query query) {
+    	
+    	if (!(query instanceof BooleanQuery)) {
+    		return;
+    	}
+    	
+    	BooleanQuery bq = (BooleanQuery) query;
+    	BooleanClause[] clauses = bq.getClauses();
+    	if (clauses.length < 2) {
+    		return;
+    	}
+    	
+    	for (BooleanClause clause: clauses) {
+    		if ((clause.getQuery() instanceof BooleanQuery) && (clause.getOccur() != Occur.MUST)) {
+    			return; // seems to be a complex query with sub queries - do not apply mm
+    		}
+    	}
+    	
+    	SolrPluginUtils.setMinShouldMatch(bq, config.getMinShouldMatch());
+    	
+    	
+    }
+    
         
-        SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
-        Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
+    public Query makeMainQueryFromQuerqyQuery(querqy.model.Query querqyQuery) throws SyntaxError {
+    	
+    	SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
+    	Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
+    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, queryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
         
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats, config.getTieBreaker());
-        
-        querqy.model.Query q = querqyParser.parse(qstr);
-        
-        return builder.createQuery(rewriteChain.rewrite(q, Collections.<String,Object>emptyMap()));
+        try {
+			return builder.createQuery(rewriteChain.rewrite(querqyQuery, Collections.<String,Object>emptyMap()));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
     }
     
     /**
@@ -237,8 +403,10 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     }
     
     public class PublicExtendedDismaxConfiguration extends ExtendedDismaxConfiguration {
+    	
+    	final float generatedFieldBoostFactor;
 
-    	/**
+		/**
          * @param localParams
          * @param params
          * @param req
@@ -246,11 +414,21 @@ public class QuerqyQParser extends ExtendedDismaxQParser {
     	public PublicExtendedDismaxConfiguration(SolrParams localParams,
     			SolrParams params, SolrQueryRequest req) {
     		super(localParams, params, req);
+    		generatedFieldBoostFactor = solrParams.getFloat(GFB, 1f);
     	}
     	
-    	public float getTieBreaker() {
+    	public float getTieBreaker() { 
     		return tiebreaker;
     	}
+    	
+    	public String getMinShouldMatch() {
+    		return minShouldMatch;
+    	}
+    	
+    	public float getGeneratedFieldBoostFactor() {
+			return generatedFieldBoostFactor;
+		}
+    	
     }
     
 }

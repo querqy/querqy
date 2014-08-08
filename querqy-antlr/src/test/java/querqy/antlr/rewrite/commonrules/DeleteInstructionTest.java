@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
@@ -34,11 +33,10 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         
         assertThat(rewritten, 
                 bq(
-                        bq(
-                                dmq(
-                                        term("a")
-                                )
-                )));
+                		dmq(
+                				term("a")
+                        )
+                ));
         
         
         
@@ -53,21 +51,19 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
         
         Query query = makeQuery("a");
-        DisjunctionMaxQuery dmq = query.getClauses(BooleanQuery.class).get(0)
-            .getClauses(DisjunctionMaxQuery.class).get(0);
-        querqy.model.Term termB = new querqy.model.Term(dmq, null, "b");
         
+        DisjunctionMaxQuery dmq = query.getClauses(DisjunctionMaxQuery.class).get(0);
+        querqy.model.Term termB = new querqy.model.Term(dmq, null, "b");
         dmq.addClause(termB);
         
         Query rewritten = rewriter.rewrite(query);
         
         assertThat(rewritten, 
                 bq(
-                        bq(
-                                dmq(
-                                        term("b")
-                                )
-                )));
+                		dmq(
+                				term("b")
+                		)
+                ));
     }
     
     
@@ -80,21 +76,20 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
         
         Query query = makeQuery("a");
-        DisjunctionMaxQuery dmq = query.getClauses(BooleanQuery.class).get(0)
-            .getClauses(DisjunctionMaxQuery.class).get(0);
-        querqy.model.Term termB = new querqy.model.Term(dmq, null, "a");
         
+        DisjunctionMaxQuery dmq = query.getClauses(DisjunctionMaxQuery.class).get(0);
+        
+        querqy.model.Term termB = new querqy.model.Term(dmq, null, "a");
         dmq.addClause(termB);
         
         Query rewritten = rewriter.rewrite(query);
         
         assertThat(rewritten, 
                 bq(
-                        bq(
-                                dmq(
-                                        term("a")
-                                )
-                )));
+                		dmq(
+                				term("a")
+                        )
+                ));
     }
     
     @Test
@@ -111,11 +106,10 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         
         assertThat(rewritten, 
                 bq(
-                        bq(
-                                dmq(
-                                        term("b")
-                                )
-                )));
+                		dmq(
+                				term("b")
+                        )
+                ));
     }
     
     @Test
@@ -132,11 +126,10 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         
         assertThat(rewritten, 
                 bq(
-                        bq(
-                                dmq(
-                                        term("a")
-                                )
-                )));
+                		dmq(
+                				term("a")
+                        )
+                ));
     }
 
 }

@@ -46,6 +46,11 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node>  implement
 	}
 	
 	@Override
+	public Node visit(Query query) {
+		return visit((BooleanQuery) query);
+	}
+	
+	@Override
 	public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
 		sequencesStack.getLast().nextPosition(disjunctionMaxQuery);
 		return super.visit(disjunctionMaxQuery);
