@@ -54,6 +54,8 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
         final BytesRef bytes = term.bytes();
         final TermContext perReaderTermState = new TermContext(context);
         
+        boolean updated = false;
+        
         for (final AtomicReaderContext ctx : context.leaves()) {
           //if (DEBUG) System.out.println("  r=" + leaves[i].reader);
           final Fields fields = ctx.reader().fields();
@@ -65,13 +67,19 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
                 final TermState termState = termsEnum.termState();
                 // modified from TermContext.build():
                 perReaderTermState.register(termState, ctx.ord, termsEnum.docFreq(), -1);
+                updated = true;
               }
             }
           }
         }
-        perReaderTermState.setDocFreq(dfToSet);
-    	
-    	return new TermQuery(term, perReaderTermState);
+        
+        if (updated) {
+        	perReaderTermState.setDocFreq(dfToSet);
+        	return new TermQuery(term, perReaderTermState);
+        } else {
+        	// term does not exist
+        	return new TermQuery(term);
+        }
     	
     }
 

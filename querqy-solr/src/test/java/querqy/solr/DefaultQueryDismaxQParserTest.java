@@ -40,6 +40,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
     public static void beforeClass() throws Exception {
     	System.setProperty("tests.codec", "Lucene46");
     	initCore("solrconfig.xml", "schema.xml");
+    	index();
 	}
 	
 	@Test
@@ -138,7 +139,10 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
 		
 				assertQ("Matchall fails",
 						req,
-					            "//str[@name='parsedquery'][contains(.,'*:*')]"
+					            "//str[@name='parsedquery'][contains(.,'*:*')]",
+					            "//result[@name='response' and @numFound='4']"
+						
+				
 					     );
 				 
 				req.close();
@@ -345,7 +349,6 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
 			     );
 		
 		req.close(); 
-		 
 		
 		
 	}
