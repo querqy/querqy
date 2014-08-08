@@ -5,7 +5,7 @@ package querqy.model;
 
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
 public class Query extends BooleanQuery {

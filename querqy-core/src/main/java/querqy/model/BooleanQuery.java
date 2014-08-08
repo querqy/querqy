@@ -3,24 +3,20 @@
  */
 package querqy.model;
 
-
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public class BooleanQuery extends SubQuery<BooleanClause> implements DisjunctionMaxClause, BooleanClause {
+public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> implements DisjunctionMaxClause, BooleanClause, BooleanParent {
 	
-	public BooleanQuery(SubQuery<?> parentQuery, Occur occur, boolean generated) {
+	public BooleanQuery(BooleanParent parentQuery, Occur occur, boolean generated) {
 		super(parentQuery, occur, generated);
 	}
 	
-
 	@Override
 	public <T> T accept(NodeVisitor<T> visitor) {
 		return visitor.visit(this);
 	}
-
-
 
 	@Override
 	public String toString() {

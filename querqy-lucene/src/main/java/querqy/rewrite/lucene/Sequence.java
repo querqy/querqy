@@ -68,7 +68,7 @@ class Sequence {
             for (Term term: terms) {
                 
                 // FIXME fix parent type of term to always DMQ?
-                DisjunctionMaxQuery currentDmq = (DisjunctionMaxQuery) term.getParentQuery();
+                DisjunctionMaxQuery currentDmq = (DisjunctionMaxQuery) term.getParent();
                 
                 BooleanQuery add = new BooleanQuery(currentDmq, Occur.SHOULD, true);
                 

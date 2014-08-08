@@ -71,7 +71,7 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node>  implement
 	@Override
 	public Node visit(BooleanQuery booleanQuery) {
 		
-		if ((!sequencesStack.isEmpty()) && booleanQuery.getParentQuery() instanceof BooleanQuery) {
+		if ((!sequencesStack.isEmpty()) && booleanQuery.getParent() instanceof BooleanQuery) {
 			// left-hand siblings might be DMQs with Terms - terminate sequences
 			sequencesStack.getLast().apply();
 		}

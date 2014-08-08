@@ -100,7 +100,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         Clause result = null;
         
         switch (bq.getNumberOfClauses()) {
-        case 0: throw new IllegalArgumentException("No subqueries found for BQ. Parent: " + booleanQuery.getParentQuery());
+        case 0: throw new IllegalArgumentException("No subqueries found for BQ. Parent: " + booleanQuery.getParent());
         case 1: 
             result = bq.getFirstClause(); 
             break;
@@ -156,7 +156,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         parentType = myParentType;
         
         switch (dmq.getNumberOfDisjuncts()) {
-        case 0: throw new IllegalArgumentException("No subqueries found for DMQ. Parent: " + disjunctionMaxQuery.getParentQuery());
+        case 0: throw new IllegalArgumentException("No subqueries found for DMQ. Parent: " + disjunctionMaxQuery.getParent());
         case 1: 
             LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
             clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
