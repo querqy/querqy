@@ -26,7 +26,16 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
         if (synonymResoureName == null) {
             throw new IllegalArgumentException("Property 'synonyms' not configured");
         }
-        return new LuceneSynonymsRewriterFactory(resourceLoader.openResource(synonymResoureName));
+        Boolean expand = args.getBooleanArg("expand");
+        if (expand == null) {
+        	expand = false;
+        }
+        
+        Boolean ignoreCase = args.getBooleanArg("ignoreCase");
+        if (ignoreCase == null) {
+        	ignoreCase = true;
+        }
+        return new LuceneSynonymsRewriterFactory(resourceLoader.openResource(synonymResoureName), expand, ignoreCase);
         
     }
 

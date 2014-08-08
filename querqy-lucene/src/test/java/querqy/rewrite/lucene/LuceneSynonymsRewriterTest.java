@@ -1,6 +1,7 @@
 package querqy.rewrite.lucene;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -12,7 +13,10 @@ import querqy.AbstractQueryTest;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
+import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
+import querqy.model.SubQuery.Occur;
+import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 
 public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
@@ -23,7 +27,7 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	public void setUp() throws Exception {
 		
 		LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(
-				getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+				getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"), true, true);
 		rewriter = factory.createRewriter(null, null);
 	}
 	
@@ -46,6 +50,25 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 						dmq(
 								term("a"),
 								term("x")
+						)
+				));
+		
+	}
+	
+	@Test
+	public void testThatGeneratedTermIsNotExpanded() throws Exception {
+		Query query = new Query();
+		
+		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
+		query.addClause(dmq);
+		
+		Term term = new Term(dmq, "a", true);
+		dmq.addClause(term);
+		
+		assertThat(rewriter.rewrite(query), 
+				bq(
+						dmq(
+								term("a")
 						)
 				));
 		
@@ -205,6 +228,7 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	        
 	    
     }
+	
 	
 	/**
 	 * Rules:

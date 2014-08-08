@@ -58,10 +58,12 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node>  implement
 	
 	@Override
 	public Node visit(Term term) {
-		try {
-			sequencesStack.getLast().putTerm(term);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		if (!term.isGenerated()) {
+			try {
+				sequencesStack.getLast().putTerm(term);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return super.visit(term);
 	}

@@ -47,6 +47,7 @@
 			<lst name="rewriter">
 				<str name="class">querqy.solr.SolrSynonymsRewriterFactory</str>
 				<str name="synonyms">synonyms.txt</str>
+				<bool name="expand">true</bool>
 			</lst>
 		</lst>
 		<lst name="parser">
