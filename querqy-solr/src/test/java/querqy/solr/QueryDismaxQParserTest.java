@@ -97,7 +97,7 @@ public class QueryDismaxQParserTest extends SolrTestCaseJ4 {
 	}
 	
 	@Test
-	public void testThatPfIsApplied() throws Exception {
+	public void testThatPfIsAppliedOnlyToExistingField() throws Exception {
 		
 		String q = "a b c d";
 		
@@ -105,30 +105,139 @@ public class QueryDismaxQParserTest extends SolrTestCaseJ4 {
 				DisMaxParams.QF, "f1 f2",
 				DisMaxParams.MM, "3",
 				QueryParsing.OP, "OR",
-				DisMaxParams.PF, "f3^2 f4^0.5"
+				DisMaxParams.PF, "f3^2 f4^0.5",
+				"defType", "querqy",
+		        "debugQuery", "true"
 				);
-				
-		verifyQueryString(req, q , "f3:\"a b c d\"^2.0", "f4:\"a b c d\"^0.5");
+		
+		// f4 doesn't exist
+		assertQ("wrong ps",
+				req,
+			            "//str[@name='parsedquery'][contains(.,'f3:\"a b c d\"^2.0')]",
+			            "//str[@name='parsedquery'][not(contains(.,'f4:\"a b c d\"^0.5'))]"
+			     );
+		 
+		req.close();
 		
 	}
 	
 	@Test
-	public void testThatPf2IsApplied() throws Exception {
+	public void testThatPfIsAppliedOnlyToFieldsWithTermPositions() throws Exception {
 		
 		String q = "a b c d";
-		verifyQueryString(req("q", q, 
+		SolrQueryRequest req = req("q", q, 
 				DisMaxParams.QF, "f1 f2",
 				DisMaxParams.MM, "3",
 				QueryParsing.OP, "OR",
-				DisMaxParams.PF2, "f1^2 f4^0.5"
-				), q , 
-					"f1:\"a b\"^2.0", "f1:\"b c\"^2.0", "f1:\"c d\"^2.0",
-					"f4:\"a b\"^0.5", "f4:\"b c\"^0.5", "f4:\"c d\"^0.5"
-				
-				);
+				"defType", "querqy",
+		        "debugQuery", "true",
+				DisMaxParams.PF, "f1^1.2 str^2 f_no_tfp^0.5");
 		
+		// str is a string field
+		// f_no_tfp / f_no_tp don't have term positions
+		assertQ("wrong ps2",
+				req,
+	            		"//str[@name='parsedquery'][contains(.,'f1:\"a b c d\"^1.2')]",
+			            "//str[@name='parsedquery'][not(contains(.,'str:\"a b c d\"^2.0'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b c d\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"a b c d\"^0.5'))]"
+			     );
+		 
+		req.close();
 		
 	}
+	
+	
+	
+	@Test
+	public void testThatPf2IsAppliedOnlyToExistingField() throws Exception {
+		
+		String q = "a b c d";
+		SolrQueryRequest req = req("q", q, 
+				DisMaxParams.QF, "f1 f2",
+				DisMaxParams.MM, "3",
+				QueryParsing.OP, "OR",
+				"defType", "querqy",
+		        "debugQuery", "true",
+				DisMaxParams.PF2, "f1^2 f4^0.5");
+		
+		// f4 does not exists
+		assertQ("wrong ps2",
+				req,
+			            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^2.0')]",
+			            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"^2.0')]",
+			            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"^2.0')]",
+			            "//str[@name='parsedquery'][not(contains(.,'f4:\"a b\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f4:\"b c\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f4:\"c d\"^0.5'))]"
+			     );
+		 
+		req.close();
+		
+	}
+	
+	
+	@Test
+	public void testThatPf2IsAppliedOnlyToFieldsWithTermPositions() throws Exception {
+		
+		String q = "a b c d";
+		SolrQueryRequest req = req("q", q, 
+				DisMaxParams.QF, "f1 f2",
+				DisMaxParams.MM, "3",
+				QueryParsing.OP, "OR",
+				"defType", "querqy",
+		        "debugQuery", "true",
+				DisMaxParams.PF2, "f1^1.2 str^2 f_no_tfp^0.5");
+		
+		// str is a string field
+		// f_no_tfp doesn't have term positions
+		assertQ("wrong ps2",
+				req,
+	            		"//str[@name='parsedquery'][contains(.,'f1:\"a b\"^1.2')]",
+	            		"//str[@name='parsedquery'][contains(.,'f1:\"b c\"^1.2')]",
+	            		"//str[@name='parsedquery'][contains(.,'f1:\"c d\"^1.2')]",
+			            "//str[@name='parsedquery'][not(contains(.,'str:\"a b\"^2.0'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'str:\"b c\"^2.0'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'str:\"c d\"^2.0'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"b c\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"c d\"^0.5'))]"
+			     );
+		 
+		req.close();
+		
+	}
+	
+	@Test
+	public void testThatPf3IsAppliedOnlyToFieldsWithTermPositions() throws Exception {
+		
+		String q = "a b c d";
+		SolrQueryRequest req = req("q", q, 
+				DisMaxParams.QF, "f1 f2",
+				DisMaxParams.MM, "3",
+				QueryParsing.OP, "OR",
+				"defType", "querqy",
+		        "debugQuery", "true",
+				DisMaxParams.PF3, "f1^1.2 str^2 f_no_tfp^0.5 f4^4");
+		
+		// str is a string field
+		// f_no_tfp / f_no_tp don't have term positions
+		assertQ("wrong ps2",
+				req,
+	            		"//str[@name='parsedquery'][contains(.,'f1:\"a b c\"^1.2')]",
+	            		"//str[@name='parsedquery'][contains(.,'f1:\"b c d\"^1.2')]",
+			            "//str[@name='parsedquery'][not(contains(.,'str:\"a b c\"^2.0'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'str:\"b c d\"^2.0'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b c\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"b c d\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"a b c\"^0.5'))]",
+			            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"b c d\"^0.5'))]"
+			     );
+		 
+		req.close();
+		
+	}
+	
 	
 	@Test
 	public void testThatPf3IsApplied() throws Exception {

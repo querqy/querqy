@@ -27,7 +27,10 @@ import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
+import org.apache.solr.schema.SchemaField;
+import org.apache.solr.schema.TextField;
 import org.apache.solr.search.ExtendedDismaxQParser;
 import org.apache.solr.search.FieldParams;
 import org.apache.solr.search.QParser;
@@ -210,39 +213,45 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 	    		
 	    		if (sequence.size() > 1) {
 	    			
+	    			IndexSchema schema = req.getSchema();
+	    			
 		    		for (FieldParams fieldParams: allPhraseFields) {
 		    			
-		    			int n = fieldParams.getWordGrams();
-		    			String fieldname = fieldParams.getField();
-		    			
-		    			if (n == 0) {
-		    				
-		    				PhraseQuery pq = new PhraseQuery();
-		    				pq.setSlop(fieldParams.getSlop());
-		    				pq.setBoost(fieldParams.getBoost());
-		    				
-		    				for (Term term: sequence) {
-		    					pq.add(
-		    							new org.apache.lucene.index.Term(fieldname,
-		    							new BytesRef(term))
-		    							);
-		    				}
-		    				
-		    				result.add(pq);
-		    				
-		    			} else {
-		    				for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
-		    					PhraseQuery pq = new PhraseQuery();
+		    			if (isFieldPhraseQueryable(schema.getFieldOrNull(fieldParams.getField()))) {
+			    			
+			    			int n = fieldParams.getWordGrams();
+			    			String fieldname = fieldParams.getField();
+			    			
+			    			if (n == 0) {
+			    				
+			    				PhraseQuery pq = new PhraseQuery();
 			    				pq.setSlop(fieldParams.getSlop());
 			    				pq.setBoost(fieldParams.getBoost());
-			    				for (int j = i, lenJ = j + n; j < lenJ; j++) {
+			    				
+			    				for (Term term: sequence) {
 			    					pq.add(
 			    							new org.apache.lucene.index.Term(fieldname,
-			    							new BytesRef(sequence.get(j)))
+			    							new BytesRef(term))
 			    							);
 			    				}
+			    				
 			    				result.add(pq);
-		    				}
+			    				
+			    			} else {
+			    				for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
+			    					PhraseQuery pq = new PhraseQuery();
+				    				pq.setSlop(fieldParams.getSlop());
+				    				pq.setBoost(fieldParams.getBoost());
+				    				for (int j = i, lenJ = j + n; j < lenJ; j++) {
+				    					pq.add(
+				    							new org.apache.lucene.index.Term(fieldname,
+				    							new BytesRef(sequence.get(j)))
+				    							);
+				    				}
+				    				result.add(pq);
+			    				}
+			    			}
+		    			
 		    			}
 		    			
 		    		}
@@ -253,6 +262,18 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     	}
     	
     	return result;
+    }
+    
+    public boolean isFieldPhraseQueryable(SchemaField field) {
+    	if (field != null) {
+    		FieldType fieldType = field.getType();
+    		if ((fieldType instanceof  TextField) && !field.omitPositions() && !field.omitTermFreqAndPositions()) {
+    			return true;
+    		}
+    	} 
+    	
+    	return false;
+    	
     }
     
     /**
