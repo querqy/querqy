@@ -179,88 +179,92 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     
     public List<Query> getPhraseFieldQueries(querqy.model.Query querqyQuery) {
     	
+    	
     	List<Query> result = new ArrayList<>();
     	
-    	List<querqy.model.BooleanClause> clauses = querqyQuery.getClauses();
+    	if (querqyQuery != null) {
     	
-    	if (clauses.size() > 1) {
-    		
-    		List<FieldParams> allPhraseFields = config.getAllPhraseFields();
-    		
-    		if (allPhraseFields != null && !allPhraseFields.isEmpty()) {
-    			
-	    		List<Term> sequence = new LinkedList<>();
+	    	List<querqy.model.BooleanClause> clauses = querqyQuery.getClauses();
+	    	
+	    	if (clauses.size() > 1) {
 	    		
-	    		for (querqy.model.BooleanClause clause: clauses) {
-	    			
-	    			if ((!clause.isGenerated()) && (clause instanceof DisjunctionMaxQuery)) {
-	    				
-	    				DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) clause;
-	    				
-	    				if (dmq.occur != querqy.model.SubQuery.Occur.MUST_NOT) {
-	    					
-	    					for (DisjunctionMaxClause dmqClause : dmq.getClauses()) {
-	    						if (!(dmqClause.isGenerated()) && (dmqClause instanceof Term)) {
-	    							sequence.add((Term) dmqClause);
-	    							break;
-	    						}
-	    					}
-	    					
-	    				}
-	    			}
-	    			
-	    		}
+	    		List<FieldParams> allPhraseFields = config.getAllPhraseFields();
 	    		
-	    		if (sequence.size() > 1) {
+	    		if (allPhraseFields != null && !allPhraseFields.isEmpty()) {
 	    			
-	    			IndexSchema schema = req.getSchema();
-	    			
-		    		for (FieldParams fieldParams: allPhraseFields) {
+		    		List<Term> sequence = new LinkedList<>();
+		    		
+		    		for (querqy.model.BooleanClause clause: clauses) {
 		    			
-		    			if (isFieldPhraseQueryable(schema.getFieldOrNull(fieldParams.getField()))) {
-			    			
-			    			int n = fieldParams.getWordGrams();
-			    			String fieldname = fieldParams.getField();
-			    			
-			    			if (n == 0) {
-			    				
-			    				PhraseQuery pq = new PhraseQuery();
-			    				pq.setSlop(fieldParams.getSlop());
-			    				pq.setBoost(fieldParams.getBoost());
-			    				
-			    				for (Term term: sequence) {
-			    					pq.add(
-			    							new org.apache.lucene.index.Term(fieldname,
-			    							new BytesRef(term))
-			    							);
-			    				}
-			    				
-			    				result.add(pq);
-			    				
-			    			} else {
-			    				for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
-			    					PhraseQuery pq = new PhraseQuery();
-				    				pq.setSlop(fieldParams.getSlop());
-				    				pq.setBoost(fieldParams.getBoost());
-				    				for (int j = i, lenJ = j + n; j < lenJ; j++) {
-				    					pq.add(
-				    							new org.apache.lucene.index.Term(fieldname,
-				    							new BytesRef(sequence.get(j)))
-				    							);
-				    				}
-				    				result.add(pq);
-			    				}
-			    			}
-		    			
+		    			if ((!clause.isGenerated()) && (clause instanceof DisjunctionMaxQuery)) {
+		    				
+		    				DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) clause;
+		    				
+		    				if (dmq.occur != querqy.model.SubQuery.Occur.MUST_NOT) {
+		    					
+		    					for (DisjunctionMaxClause dmqClause : dmq.getClauses()) {
+		    						if (!(dmqClause.isGenerated()) && (dmqClause instanceof Term)) {
+		    							sequence.add((Term) dmqClause);
+		    							break;
+		    						}
+		    					}
+		    					
+		    				}
 		    			}
 		    			
 		    		}
+		    		
+		    		if (sequence.size() > 1) {
+		    			
+		    			IndexSchema schema = req.getSchema();
+		    			
+			    		for (FieldParams fieldParams: allPhraseFields) {
+			    			
+			    			if (isFieldPhraseQueryable(schema.getFieldOrNull(fieldParams.getField()))) {
+				    			
+				    			int n = fieldParams.getWordGrams();
+				    			String fieldname = fieldParams.getField();
+				    			
+				    			if (n == 0) {
+				    				
+				    				PhraseQuery pq = new PhraseQuery();
+				    				pq.setSlop(fieldParams.getSlop());
+				    				pq.setBoost(fieldParams.getBoost());
+				    				
+				    				for (Term term: sequence) {
+				    					pq.add(
+				    							new org.apache.lucene.index.Term(fieldname,
+				    							new BytesRef(term))
+				    							);
+				    				}
+				    				
+				    				result.add(pq);
+				    				
+				    			} else {
+				    				for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
+				    					PhraseQuery pq = new PhraseQuery();
+					    				pq.setSlop(fieldParams.getSlop());
+					    				pq.setBoost(fieldParams.getBoost());
+					    				for (int j = i, lenJ = j + n; j < lenJ; j++) {
+					    					pq.add(
+					    							new org.apache.lucene.index.Term(fieldname,
+					    							new BytesRef(sequence.get(j)))
+					    							);
+					    				}
+					    				result.add(pq);
+				    				}
+				    			}
+			    			
+			    			}
+			    			
+			    		}
+		    		}
+	    			
 	    		}
-    			
-    		}
-    		
+	    		
     	}
     	
+    	}
     	return result;
     }
     

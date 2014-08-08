@@ -1,5 +1,7 @@
 package querqy.solr;
 
+import static org.junit.Assert.*;
+
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
@@ -119,6 +121,27 @@ public class QueryDismaxQParserTest extends SolrTestCaseJ4 {
 		 
 		req.close();
 		
+	}
+	
+	@Test
+	public void testThatMatchAllDoesNotThrowException() throws Exception {
+		String q = "*:*";
+		
+		SolrQueryRequest req = req("q", q, 
+				DisMaxParams.QF, "f1 f2",
+				DisMaxParams.MM, "3",
+				QueryParsing.OP, "OR",
+				DisMaxParams.PF, "f3^2 f4^0.5",
+				"defType", "querqy",
+		        "debugQuery", "true"
+				);
+		
+				assertQ("Matchall fails",
+						req,
+					            "//str[@name='parsedquery'][contains(.,'*:*')]"
+					     );
+				 
+				req.close();
 	}
 	
 	@Test
