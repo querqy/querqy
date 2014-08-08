@@ -3,8 +3,8 @@
  */
 package querqy.rewrite.lucene;
 
+import java.io.IOException;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.lucene.search.DisjunctionMaxQuery;
 
@@ -37,7 +37,7 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
     }
     
     @Override
-    public DisjunctionMaxQuery createQuery(int dfToSet, IndexStats indexStats) {
+    public DisjunctionMaxQuery createQuery(int dfToSet, IndexStats indexStats) throws IOException {
         DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(tieBreakerMultiplier);
         dmq.setBoost(boost);
         int dfToSendToChildren = dfToSet < 0 ? getMaxDocFreqInSubtree(indexStats) : dfToSet;

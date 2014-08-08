@@ -68,9 +68,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         return result;
     }
     
-    protected Query build(String input, float tie, String...names) {
-        
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats, tie);
+    protected Query build(String input, float tie, String...names) throws IOException {
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(null, keywordAnalyzer, fields(names), dummyIndexStats, tie);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
@@ -78,7 +77,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
     
     protected Query buildWithSynonyms(String input, float tie, String...names) throws IOException {
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(keywordAnalyzer, fields(names), dummyIndexStats, tie);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(null, keywordAnalyzer, fields(names), dummyIndexStats, tie);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
@@ -90,14 +89,14 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
 
     @Test
-    public void test01() {
+    public void test01() throws IOException {
     	float tie = (float) Math.random();
         Query q = build("a", tie, "f1");
         assertThat(q, tq(1f, "f1", "a"));
     }
     
     @Test
-    public void test02() {
+    public void test02() throws IOException {
     	float tie = (float) Math.random();
         Query q = build("a", tie, "f1", "f2");
         assertThat(q, dmq(1f, tie,

@@ -3,6 +3,7 @@
  */
 package querqy.solr;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -285,10 +286,13 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     	
     	SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
     	Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
-    	LuceneQueryBuilder builder = new LuceneQueryBuilder(queryAnalyzer, queryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
-       
+    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, queryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
         
-        return builder.createQuery(rewriteChain.rewrite(querqyQuery, Collections.<String,Object>emptyMap()));
+        try {
+			return builder.createQuery(rewriteChain.rewrite(querqyQuery, Collections.<String,Object>emptyMap()));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
     }
     
     /**

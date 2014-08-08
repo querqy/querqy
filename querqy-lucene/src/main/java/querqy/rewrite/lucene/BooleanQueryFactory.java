@@ -3,8 +3,8 @@
  */
 package querqy.rewrite.lucene;
 
+import java.io.IOException;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -38,7 +38,7 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
     
 
     @Override
-    public BooleanQuery createQuery(int dfToSet, IndexStats indexStats) {
+    public BooleanQuery createQuery(int dfToSet, IndexStats indexStats) throws IOException {
         BooleanQuery bq = new BooleanQuery(disableCoord);
         if (normalizeBoost) {
             int size = getNumberOfClauses();

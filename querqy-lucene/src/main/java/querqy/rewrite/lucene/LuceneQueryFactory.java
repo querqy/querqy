@@ -3,6 +3,8 @@
  */
 package querqy.rewrite.lucene;
 
+import java.io.IOException;
+
 import org.apache.lucene.search.Query;
 
 /**
@@ -11,7 +13,7 @@ import org.apache.lucene.search.Query;
  */
 public interface LuceneQueryFactory<T extends Query> {
     
-    T createQuery(int dfToSet, IndexStats indexStats);
+    T createQuery(int dfToSet, IndexStats indexStats) throws IOException;
     int getMaxDocFreqInSubtree(IndexStats indexStats);
 
 }
