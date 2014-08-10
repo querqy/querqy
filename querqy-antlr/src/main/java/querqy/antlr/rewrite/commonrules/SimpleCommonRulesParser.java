@@ -7,13 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-
-import querqy.antlr.commonrules.SimpleParserLexer;
-import querqy.antlr.commonrules.SimpleParserParser;
-import querqy.antlr.commonrules.SimpleParserParser.LineContext;
-import querqy.antlr.rewrite.commonrules.LineVisitor.ValidationError;
+import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
@@ -30,13 +24,15 @@ public class SimpleCommonRulesParser {
     static final String ARROW_OP = "=>";
     
     final BufferedReader reader;
+    final QuerqyParserFactory querqyParserFactory;
     int lineNumber = 0;
     final RulesCollectionBuilder builder;
     Input input = null;
     Instructions instructions;
     
-    public SimpleCommonRulesParser(Reader in) {
+    public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory) {
         this.reader = new BufferedReader(in);
+        this.querqyParserFactory = querqyParserFactory;
         builder = new RulesCollectionBuilder();
         instructions = new Instructions();
     }
@@ -74,15 +70,7 @@ public class SimpleCommonRulesParser {
     public void nextLine(String line) throws RuleParseException {
         line = stripLine(line);
         if (line.length() > 0) {
-            
-            char[] inputChars = line.toCharArray();
-            
-            SimpleParserLexer lex = new SimpleParserLexer(new ANTLRInputStream(inputChars, inputChars.length));
-            CommonTokenStream tokens = new CommonTokenStream(lex);
-            SimpleParserParser parser = new SimpleParserParser(tokens);
-            
-            LineContext lineContext = parser.line();
-            Object lineObject = lineContext.accept(new LineVisitor(inputChars, input));
+            Object lineObject = LineParser.parse(line, input, querqyParserFactory);
             if (lineObject instanceof Input) {
                 putRule();
                 input = (Input) lineObject;

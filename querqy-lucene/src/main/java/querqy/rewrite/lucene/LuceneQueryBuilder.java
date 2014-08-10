@@ -71,6 +71,11 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         this.generatedFieldBoostFactor = generatedFieldBoostFactor;
         this.indexSearcher = indexSearcher;
     }
+    
+    public void reset() {
+    	clauseStack.clear();
+    	subQueryStack.clear();
+    }
 
     public Query createQuery(querqy.model.Query query) throws IOException {
         return visit(query).createQuery(-1, indexStats);

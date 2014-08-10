@@ -3,9 +3,9 @@
  */
 package querqy.parser;
 
+import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
-import querqy.model.SubQuery.Occur;
 import querqy.model.Term;
 
 /**

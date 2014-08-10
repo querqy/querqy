@@ -8,12 +8,12 @@ import org.hamcrest.TypeSafeMatcher;
 
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
+import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Node;
 import querqy.model.SubQuery;
 import querqy.model.Term;
-import querqy.model.SubQuery.Occur;
 
 public class AbstractQueryTest {
     

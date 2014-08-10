@@ -37,5 +37,10 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 	public T visit(Term term) {
 		return null;
 	}
+	
+	@Override
+	public T visit(RawQuery rawQuery) {
+		return null;
+	}
 
 }

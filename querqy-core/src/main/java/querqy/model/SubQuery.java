@@ -10,30 +10,9 @@ import java.util.List;
  * @author René Kriegler, @renekrie
  *
  */
-public abstract class SubQuery<P extends Node, C extends Node> extends AbstractNode<P> {
+public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P> {
 	
-	public enum Occur {
-		
-		SHOULD(""), MUST("+"), MUST_NOT("-");
-		
-		final String txt;
-		
-		Occur(String txt) {
-			this.txt = txt;
-		}
-		
-		@Override
-		public String toString() {
-			return txt;
-		}
-
-	}
 	
-	public final Occur occur;
-	
-	public Occur getOccur() {
-		return occur;
-	}
 
 	protected final List<C> clauses = new LinkedList<>();
 	
@@ -42,8 +21,7 @@ public abstract class SubQuery<P extends Node, C extends Node> extends AbstractN
 	}
 	
 	public SubQuery(P parentQuery, Occur occur, boolean generated) {
-		super(parentQuery, generated);
-		this.occur = occur;
+		super(parentQuery, occur, generated);
 	}
 	
 	

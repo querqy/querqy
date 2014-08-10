@@ -20,4 +20,6 @@ a b c =>
 #{y,z}:(a b) =>
 #	DELETE: {y,z}:a
 	
-# test 04: delete a (queried in fields y,z, removed from z) before b (queried in any field) 
+
+pf xp =>
+	FILTER: * price:[* TO 100]

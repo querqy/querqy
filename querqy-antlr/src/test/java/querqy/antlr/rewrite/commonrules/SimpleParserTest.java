@@ -1,7 +1,9 @@
 package querqy.antlr.rewrite.commonrules;
 
 import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,33 +13,34 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
+import querqy.model.Clause.Occur;
+import querqy.model.RawQuery;
 import querqy.model.Term;
+import querqy.parser.QuerqyParserFactory;
+import querqy.parser.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
+import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.PositionSequence;
+import querqy.rewrite.commonrules.model.RulesCollection;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
     
     Reader reader; 
-
-    @Before
-    public void setUp() throws Exception {
-    }
+    QuerqyParserFactory querqyParserFactory = new WhiteSpaceQuerqyParserFactory();
     
     SimpleCommonRulesParser createParserWithEmptyReader() {
         reader = new StringReader("");
-        return new SimpleCommonRulesParser(reader);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory);
     }
     
     SimpleCommonRulesParser createParserFromResource(String resourceName) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
-        return new SimpleCommonRulesParser(reader);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory);
     }
     
     RulesCollection createRulesFromResource(String resourceName) throws IOException, RuleParseException {
@@ -118,6 +121,30 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                 
                 ));
     }
+    
+    @Test
+	public void test03() throws Exception {
+    	RulesCollection rules = createRulesFromResource("rules-test.txt");
+        Term t1 = new Term(null, "pf");
+        Term t2 = new Term(null, "xp");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        List<Action> actions = rules.getRewriteActions(seq);
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(new RawQuery(null, "price:[* TO 100]", Occur.MUST, false)))
+                                                        )), 
+                                Arrays.asList(t1, t2), 0, 2)
+                
+                
+                ));
+	}
     
     @Test
     public void testError01() throws Exception {

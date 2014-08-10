@@ -41,7 +41,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     @Override
     public ExpandedQuery rewrite(ExpandedQuery query) {
     	
-    	QuerqyQuery userQuery = query.getUserQuery();
+    	QuerqyQuery<?> userQuery = query.getUserQuery();
     	if (userQuery instanceof Query) { 
     		this.expandedQuery = query;
     		visit((BooleanQuery) query.getUserQuery());

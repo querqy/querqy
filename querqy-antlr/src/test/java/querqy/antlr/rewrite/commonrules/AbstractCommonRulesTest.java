@@ -5,7 +5,6 @@ import java.util.Arrays;
 import querqy.AbstractQueryTest;
 import querqy.antlr.ANTLRQueryParser;
 import querqy.model.ExpandedQuery;
-import querqy.model.Query;
 import querqy.rewrite.commonrules.model.Term;
 
 public abstract class AbstractCommonRulesTest extends AbstractQueryTest {

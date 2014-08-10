@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.Query;
 
 /**
  * @author rene

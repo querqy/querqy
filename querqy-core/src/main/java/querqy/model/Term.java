@@ -52,13 +52,9 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
 	}
 	
 	@Override
-   public char charAt(int index) {
+    public char charAt(int index) {
 	    return value.charAt(index);
 	}
-	
-//	public int codePointAt(int index) {
-//	    return Character.codePointAt(value, index);
-//	}
 	
 	public CharSequence getValue() {
 		return value;
@@ -114,6 +110,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
 			return false;
 		return true;
 	}
+
 
 
 }

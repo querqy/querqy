@@ -24,8 +24,7 @@ import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
-import querqy.model.SubQuery.Occur;
-
+import querqy.model.Clause.Occur;
 /**
  * @author rene
  *

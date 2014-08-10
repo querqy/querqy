@@ -18,11 +18,10 @@ synonymValue:
 	termExpr+;
 	
 filterInstruction:
-	FILTER ':' filterValue
+	FILTER ':' ('*' rawQuery) | filterQuery
 	;
 	
-filterValue:
-	termExpr+;
+
 
 deleteInstruction:
 	DELETE (':' deleteValue)?
@@ -45,6 +44,12 @@ termClause: termValue | ('(' termValue+ ')');
 
 termValue: STRING;
 
+rawQuery:
+	RAW_QUERY;
+	
+filterQuery:
+	STRING_EXT;
+
 fragment
 STRING_CHAR  : [a-zA-Z0-9_];
 
@@ -63,6 +68,17 @@ STRING_CHAR_EXT   :
 	[a-z]
 ;
 	
+fragment
+RAW_QUERY_CHAR :
+	'!'
+	| ':'
+	| '('
+	| ')'
+	| ' '
+	| '['
+	| ']'
+;
+
 BOOST: [Bb][Oo][Oo][Ss][Tt];
 SYNONYM: [Ss][Yy][Nn][Oo][Nn][Yy][Mm];
 FILTER: [Ff][Ii][Ll][Tt][Ee][Rr];
@@ -70,5 +86,6 @@ DELETE: [Dd][Ee][Ll][Ee][Tt][Ee];
 
 STRING: STRING_CHAR+;
 STRING_EXT: (STRING_CHAR_EXT | STRING_CHAR)+;
+RAW_QUERY: (RAW_QUERY_CHAR | STRING_CHAR_EXT | STRING_CHAR)+;
 
 WS : [ \t\n\r]+ -> skip;

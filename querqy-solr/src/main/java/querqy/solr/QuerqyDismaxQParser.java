@@ -5,6 +5,7 @@ package querqy.solr;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,7 +27,9 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
@@ -41,6 +44,8 @@ import org.apache.solr.util.SolrPluginUtils;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
+import querqy.model.QuerqyQuery;
+import querqy.model.RawQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
@@ -66,12 +71,13 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     final RewriteChain rewriteChain;
     final IndexStats indexStats;
     final QuerqyParser querqyParser;
+    final Map<String, Float> userQueryFields;
     
     protected PublicExtendedDismaxConfiguration config;
     protected List<Query> boostQueries;
 
     public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
-            SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats, QuerqyParser querqyParser) {
+            SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats, QuerqyParser querqyParser) throws SyntaxError {
     	
         super(qstr, localParams, params, req);
         
@@ -86,6 +92,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         queryAnalyzer = schema.getQueryAnalyzer();
         this.rewriteChain = rewriteChain;
         this.indexStats = indexStats;
+    	userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params));
     }
     
     @Override
@@ -120,8 +127,10 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         	mainQuery = new MatchAllDocsQuery();
         } else {
         	expandedQuery = makeExpandedQuery();
+        	expandedQuery = rewriteChain.rewrite(expandedQuery, Collections.<String,Object>emptyMap());
         	mainQuery = makeMainQuery(expandedQuery);
         	applyMinShouldMatch(mainQuery);
+        	applyFilterQueries(expandedQuery);
         }
 
         boostQueries = getBoostQueries();
@@ -313,17 +322,53 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     	
     }
     
-    
+    public void applyFilterQueries(ExpandedQuery expandedQuery) throws SyntaxError {
+    	
+    	Collection<QuerqyQuery<?>> filterQueries = expandedQuery.getFilterQueries();
+    	
+    	if (filterQueries != null && !filterQueries.isEmpty()) {
+    	
+    		SolrRequestInfo info = SolrRequestInfo.getRequestInfo();
+    		
+    		if (info != null) {
+    			
+    			ResponseBuilder rb = info.getResponseBuilder();
+    			if (rb != null) {
+    				
+    				List<Query> filters = rb.getFilters();
+    				if (filters == null) {
+    					filters = new ArrayList<>(filterQueries.size());
+    				}
+    				
+    		    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
+
+    		    	for (QuerqyQuery<?> qfq: filterQueries) {
+    		    		if (qfq instanceof RawQuery) {
+    		    			QParser fqp = QParser.getParser(((RawQuery) qfq).getQueryString(), null, req);
+    		                filters.add(fqp.getQuery());
+    		    		} if (qfq instanceof querqy.model.Query) {
+    		    			builder.reset();
+    		    			try {
+								filters.add(builder.createQuery((querqy.model.Query) qfq));
+							} catch (IOException e) {
+								throw new RuntimeException(e);
+							}
+    		    		}
+    		    	}
+    		    	
+    			}
+    		}
+    	}
+    }
     
         
-    public Query makeMainQuery(ExpandedQuery expandedQuery) throws SyntaxError {
+    public Query makeMainQuery(ExpandedQuery expandedQuery) {
     	
-    	SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
-    	Map<String, Float> queryFields = parseQueryFields(req.getSchema(), solrParams);
-    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, queryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
+    	
+    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
         
         try {
-			return builder.createQuery(rewriteChain.rewrite(expandedQuery, Collections.<String,Object>emptyMap()).getUserQuery());
+			return builder.createQuery(expandedQuery.getUserQuery());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

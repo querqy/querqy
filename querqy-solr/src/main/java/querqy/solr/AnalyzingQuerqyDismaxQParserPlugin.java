@@ -9,6 +9,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.search.QParser;
+import org.apache.solr.search.SyntaxError;
 
 import querqy.lucene.parser.AnalyzingQuerqyParser;
 import querqy.parser.QuerqyParser;
@@ -57,8 +58,12 @@ public class AnalyzingQuerqyDismaxQParserPlugin extends AbstractQuerqyDismaxQPar
 
       QuerqyParser querqyParser = new AnalyzingQuerqyParser(rewriteAnalyzer, synonymAnalyzer);
 
-      return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain,
-            new SolrIndexStats(req.getSearcher()), querqyParser);
+      try {
+		return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain,
+		        new SolrIndexStats(req.getSearcher()), querqyParser);
+	} catch (SyntaxError e) {
+		throw new RuntimeException(e);
+	}
 
    }
 }

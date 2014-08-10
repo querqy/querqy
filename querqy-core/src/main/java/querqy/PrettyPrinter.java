@@ -1,10 +1,18 @@
 /**
  * 
  */
-package querqy.model;
+package querqy;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
+
+import querqy.model.AbstractNodeVisitor;
+import querqy.model.BooleanQuery;
+import querqy.model.DisjunctionMaxQuery;
+import querqy.model.Node;
+import querqy.model.Query;
+import querqy.model.RawQuery;
+import querqy.model.Term;
 
 /**
  * @author René Kriegler, @renekrie
@@ -71,6 +79,14 @@ public class PrettyPrinter extends AbstractNodeVisitor<Node> {
 		char[] buf = new char[depth * indendStep];
 		Arrays.fill(buf, ' ');
 		return new String(buf);
+	}
+
+	@Override
+	public Node visit(RawQuery rawQuery) {
+		String indend = makeIndend();
+		writer.print(indend);
+		writer.println(rawQuery);
+		return null;
 	}
 
 }

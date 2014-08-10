@@ -8,11 +8,11 @@ import java.io.PrintWriter;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
+import querqy.PrettyPrinter;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.model.Node;
-import querqy.model.PrettyPrinter;
 import querqy.model.Query;
 /*import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.synonyms.SynonymRewriter;

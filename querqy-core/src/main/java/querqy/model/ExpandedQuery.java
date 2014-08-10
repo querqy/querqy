@@ -4,15 +4,20 @@
 package querqy.model;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 /**
+ *
+ * 
  * @author René Kriegler, @renekrie
+ * 
+ * Note: this class does not synchronize access to filterQueries.
  *
  */
 public class ExpandedQuery {
 
 	private Query userQuery;
-	protected Collection<QuerqyQuery> filterQueries;
+	protected Collection<QuerqyQuery<?>> filterQueries;
 	
 	public ExpandedQuery(Query userQuery) {
 		setUserQuery(userQuery);
@@ -30,11 +35,15 @@ public class ExpandedQuery {
 	}
 	
 	
-	public Collection<QuerqyQuery> getFilterQueries() {
+	public Collection<QuerqyQuery<?>> getFilterQueries() {
 		return filterQueries;
 	}
-	public void setFilterQueries(Collection<QuerqyQuery> filterQueries) {
-		this.filterQueries = filterQueries;
+	
+	public void addFilterQuery(QuerqyQuery<?> filterQuery) {
+		if (filterQueries == null) {
+			filterQueries = new LinkedList<>();
+		}
+		filterQueries.add(filterQuery);
 	}
 	
 

@@ -7,7 +7,7 @@ package querqy.model;
  * @author René Kriegler, @renekrie
  *
  */
-abstract class AbstractNode<P extends Node> implements Node {
+abstract class AbstractNode<P extends Node> implements CloneableNode<P> {
 	
 	protected final P parent;
 	
@@ -30,5 +30,7 @@ abstract class AbstractNode<P extends Node> implements Node {
 	public boolean isGenerated() {
 		return generated;
 	}
+	
+	//public abstract Node clone(P newParent);
 
 }

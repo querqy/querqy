@@ -22,11 +22,11 @@ import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.antlr.parser.QueryParser.TermContext;
 import querqy.antlr.parser.QueryParser.TermQueryContext;
 import querqy.model.BooleanQuery;
+import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Node;
 import querqy.model.Query;
 import querqy.model.Term;
-import querqy.model.SubQuery.Occur;
 
 /**
  * @author rene

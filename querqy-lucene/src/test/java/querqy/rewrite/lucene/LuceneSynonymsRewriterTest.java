@@ -12,10 +12,10 @@ import querqy.antlr.QueryTransformerVisitor;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
+import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
-import querqy.model.SubQuery.Occur;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 

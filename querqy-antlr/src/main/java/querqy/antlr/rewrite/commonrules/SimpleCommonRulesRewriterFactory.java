@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.Query;
+import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
@@ -26,10 +26,10 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
     /**
      * 
      */
-    public SimpleCommonRulesRewriterFactory(InputStream is) throws IOException {
+    public SimpleCommonRulesRewriterFactory(InputStream is, QuerqyParserFactory querqyParserFactory) throws IOException {
         InputStreamReader reader = new InputStreamReader(is);
         try {
-            rules = new SimpleCommonRulesParser(reader).parse();
+            rules = new SimpleCommonRulesParser(reader, querqyParserFactory).parse();
         } catch (RuleParseException e) {
             throw new IOException(e);
         } finally {

@@ -7,6 +7,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
+import org.apache.solr.search.SyntaxError;
 
 import querqy.parser.QuerqyParser;
 
@@ -43,7 +44,7 @@ public class DefaultQuerqyDismaxQParserPlugin extends AbstractQuerqyDismaxQParse
       try {
          return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain,
                new SolrIndexStats(req.getSearcher()), querqyParserClass.newInstance());
-      } catch (InstantiationException | IllegalAccessException e) {
+      } catch (InstantiationException | IllegalAccessException | SyntaxError e) {
          throw new RuntimeException(e);
       }
    }

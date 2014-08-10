@@ -8,9 +8,9 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
+import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
-import querqy.model.SubQuery.Occur;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 
