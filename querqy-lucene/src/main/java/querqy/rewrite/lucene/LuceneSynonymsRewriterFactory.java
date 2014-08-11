@@ -28,37 +28,43 @@ import querqy.rewrite.RewriterFactory;
  *
  */
 public class LuceneSynonymsRewriterFactory implements RewriterFactory {
-	
-	final SynonymMap synonymMap;
-	
-	public LuceneSynonymsRewriterFactory(InputStream is, boolean expand, final boolean ignoreCase) throws IOException {
-		
-		Analyzer analyzer = new Analyzer() {
-		      @Override
-		      protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-		        Tokenizer tokenizer = new KeywordTokenizer(reader) ;
-		        TokenStream stream =  ignoreCase ? new LowerCaseFilter(Version.LUCENE_CURRENT, tokenizer) : tokenizer;
-		        return new TokenStreamComponents(tokenizer, stream);
-		      }
-		    };
-		    
-		    
-		SolrSynonymParser parser = new SolrSynonymParser(true, expand, analyzer);
-		try {
-			parser.parse(new InputStreamReader(is));
-		} catch (ParseException e) {
-		    throw new IOException(e);
-		}
-		synonymMap = parser.build();
-	}
-	
-//	public QueryRewriter getRewriter() {
-//		return new LuceneSynonymsRewriter(synonymMap);
-//	}
 
     @Override
     public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
         return new LuceneSynonymsRewriter(synonymMap);
     }
+
+   SynonymMap synonymMap = null;
+   final SolrSynonymParser parser;
+
+   public LuceneSynonymsRewriterFactory(boolean expand, final boolean ignoreCase) throws IOException {
+
+      Analyzer analyzer = new Analyzer() {
+         @Override
+         protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+            Tokenizer tokenizer = new KeywordTokenizer(reader);
+            TokenStream stream = ignoreCase ? new LowerCaseFilter(Version.LUCENE_4_9, tokenizer) : tokenizer;
+            return new TokenStreamComponents(tokenizer, stream);
+         }
+      };
+
+      parser = new SolrSynonymParser(true, expand, analyzer);
+      
+      
+   }
+   
+   public void addResource(InputStream is) throws IOException {
+	   try {
+	         parser.parse(new InputStreamReader(is));
+	      } catch (ParseException e) {
+	         throw new IOException(e);
+	      }
+   }
+   
+   public void build() throws IOException {
+	   synonymMap = parser.build();
+   }
+
+   
 
 }

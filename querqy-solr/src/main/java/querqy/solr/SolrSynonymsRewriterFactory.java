@@ -22,11 +22,8 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
      */
     @Override
     public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
-        String synonymResoureName = (String) args.get("synonyms");
-        if (synonymResoureName == null) {
-            throw new IllegalArgumentException("Property 'synonyms' not configured");
-        }
-        Boolean expand = args.getBooleanArg("expand");
+    	
+    	Boolean expand = args.getBooleanArg("expand");
         if (expand == null) {
         	expand = false;
         }
@@ -35,7 +32,23 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
         if (ignoreCase == null) {
         	ignoreCase = true;
         }
-        return new LuceneSynonymsRewriterFactory(resourceLoader.openResource(synonymResoureName), expand, ignoreCase);
+    	
+    	String synonymResoureName = (String) args.get("synonyms");
+        if (synonymResoureName == null) {
+            throw new IllegalArgumentException("Property 'synonyms' not configured");
+        }
+        
+        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory( expand, ignoreCase);
+        for (String resource: synonymResoureName.split(",")) {
+        	resource = resource.trim();
+        	if (resource.length() > 0) {
+        		factory.addResource(resourceLoader.openResource(resource));
+        	}
+        }
+        
+        factory.build();
+        
+        return factory;
         
     }
 

@@ -26,8 +26,10 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(
-				getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"), true, true);
+		LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+        factory.build();
+        
 		rewriter = factory.createRewriter(null, null);
 	}
 	

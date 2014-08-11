@@ -82,8 +82,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
-        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(
-                getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"), true, true);
+        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+        factory.build();
+        
         QueryRewriter rewriter = factory.createRewriter(null, null);
         
         return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
