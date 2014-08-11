@@ -41,54 +41,51 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
    public Query parse(String input) {
       Preconditions.checkNotNull(input);
 
-      try {
-         // get dismax terms
-         Collection<CharSequence> terms = analyze(input, queryAnalyzer);
+      // get dismax terms
+      Collection<String> terms = analyze(input, queryAnalyzer);
 
-         // construct query while iterating terms
-         Query query = new Query();
+      // construct query while iterating terms
+      Query query = new Query();
 
-         for (CharSequence term : terms) {
-            DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
-            Term t = new Term(dmq, term);
-            dmq.addClause(t);
-            query.addClause(dmq);
+      for (String term : terms) {
+         DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
+         Term t = new Term(dmq, term);
+         dmq.addClause(t);
+         query.addClause(dmq);
 
-            if (synonymAnalyzer != null) {
-               // evaluate synonyms
-               Collection<CharSequence> synonyms = analyze(term, synonymAnalyzer);
-               if (!synonyms.isEmpty()) {
-                  for (CharSequence synonym : synonyms) {
-                     dmq.addClause(new Term(dmq, synonym, true));
-                  }
+         if (synonymAnalyzer != null) {
+            // evaluate synonyms
+            Collection<String> synonyms = analyze(term, synonymAnalyzer);
+            if (!synonyms.isEmpty()) {
+               for (CharSequence synonym : synonyms) {
+                  dmq.addClause(new Term(dmq, synonym, true));
                }
             }
          }
-
-         return query;
-      } catch (IOException e) {
-         throw new RuntimeException(e);
       }
+
+      return query;
    }
 
    /**
-    * Analyzes the given string using the given analyzer.
+    * Analyzes the given string using the given {@link Analyzer} (-chain).
     */
-   protected Collection<CharSequence> analyze(CharSequence input, Analyzer analyzer) throws IOException {
+   protected Collection<String> analyze(String input, Analyzer analyzer) {
       Preconditions.checkNotNull(input);
       Preconditions.checkNotNull(analyzer);
 
-      TokenStream tokenStream = analyzer.tokenStream("querqy", new CharSequenceReader(input));
-      Collection<CharSequence> result = Lists.newArrayList();
-      try {
+      Collection<String> result = Lists.newArrayList();
+      try (TokenStream tokenStream = analyzer.tokenStream("querqy", new CharSequenceReader(input))) {
          tokenStream.reset();
          CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
          while (tokenStream.incrementToken()) {
-            result.add(charTermAttribute);
+            // needs to converted to string, because on tokenStream.end() the
+            // charTermAttribute will be flushed.
+            result.add(charTermAttribute.toString());
          }
-      } finally {
          tokenStream.end();
-         tokenStream.close();
+      } catch (IOException e) {
+         throw new RuntimeException(e);
       }
 
       return result;
