@@ -42,7 +42,7 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
         for (String resource: synonymResoureName.split(",")) {
         	resource = resource.trim();
         	if (resource.length() > 0) {
-        		factory.addResource(resourceLoader.openResource(synonymResoureName));
+        		factory.addResource(resourceLoader.openResource(resource));
         	}
         }
         
