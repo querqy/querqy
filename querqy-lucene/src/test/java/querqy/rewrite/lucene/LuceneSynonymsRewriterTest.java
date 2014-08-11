@@ -1,15 +1,14 @@
 package querqy.rewrite.lucene;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import querqy.antlr.QueryTransformerVisitor;
 import querqy.AbstractQueryTest;
+import querqy.antlr.QueryTransformerVisitor;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
@@ -26,8 +25,10 @@ public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(
-				getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"), true, true);
+		LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+        factory.build();
+        
 		rewriter = factory.createRewriter(null, null);
 	}
 	

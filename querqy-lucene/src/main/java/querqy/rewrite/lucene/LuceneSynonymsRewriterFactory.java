@@ -29,9 +29,10 @@ import querqy.rewrite.RewriterFactory;
  */
 public class LuceneSynonymsRewriterFactory implements RewriterFactory {
 
-   final SynonymMap synonymMap;
+   SynonymMap synonymMap = null;
+   final SolrSynonymParser parser;
 
-   public LuceneSynonymsRewriterFactory(InputStream is, boolean expand, final boolean ignoreCase) throws IOException {
+   public LuceneSynonymsRewriterFactory(boolean expand, final boolean ignoreCase) throws IOException {
 
       Analyzer analyzer = new Analyzer() {
          @Override
@@ -42,13 +43,21 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
          }
       };
 
-      SolrSynonymParser parser = new SolrSynonymParser(true, expand, analyzer);
-      try {
-         parser.parse(new InputStreamReader(is));
-      } catch (ParseException e) {
-         throw new IOException(e);
-      }
-      synonymMap = parser.build();
+      parser = new SolrSynonymParser(true, expand, analyzer);
+      
+      
+   }
+   
+   public void addResource(InputStream is) throws IOException {
+	   try {
+	         parser.parse(new InputStreamReader(is));
+	      } catch (ParseException e) {
+	         throw new IOException(e);
+	      }
+   }
+   
+   public void build() throws IOException {
+	   synonymMap = parser.build();
    }
 
    @Override
