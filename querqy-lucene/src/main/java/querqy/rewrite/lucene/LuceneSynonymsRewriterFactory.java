@@ -28,37 +28,32 @@ import querqy.rewrite.RewriterFactory;
  *
  */
 public class LuceneSynonymsRewriterFactory implements RewriterFactory {
-	
-	final SynonymMap synonymMap;
-	
-	public LuceneSynonymsRewriterFactory(InputStream is, boolean expand, final boolean ignoreCase) throws IOException {
-		
-		Analyzer analyzer = new Analyzer() {
-		      @Override
-		      protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-		        Tokenizer tokenizer = new KeywordTokenizer(reader) ;
-		        TokenStream stream =  ignoreCase ? new LowerCaseFilter(Version.LUCENE_4_9, tokenizer) : tokenizer;
-		        return new TokenStreamComponents(tokenizer, stream);
-		      }
-		    };
-		    
-		    
-		SolrSynonymParser parser = new SolrSynonymParser(true, expand, analyzer);
-		try {
-			parser.parse(new InputStreamReader(is));
-		} catch (ParseException e) {
-		    throw new IOException(e);
-		}
-		synonymMap = parser.build();
-	}
-	
-//	public QueryRewriter getRewriter() {
-//		return new LuceneSynonymsRewriter(synonymMap);
-//	}
 
-    @Override
-    public QueryRewriter createRewriter(Query input, Map<String, ?> context) {
-        return new LuceneSynonymsRewriter(synonymMap);
-    }
+   final SynonymMap synonymMap;
+
+   public LuceneSynonymsRewriterFactory(InputStream is, boolean expand, final boolean ignoreCase) throws IOException {
+
+      Analyzer analyzer = new Analyzer() {
+         @Override
+         protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+            Tokenizer tokenizer = new KeywordTokenizer(reader);
+            TokenStream stream = ignoreCase ? new LowerCaseFilter(Version.LUCENE_4_9, tokenizer) : tokenizer;
+            return new TokenStreamComponents(tokenizer, stream);
+         }
+      };
+
+      SolrSynonymParser parser = new SolrSynonymParser(true, expand, analyzer);
+      try {
+         parser.parse(new InputStreamReader(is));
+      } catch (ParseException e) {
+         throw new IOException(e);
+      }
+      synonymMap = parser.build();
+   }
+
+   @Override
+   public QueryRewriter createRewriter(Query input, Map<String, ?> context) {
+      return new LuceneSynonymsRewriter(synonymMap);
+   }
 
 }
