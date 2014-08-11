@@ -11,13 +11,15 @@ import java.util.LinkedList;
  * 
  * @author René Kriegler, @renekrie
  * 
- * Note: this class does not synchronize access to filterQueries.
+ * Note: this class does not synchronize access to filterQueries and boostQueries.
  *
  */
 public class ExpandedQuery {
 
 	private Query userQuery;
 	protected Collection<QuerqyQuery<?>> filterQueries;
+	protected Collection<BoostQuery> boostUpQueries;
+	protected Collection<BoostQuery> boostDownQueries;
 	
 	public ExpandedQuery(Query userQuery) {
 		setUserQuery(userQuery);
@@ -45,6 +47,27 @@ public class ExpandedQuery {
 		}
 		filterQueries.add(filterQuery);
 	}
-	
 
+	public Collection<BoostQuery> getBoostUpQueries() {
+		return boostUpQueries;
+	}
+	
+	public void addBoostUpQuery(BoostQuery boostUpQuery) {
+		if (boostUpQueries == null) {
+			boostUpQueries = new LinkedList<>();
+		}
+		boostUpQueries.add(boostUpQuery);
+	}
+	
+	public Collection<BoostQuery> getBoostDownQueries() {
+		return boostDownQueries;
+	}
+	
+	public void addBoostDownQuery(BoostQuery boostDownQuery) {
+		if (boostDownQueries == null) {
+			boostDownQueries = new LinkedList<>();
+		}
+		boostDownQueries.add(boostDownQuery);
+	}
+	
 }

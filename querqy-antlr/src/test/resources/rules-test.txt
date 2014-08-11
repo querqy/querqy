@@ -23,3 +23,8 @@ a b c =>
 
 pf xp =>
 	FILTER: * price:[* TO 100]
+	
+a =>
+	DOWN(2): * color:x
+	
+	

@@ -14,5 +14,12 @@ public class Query extends BooleanQuery implements QuerqyQuery<BooleanParent> {
 		super(null, Occur.SHOULD, false);
 	}
 	
-	
+	@Override
+	public Query clone(BooleanParent newParent) {
+		Query q = new Query();
+		for (BooleanClause clause: clauses) {
+			q.addClause(clause.clone(q));
+		}
+		return q;
+	}
 }

@@ -41,6 +41,7 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
+import querqy.model.BoostQuery;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
@@ -72,6 +73,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     final IndexStats indexStats;
     final QuerqyParser querqyParser;
     final Map<String, Float> userQueryFields;
+	final LuceneQueryBuilder builder;
     
     protected PublicExtendedDismaxConfiguration config;
     protected List<Query> boostQueries;
@@ -93,6 +95,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         this.rewriteChain = rewriteChain;
         this.indexStats = indexStats;
     	userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params));
+		builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
+
     }
     
     @Override
@@ -122,6 +126,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         
         Query mainQuery = null;
         ExpandedQuery expandedQuery = null;
+        List<Query> querqyBoostQueries = null;
         
         if ((userQuery.charAt(0) == '*') && (userQuery.length() == 1 || MATCH_ALL.equals(userQuery))) {
         	mainQuery = new MatchAllDocsQuery();
@@ -131,6 +136,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         	mainQuery = makeMainQuery(expandedQuery);
         	applyMinShouldMatch(mainQuery);
         	applyFilterQueries(expandedQuery);
+        	querqyBoostQueries = getQuerqyBoostQueries(expandedQuery);
         }
 
         boostQueries = getBoostQueries();
@@ -139,11 +145,13 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         List<Query> phraseFieldQueries = getPhraseFieldQueries(expandedQuery);
         
         boolean hasMultiplicativeBoosts = multiplicativeBoosts != null && !multiplicativeBoosts.isEmpty();
-
+        boolean hasQuerqyBoostQueries = querqyBoostQueries != null && !querqyBoostQueries.isEmpty();
+        
         boolean hasBoost = (boostQueries != null && !boostQueries.isEmpty())
         		|| (boostFunctions != null && !boostFunctions.isEmpty())
         		|| !phraseFieldQueries.isEmpty()
         		|| hasMultiplicativeBoosts
+        		|| hasQuerqyBoostQueries
         		;
         
         if (hasBoost) {
@@ -169,6 +177,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         		}
         	}
         	
+        	if (hasQuerqyBoostQueries) {
+        		for (Query q: querqyBoostQueries) {
+        			bq.add(q, BooleanClause.Occur.SHOULD);
+        		}
+        	}
+        	
         	mainQuery = bq;
         	
         	if (hasMultiplicativeBoosts) {
@@ -187,7 +201,67 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         
     }
     
-    public ExpandedQuery makeExpandedQuery() {
+    protected List<Query> getQuerqyBoostQueries(ExpandedQuery expandedQuery) throws SyntaxError {
+    	
+    	List<Query> result = transformBoostQueries(expandedQuery.getBoostUpQueries(), 1f);
+    	List<Query> down = transformBoostQueries(expandedQuery.getBoostDownQueries(), -1f);
+ 
+    	if (down != null) {
+    		if (result == null) {
+    			result = down;
+    		} else {
+    			result.addAll(down);
+    		}
+    	}
+    	
+    	return result;
+	}
+    
+    public List<Query> transformBoostQueries(Collection<BoostQuery> boostQueries, float factor) throws SyntaxError {
+    	
+
+    	List<Query> result = null;
+    	
+    	if (boostQueries != null && !boostQueries.isEmpty()) {
+    		
+    		result = new LinkedList<>();
+    		
+    		for (BoostQuery bq: boostQueries) {
+    			
+    			Query luceneQuery = null;
+    			QuerqyQuery<?> boostQuery = bq.getQuery();
+    			
+	    		if (boostQuery instanceof RawQuery) {
+	    			
+	    			QParser bqp = QParser.getParser(((RawQuery) boostQuery).getQueryString(), null, req);
+	    			luceneQuery = bqp.getQuery();
+	                
+	    		} if (boostQuery instanceof querqy.model.Query) {
+	    			
+	    			builder.reset();
+	    			try {
+	    				
+	    				luceneQuery = builder.createQuery((querqy.model.Query) boostQuery);
+	    				
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+	    			
+	    		}
+	    		
+	    		if (luceneQuery != null) {
+	    			luceneQuery.setBoost(bq.getBoost() * factor);
+	    		}
+	    		
+	    		result.add(luceneQuery);
+	    	}
+    		
+    	}
+    	
+    	return result;
+    }
+
+	public ExpandedQuery makeExpandedQuery() {
     	
     	return new ExpandedQuery(querqyParser.parse(qstr));
     	
@@ -340,8 +414,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     					filters = new ArrayList<>(filterQueries.size());
     				}
     				
-    		    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
-
     		    	for (QuerqyQuery<?> qfq: filterQueries) {
     		    		if (qfq instanceof RawQuery) {
     		    			QParser fqp = QParser.getParser(((RawQuery) qfq).getQueryString(), null, req);
@@ -365,7 +437,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     public Query makeMainQuery(ExpandedQuery expandedQuery) {
     	
     	
-    	LuceneQueryBuilder builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
+    	builder.reset();
         
         try {
 			return builder.createQuery(expandedQuery.getUserQuery());

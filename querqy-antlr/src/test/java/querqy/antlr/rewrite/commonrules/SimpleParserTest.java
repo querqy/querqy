@@ -15,12 +15,15 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
+import querqy.model.BoostQuery;
 import querqy.model.Clause.Occur;
 import querqy.model.RawQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParserFactory;
 import querqy.parser.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.BoostInstruction;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
@@ -102,6 +105,13 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t4);
         List<Action> actions = rules.getRewriteActions(seq);
         assertThat(actions, contains( 
+        		new Action(
+        				Arrays.asList(
+        						new Instructions(
+        								Arrays.asList(
+        										(Instruction) new BoostInstruction(
+        												new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN ,2f)))),
+        						Arrays.asList(t1), 0, 1),
                 new Action(
                         Arrays.asList(
                                 new Instructions(
