@@ -37,15 +37,15 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
    /**
     * Constructor.
     * 
-    * @param queryAnalyser
+    * @param queryAnalyzer
     *           {@link Analyzer} for the query.
     * @param optSynonymAnalyzer
     *           {@link Analyzer} for the synonyms.
     */
-   public AnalyzingQuerqyParser(Analyzer queryAnalyser, Analyzer optSynonymAnalyzer) {
-      Preconditions.checkNotNull(queryAnalyser);
+   public AnalyzingQuerqyParser(Analyzer queryAnalyzer, Analyzer optSynonymAnalyzer) {
+      Preconditions.checkNotNull(queryAnalyzer);
 
-      this.queryAnalyzer = queryAnalyser;
+      this.queryAnalyzer = queryAnalyzer;
       this.optSynonymAnalyzer = optSynonymAnalyzer;
    }
 
