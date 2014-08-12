@@ -15,7 +15,6 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
-import querqy.model.BoostQuery;
 import querqy.model.Clause.Occur;
 import querqy.model.RawQuery;
 import querqy.model.Term;
