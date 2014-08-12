@@ -43,7 +43,10 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
          @Override
          protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
             Tokenizer tokenizer = new KeywordTokenizer(reader);
-            TokenStream stream = ignoreCase ? new LowerCaseFilter(Version.LUCENE_4_9, tokenizer) : tokenizer;
+            TokenStream stream = tokenizer;
+            if (ignoreCase) {
+               stream = new LowerCaseFilter(Version.LUCENE_4_9, stream);
+            }
             return new TokenStreamComponents(tokenizer, stream);
          }
       };
