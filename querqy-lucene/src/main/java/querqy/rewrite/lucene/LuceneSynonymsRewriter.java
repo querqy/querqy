@@ -43,7 +43,7 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node>  implement
 	 */
 	@Override
 	public ExpandedQuery rewrite(ExpandedQuery query) {
-		QuerqyQuery userQuery = query.getUserQuery();
+		QuerqyQuery<?> userQuery = query.getUserQuery();
 		if (userQuery instanceof Query) {
 			visit((Query) userQuery); // can only handle this QuerqyQueryType for now
 		}

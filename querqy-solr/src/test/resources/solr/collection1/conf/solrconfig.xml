@@ -51,8 +51,9 @@
 			</lst>
 		</lst>
 		<lst name="parser">
-			<str name="class">querqy.antlr.ANTLRQueryParser</str>
-		</lst>
+         <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+         <str name="class">querqy.antlr.ANTLRQueryParser</str>
+      </lst>
 	</queryParser>
 	<admin>
 		<defaultQuery>solr</defaultQuery>

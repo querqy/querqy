@@ -7,7 +7,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 
 import querqy.rewrite.lucene.IndexStats;
 
-class SolrIndexStats implements IndexStats {
+public class SolrIndexStats implements IndexStats {
    final SolrIndexSearcher searcher;
 
    public SolrIndexStats(SolrIndexSearcher searcher) {

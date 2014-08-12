@@ -12,6 +12,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 
+import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
@@ -22,6 +23,8 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
 
    protected NamedList<?> initArgs = null;
    protected RewriteChain rewriteChain = null;
+   protected SolrQuerqyParserFactory querqyParserFactory = null;
+   
 
    @Override
    public void init(@SuppressWarnings("rawtypes") NamedList args) {
@@ -30,7 +33,23 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
 
    @Override
    public void inform(ResourceLoader loader) throws IOException {
-      rewriteChain = loadRewriteChain(loader);
+	   
+	   NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
+	   if (parserConfig == null) {
+		   throw new IOException("Missing querqy parser configuration");
+	   }
+
+	   String className = (String) parserConfig.get("factory");
+	   if (className == null) {
+		   throw new IOException("Missing attribute 'factory' in querqy parser configuration");
+	   }
+
+	   SolrQuerqyParserFactory factory = loader.newInstance(className, SolrQuerqyParserFactory.class);
+	   factory.init(parserConfig, loader);
+	   
+	   rewriteChain = loadRewriteChain(loader);
+	   
+	   this.querqyParserFactory = factory;
    }
 
    /**
@@ -56,6 +75,10 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
       }
 
       return new RewriteChain(factories);
+   }
+   
+   protected QuerqyParser createQuerqyParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
+	   return querqyParserFactory.createParser(qstr, localParams, params, req);
    }
 
    @Override
