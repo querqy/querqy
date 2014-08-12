@@ -16,8 +16,8 @@ import querqy.parser.QuerqyParser;
 import com.google.common.base.Preconditions;
 
 /**
- * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}s. 
- * The query is run through a query analyzer. The resulting tokens are used
+ * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}
+ * s. The query is run through a query analyzer. The resulting tokens are used
  * to lookup synonyms with the synonym analyzer. The tokens remaining in that
  * analyzer are treated as synonyms.
  * 
@@ -66,16 +66,23 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
          CharTermAttribute original = queryTokens.addAttribute(CharTermAttribute.class);
          while (queryTokens.incrementToken()) {
             DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
-            // We need to copy "original" per toString() here, because "original" is transient.
+            // We need to copy "original" per toString() here, because
+            // "original" is transient.
             dmq.addClause(new Term(dmq, original.toString()));
             query.addClause(dmq);
-            
+
             if (optSynonymAnalyzer != null) {
                addSynonyms(dmq, original);
-            }            
+            }
          }
          queryTokens.end();
 
+         // if the stopwords eliminates all terms, we add the input to the query
+         if (query.getClauses().isEmpty()) {
+            DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
+            dmq.addClause(new Term(dmq, input));
+            query.addClause(dmq);
+         }
          return query;
 
       } catch (IOException e) {
@@ -96,7 +103,8 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
          synonymTokens.reset();
          CharTermAttribute generated = synonymTokens.addAttribute(CharTermAttribute.class);
          while (synonymTokens.incrementToken()) {
-            // We need to copy "generated" per toString() here, because "generated" is transient.
+            // We need to copy "generated" per toString() here, because
+            // "generated" is transient.
             dmq.addClause(new Term(dmq, generated.toString(), true));
          }
          synonymTokens.end();
