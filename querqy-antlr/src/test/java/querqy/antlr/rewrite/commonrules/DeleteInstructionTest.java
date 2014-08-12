@@ -1,6 +1,7 @@
 package querqy.antlr.rewrite.commonrules;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static querqy.QuerqyMatchers.*;
 
 import java.util.Arrays;
 

@@ -1,5 +1,9 @@
 package querqy.lucene.parser;
 
+import static querqy.QuerqyMatchers.bq;
+import static querqy.QuerqyMatchers.dmq;
+import static querqy.QuerqyMatchers.term;
+
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -60,7 +64,7 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
       QuerqyParser parser = new AnalyzingQuerqyParser(queryAnalyzer, null);
       Query query = parser.parse("test");
       
-      assertEquals("BooleanQuery [occur=, clauses=[DisjunctionMaxQuery [occur=, clauses=[*:test]]]]", query.toString());
+      assertThat(query, bq(dmq(term("test"))));
    }
 
    /**
@@ -71,6 +75,6 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
       QuerqyParser parser = new AnalyzingQuerqyParser(queryAnalyzer, optSynonymAnalyzer);
       Query query = parser.parse("test");
 
-      assertEquals("BooleanQuery [occur=, clauses=[DisjunctionMaxQuery [occur=, clauses=[*:test, *:synonym]]]]", query.toString());
+      assertThat(query, bq(dmq(term("test"), term("synonym"))));
    }
 }

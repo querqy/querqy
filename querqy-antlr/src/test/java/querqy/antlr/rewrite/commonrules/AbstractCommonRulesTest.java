@@ -2,12 +2,11 @@ package querqy.antlr.rewrite.commonrules;
 
 import java.util.Arrays;
 
-import querqy.AbstractQueryTest;
 import querqy.antlr.ANTLRQueryParser;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.commonrules.model.Term;
 
-public abstract class AbstractCommonRulesTest extends AbstractQueryTest {
+public abstract class AbstractCommonRulesTest {
     
     protected ExpandedQuery makeQuery(String input) {
         return new ExpandedQuery(new ANTLRQueryParser().parse(input));

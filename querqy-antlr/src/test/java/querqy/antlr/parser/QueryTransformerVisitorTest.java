@@ -1,6 +1,7 @@
 package querqy.antlr.parser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static querqy.QuerqyMatchers.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +10,7 @@ import querqy.antlr.ANTLRQueryParser;
 import querqy.model.Query;
 
 
-public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
+public class QueryTransformerVisitorTest {
 
     protected Query makeQuery(String input) {
         return new ANTLRQueryParser().parse(input);

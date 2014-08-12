@@ -1,13 +1,13 @@
 package querqy.rewrite.lucene;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static querqy.QuerqyMatchers.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import querqy.AbstractQueryTest;
 import querqy.antlr.QueryTransformerVisitor;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
@@ -19,7 +19,7 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 
-public class LuceneSynonymsRewriterTest extends AbstractQueryTest {
+public class LuceneSynonymsRewriterTest {
 	
 	QueryRewriter rewriter;
 
