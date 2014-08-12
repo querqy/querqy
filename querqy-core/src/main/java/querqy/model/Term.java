@@ -37,6 +37,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
       this(parentQuery, field, new SimpleComparableCharSequence(value, start, length), generated);
    }
 
+   @Override
    public Term clone(DisjunctionMaxQuery newParent) {
       return new Term(newParent, field, value, isGenerated());
    }
