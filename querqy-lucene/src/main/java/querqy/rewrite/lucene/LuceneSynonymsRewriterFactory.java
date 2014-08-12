@@ -52,8 +52,6 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
       };
 
       parser = new SolrSynonymParser(true, expand, analyzer);
-      
-      
    }
    
    public void addResource(InputStream is) throws IOException {
