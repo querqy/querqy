@@ -1,7 +1,6 @@
 package querqy.lucene.parser;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import org.apache.commons.io.input.CharSequenceReader;
 import org.apache.lucene.analysis.Analyzer;
@@ -15,79 +14,92 @@ import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 /**
- * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}
- * s. The query is run through a query analyzer. The resulting tokens are used
+ * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}s. 
+ * The query is run through a query analyzer. The resulting tokens are used
  * to lookup synonyms with the synonym analyzer. The tokens remaining in that
  * analyzer are treated as synonyms.
  * 
  * @author Shopping24 GmbH, Torsten Bøgh Köster (@tboeghk)
  */
 public class AnalyzingQuerqyParser implements QuerqyParser {
-
+   /**
+    * {@link Analyzer} for the query.
+    */
    private final Analyzer queryAnalyzer;
-   private final Analyzer synonymAnalyzer;
 
-   public AnalyzingQuerqyParser(Analyzer queryAnalyser, Analyzer synonymAnalyzer) {
+   /**
+    * {@link Analyzer} for the synonyms.
+    */
+   private final Analyzer optSynonymAnalyzer;
+
+   /**
+    * Constructor.
+    * 
+    * @param queryAnalyser
+    *           {@link Analyzer} for the query.
+    * @param optSynonymAnalyzer
+    *           {@link Analyzer} for the synonyms.
+    */
+   public AnalyzingQuerqyParser(Analyzer queryAnalyser, Analyzer optSynonymAnalyzer) {
       Preconditions.checkNotNull(queryAnalyser);
 
       this.queryAnalyzer = queryAnalyser;
-      this.synonymAnalyzer = synonymAnalyzer;
+      this.optSynonymAnalyzer = optSynonymAnalyzer;
    }
 
+   /**
+    * Generate query for the input.
+    * 
+    * @param input
+    *           Search term.
+    */
    @Override
    public Query parse(String input) {
       Preconditions.checkNotNull(input);
 
-      // get dismax terms
-      Collection<String> terms = analyze(input, queryAnalyzer);
+      try (TokenStream queryTokens = queryAnalyzer.tokenStream("querqy", new CharSequenceReader(input))) {
+         Query query = new Query();
 
-      // construct query while iterating terms
-      Query query = new Query();
-
-      for (String term : terms) {
-         DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
-         Term t = new Term(dmq, term);
-         dmq.addClause(t);
-         query.addClause(dmq);
-
-         if (synonymAnalyzer != null) {
-            // evaluate synonyms
-            Collection<String> synonyms = analyze(term, synonymAnalyzer);
-            if (!synonyms.isEmpty()) {
-               for (CharSequence synonym : synonyms) {
-                  dmq.addClause(new Term(dmq, synonym, true));
-               }
-            }
+         queryTokens.reset();
+         CharTermAttribute original = queryTokens.addAttribute(CharTermAttribute.class);
+         while (queryTokens.incrementToken()) {
+            DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
+            // We need to copy "original" per toString() here, because "original" is transient.
+            dmq.addClause(new Term(dmq, original.toString()));
+            query.addClause(dmq);
+            
+            if (optSynonymAnalyzer != null) {
+               addSynonyms(dmq, original);
+            }            
          }
-      }
+         queryTokens.end();
 
-      return query;
-   }
+         return query;
 
-   /**
-    * Analyzes the given string using the given {@link Analyzer} (-chain).
-    */
-   protected Collection<String> analyze(String input, Analyzer analyzer) {
-      Preconditions.checkNotNull(input);
-      Preconditions.checkNotNull(analyzer);
-
-      Collection<String> result = Lists.newArrayList();
-      try (TokenStream tokenStream = analyzer.tokenStream("querqy", new CharSequenceReader(input))) {
-         tokenStream.reset();
-         CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
-         while (tokenStream.incrementToken()) {
-            // needs to converted to string, because on tokenStream.end() the
-            // charTermAttribute will be flushed.
-            result.add(charTermAttribute.toString());
-         }
-         tokenStream.end();
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
+   }
 
-      return result;
+   /**
+    * Add terms to the query for the synonyms.
+    * 
+    * @param dmq
+    *           {@link DisjunctionMaxQuery}
+    * @param original
+    *           Original term to determine synonyms for.
+    */
+   private void addSynonyms(DisjunctionMaxQuery dmq, CharSequence original) throws IOException {
+      try (TokenStream synonymTokens = optSynonymAnalyzer.tokenStream("querqy", new CharSequenceReader(original))) {
+         synonymTokens.reset();
+         CharTermAttribute generated = synonymTokens.addAttribute(CharTermAttribute.class);
+         while (synonymTokens.incrementToken()) {
+            // We need to copy "generated" per toString() here, because "generated" is transient.
+            dmq.addClause(new Term(dmq, generated.toString(), true));
+         }
+         synonymTokens.end();
+      }
    }
 }
