@@ -20,21 +20,13 @@ import querqy.model.Clause.Occur;
  * {@link Matcher}s for {@link QuerqyQuery} etc.
  */
 public class QuerqyMatchers {
-   public static final TermMatcher term(String field, String value) {
-      return new TermMatcher(field, value);
-   }
-
-   public static TermMatcher term(String value) {
-      return new TermMatcher(null, value);
-   }
-
    @SafeVarargs
    public static final DMQMatcher dmq(TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
       return new DMQMatcher(clauses);
    }
    @SafeVarargs
    public static final DMQMatcher dmq(OccurMatcher occur, TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
-       return new DMQMatcher(occur, clauses);
+      return new DMQMatcher(occur, clauses);
    }
 
    @SafeVarargs
@@ -43,41 +35,53 @@ public class QuerqyMatchers {
    }
    @SafeVarargs
    public static final BQMatcher bq(OccurMatcher occur, TypeSafeMatcher<? extends BooleanClause>... clauses) {
-       return new BQMatcher(occur, clauses);
+      return new BQMatcher(occur, clauses);
    }
 
-   public static final OccurMatcher must() {return new OccurMatcher(Occur.MUST); }
-   
-   public static final OccurMatcher mustNot() {return new OccurMatcher(Occur.MUST_NOT); }
-   
-   public static final OccurMatcher should() {return new OccurMatcher(Occur.SHOULD); }
-   
+   public static final OccurMatcher must() {
+      return new OccurMatcher(Occur.MUST);
+   }
+
+   public static final OccurMatcher mustNot() {
+      return new OccurMatcher(Occur.MUST_NOT);
+   }
+
+   public static final OccurMatcher should() {
+      return new OccurMatcher(Occur.SHOULD);
+   }
+
+   public static final TermMatcher term(String field, String value) {
+      return new TermMatcher(field, value);
+   }
+
+   public static TermMatcher term(String value) {
+      return new TermMatcher(null, value);
+   }
+
    //
    // Inner classes for matchers.
    //
-   
+
    private static class SubQueryMatcher<T extends SubQuery<?,?>> extends TypeSafeMatcher<T> {
-      
-      final TypeSafeMatcher<? extends Node>[] clauses;
       final OccurMatcher occur;
-      
+      final TypeSafeMatcher<? extends Node>[] clauses;
+
       public SubQueryMatcher(OccurMatcher occur, TypeSafeMatcher<? extends Node>[] clauses) {
-         this.clauses = clauses;
          this.occur = occur;
+         this.clauses = clauses;
       }
 
       @Override
       public void describeTo(Description description) {
-          occur.describeTo(description);
+         occur.describeTo(description);
          description.appendList("clauses:[", ",\n", "]", Arrays.asList(clauses));
-         
       }
 
       @Override
       protected boolean matchesSafely(T item) {
-          if (!occur.matches(item.occur)) {
-              return false;
-          }
+         if (!occur.matches(item.occur)) {
+            return false;
+         }
          List<? extends Node> itemClauses = item.getClauses();
          if (itemClauses == null || itemClauses.size() != clauses.length) {
             return false;
@@ -89,34 +93,33 @@ public class QuerqyMatchers {
          }
          return true;
       }
-      
    }
-   
+
    private static class DMQMatcher extends SubQueryMatcher<DisjunctionMaxQuery> {
-       public DMQMatcher(OccurMatcher occur, TypeSafeMatcher<? extends DisjunctionMaxClause>[] clauses) {
-            super(occur, clauses);
-        }
+      public DMQMatcher(OccurMatcher occur, TypeSafeMatcher<? extends DisjunctionMaxClause>[] clauses) {
+         super(occur, clauses);
+      }
+
       public DMQMatcher(TypeSafeMatcher<? extends DisjunctionMaxClause>[] clauses) {
          super(should(), clauses);
       }
-      
+
       @Override
       public void describeTo(Description description) {
          description.appendText("DMQ:\n ");
          super.describeTo(description);
       }
    }
-   
-   
+
+
    private static class BQMatcher extends SubQueryMatcher<BooleanQuery> {
-      
       public BQMatcher(OccurMatcher occur, TypeSafeMatcher<? extends BooleanClause>[] clauses) {
          super(occur, clauses);
       }
+
       public BQMatcher(TypeSafeMatcher<? extends BooleanClause>[] clauses) {
-          super(should(), clauses);
+         super(should(), clauses);
       }
-      
 
       @Override
       public void describeTo(Description description) {
@@ -130,37 +133,30 @@ public class QuerqyMatchers {
       protected boolean matchesSafely(BooleanQuery bq ) {
          return super.matchesSafely(bq);
       }
-      
    }
-   
-   
+
    private static class OccurMatcher extends TypeSafeMatcher<Occur> {
-       
-       final Occur expected;
-       
-       public OccurMatcher(Occur expected) {
-           this.expected = expected;
-       }
+      final Occur expected;
 
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("occur: " + expected.name());
-        }
+      public OccurMatcher(Occur expected) {
+         this.expected = expected;
+      }
 
-        @Override
-        protected boolean matchesSafely(Occur occur) {
-            return occur == expected;
-        }
-       
+      @Override
+      public void describeTo(Description description) {
+         description.appendText("occur: " + expected.name());
+      }
+
+      @Override
+      protected boolean matchesSafely(Occur occur) {
+         return occur == expected;
+      }
    }
-   
-   
-   
+
    private static class TermMatcher extends TypeSafeMatcher<Term> {
-      
       final String expectedField;
       final String expectedValue;
-      
+
       public TermMatcher(String field, String value) {
          this.expectedField = field;
          this.expectedValue = value;
@@ -179,7 +175,5 @@ public class QuerqyMatchers {
                && ((item.getValue() == expectedValue) 
                      || (item.getValue() != null && item.getValue().equals(expectedValue)));
       }
-      
    }
-
 }
