@@ -5,14 +5,21 @@ package querqy.model;
 
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public class Query extends BooleanQuery {
+public class Query extends BooleanQuery implements QuerqyQuery<BooleanParent> {
 	
 	public Query() {
 		super(null, Occur.SHOULD, false);
 	}
 	
-	
+	@Override
+	public Query clone(BooleanParent newParent) {
+		Query q = new Query();
+		for (BooleanClause clause: clauses) {
+			q.addClause(clause.clone(q));
+		}
+		return q;
+	}
 }

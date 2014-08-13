@@ -3,12 +3,42 @@
  */
 package querqy.model;
 
+
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public interface Clause<P extends SubQuery<?>> extends Node {
+public abstract class Clause<P extends Node> extends AbstractNode<P> {
+	
+	public enum Occur {
+		
+		SHOULD(""), MUST("+"), MUST_NOT("-");
+		
+		final String txt;
+		
+		Occur(String txt) {
+			this.txt = txt;
+		}
+		
+		@Override
+		public String toString() {
+			return txt;
+		}
 
-	P getParentQuery();
+	}
+	
+	public final Occur occur;
+	
+	
+	public Clause(P parent, Occur occur, boolean isGenerated) {
+		super(parent, isGenerated);
+		this.occur = occur;
+	}
+
+	public Occur getOccur() {
+		return occur;
+	}
+
+	
 	
 }

@@ -10,6 +10,23 @@
 	<artifactId>querqy-lucene</artifactId>
 
 	<dependencies>
+	    <!-- 
+            The Solr test framework needs to be loaded before Lucene core,
+            otherwise we run into trouble loading the codec for testing
+        -->
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-test-framework</artifactId>
+            <version>${lucene.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
+	
+		<dependency>
+  			<groupId>commons-io</groupId>
+  			<artifactId>commons-io</artifactId>
+  			<version>${commons.io.version}</version>
+  		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>

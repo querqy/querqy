@@ -4,9 +4,11 @@
 package querqy.model;
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
-public interface BooleanClause extends Clause {
+public interface BooleanClause extends Node {
+	
+	BooleanClause clone(BooleanQuery newParent);
 
 }

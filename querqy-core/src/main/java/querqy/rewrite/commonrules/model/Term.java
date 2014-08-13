@@ -23,14 +23,16 @@ public class Term implements ComparableCharSequence {
         this.fieldNames = (fieldNames != null && fieldNames.isEmpty()) ? null : fieldNames;
     }
     
-    public char charAt(int idx) {
+    @Override
+   public char charAt(int idx) {
         if (idx >= length) {
             throw new ArrayIndexOutOfBoundsException(idx);
         }
         return value[start + idx];
     }
     
-    public int compareTo(CharSequence other) {
+    @Override
+   public int compareTo(CharSequence other) {
         
         for (int i = 0, pos = start, len = Math.min(length, other.length()); i < len; i++) {
             char ch1 = value[pos++];

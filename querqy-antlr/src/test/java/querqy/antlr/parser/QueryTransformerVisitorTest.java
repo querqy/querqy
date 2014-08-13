@@ -1,6 +1,7 @@
 package querqy.antlr.parser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static querqy.QuerqyMatchers.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +10,7 @@ import querqy.antlr.ANTLRQueryParser;
 import querqy.model.Query;
 
 
-public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
+public class QueryTransformerVisitorTest {
 
     protected Query makeQuery(String input) {
         return new ANTLRQueryParser().parse(input);
@@ -26,12 +27,11 @@ public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
         
         
         assertThat(q, 
-                bq(
-                        bq(
-                                dmq(
-                                        term("a")
-                                )
-                )));
+                	bq(
+                			dmq(
+                					term("a")
+                                )	
+                	));
     }
     
     @Test
@@ -41,11 +41,10 @@ public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
         
         assertThat(q, 
                 bq(
-                        bq(
-                                dmq(term("a")),
-                                dmq(term("b"))
+                		dmq(term("a")),
+                		dmq(term("b"))
                                 
-                )));
+                ));
     }
     
     @Test
@@ -55,11 +54,10 @@ public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
         
         assertThat(q, 
                 bq(
-                        bq(
-                                dmq(term("a")),
-                                dmq(must(), term("b"))
+                		dmq(term("a")),
+                		dmq(must(), term("b"))
                                 
-                )));
+                ));
         
     }
     
@@ -68,11 +66,10 @@ public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
         Query q =  makeQuery("+a b");    
         assertThat(q, 
                 bq(
-                        bq(
-                                dmq(must(), term("a")),
-                                dmq(term("b"))
+                		dmq(must(), term("a")),
+                		dmq(term("b"))
                                 
-                )));
+                ));
         
         
     }
@@ -82,11 +79,10 @@ public class QueryTransformerVisitorTest extends querqy.AbstractQueryTest {
         Query q =  makeQuery("+a +b");    
         assertThat(q, 
                 bq(
-                        bq(
-                                dmq(must(), term("a")),
-                                dmq(must(), term("b"))
+                		dmq(must(), term("a")),
+                		dmq(must(), term("b"))
                                 
-                )));
+                ));
         
         
     }

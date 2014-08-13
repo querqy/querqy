@@ -65,6 +65,11 @@ public class Input {
     public List<Term> getInputTerms() {
         return inputTerms;
     }
+
+	@Override
+	public String toString() {
+		return "Input [inputTerms=" + inputTerms + "]";
+	}
     
     
 

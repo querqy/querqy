@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<config>
+
+	<luceneMatchVersion>4.8</luceneMatchVersion>
+	<directoryFactory name="DirectoryFactory" class="solr.RAMDirectoryFactory" />
+
+	<dataDir>${solr.core0.data.dir:}</dataDir>
+
+	<schemaFactory class="ClassicIndexSchemaFactory" />
+
+	<updateHandler class="solr.DirectUpdateHandler2" />
+
+	<requestDispatcher handleSelect="false">
+		<requestParsers enableRemoteStreaming="false"
+			multipartUploadLimitInKB="2048" formdataUploadLimitInKB="2048" />
+	</requestDispatcher>
+
+	<requestHandler name="/select" class="solr.SearchHandler">
+		<lst name="defaults">
+			<str name="echoParams">all</str>
+			<int name="rows">10</int>
+			<str name="df">id</str>
+		</lst>
+
+	</requestHandler>
+
+	<requestHandler name="standard" class="solr.StandardRequestHandler"
+		default="true" />
+	<requestHandler name="/analysis/field" startup="lazy"
+		class="solr.FieldAnalysisRequestHandler" />
+	<requestHandler name="/update" class="solr.UpdateRequestHandler" />
+	<requestHandler name="/admin/"
+		class="org.apache.solr.handler.admin.AdminHandlers" />
+
+	<requestHandler name="/admin/ping" class="solr.PingRequestHandler">
+		<lst name="invariants">
+			<str name="q">*:*</str>
+		</lst>
+		<lst name="defaults">
+			<str name="echoParams">all</str>
+		</lst>
+	</requestHandler>
+
+	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+		<lst name="rewriteChain">
+			<lst name="rewriter">
+				<str name="class">querqy.solr.SolrSynonymsRewriterFactory</str>
+				<str name="synonyms">synonyms.txt</str>
+				<bool name="expand">true</bool>
+			</lst>
+		</lst>
+		<lst name="parser">
+         <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+         <str name="class">querqy.antlr.ANTLRQueryParser</str>
+      </lst>
+	</queryParser>
+	<admin>
+		<defaultQuery>solr</defaultQuery>
+	</admin>
+
+</config>
+

@@ -6,9 +6,16 @@ This is still work in process - check back frequently, we're going to release Qu
 
 Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/licenses/LICENSE-2.0.html).
 
+[Querqy is build using Travis CI](https://travis-ci.org/renekrie/querqy).
+
 ## Building the project
 
-    $ export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
-    $ export MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true -Dgpg.skip=true"
+    $ git submodule update --init
+    $ export MAVEN_OPTS="-Dgpg.skip=true"
     $ mvn clean install
-    
+
+## Eclipse
+
+For developing the ANTLR based query parser in Eclipse we use the plugin [antlreclipse](http://antlreclipse.sourceforge.net).
+
+Update site: [http://antlreclipse.sourceforge.net/updates/](http://antlreclipse.sourceforge.net/updates/).

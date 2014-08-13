@@ -4,7 +4,7 @@
 package querqy.model;
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
 public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
@@ -35,6 +35,11 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
 	@Override
 	public T visit(Term term) {
+		return null;
+	}
+	
+	@Override
+	public T visit(RawQuery rawQuery) {
 		return null;
 	}
 

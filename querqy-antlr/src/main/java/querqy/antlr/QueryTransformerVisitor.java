@@ -9,6 +9,7 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
+import querqy.SimpleComparableCharSequence;
 import querqy.antlr.parser.QueryBaseVisitor;
 import querqy.antlr.parser.QueryParser.BooleanPrefixContext;
 import querqy.antlr.parser.QueryParser.BooleanQueryContext;
@@ -21,11 +22,11 @@ import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.antlr.parser.QueryParser.TermContext;
 import querqy.antlr.parser.QueryParser.TermQueryContext;
 import querqy.model.BooleanQuery;
+import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Node;
 import querqy.model.Query;
 import querqy.model.Term;
-import querqy.model.SubQuery.Occur;
 
 /**
  * @author rene
@@ -40,6 +41,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	LinkedList<Operator> operatorStack = new LinkedList<>();
 	
 	Occur occurBuffer = Occur.SHOULD;
+	Query query = null;
 	
 	final char[] input;
 	
@@ -49,7 +51,7 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	
 	@Override
 	public Node visitQuery(QueryContext ctx) {
-		Query query = new Query();
+		query = new Query();
 		operatorStack.add(Operator.NONE);
 		booleanQueryStack.add(query);
 		super.visitQuery(ctx);
@@ -70,14 +72,21 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 	public Node visitNoopQuery(NoopQueryContext ctx) {
 
 		BooleanQuery parent = booleanQueryStack.getLast();
-		BooleanQuery query = new BooleanQuery(parent, getOccur(), false);
-		parent.addClause(query);
 		
-		operatorStack.add(Operator.NONE);
-		booleanQueryStack.add(query);
+		if (parent != this.query) {
+			BooleanQuery bq = new BooleanQuery(parent, getOccur(), false);
+			parent.addClause(bq);
+			
+			operatorStack.add(Operator.NONE);
+			booleanQueryStack.add(query);
+		}
 		super.visitNoopQuery(ctx);
-		operatorStack.removeLast();
-		return booleanQueryStack.removeLast();
+		if (parent != this.query) {
+			operatorStack.removeLast();
+			return booleanQueryStack.removeLast();
+		} else {
+			return parent;
+		}
 	}
 	
 	Occur getOccur(ParserRuleContext ctx) {
@@ -151,13 +160,14 @@ public class QueryTransformerVisitor extends QueryBaseVisitor<Node> {
 		if (fieldNameContexts != null && !fieldNameContexts.isEmpty()) {
 			for (FieldNameContext fieldNameContext: fieldNameContexts) {
 				String fieldName = fieldNameContext.getText();
-				dmq.addClause(new Term(dmq, fieldName, input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex() ));
+				dmq.addClause(
+						new Term(dmq, 
+								fieldName, 
+								new SimpleComparableCharSequence(input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex())));
 			}
 		} else {
-			dmq.addClause(new Term(dmq, input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex()));
+			dmq.addClause(new Term(dmq, new SimpleComparableCharSequence(input, startToken.getStartIndex(), 1 + startToken.getStopIndex() - startToken.getStartIndex())));
 		}
-		
-		
 		
 		parent.addClause(dmq);
 		return dmq;

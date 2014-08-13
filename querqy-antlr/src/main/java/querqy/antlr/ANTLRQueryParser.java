@@ -10,15 +10,17 @@ import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.model.Query;
+import querqy.parser.QuerqyParser;
 
 /**
  * @author rene
  *
  */
-public class ANTLRQueryParser {
+public class ANTLRQueryParser implements QuerqyParser {
     
     
-    public Query parse(String input) {
+    @Override
+   public Query parse(String input) {
 
         char[] inputChars = input.toCharArray();
         

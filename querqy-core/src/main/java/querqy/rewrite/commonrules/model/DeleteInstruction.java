@@ -8,9 +8,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import querqy.model.Clause;
-import querqy.model.DisjunctionMaxClause;
-import querqy.model.SubQuery;
+import querqy.ComparableCharSequence;
+import querqy.ComparableCharSequenceWrapper;
+import querqy.model.ExpandedQuery;
+import querqy.model.BooleanQuery;
+import querqy.model.DisjunctionMaxQuery;
 
 /**
  * @author rene
@@ -67,11 +69,10 @@ public class DeleteInstruction implements Instruction {
         return "DeleteInstruction [termsToDelete=" + termsToDelete + "]";
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void apply(TermPositionSequence sequence,
+    public void apply(PositionSequence<querqy.model.Term> sequence,
             List<querqy.model.Term> matchedTerms, int startPosition,
-            int endPosition) {
+            int endPosition, ExpandedQuery expandedQuery) {
         // make sure that at least one term will be left in the query after we apply this instruction
         
         int pos = 0;
@@ -82,8 +83,15 @@ public class DeleteInstruction implements Instruction {
         
         for (List<querqy.model.Term> position: sequence) {
             for (querqy.model.Term term: position) {
-                
-                if (pos >= startPosition && pos < endPosition && charSequencesToDelete.contains(term.toCharSequenceWithField())) {
+            	
+            	CharSequence seq = term.toCharSequenceWithField();
+            	if (!ComparableCharSequence.class.isAssignableFrom(seq.getClass())) {
+            		// CharSequence does not have a specific contract on hashcode() and equals()
+            		// so we wrap the sequence to look it up in charSequencesToDelete
+            		seq = new ComparableCharSequenceWrapper(seq);
+            	}
+            	
+                if (pos >= startPosition && pos < endPosition && charSequencesToDelete.contains(seq)) {
                     // TODO: check whether it would be faster to use a LinkedHashMap for toBeDeleted and then check whether .add(term) returns true
                     if (hasRemaining) {
                         toBeDeleted.add(term);
@@ -110,11 +118,11 @@ public class DeleteInstruction implements Instruction {
                 // remove the term from its parent. If the parent doesn't have any further child,
                 // remove the parent from the grand-parent. If this also hasn't any further child,
                 // do not remove anything
-                SubQuery<DisjunctionMaxClause> parentQuery = term.getParentQuery();
-                SubQuery<?> grandParent = null;
+                DisjunctionMaxQuery parentQuery = term.getParent();
+                BooleanQuery grandParent = null;
                 
                 if (parentQuery.getClauses().size() < 2) {
-                    grandParent = parentQuery.getParentQuery();
+                    grandParent = parentQuery.getParent();
                     if (grandParent.getClauses().size() < 2) {
                         continue;
                     }
@@ -122,7 +130,7 @@ public class DeleteInstruction implements Instruction {
                 
                 parentQuery.removeClause(term);
                 if (grandParent != null) {
-                    grandParent.removeClause((Clause<SubQuery<?>>) parentQuery);
+                    grandParent.removeClause(parentQuery);
                 }
                 
             }
@@ -130,6 +138,7 @@ public class DeleteInstruction implements Instruction {
         
         
     }
+
     
     
 

@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
+import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.RewriterFactory;
 
 /**
@@ -26,7 +27,17 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
         if (rulesResourceName == null) {
             throw new IllegalArgumentException("Property 'rules' not configured");
         }
-        return new querqy.antlr.rewrite.commonrules.SimpleCommonRulesRewriterFactory(resourceLoader.openResource(rulesResourceName));
+        
+        // querqy parser for queries that are part of the instructions in the rules
+        String rulesQuerqyParser = (String) args.get("querqyParser");
+        QuerqyParserFactory querqyParser = null;
+        if (rulesQuerqyParser != null) {
+        	rulesQuerqyParser = rulesQuerqyParser.trim();
+        	if (rulesQuerqyParser.length() > 0) {
+        		querqyParser = resourceLoader.newInstance(rulesQuerqyParser, QuerqyParserFactory.class);
+        	}
+        }
+        return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(resourceLoader.openResource(rulesResourceName), querqyParser);
     }
 
 }
