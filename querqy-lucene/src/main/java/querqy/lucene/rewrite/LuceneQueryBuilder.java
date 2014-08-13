@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.rewrite.lucene;
+package querqy.lucene.rewrite;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -19,12 +19,12 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
 
 import querqy.CompoundCharSequence;
+import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
 import querqy.rewrite.commonrules.model.PositionSequence;
-import querqy.rewrite.lucene.BooleanQueryFactory.Clause;
 
 /**
  * @author René Kriegler, @renekrie

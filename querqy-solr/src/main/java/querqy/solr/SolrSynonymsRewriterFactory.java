@@ -8,8 +8,8 @@ import java.io.IOException;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
+import querqy.lucene.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.rewrite.RewriterFactory;
-import querqy.rewrite.lucene.LuceneSynonymsRewriterFactory;
 
 /**
  * @author rene

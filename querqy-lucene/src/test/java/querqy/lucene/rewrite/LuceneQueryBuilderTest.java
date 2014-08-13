@@ -1,4 +1,4 @@
-package querqy.rewrite.lucene;
+package querqy.lucene.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -15,6 +15,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
+import querqy.lucene.rewrite.IndexStats;
+import querqy.lucene.rewrite.LuceneQueryBuilder;
+import querqy.lucene.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 

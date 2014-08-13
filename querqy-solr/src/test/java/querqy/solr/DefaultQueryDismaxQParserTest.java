@@ -10,9 +10,9 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import querqy.lucene.rewrite.IndexStats;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
-import querqy.rewrite.lucene.IndexStats;
 
 public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
 	

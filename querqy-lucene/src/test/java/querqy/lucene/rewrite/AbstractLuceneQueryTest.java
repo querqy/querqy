@@ -1,4 +1,4 @@
-package querqy.rewrite.lucene;
+package querqy.lucene.rewrite;
 
 import java.util.Arrays;
 import java.util.List;

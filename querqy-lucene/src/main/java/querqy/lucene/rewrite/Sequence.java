@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.rewrite.lucene;
+package querqy.lucene.rewrite;
 
 import java.util.LinkedHashSet;
 import java.util.List;

@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.lucene.index.Term;
 import org.apache.solr.search.SolrIndexSearcher;
 
-import querqy.rewrite.lucene.IndexStats;
+import querqy.lucene.rewrite.IndexStats;
 
 public class SolrIndexStats implements IndexStats {
    final SolrIndexSearcher searcher;

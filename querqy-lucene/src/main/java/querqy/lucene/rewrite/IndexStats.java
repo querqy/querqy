@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.rewrite.lucene;
+package querqy.lucene.rewrite;
 
 import org.apache.lucene.index.Term;
 

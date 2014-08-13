@@ -41,6 +41,8 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
+import querqy.lucene.rewrite.IndexStats;
+import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.model.BoostQuery;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
@@ -50,8 +52,6 @@ import querqy.model.RawQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
-import querqy.rewrite.lucene.IndexStats;
-import querqy.rewrite.lucene.LuceneQueryBuilder;
 
 /**
  * @author rene
