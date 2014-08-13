@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.antlr.rewrite.commonrules;
+package querqy.rewrite.commonrules;
 
 import java.util.Arrays;
 import java.util.LinkedList;

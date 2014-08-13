@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.antlr.rewrite.commonrules;
+package querqy.rewrite.commonrules;
 
 /**
  * @author René Kriegler, @renekrie

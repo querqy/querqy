@@ -37,7 +37,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
         		querqyParser = resourceLoader.newInstance(rulesQuerqyParser, QuerqyParserFactory.class);
         	}
         }
-        return new querqy.antlr.rewrite.commonrules.SimpleCommonRulesRewriterFactory(resourceLoader.openResource(rulesResourceName), querqyParser);
+        return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(resourceLoader.openResource(rulesResourceName), querqyParser);
     }
 
 }

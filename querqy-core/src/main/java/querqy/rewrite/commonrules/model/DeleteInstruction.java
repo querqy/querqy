@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import querqy.ComparableCharSequence;
+import querqy.ComparableCharSequenceWrapper;
 import querqy.model.ExpandedQuery;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
@@ -81,8 +83,15 @@ public class DeleteInstruction implements Instruction {
         
         for (List<querqy.model.Term> position: sequence) {
             for (querqy.model.Term term: position) {
-                
-                if (pos >= startPosition && pos < endPosition && charSequencesToDelete.contains(term.toCharSequenceWithField())) {
+            	
+            	CharSequence seq = term.toCharSequenceWithField();
+            	if (!ComparableCharSequence.class.isAssignableFrom(seq.getClass())) {
+            		// CharSequence does not have a specific contract on hashcode() and equals()
+            		// so we wrap the sequence to look it up in charSequencesToDelete
+            		seq = new ComparableCharSequenceWrapper(seq);
+            	}
+            	
+                if (pos >= startPosition && pos < endPosition && charSequencesToDelete.contains(seq)) {
                     // TODO: check whether it would be faster to use a LinkedHashMap for toBeDeleted and then check whether .add(term) returns true
                     if (hasRemaining) {
                         toBeDeleted.add(term);

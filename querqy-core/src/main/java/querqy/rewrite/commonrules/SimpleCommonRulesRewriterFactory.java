@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.antlr.rewrite.commonrules;
+package querqy.rewrite.commonrules;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +12,6 @@ import querqy.model.ExpandedQuery;
 import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
-import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.RulesCollection;
 
 /**

@@ -1,4 +1,4 @@
-package querqy.antlr.rewrite.commonrules;
+package querqy.rewrite.commonrules;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
@@ -20,6 +20,8 @@ import querqy.model.RawQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParserFactory;
 import querqy.parser.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.RuleParseException;
+import querqy.rewrite.commonrules.SimpleCommonRulesParser;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;

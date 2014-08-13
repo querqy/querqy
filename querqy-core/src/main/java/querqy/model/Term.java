@@ -3,6 +3,8 @@
  */
 package querqy.model;
 
+import querqy.ComparableCharSequence;
+import querqy.ComparableCharSequenceWrapper;
 import querqy.CompoundCharSequence;
 import querqy.SimpleComparableCharSequence;
 
@@ -18,7 +20,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
    public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value, boolean generated) {
       super(parentQuery, generated);
       this.field = field;
-      this.value = value;
+      this.value =  ComparableCharSequence.class.isAssignableFrom(value.getClass()) ? value : new ComparableCharSequenceWrapper(value);
    }
 
    public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value) {

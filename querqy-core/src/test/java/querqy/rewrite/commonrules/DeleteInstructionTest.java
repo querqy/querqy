@@ -1,4 +1,4 @@
-package querqy.antlr.rewrite.commonrules;
+package querqy.rewrite.commonrules;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
