@@ -40,28 +40,29 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     final boolean normalizeBooleanQueryBoost;
     final float dmqTieBreakerMultiplier;
     final float generatedFieldBoostFactor;
+    final DocumentFrequencyCorrection dfc;
     final IndexSearcher indexSearcher;
     
     LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
-    LinkedList<DisjunctionMaxQueryFactory> subQueryStack = new LinkedList<>();
+    LinkedList<DisjunctionMaxQueryFactory> dmqStack = new LinkedList<>();
     
     protected ParentType parentType = ParentType.BQ;
     
-    public LuceneQueryBuilder(IndexSearcher indexSearcher, Analyzer analyzer, 
+    public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer, 
     		Map<String, Float> searchFieldsAndBoostings, 
     		IndexStats indexStats, 
     		float dmqTieBreakerMultiplier) {
-        this(indexSearcher, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, 1f, true);
+        this(indexSearcher, dfc, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, 1f, true);
     }
 
-    public LuceneQueryBuilder(IndexSearcher indexSearcher, Analyzer analyzer, 
+    public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer, 
     		Map<String, Float> searchFieldsAndBoostings, 
     		IndexStats indexStats, 
     		float dmqTieBreakerMultiplier, float generatedFieldBoostFactor) {
-        this(indexSearcher, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, generatedFieldBoostFactor, true);
+        this(indexSearcher, dfc, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, generatedFieldBoostFactor, true);
     }
     
-    public LuceneQueryBuilder(IndexSearcher indexSearcher, Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats, 
+    public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer, Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats, 
     		float dmqTieBreakerMultiplier, float generatedFieldBoostFactor, boolean normalizeBooleanQueryBoost) {
         this.analyzer = analyzer;
         this.searchFieldsAndBoostings = searchFieldsAndBoostings;
@@ -70,15 +71,16 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
         this.generatedFieldBoostFactor = generatedFieldBoostFactor;
         this.indexSearcher = indexSearcher;
+        this.dfc = dfc;
     }
     
     public void reset() {
     	clauseStack.clear();
-    	subQueryStack.clear();
+    	dmqStack.clear();
     }
 
     public Query createQuery(querqy.model.Query query) throws IOException {
-        return visit(query).createQuery(-1, indexStats);
+        return visit(query).createQuery(dfc, false);
     }
     
     @Override
@@ -129,7 +131,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 wrapper.add(result);
                 bq = wrapper;
             }
-            subQueryStack.getLast().add(bq);
+            dmqStack.getLast().add(bq);
             return bq;
           
         default:
@@ -154,9 +156,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         
         DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(1f, dmqTieBreakerMultiplier); // FIXME params
         
-        subQueryStack.add(dmq);
+        dmqStack.add(dmq);
         super.visit(disjunctionMaxQuery);
-        subQueryStack.removeLast();
+        dmqStack.removeLast();
         
         parentType = myParentType;
         
@@ -186,7 +188,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     @Override
     public LuceneQueryFactory<?> visit(Term term) {
         
-        DisjunctionMaxQueryFactory siblings = subQueryStack.getLast();
+        DisjunctionMaxQueryFactory siblings = dmqStack.getLast();
         String fieldname = term.getField();
 
         try {

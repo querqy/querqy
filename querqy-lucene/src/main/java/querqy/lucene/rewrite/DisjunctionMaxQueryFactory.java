@@ -37,23 +37,26 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
     }
     
     @Override
-    public DisjunctionMaxQuery createQuery(int dfToSet, IndexStats indexStats) throws IOException {
+    public DisjunctionMaxQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+    	if (!isBelowDMQ) {
+    		dfc.newClause();
+    		collectMaxDocFreqInSubtree(dfc);
+    	}
         DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(tieBreakerMultiplier);
         dmq.setBoost(boost);
-        int dfToSendToChildren = dfToSet < 0 ? getMaxDocFreqInSubtree(indexStats) : dfToSet;
+        //int dfToSendToChildren = dfToSet < 0 ? getMaxDocFreqInSubtree(indexStats) : dfToSet;
         for (LuceneQueryFactory<?> disjunct: disjuncts) {
-            dmq.add(disjunct.createQuery(dfToSendToChildren, indexStats));
+            dmq.add(disjunct.createQuery(dfc, true));
         }
         return dmq;
     }
 
-    @Override
-    public int getMaxDocFreqInSubtree(IndexStats indexStats) {
-        int max = 0;
-        for (LuceneQueryFactory<?> disjunct: disjuncts) {
-            max = Math.max(max, disjunct.getMaxDocFreqInSubtree(indexStats));
+	@Override
+	public void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc) {
+		for (LuceneQueryFactory<?> disjunct: disjuncts) {
+           disjunct.collectMaxDocFreqInSubtree(dfc);
         }
-        return max;
-    }
+		
+	}
 
 }

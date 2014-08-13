@@ -35,10 +35,20 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
     }
 
     @Override
-    public TermQuery createQuery(int dfToSet, IndexStats indexStats) throws IOException {
+    public TermQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+    	
+    	if (!isBelowDMQ) {
+    		// a TQ might end up directly under a BQ as an optimisation
+    		// make sure, we collect the df
+    		dfc.newClause();
+    		collectMaxDocFreqInSubtree(dfc);
+    	}
+    	
+    	int dfToSet = dfc.getDocumentFrequencyToSet();
         TermQuery tq = (dfToSet == myDf) || (dfToSet < 1) ? new TermQuery(term) : makeTermQuery(dfToSet);
         tq.setBoost(boost);
         return tq;
+        
     }
     
     TermQuery makeTermQuery(int dfToSet) throws IOException {
@@ -83,12 +93,11 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
     	
     }
 
-    @Override
-    public int getMaxDocFreqInSubtree(IndexStats indexStats) {
-    	if (myDf == -1) {
-    		myDf = indexStats.df(term);
-    	}
-        return myDf;
-    }
+	@Override
+	public void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc) {
+		if (myDf == -1) {
+			myDf = dfc.collect(term);
+		}
+	}
 
 }

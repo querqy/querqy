@@ -41,6 +41,7 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
+import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.IndexStats;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.model.BoostQuery;
@@ -74,6 +75,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     final QuerqyParser querqyParser;
     final Map<String, Float> userQueryFields;
 	final LuceneQueryBuilder builder;
+	final DocumentFrequencyCorrection dfc;
     
     protected PublicExtendedDismaxConfiguration config;
     protected List<Query> boostQueries;
@@ -95,7 +97,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         this.rewriteChain = rewriteChain;
         this.indexStats = indexStats;
     	userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params));
-		builder = new LuceneQueryBuilder( req.getSearcher(), queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
+    	dfc = new DocumentFrequencyCorrection(indexStats);
+		builder = new LuceneQueryBuilder( req.getSearcher(), dfc, queryAnalyzer, userQueryFields, indexStats, config.getTieBreaker(), config.generatedFieldBoostFactor);
 
     }
     
@@ -130,10 +133,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         
         if ((userQuery.charAt(0) == '*') && (userQuery.length() == 1 || MATCH_ALL.equals(userQuery))) {
         	mainQuery = new MatchAllDocsQuery();
+        	dfc.finishedUserQuery();
         } else {
         	expandedQuery = makeExpandedQuery();
         	expandedQuery = rewriteChain.rewrite(expandedQuery, Collections.<String,Object>emptyMap());
         	mainQuery = makeMainQuery(expandedQuery);
+        	dfc.finishedUserQuery();
         	applyMinShouldMatch(mainQuery);
         	applyFilterQueries(expandedQuery);
         	querqyBoostQueries = getQuerqyBoostQueries(expandedQuery);

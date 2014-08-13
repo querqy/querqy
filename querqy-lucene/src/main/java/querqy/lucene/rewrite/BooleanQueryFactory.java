@@ -38,7 +38,7 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
     
 
     @Override
-    public BooleanQuery createQuery(int dfToSet, IndexStats indexStats) throws IOException {
+    public BooleanQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
         BooleanQuery bq = new BooleanQuery(disableCoord);
         if (normalizeBoost) {
             int size = getNumberOfClauses();
@@ -50,7 +50,7 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
         }
         
         for (Clause clause: clauses) {
-            bq.add(clause.queryFactory.createQuery(dfToSet, indexStats), clause.occur);
+            bq.add(clause.queryFactory.createQuery(dfc, isBelowDMQ), clause.occur);
         }
         return bq;
     }
@@ -63,15 +63,6 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
         return clauses.getFirst();
     }
 
-    @Override
-    public int getMaxDocFreqInSubtree(IndexStats indexStats) {
-        int max = 0;
-        for (Clause clause: clauses) {
-            max = Math.max(max, clause.queryFactory.getMaxDocFreqInSubtree(indexStats));
-        }
-        return max;
-    }
-
     public static class Clause {
         final Occur occur;
         final LuceneQueryFactory<?> queryFactory;
@@ -81,4 +72,11 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
             this.queryFactory = queryFactory;
         }
     }
+
+	@Override
+	public void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc) {
+		for (Clause clause: clauses) {
+			clause.queryFactory.collectMaxDocFreqInSubtree(dfc);
+        }
+	}
 }

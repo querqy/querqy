@@ -73,7 +73,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
     
     protected Query build(String input, float tie, String...names) throws IOException {
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(null, keywordAnalyzer, fields(names), dummyIndexStats, tie);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats), keywordAnalyzer, fields(names), dummyIndexStats, tie);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
@@ -81,7 +81,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
     
     protected Query buildWithSynonyms(String input, float tie, String...names) throws IOException {
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(null, keywordAnalyzer, fields(names), dummyIndexStats, tie);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats), keywordAnalyzer, fields(names), dummyIndexStats, tie);
         
         ANTLRQueryParser parser = new ANTLRQueryParser();
         querqy.model.Query q = parser.parse(input);
