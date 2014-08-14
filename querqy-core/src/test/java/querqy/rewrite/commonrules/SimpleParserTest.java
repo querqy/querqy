@@ -1,9 +1,7 @@
 package querqy.rewrite.commonrules;
 
 import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,6 +14,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import querqy.model.Clause.Occur;
+import querqy.model.Query;
 import querqy.model.RawQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParserFactory;
@@ -51,6 +50,11 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         SimpleCommonRulesParser parser = createParserFromResource(resourceName);
         return parser.parse();
     }
+    
+    Query makeQueryUsingFactory(String qString) {
+        return querqyParserFactory.createParser().parse(qString);
+    }
+    
     
     @After
     public void tearDown() throws IOException {
@@ -156,6 +160,30 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                 
                 ));
 	}
+    
+    @Test
+    public void test04() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        Term t1 = new Term(null, "t1");
+        Term t2 = new Term(null, "t2");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        List<Action> actions = rules.getRewriteActions(seq);
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f))
+                                                        )), 
+                                Arrays.asList(t1, t2), 0, 2)
+                
+                
+                ));
+    }
     
     @Test
     public void testError01() throws Exception {

@@ -39,6 +39,30 @@ public abstract class Clause<P extends Node> extends AbstractNode<P> {
 		return occur;
 	}
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((occur == null) ? 0 : occur.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Clause<?> other = (Clause<?>) obj;
+        if (occur != other.occur)
+            return false;
+        return true;
+    }
+
+    
+
 	
 	
 }

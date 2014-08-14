@@ -100,60 +100,71 @@ public class LineParser {
 		}
 		
 		if (lcLine.startsWith("down")) {
-			
-			if (lcLine.length() == 4) {
-				return new ValidationError("Cannot parse line: " + line);
-			}
-			String downLine = line.substring(4).trim();
-			char ch = downLine.charAt(0);
-			if ((ch != '(' && ch != ':')) {
-				return new ValidationError("Cannot parse line, '(' or ':' expected: " + line);
-			}
-			
-			downLine = downLine.substring(1).trim();
-			if (downLine.length() == 1) {
-				return new ValidationError("Query expected: " + line);
-			}
-			
-			float boost = 1f;
-			if (ch == '(') {
-				int pos = downLine.indexOf(')');
-				if (pos < 1 || (pos == downLine.length() - 1)) {
-					return new ValidationError("Cannot parse line: " + line);
-				}
-				boost = Float.parseFloat(downLine.substring(0, pos));
-				downLine = downLine.substring(pos + 1).trim();
-				if (downLine.charAt(0) != ':') {
-					return new ValidationError("Query expected: " + line);
-				}
-				downLine = downLine.substring(1).trim();
-			}
-			
-			if (downLine.length() == 0) {
-				return new ValidationError("Query expected: " + line);
-			}
-			
-			if (downLine.charAt(0) == '*') {
-				
-				if (downLine.length() == 1) {
-					return new ValidationError("Missing raw query after * in line: " + line);
-				}
-				
-				String rawQuery = downLine.substring(1).trim();
-				return new BoostInstruction(
-						new RawQuery(null, rawQuery, Occur.SHOULD, false), 
-						BoostDirection.DOWN, boost);
-			
-			} else if (querqyParserFactory == null) {
-				return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' you want to pass this line as a raw query String to your search engine. Line: " + line);
-			} else {
-				QuerqyParser parser = querqyParserFactory.createParser();
-				return new BoostInstruction(parser.parse(downLine), BoostDirection.DOWN, boost);
-			}
-			
+		    return parseBoostInstruction(line, lcLine, 4, BoostDirection.DOWN, querqyParserFactory);
 		}
 		
+		if (lcLine.startsWith("up")) {
+            return parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, querqyParserFactory);
+        }
+		
 		return new ValidationError("Cannot parse line: " + line);
+		
+	}
+	
+	public static Object parseBoostInstruction(String line, String lcLine, int lengthPredicate, BoostDirection direction, QuerqyParserFactory querqyParserFactory) {
+	    
+	    if (lcLine.length() == lengthPredicate) {
+            return new ValidationError("Cannot parse line: " + line);
+        }
+        
+	    String boostLine = line.substring(lengthPredicate).trim();
+        char ch = boostLine.charAt(0);
+        if ((ch != '(' && ch != ':')) {
+            return new ValidationError("Cannot parse line, '(' or ':' expected: " + line);
+        }
+        
+        boostLine = boostLine.substring(1).trim();
+        if (boostLine.length() == 1) {
+            return new ValidationError("Query expected: " + line);
+        }
+        
+        float boost = 1f;
+        if (ch == '(') {
+            int pos = boostLine.indexOf(')');
+            if (pos < 1 || (pos == boostLine.length() - 1)) {
+                return new ValidationError("Cannot parse line: " + line);
+            }
+            boost = Float.parseFloat(boostLine.substring(0, pos));
+            boostLine = boostLine.substring(pos + 1).trim();
+            if (boostLine.charAt(0) != ':') {
+                return new ValidationError("Query expected: " + line);
+            }
+            boostLine = boostLine.substring(1).trim();
+        }
+        
+        if (boostLine.length() == 0) {
+            return new ValidationError("Query expected: " + line);
+        }
+        
+        if (boostLine.charAt(0) == '*') {
+            
+            if (boostLine.length() == 1) {
+                return new ValidationError("Missing raw query after * in line: " + line);
+            }
+            
+            String rawQuery = boostLine.substring(1).trim();
+            return new BoostInstruction(
+                    new RawQuery(null, rawQuery, Occur.SHOULD, false), 
+                    direction, boost);
+        
+        } else if (querqyParserFactory == null) {
+        
+            return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' you want to pass this line as a raw query String to your search engine. Line: " + line);
+        
+        } else {
+            QuerqyParser parser = querqyParserFactory.createParser();
+            return new BoostInstruction(parser.parse(boostLine), direction, boost);
+        }
 	}
 	
 	public static Input parseInput(String s) {
@@ -163,6 +174,7 @@ public class LineParser {
 	}
 	
 	public static List<Term> parseTermExpression(String s) {
+	    
 		int len = s.length();
 		
 		if (len == 1) {

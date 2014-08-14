@@ -27,4 +27,8 @@ pf xp =>
 a =>
 	DOWN(2): * color:x
 	
+t1 t2 =>
+	UP(3.5): tboost tb2
+	
+	
 	
