@@ -29,10 +29,10 @@ import querqy.rewrite.RewriterFactory;
  */
 public class LuceneSynonymsRewriterFactory implements RewriterFactory {
 
-    @Override
-    public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
-        return new LuceneSynonymsRewriter(synonymMap);
-    }
+   @Override
+   public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
+      return new LuceneSynonymsRewriter(synonymMap);
+   }
 
    SynonymMap synonymMap = null;
    final SolrSynonymParser parser;
@@ -53,19 +53,17 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
 
       parser = new SolrSynonymParser(true, expand, analyzer);
    }
-   
+
    public void addResource(InputStream is) throws IOException {
-	   try {
-	         parser.parse(new InputStreamReader(is));
-	      } catch (ParseException e) {
-	         throw new IOException(e);
-	      }
-   }
-   
-   public void build() throws IOException {
-	   synonymMap = parser.build();
+      try {
+         parser.parse(new InputStreamReader(is));
+      } catch (ParseException e) {
+         throw new IOException(e);
+      }
    }
 
-   
+   public void build() throws IOException {
+      synonymMap = parser.build();
+   }
 
 }

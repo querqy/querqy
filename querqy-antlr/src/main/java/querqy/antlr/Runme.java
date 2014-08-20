@@ -14,45 +14,47 @@ import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.model.Node;
 import querqy.model.Query;
+
 /*import querqy.rewrite.QueryRewriter;
-import querqy.rewrite.synonyms.SynonymRewriter;
-*/
+ import querqy.rewrite.synonyms.SynonymRewriter;
+ */
 /**
  * @author rene
  *
  */
 public class Runme {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// de fg +(a b)
-	    
-	    char[] input = "a b".toCharArray();
-	    
-		QueryLexer lex = new QueryLexer(new ANTLRInputStream(input, input.length));// f2:c OR +f3:d"));//"de fg +(a AND b)"));//a AND b AND (c f)"));
-		CommonTokenStream tokens = new CommonTokenStream(lex);
-		QueryParser parser = new QueryParser(tokens);
-		
-		QueryContext t = parser.query();
-		Node node = t.accept(new QueryTransformerVisitor(input));
-		
-		PrintWriter writer = new PrintWriter(System.out);
-		PrettyPrinter printer = new PrettyPrinter(writer, 4);
-		printer.visit((Query) node);
-		writer.flush();
-		System.out.println("----");
-		
-//		QueryRewriter rewriter = new SynonymRewriter();
-//		Query query = rewriter.rewrite((Query) node);
-//		printer = new PrettyPrinter(writer, 4);
-//		printer.visit(query);
-//		writer.flush();
-//		System.out.println();
-		
-		
-		
-	}
+   /**
+    * @param args
+    */
+   public static void main(String[] args) {
+      // de fg +(a b)
+
+      char[] input = "a b".toCharArray();
+
+      // f2:c OR +f3:d"));
+      // "de fg +(a AND b)"));
+      // a AND b AND (c f)"));
+      QueryLexer lex = new QueryLexer(new ANTLRInputStream(input, input.length));
+      CommonTokenStream tokens = new CommonTokenStream(lex);
+      QueryParser parser = new QueryParser(tokens);
+
+      QueryContext t = parser.query();
+      Node node = t.accept(new QueryTransformerVisitor(input));
+
+      PrintWriter writer = new PrintWriter(System.out);
+      PrettyPrinter printer = new PrettyPrinter(writer, 4);
+      printer.visit((Query) node);
+      writer.flush();
+      System.out.println("----");
+
+      // QueryRewriter rewriter = new SynonymRewriter();
+      // Query query = rewriter.rewrite((Query) node);
+      // printer = new PrettyPrinter(writer, 4);
+      // printer.visit(query);
+      // writer.flush();
+      // System.out.println();
+
+   }
 
 }

@@ -8,29 +8,31 @@ package querqy.model;
  *
  */
 abstract class AbstractNode<P extends Node> implements CloneableNode<P> {
-	
-	protected final P parent;
-	
-	protected final boolean generated;
-	
-	public AbstractNode(P parent, boolean isGenerated) {
-		this.parent = parent;
-		this.generated = isGenerated;
-	}
 
-	@Override
-	public P getParent() {
-		return parent;
-	}
+   protected final P parent;
 
-	/* (non-Javadoc)
-	 * @see querqy.model.Node#isGenerated()
-	 */
-	@Override
-	public boolean isGenerated() {
-		return generated;
-	}
-	
-	//public abstract Node clone(P newParent);
+   protected final boolean generated;
+
+   public AbstractNode(P parent, boolean isGenerated) {
+      this.parent = parent;
+      this.generated = isGenerated;
+   }
+
+   @Override
+   public P getParent() {
+      return parent;
+   }
+
+   /*
+    * (non-Javadoc)
+    * 
+    * @see querqy.model.Node#isGenerated()
+    */
+   @Override
+   public boolean isGenerated() {
+      return generated;
+   }
+
+   // public abstract Node clone(P newParent);
 
 }

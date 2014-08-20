@@ -9,37 +9,35 @@ import java.util.List;
  * @author René Kriegler, @renekrie
  *
  */
-public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxClause> implements BooleanClause, BooleanParent {
-	
-	public DisjunctionMaxQuery(BooleanQuery parentQuery, Occur occur, boolean generated) {
-		super(parentQuery, occur, generated);
-	}
+public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxClause> implements BooleanClause,
+      BooleanParent {
 
-	public List<Term> getTerms() {
-		return getClauses(Term.class);
-	}
-	
-	@Override
-	public <T> T accept(NodeVisitor<T> visitor) {
-		return visitor.visit(this);
-	}
+   public DisjunctionMaxQuery(BooleanQuery parentQuery, Occur occur, boolean generated) {
+      super(parentQuery, occur, generated);
+   }
 
-	@Override
-	public String toString() {
-		return "DisjunctionMaxQuery [occur=" + occur + ", clauses=" + clauses
-				+ "]";
-	}
+   public List<Term> getTerms() {
+      return getClauses(Term.class);
+   }
 
-	@Override
-	public BooleanClause clone(BooleanQuery newParent) {
-		DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
-		for (DisjunctionMaxClause clause: clauses) {
-			dmq.addClause(clause.clone(dmq));
-		}
-		return dmq;
-	}
+   @Override
+   public <T> T accept(NodeVisitor<T> visitor) {
+      return visitor.visit(this);
+   }
 
-	
-	
+   @Override
+   public String toString() {
+      return "DisjunctionMaxQuery [occur=" + occur + ", clauses=" + clauses
+            + "]";
+   }
+
+   @Override
+   public BooleanClause clone(BooleanQuery newParent) {
+      DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
+      for (DisjunctionMaxClause clause : clauses) {
+         dmq.addClause(clause.clone(dmq));
+      }
+      return dmq;
+   }
 
 }

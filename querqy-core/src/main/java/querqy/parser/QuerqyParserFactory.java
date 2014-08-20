@@ -7,5 +7,5 @@ package querqy.parser;
  */
 public interface QuerqyParserFactory {
 
-	QuerqyParser createParser();
+   QuerqyParser createParser();
 }

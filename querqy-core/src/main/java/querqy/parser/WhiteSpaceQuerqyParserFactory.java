@@ -9,13 +9,14 @@ package querqy.parser;
  */
 public class WhiteSpaceQuerqyParserFactory implements QuerqyParserFactory {
 
-	
-	/* (non-Javadoc)
-	 * @see querqy.parser.QuerqyParserFactory#createParser()
-	 */
-	@Override
-	public QuerqyParser createParser() {
-		return new WhiteSpaceQuerqyParser();
-	}
+   /*
+    * (non-Javadoc)
+    * 
+    * @see querqy.parser.QuerqyParserFactory#createParser()
+    */
+   @Override
+   public QuerqyParser createParser() {
+      return new WhiteSpaceQuerqyParser();
+   }
 
 }

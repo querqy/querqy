@@ -12,8 +12,9 @@ import org.apache.lucene.search.Query;
  *
  */
 public interface LuceneQueryFactory<T extends Query> {
-    
-    T createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException;
-    void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc);
+
+   T createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException;
+
+   void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc);
 
 }

@@ -9,14 +9,14 @@ package querqy.rewrite.commonrules;
  */
 public class ValidationError {
 
-	 final String message;
-     
-	 public ValidationError(String message) {
-         this.message = message;
-     }
-     public String getMessage() {
-         return message;
-     }
-     
+   final String message;
+
+   public ValidationError(String message) {
+      this.message = message;
+   }
+
+   public String getMessage() {
+      return message;
+   }
 
 }

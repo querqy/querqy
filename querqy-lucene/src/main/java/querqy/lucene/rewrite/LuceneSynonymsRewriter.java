@@ -25,71 +25,73 @@ import querqy.rewrite.QueryRewriter;
  * @author rene
  *
  */
-public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node>  implements QueryRewriter {
-	
-	final SynonymMap synonymMap; 
-    ByteArrayDataInput bytesReader = new ByteArrayDataInput();
-    BytesRef scratchBytes = new BytesRef();
-    CharsRef scratchChars = new CharsRef();
-    
-    LinkedList<Sequences> sequencesStack = new LinkedList<>();
-	
-	public LuceneSynonymsRewriter(SynonymMap synonymMap) {
-		this.synonymMap = synonymMap;
-	}
+public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-	/* (non-Javadoc)
-	 * @see qp.rewrite.QueryRewriter#rewrite(qp.model.Query)
-	 */
-	@Override
-	public ExpandedQuery rewrite(ExpandedQuery query) {
-		QuerqyQuery<?> userQuery = query.getUserQuery();
-		if (userQuery instanceof Query) {
-			visit((Query) userQuery); // can only handle this QuerqyQueryType for now
-		}
-		return query;
-	}
-	
-	@Override
-	public Node visit(Query query) {
-		return visit((BooleanQuery) query);
-	}
-	
-	@Override
-	public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
-		sequencesStack.getLast().nextPosition(disjunctionMaxQuery);
-		return super.visit(disjunctionMaxQuery);
-	}
-	
-	@Override
-	public Node visit(Term term) {
-		if (!term.isGenerated()) {
-			try {
-				sequencesStack.getLast().putTerm(term);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		return super.visit(term);
-	}
-	
-	@Override
-	public Node visit(BooleanQuery booleanQuery) {
-		
-		if ((!sequencesStack.isEmpty()) && booleanQuery.getParent() instanceof BooleanQuery) {
-			// left-hand siblings might be DMQs with Terms - terminate sequences
-			sequencesStack.getLast().apply();
-		}
-		
-		// new Sequences object for child DMQ/Term objects 
-		sequencesStack.add(new Sequences(synonymMap));
-		
-		super.visit(booleanQuery);
-		
-		sequencesStack.removeLast().apply();
-		
-		return null;
-	}
-	
+   final SynonymMap synonymMap;
+   ByteArrayDataInput bytesReader = new ByteArrayDataInput();
+   BytesRef scratchBytes = new BytesRef();
+   CharsRef scratchChars = new CharsRef();
+
+   LinkedList<Sequences> sequencesStack = new LinkedList<>();
+
+   public LuceneSynonymsRewriter(SynonymMap synonymMap) {
+      this.synonymMap = synonymMap;
+   }
+
+   /*
+    * (non-Javadoc)
+    * 
+    * @see qp.rewrite.QueryRewriter#rewrite(qp.model.Query)
+    */
+   @Override
+   public ExpandedQuery rewrite(ExpandedQuery query) {
+      QuerqyQuery<?> userQuery = query.getUserQuery();
+      if (userQuery instanceof Query) {
+         visit((Query) userQuery); // can only handle this QuerqyQueryType for
+                                   // now
+      }
+      return query;
+   }
+
+   @Override
+   public Node visit(Query query) {
+      return visit((BooleanQuery) query);
+   }
+
+   @Override
+   public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+      sequencesStack.getLast().nextPosition(disjunctionMaxQuery);
+      return super.visit(disjunctionMaxQuery);
+   }
+
+   @Override
+   public Node visit(Term term) {
+      if (!term.isGenerated()) {
+         try {
+            sequencesStack.getLast().putTerm(term);
+         } catch (IOException e) {
+            throw new RuntimeException(e);
+         }
+      }
+      return super.visit(term);
+   }
+
+   @Override
+   public Node visit(BooleanQuery booleanQuery) {
+
+      if ((!sequencesStack.isEmpty()) && booleanQuery.getParent() instanceof BooleanQuery) {
+         // left-hand siblings might be DMQs with Terms - terminate sequences
+         sequencesStack.getLast().apply();
+      }
+
+      // new Sequences object for child DMQ/Term objects
+      sequencesStack.add(new Sequences(synonymMap));
+
+      super.visit(booleanQuery);
+
+      sequencesStack.removeLast().apply();
+
+      return null;
+   }
 
 }

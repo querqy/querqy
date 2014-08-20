@@ -12,7 +12,7 @@ import querqy.model.ExpandedQuery;
  *
  */
 public interface RewriterFactory {
-    
-    QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context);
-    
+
+   QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context);
+
 }

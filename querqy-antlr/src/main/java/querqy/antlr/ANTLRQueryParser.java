@@ -17,19 +17,18 @@ import querqy.parser.QuerqyParser;
  *
  */
 public class ANTLRQueryParser implements QuerqyParser {
-    
-    
-    @Override
+
+   @Override
    public Query parse(String input) {
 
-        char[] inputChars = input.toCharArray();
-        
-        QueryLexer lex = new QueryLexer(new ANTLRInputStream(inputChars, inputChars.length));
-        CommonTokenStream tokens = new CommonTokenStream(lex);
-        QueryParser parser = new QueryParser(tokens);
-        
-        QueryContext t = parser.query();
-        return (Query) t.accept(new QueryTransformerVisitor(inputChars));
-    }
+      char[] inputChars = input.toCharArray();
+
+      QueryLexer lex = new QueryLexer(new ANTLRInputStream(inputChars, inputChars.length));
+      CommonTokenStream tokens = new CommonTokenStream(lex);
+      QueryParser parser = new QueryParser(tokens);
+
+      QueryContext t = parser.query();
+      return (Query) t.accept(new QueryTransformerVisitor(inputChars));
+   }
 
 }

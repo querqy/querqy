@@ -27,14 +27,13 @@ import querqy.parser.QuerqyParser;
  */
 public class AnalyzingQuerqyParserTest extends LuceneTestCase {
    /**
-    * Query analyzer.
-    * Just lower cases the input.
+    * Query analyzer. Just lower cases the input.
     */
    private Analyzer queryAnalyzer;
 
    /**
-    * Synonym analyzer.
-    * Just adds the synonyms "synonym1" and "synonym2" for "test". 
+    * Synonym analyzer. Just adds the synonyms "synonym1" and "synonym2" for
+    * "test".
     */
    private Analyzer synonymAnalyzer;
 
@@ -60,8 +59,10 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
             MockTokenizer tokenizer = new MockTokenizer(reader);
             // Filter for adding synonyms
             TokenStream result = new SynonymFilter(tokenizer, synonyms, true);
-            // Filter all non-synonyms, because the synonym filter outputs the original token too.
-            result = new TypeTokenFilter(Version.LUCENE_4_9, result, Collections.singleton(SynonymFilter.TYPE_SYNONYM), true);
+            // Filter all non-synonyms, because the synonym filter outputs the
+            // original token too.
+            result = new TypeTokenFilter(Version.LUCENE_4_9, result, Collections.singleton(SynonymFilter.TYPE_SYNONYM),
+                  true);
             return new TokenStreamComponents(tokenizer, result);
          }
       };
@@ -74,7 +75,7 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
    public void parse_withoutSynonyms() {
       QuerqyParser parser = new AnalyzingQuerqyParser(queryAnalyzer, null);
       Query query = parser.parse("test dummy");
-      
+
       assertThat(query, bq(dmq(term("test")), dmq(term("dummy"))));
    }
 
@@ -86,7 +87,8 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
       QuerqyParser parser = new AnalyzingQuerqyParser(queryAnalyzer, synonymAnalyzer);
       Query query = parser.parse("test dummy");
 
-      // "test" with its synonyms, "dummy" without synonyms, because none are defined for it.
+      // "test" with its synonyms, "dummy" without synonyms, because none are
+      // defined for it.
       assertThat(query, bq(dmq(term("test"), term("synonym1"), term("synonym2")), dmq(term("dummy"))));
    }
 }
