@@ -198,19 +198,17 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
             }
          }
 
-         mainQuery = bq;
-
          if (hasMultiplicativeBoosts) {
-
             if (multiplicativeBoosts.size() > 1) {
                ValueSource prod = new ProductFloatFunction(
                      multiplicativeBoosts.toArray(new ValueSource[multiplicativeBoosts.size()]));
-               mainQuery = new BoostedQuery(query, prod);
+               mainQuery = new BoostedQuery(bq, prod);
             } else {
-               mainQuery = new BoostedQuery(query, multiplicativeBoosts.get(0));
+               mainQuery = new BoostedQuery(bq, multiplicativeBoosts.get(0));
             }
+         } else {
+            mainQuery = bq;
          }
-
       }
 
       return mainQuery;
