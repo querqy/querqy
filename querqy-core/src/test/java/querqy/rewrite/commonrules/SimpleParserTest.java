@@ -186,6 +186,27 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     }
     
     @Test
+    public void test05() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        Term t1 = new Term(null, "tf2");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        List<Action> actions = rules.getRewriteActions(seq);
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("flt2 flt3")))
+                                                        )), 
+                                Arrays.asList(t1), 0, 1)
+                
+                
+                ));
+    }
+    
+    @Test
     public void testError01() throws Exception {
         try {
             createRulesFromResource("rules-with-errors01.txt");
