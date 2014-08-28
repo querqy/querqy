@@ -110,39 +110,32 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t4);
         List<Action> actions = rules.getRewriteActions(seq);
         assertThat(actions, contains( 
-        		new Action(
-        				Arrays.asList(
-        						new Instructions(
-        								Arrays.asList(
-        										(Instruction) new BoostInstruction(
-        												new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN ,2f)))),
-        						Arrays.asList(t1), 0, 1),
                 new Action(
-                        Arrays.asList(
-                              new Instructions(
-                                    Arrays.asList(
-                                          (Instruction) new BoostInstruction(
-                                                new RawQuery(null, "color:x", Occur.SHOULD, false),
-                                                BoostDirection.DOWN, 2f)))),
-                        Arrays.asList(t1), 0, 1),
-                  new Action(
-                        Arrays.asList(
-                              new Instructions(
-                                    Arrays.asList(
-                                          (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("b")))))),
-                        Arrays.asList(t1, t2), 0, 2),
-
-                  new Action(
                         Arrays.asList(
                                 new Instructions(
                                         Arrays.asList(
-                                                (Instruction) new FilterInstruction(new RawQuery(null, "price:[* TO 100]", Occur.MUST, false)))
-                                                        )), 
-                                Arrays.asList(t1, t2), 0, 2)
+                                                (Instruction) new BoostInstruction(
+                                                        new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN ,2f)))),
+                                Arrays.asList(t1), 0, 1),
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("b")))))), 
+                                Arrays.asList(t1, t2), 0, 2),
+                                
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("a"))),
+                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("c")))
+                                                        ))), 
+                                Arrays.asList(t1, t2, t3), 0, 3)
                 
                 
-                ));
-	}
+                ));	
+    }
     
     @Test
     public void test04() throws Exception {
