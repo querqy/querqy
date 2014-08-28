@@ -10,7 +10,7 @@ import org.apache.lucene.index.Term;
  *
  */
 public interface IndexStats {
-    
-    int df(Term term);
+
+   int df(Term term);
 
 }

@@ -24,49 +24,49 @@ import querqy.parser.QuerqyParser;
  */
 public class AnalyzingQuerqyParserFactory implements SolrQuerqyParserFactory {
 
-	protected String synonymsfieldType = null;
+   protected String synonymsfieldType = null;
 
-	protected String queryParsingFieldType = null;
+   protected String queryParsingFieldType = null;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * querqy.solr.SolrQuerqyParserFactory#init(org.apache.solr.common.util.
-	 * NamedList, org.apache.lucene.analysis.util.ResourceLoader)
-	 */
-	@Override
-	public void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader)
-			throws IOException, SolrException {
+   /*
+    * (non-Javadoc)
+    * 
+    * @see querqy.solr.SolrQuerqyParserFactory#init(org.apache.solr.common.util.
+    * NamedList, org.apache.lucene.analysis.util.ResourceLoader)
+    */
+   @Override
+   public void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader)
+         throws IOException, SolrException {
 
-		synonymsfieldType = (String) parserConfig.get("synonymFieldType");
-		queryParsingFieldType = (String) parserConfig
-				.get("queryParsingFieldType");
+      synonymsfieldType = (String) parserConfig.get("synonymFieldType");
+      queryParsingFieldType = (String) parserConfig
+            .get("queryParsingFieldType");
 
-		Preconditions.checkNotNull(queryParsingFieldType,
-				"queryParsingFieldType configuration missing");
+      Preconditions.checkNotNull(queryParsingFieldType,
+            "queryParsingFieldType configuration missing");
 
-	}
+   }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see querqy.solr.SolrQuerqyParserFactory#createParser(java.lang.String,
-	 * org.apache.solr.common.params.SolrParams,
-	 * org.apache.solr.common.params.SolrParams,
-	 * org.apache.solr.request.SolrQueryRequest)
-	 */
-	@Override
-	public QuerqyParser createParser(String qstr, SolrParams localParams,
-			SolrParams params, SolrQueryRequest req) {
-		
-		IndexSchema schema = req.getSchema();
+   /*
+    * (non-Javadoc)
+    * 
+    * @see querqy.solr.SolrQuerqyParserFactory#createParser(java.lang.String,
+    * org.apache.solr.common.params.SolrParams,
+    * org.apache.solr.common.params.SolrParams,
+    * org.apache.solr.request.SolrQueryRequest)
+    */
+   @Override
+   public QuerqyParser createParser(String qstr, SolrParams localParams,
+         SolrParams params, SolrQueryRequest req) {
 
-		Analyzer rewriteAnalyzer = schema.getFieldTypeByName(
-				queryParsingFieldType).getQueryAnalyzer();
-		Analyzer synonymAnalyzer = (synonymsfieldType != null) ? schema.getFieldTypeByName(synonymsfieldType).getQueryAnalyzer() : null;
+      IndexSchema schema = req.getSchema();
 
-		return new AnalyzingQuerqyParser(rewriteAnalyzer, synonymAnalyzer);
-	}
+      Analyzer rewriteAnalyzer = schema.getFieldTypeByName(
+            queryParsingFieldType).getQueryAnalyzer();
+      Analyzer synonymAnalyzer = (synonymsfieldType != null) ? schema.getFieldTypeByName(synonymsfieldType)
+            .getQueryAnalyzer() : null;
+
+      return new AnalyzingQuerqyParser(rewriteAnalyzer, synonymAnalyzer);
+   }
 
 }

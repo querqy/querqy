@@ -7,15 +7,14 @@ import org.apache.solr.search.SyntaxError;
 
 public class DefaultQuerqyDismaxQParserPlugin extends AbstractQuerqyDismaxQParserPlugin {
 
-
    @Override
    public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
-         try {
-			return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain,
-			       new SolrIndexStats(req.getSearcher()), createQuerqyParser(qstr, localParams, params, req));
-		} catch (SyntaxError e) {
-			throw new RuntimeException(e);
-		}
+      try {
+         return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain,
+               new SolrIndexStats(req.getSearcher()), createQuerqyParser(qstr, localParams, params, req));
+      } catch (SyntaxError e) {
+         throw new RuntimeException(e);
+      }
    }
 
 }

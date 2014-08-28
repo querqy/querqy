@@ -25,59 +25,60 @@ import querqy.rewrite.commonrules.model.PositionSequence;
  *
  */
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
-    
-    protected final RulesCollection rules;
-    protected final LinkedList<PositionSequence<Term>> sequencesStack;
-    protected ExpandedQuery expandedQuery;
 
-    /**
+   protected final RulesCollection rules;
+   protected final LinkedList<PositionSequence<Term>> sequencesStack;
+   protected ExpandedQuery expandedQuery;
+
+   /**
      * 
      */
-    public CommonRulesRewriter(RulesCollection rules) {
-        this.rules = rules;
-        sequencesStack = new LinkedList<>();
-    }
+   public CommonRulesRewriter(RulesCollection rules) {
+      this.rules = rules;
+      sequencesStack = new LinkedList<>();
+   }
 
-    @Override
-    public ExpandedQuery rewrite(ExpandedQuery query) {
-    	
-    	QuerqyQuery<?> userQuery = query.getUserQuery();
-    	if (userQuery instanceof Query) { 
-    		this.expandedQuery = query;
-    		visit((BooleanQuery) query.getUserQuery());
-    	}
-        return query;
-    }
-    
-    @Override
-    public Node visit(BooleanQuery booleanQuery) {
-        
-        sequencesStack.add(new PositionSequence<Term>());
-        
-        super.visit(booleanQuery);
-        
-        PositionSequence<Term> sequence = sequencesStack.removeLast();
-        for (Action action: rules.getRewriteActions(sequence)) {
-            for (Instructions instructions: action.getInstructions()) {
-                for (Instruction instruction: instructions) {
-                    instruction.apply(sequence, action.getMatchedTerms(), action.getStartPosition(), action.getEndPosition(), expandedQuery);
-                }
+   @Override
+   public ExpandedQuery rewrite(ExpandedQuery query) {
+
+      QuerqyQuery<?> userQuery = query.getUserQuery();
+      if (userQuery instanceof Query) {
+         this.expandedQuery = query;
+         visit((BooleanQuery) query.getUserQuery());
+      }
+      return query;
+   }
+
+   @Override
+   public Node visit(BooleanQuery booleanQuery) {
+
+      sequencesStack.add(new PositionSequence<Term>());
+
+      super.visit(booleanQuery);
+
+      PositionSequence<Term> sequence = sequencesStack.removeLast();
+      for (Action action : rules.getRewriteActions(sequence)) {
+         for (Instructions instructions : action.getInstructions()) {
+            for (Instruction instruction : instructions) {
+               instruction.apply(sequence, action.getMatchedTerms(), action.getStartPosition(),
+                     action.getEndPosition(), expandedQuery);
             }
-        }
-        
-        return null;
-    }
-    
-    @Override
-    public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
-        sequencesStack.getLast().nextPosition();
-        return super.visit(disjunctionMaxQuery);
-    }
-    
-    @Override
-    public Node visit(Term term) {
-        sequencesStack.getLast().addElement(term);
-        return super.visit(term);
-    }
+         }
+      }
+
+      return null;
+   }
+
+   @Override
+   public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+      sequencesStack.getLast().nextPosition();
+      return super.visit(disjunctionMaxQuery);
+   }
+
+   @Override
+   public Node visit(Term term) {
+      sequencesStack.getLast().addElement(term);
+      return super.visit(term);
+   }
 
 }

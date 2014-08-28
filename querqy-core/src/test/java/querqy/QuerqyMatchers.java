@@ -30,7 +30,7 @@ public class QuerqyMatchers {
    public static final DMQMatcher dmq(TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
       return dmq(should(), clauses);
    }
-   
+
    /**
     * Match {@link DisjunctionMaxClause}.
     * 
@@ -161,15 +161,16 @@ public class QuerqyMatchers {
 
       @Override
       public void describeTo(Description description) {
-         description.appendText("term: " + expectedField + ":" + expectedValue); 
+         description.appendText("term: " + expectedField + ":" + expectedValue);
       }
 
       @Override
       protected boolean matchesSafely(Term item) {
          return item != null &&
                // expectedField == null -> do not compare field name.
-               (expectedField == null || expectedField.equals(item.getField())) && 
-               // Using toString() here to avoid incompatibilities between equals() of different char sequences.
+               (expectedField == null || expectedField.equals(item.getField())) &&
+               // Using toString() here to avoid incompatibilities between
+               // equals() of different char sequences.
                expectedValue.equals(item.getValue().toString());
       }
    }
@@ -198,7 +199,7 @@ public class QuerqyMatchers {
    /**
     * {@link Matcher} for {@link SubQuery}s.
     */
-   private static abstract class SubQueryMatcher<T extends SubQuery<?,?>> extends TypeSafeMatcher<T> {
+   private static abstract class SubQueryMatcher<T extends SubQuery<?, ?>> extends TypeSafeMatcher<T> {
       private final OccurMatcher occur;
       private final TypeSafeMatcher<? extends Node>[] clauses;
 
@@ -229,7 +230,7 @@ public class QuerqyMatchers {
                return false;
             }
          }
-         
+
          return true;
       }
    }

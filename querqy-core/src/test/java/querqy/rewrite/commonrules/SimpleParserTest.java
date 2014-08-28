@@ -119,37 +119,20 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         						Arrays.asList(t1), 0, 1),
                 new Action(
                         Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("b")))))), 
-                                Arrays.asList(t1, t2), 0, 2),
-                                
-                new Action(
+                              new Instructions(
+                                    Arrays.asList(
+                                          (Instruction) new BoostInstruction(
+                                                new RawQuery(null, "color:x", Occur.SHOULD, false),
+                                                BoostDirection.DOWN, 2f)))),
+                        Arrays.asList(t1), 0, 1),
+                  new Action(
                         Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("a"))),
-                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("c")))
-                                                        ))), 
-                                Arrays.asList(t1, t2, t3), 0, 3)
-                
-                
-                ));
-    }
-    
-    @Test
-	public void test03() throws Exception {
-    	RulesCollection rules = createRulesFromResource("rules-test.txt");
-        Term t1 = new Term(null, "pf");
-        Term t2 = new Term(null, "xp");
-        PositionSequence<Term> seq = new PositionSequence<>();
-        seq.nextPosition();
-        seq.addElement(t1);
-        seq.nextPosition();
-        seq.addElement(t2);
-        List<Action> actions = rules.getRewriteActions(seq);
-        assertThat(actions, contains( 
-                new Action(
+                              new Instructions(
+                                    Arrays.asList(
+                                          (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("b")))))),
+                        Arrays.asList(t1, t2), 0, 2),
+
+                  new Action(
                         Arrays.asList(
                                 new Instructions(
                                         Arrays.asList(
@@ -217,5 +200,6 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         }
     }
     
+
 
 }
