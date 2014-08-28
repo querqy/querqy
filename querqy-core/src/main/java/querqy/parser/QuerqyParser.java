@@ -13,5 +13,5 @@ public interface QuerqyParser {
     * Accepts a query input and transforms it into a {@linkplain Query}.
     */
    Query parse(String input);
-   
+
 }

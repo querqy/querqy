@@ -3,7 +3,6 @@
  */
 package querqy.model;
 
-
 /**
  * @author René Kriegler, @renekrie
  *
@@ -61,8 +60,4 @@ public abstract class Clause<P extends Node> extends AbstractNode<P> {
         return true;
     }
 
-    
-
-	
-	
 }

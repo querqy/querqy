@@ -10,7 +10,7 @@ import querqy.model.ExpandedQuery;
  *
  */
 public interface QueryRewriter {
-	
-	ExpandedQuery rewrite(ExpandedQuery query);
-	
+
+   ExpandedQuery rewrite(ExpandedQuery query);
+
 }

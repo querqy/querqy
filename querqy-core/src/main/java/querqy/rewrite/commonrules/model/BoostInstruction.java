@@ -15,83 +15,86 @@ import querqy.model.Term;
  *
  */
 public class BoostInstruction implements Instruction {
-	
-	public enum BoostDirection {UP, DOWN}
-	
-	final QuerqyQuery<?> query;
-	final BoostDirection direction;
-	float boost;
 
-	public BoostInstruction(QuerqyQuery<?> query, BoostDirection direction, float boost) {
-		if (query == null) {
-			throw new IllegalArgumentException("query must not be null");
-		}
-		
-		if (direction == null) {
-			throw new IllegalArgumentException("direction must not be null");
-		}
-		
-		this.query = query;
-		this.direction = direction;
-		this.boost = boost;
-	}
-	
+   public enum BoostDirection {
+      UP, DOWN
+   }
 
-	/* (non-Javadoc)
-	 * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, java.util.List, int, int, querqy.model.ExpandedQuery)
-	 */
-	@Override
-	public void apply(PositionSequence<Term> sequence, List<Term> matchedTerms,
-			int startPosition, int endPosition, ExpandedQuery expandedQuery) {
+   final QuerqyQuery<?> query;
+   final BoostDirection direction;
+   float boost;
 
-		BoostQuery bq = new BoostQuery(query.clone(null), boost);
-		if (direction == BoostDirection.DOWN) {
-			expandedQuery.addBoostDownQuery(bq);
-		} else {
-			expandedQuery.addBoostUpQuery(bq);
-		}
+   public BoostInstruction(QuerqyQuery<?> query, BoostDirection direction, float boost) {
+      if (query == null) {
+         throw new IllegalArgumentException("query must not be null");
+      }
 
-	}
+      if (direction == null) {
+         throw new IllegalArgumentException("direction must not be null");
+      }
 
+      this.query = query;
+      this.direction = direction;
+      this.boost = boost;
+   }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Float.floatToIntBits(boost);
-		result = prime * result
-				+ ((direction == null) ? 0 : direction.hashCode());
-		result = prime * result + ((query == null) ? 0 : query.hashCode());
-		return result;
-	}
+   /*
+    * (non-Javadoc)
+    * 
+    * @see
+    * querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules
+    * .model.PositionSequence, java.util.List, int, int,
+    * querqy.model.ExpandedQuery)
+    */
+   @Override
+   public void apply(PositionSequence<Term> sequence, List<Term> matchedTerms,
+         int startPosition, int endPosition, ExpandedQuery expandedQuery) {
 
+      BoostQuery bq = new BoostQuery(query.clone(null), boost);
+      if (direction == BoostDirection.DOWN) {
+         expandedQuery.addBoostDownQuery(bq);
+      } else {
+         expandedQuery.addBoostUpQuery(bq);
+      }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		BoostInstruction other = (BoostInstruction) obj;
-		if (Float.floatToIntBits(boost) != Float.floatToIntBits(other.boost))
-			return false;
-		if (direction != other.direction)
-			return false;
-		if (query == null) {
-			if (other.query != null)
-				return false;
-		} else if (!query.equals(other.query))
-			return false;
-		return true;
-	}
+   }
 
+   @Override
+   public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + Float.floatToIntBits(boost);
+      result = prime * result
+            + ((direction == null) ? 0 : direction.hashCode());
+      result = prime * result + ((query == null) ? 0 : query.hashCode());
+      return result;
+   }
 
-	@Override
-	public String toString() {
-		return "BoostInstruction [query=" + query + ", direction=" + direction
-				+ ", boost=" + boost + "]";
-	}
+   @Override
+   public boolean equals(Object obj) {
+      if (this == obj)
+         return true;
+      if (obj == null)
+         return false;
+      if (getClass() != obj.getClass())
+         return false;
+      BoostInstruction other = (BoostInstruction) obj;
+      if (Float.floatToIntBits(boost) != Float.floatToIntBits(other.boost))
+         return false;
+      if (direction != other.direction)
+         return false;
+      if (query == null) {
+         if (other.query != null)
+            return false;
+      } else if (!query.equals(other.query))
+         return false;
+      return true;
+   }
+
+   @Override
+   public String toString() {
+      return "BoostInstruction [query=" + query + ", direction=" + direction
+            + ", boost=" + boost + "]";
+   }
 
 }

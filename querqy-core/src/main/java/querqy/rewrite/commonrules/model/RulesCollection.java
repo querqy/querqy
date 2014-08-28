@@ -18,128 +18,130 @@ import eu.danieldk.dictomaton.StateInfo;
  *
  */
 public class RulesCollection {
-    
-    final PerfectHashDictionary dictionary;
-    
-    /**
-     * An element of this array represents the list of Instructions that are triggered by the same
-     * input conditions:
-     * <dl>
-     *  <dt>Instruction</dt>
-     *      <dd>A single action triggered by a single rule</dd> 
-     *  <dt>Instructions</dt>
-     *      <dd>All Instructions triggered by a single rule</dd>
-     *  <dt>List<Instructions>[]</dt>
-     *      <dd>An array. An array element contains Instructions from different rules that are
-     *      triggered by the same condition.<dd>
-     * </dl>
-     * 
-     * The input (condition) is hashed using a perfect hash algorithm. The hash code is used as
-     * the index into the instructions array. 
-     * 
-     */
-    final List<Instructions>[] instructions;
-    
-    public RulesCollection(PerfectHashDictionary dictionary, List<Instructions>[] instructions) {
-        this.dictionary = dictionary;
-        this.instructions = instructions;
-    }
-    
-    public List<Action> getRewriteActions(PositionSequence<Term> sequence) {
-        
-        List<Action> result = new ArrayList<>();
-        if (sequence.isEmpty()) {
-            return result;
-        }
-        
-        // We have a list of terms (resulting from DisMax alternatives) per position.
-        // We now find all the combinations of terms in different positions and look 
-        // them up as rules input in the dictionary
-        //LinkedList<List<Term>> positions = sequence.getPositions();
-        if (sequence.size() == 1) {
-            for (Term term: sequence.getFirst()) {
-                int num = dictionary.number(term.toCharSequenceWithField());
-                if (num > -1) {
-                    result.add(new Action(instructions[num - 1], Arrays.asList(term), 0, 1));
-                }
+
+   final PerfectHashDictionary dictionary;
+
+   /**
+    * An element of this array represents the list of Instructions that are
+    * triggered by the same input conditions:
+    * <dl>
+    * <dt>Instruction</dt>
+    * <dd>A single action triggered by a single rule</dd>
+    * <dt>Instructions</dt>
+    * <dd>All Instructions triggered by a single rule</dd>
+    * <dt>List<Instructions>[]</dt>
+    * <dd>An array. An array element contains Instructions from different rules
+    * that are triggered by the same condition.
+    * <dd>
+    * </dl>
+    * 
+    * The input (condition) is hashed using a perfect hash algorithm. The hash
+    * code is used as the index into the instructions array.
+    * 
+    */
+   final List<Instructions>[] instructions;
+
+   public RulesCollection(PerfectHashDictionary dictionary, List<Instructions>[] instructions) {
+      this.dictionary = dictionary;
+      this.instructions = instructions;
+   }
+
+   public List<Action> getRewriteActions(PositionSequence<Term> sequence) {
+
+      List<Action> result = new ArrayList<>();
+      if (sequence.isEmpty()) {
+         return result;
+      }
+
+      // We have a list of terms (resulting from DisMax alternatives) per
+      // position.
+      // We now find all the combinations of terms in different positions and
+      // look
+      // them up as rules input in the dictionary
+      // LinkedList<List<Term>> positions = sequence.getPositions();
+      if (sequence.size() == 1) {
+         for (Term term : sequence.getFirst()) {
+            int num = dictionary.number(term.toCharSequenceWithField());
+            if (num > -1) {
+               result.add(new Action(instructions[num - 1], Arrays.asList(term), 0, 1));
             }
-        } else {
-            
-            
-            List<Prefix> prefixes = new LinkedList<>();
-            List<Prefix> newPrefixes = new LinkedList<>();
-            
-            int pos = 0;
-            
-            for (List<Term> position: sequence) {
-                
-                
-                for (Term term: position) {
-                    
-                    for (Prefix prefix: prefixes) {
-                        StateInfo stateInfo = dictionary.getStateInfo(new CompoundCharSequence(null, " ", term.toCharSequenceWithField()), prefix.stateInfo);
-                        if (stateInfo.isInKnownState()) {
-                            if (stateInfo.isInFinalState()) {
-                                List<Term> terms = new LinkedList<>(prefix.terms);
-                                terms.add(term);
-                                int hash = stateInfo.getHash() - 1;
-                                result.add(new Action(instructions[hash], terms, pos - terms.size() + 1, pos + 1));
-                            }
-                            newPrefixes.add(new Prefix(prefix, term, stateInfo));
-                        }
-                    }
-                    
-                    StateInfo stateInfo = dictionary.getStateInfo(term.toCharSequenceWithField());
-                    if (stateInfo.isInKnownState()) {
-                        if (stateInfo.isInFinalState()) {
-                            int hash = stateInfo.getHash() - 1;
-                            result.add(new Action(instructions[hash], Arrays.asList(term), pos, pos + 1));
-                        }
-                        newPrefixes.add(new Prefix(term, stateInfo));
-                    }
-                    
-                }
-                
-                prefixes = newPrefixes;
-                newPrefixes = new LinkedList<>();
-                
-                pos++;
+         }
+      } else {
+
+         List<Prefix> prefixes = new LinkedList<>();
+         List<Prefix> newPrefixes = new LinkedList<>();
+
+         int pos = 0;
+
+         for (List<Term> position : sequence) {
+
+            for (Term term : position) {
+
+               for (Prefix prefix : prefixes) {
+                  StateInfo stateInfo = dictionary.getStateInfo(
+                        new CompoundCharSequence(null, " ", term.toCharSequenceWithField()), prefix.stateInfo);
+                  if (stateInfo.isInKnownState()) {
+                     if (stateInfo.isInFinalState()) {
+                        List<Term> terms = new LinkedList<>(prefix.terms);
+                        terms.add(term);
+                        int hash = stateInfo.getHash() - 1;
+                        result.add(new Action(instructions[hash], terms, pos - terms.size() + 1, pos + 1));
+                     }
+                     newPrefixes.add(new Prefix(prefix, term, stateInfo));
+                  }
+               }
+
+               StateInfo stateInfo = dictionary.getStateInfo(term.toCharSequenceWithField());
+               if (stateInfo.isInKnownState()) {
+                  if (stateInfo.isInFinalState()) {
+                     int hash = stateInfo.getHash() - 1;
+                     result.add(new Action(instructions[hash], Arrays.asList(term), pos, pos + 1));
+                  }
+                  newPrefixes.add(new Prefix(term, stateInfo));
+               }
+
             }
-            
-        }
-        
-        return result;
-    }
-    
-    class Prefix {
-        StateInfo stateInfo;
-        List<Term> terms;
-        List<CharSequence> termCharSequence;
-        
-        public Prefix(Prefix prefix, Term term, StateInfo stateInfo) {
-            terms = new LinkedList<>(prefix.terms);
-            termCharSequence = new LinkedList<>(prefix.termCharSequence);
-            addTerm(term);
-            this.stateInfo = stateInfo;
-        }
-        
-        public Prefix(Term term, StateInfo stateInfo) {
-            terms = new LinkedList<>();
-            terms.add(term);
-            this.stateInfo = stateInfo;
-            termCharSequence = new LinkedList<>();
-            termCharSequence.add(term.toCharSequenceWithField());
-        }
-        
-        private void addTerm(Term term) {
-            terms.add(term);
-            termCharSequence.add(term.toCharSequenceWithField());
-        }
-        
-        public CharSequence getTermCharSequence() {
-            // TODO: cache?
-            return new CompoundCharSequence(" ", termCharSequence);
-        }
-    }
+
+            prefixes = newPrefixes;
+            newPrefixes = new LinkedList<>();
+
+            pos++;
+         }
+
+      }
+
+      return result;
+   }
+
+   class Prefix {
+      StateInfo stateInfo;
+      List<Term> terms;
+      List<CharSequence> termCharSequence;
+
+      public Prefix(Prefix prefix, Term term, StateInfo stateInfo) {
+         terms = new LinkedList<>(prefix.terms);
+         termCharSequence = new LinkedList<>(prefix.termCharSequence);
+         addTerm(term);
+         this.stateInfo = stateInfo;
+      }
+
+      public Prefix(Term term, StateInfo stateInfo) {
+         terms = new LinkedList<>();
+         terms.add(term);
+         this.stateInfo = stateInfo;
+         termCharSequence = new LinkedList<>();
+         termCharSequence.add(term.toCharSequenceWithField());
+      }
+
+      private void addTerm(Term term) {
+         terms.add(term);
+         termCharSequence.add(term.toCharSequenceWithField());
+      }
+
+      public CharSequence getTermCharSequence() {
+         // TODO: cache?
+         return new CompoundCharSequence(" ", termCharSequence);
+      }
+   }
 
 }

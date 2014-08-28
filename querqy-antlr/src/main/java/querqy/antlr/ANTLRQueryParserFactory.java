@@ -12,12 +12,14 @@ import querqy.parser.QuerqyParserFactory;
  */
 public class ANTLRQueryParserFactory implements QuerqyParserFactory {
 
-	/* (non-Javadoc)
-	 * @see querqy.parser.QuerqyParserFactory#createParser()
-	 */
-	@Override
-	public QuerqyParser createParser() {
-		return new ANTLRQueryParser();
-	}
+   /*
+    * (non-Javadoc)
+    * 
+    * @see querqy.parser.QuerqyParserFactory#createParser()
+    */
+   @Override
+   public QuerqyParser createParser() {
+      return new ANTLRQueryParser();
+   }
 
 }

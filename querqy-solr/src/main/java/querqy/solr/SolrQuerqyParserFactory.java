@@ -18,9 +18,10 @@ import querqy.parser.QuerqyParser;
  *
  */
 public interface SolrQuerqyParserFactory {
-	
-	void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader) throws IOException, SolrException;
-	
-	QuerqyParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req);
+
+   void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader) throws IOException,
+         SolrException;
+
+   QuerqyParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req);
 
 }
