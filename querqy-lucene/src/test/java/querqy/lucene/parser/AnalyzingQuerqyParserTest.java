@@ -22,6 +22,8 @@ import org.junit.Test;
 import querqy.model.Query;
 import querqy.parser.QuerqyParser;
 
+import com.carrotsearch.ant.tasks.junit4.dependencies.com.google.common.collect.Maps;
+
 /**
  * Test for {@link AnalyzingQuerqyParser}.
  */
@@ -72,8 +74,9 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
     * Test for {@link AnalyzingQuerqyParser#parse(String)} without synonyms.
     */
    @Test
+   @SuppressWarnings("unchecked")
    public void parse_withoutSynonyms() {
-      QuerqyParser parser = new AnalyzingQuerqyParser(queryAnalyzer, null);
+      QuerqyParser parser = new AnalyzingQuerqyParser(Maps.newHashMap(), queryAnalyzer, null);
       Query query = parser.parse("test dummy");
 
       assertThat(query, bq(dmq(term("test")), dmq(term("dummy"))));
@@ -83,8 +86,9 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
     * Test for {@link AnalyzingQuerqyParser#parse(String)} with synonyms.
     */
    @Test
+   @SuppressWarnings("unchecked")
    public void parse_withSynonyms() {
-      QuerqyParser parser = new AnalyzingQuerqyParser(queryAnalyzer, synonymAnalyzer);
+      QuerqyParser parser = new AnalyzingQuerqyParser(Maps.newHashMap(), queryAnalyzer, synonymAnalyzer);
       Query query = parser.parse("test dummy");
 
       // "test" with its synonyms, "dummy" without synonyms, because none are

@@ -66,7 +66,7 @@ public class AnalyzingQuerqyParserFactory implements SolrQuerqyParserFactory {
       Analyzer synonymAnalyzer = (synonymsfieldType != null) ? schema.getFieldTypeByName(synonymsfieldType)
             .getQueryAnalyzer() : null;
 
-      return new AnalyzingQuerqyParser(rewriteAnalyzer, synonymAnalyzer);
+      return new AnalyzingQuerqyParser(req.getContext(), rewriteAnalyzer, synonymAnalyzer);
    }
 
 }

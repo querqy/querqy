@@ -1,6 +1,8 @@
 package querqy.lucene.parser;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.input.CharSequenceReader;
 import org.apache.lucene.analysis.Analyzer;
@@ -14,6 +16,7 @@ import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 /**
  * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}
@@ -34,6 +37,9 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
     */
    private final Analyzer optSynonymAnalyzer;
 
+   // use this for debugging
+   private final Map<Object, Object> debugContext;
+
    /**
     * Constructor.
     * 
@@ -42,11 +48,13 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
     * @param optSynonymAnalyzer
     *           {@link Analyzer} for the synonyms.
     */
-   public AnalyzingQuerqyParser(Analyzer queryAnalyzer, Analyzer optSynonymAnalyzer) {
+   public AnalyzingQuerqyParser(Map<Object, Object> debugContext, Analyzer queryAnalyzer, Analyzer optSynonymAnalyzer) {
       Preconditions.checkNotNull(queryAnalyzer);
+      Preconditions.checkNotNull(debugContext);
 
       this.queryAnalyzer = queryAnalyzer;
       this.optSynonymAnalyzer = optSynonymAnalyzer;
+      this.debugContext = debugContext;
    }
 
    /**
@@ -98,6 +106,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
     * @param original
     *           Original term to determine synonyms for.
     */
+   @SuppressWarnings("unchecked")
    private void addSynonyms(DisjunctionMaxQuery dmq, CharSequence original) throws IOException {
       try (TokenStream synonymTokens = optSynonymAnalyzer.tokenStream("querqy", new CharSequenceReader(original))) {
          synonymTokens.reset();
@@ -106,6 +115,12 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
             // We need to copy "generated" per toString() here, because
             // "generated" is transient.
             dmq.addClause(new Term(dmq, generated.toString(), true));
+
+            // add some debug for later
+            if (!debugContext.containsKey("synonyms")) {
+               debugContext.put("synonyms", Sets.newHashSet());
+            }
+            ((Set<String>) debugContext.get("synonyms")).add(generated.toString());
          }
          synonymTokens.end();
       }
