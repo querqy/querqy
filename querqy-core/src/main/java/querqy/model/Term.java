@@ -42,7 +42,11 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
 
    @Override
    public Term clone(DisjunctionMaxQuery newParent) {
-      return new Term(newParent, field, value, isGenerated());
+      return clone(newParent, isGenerated());
+   }
+   
+   public Term clone(DisjunctionMaxQuery newParent, boolean isGenerated) {
+       return new Term(newParent, field, value, isGenerated);
    }
 
    @Override

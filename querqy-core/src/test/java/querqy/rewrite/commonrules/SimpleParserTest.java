@@ -30,6 +30,7 @@ import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.PositionSequence;
 import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.SynonymInstruction;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
     
@@ -181,7 +182,80 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                 
                 ));
     }
+  
+/*    
     
+ts3 =>
+    SYNONYM: syn2
+    
+ts4 ts5 =>
+    SYNONYM: syn3  syn4
+    
+ts6 =>
+    SYNONYM: syn5 syn6 syn7
+*/
+    
+    /**
+     *   
+     *   ts1 ts2 =>
+     *       SYNONYM: syn1
+     *   
+     * @throws Exception
+     */
+    @Test
+    public void test06() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        Term t1 = new Term(null, "ts1");
+        Term t2 = new Term(null, "ts2");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        List<Action> actions = rules.getRewriteActions(seq);
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new SynonymInstruction(Arrays.asList(mkTerm("syn1"))))
+                                                        )), 
+                                Arrays.asList(t1, t2), 0, 2)
+                
+                
+                ));
+    }
+    
+    /**
+     * ts6 =>
+     *    SYNONYM: syn5 f1:syn6 {f2,f3}:syn7
+     * @throws Exception
+     */
+    @Test
+    public void test07() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        Term t1 = new Term(null, "ts6");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        List<Action> actions = rules.getRewriteActions(seq);
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new SynonymInstruction(
+                                                        Arrays.asList(
+                                                                mkTerm("syn5"),
+                                                                mkTerm("syn6", "f1"),
+                                                                mkTerm("syn7", "f2", "f3")
+                                                                )))
+                                                        )), 
+                                Arrays.asList(t1), 0, 1)
+                
+                
+                ));
+    }
     @Test
     public void testError01() throws Exception {
         try {

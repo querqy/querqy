@@ -16,6 +16,7 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Input;
+import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.Term;
 
 /**
@@ -107,9 +108,42 @@ public class LineParser {
             return parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, querqyParserFactory);
         }
 		
+		if (lcLine.startsWith("synonym")) {
+		    
+		    if (lcLine.length() == 7) {
+                return new ValidationError("Cannot parse line: " + line);
+            }
+            
+            String synonymString = line.substring(7).trim();
+            if (synonymString.charAt(0) != ':') {
+                return new ValidationError("Cannot parse line: " + line);
+            }
+            
+            synonymString = synonymString.substring(1).trim();
+            if (synonymString.length() == 0) {
+                return new ValidationError("Cannot parse line: " + line);
+            }
+            
+            List<Term> synonymTerms = new LinkedList<>();
+            for (String token: synonymString.split("\\s+")) {
+                if (token.length() > 0) {
+                    synonymTerms.add(parseTerm(token));
+                }
+            }
+            if (synonymTerms.isEmpty()) {
+                // should never happen
+                return new ValidationError("Cannot parse line: " + line);
+            } else {
+                return new SynonymInstruction(synonymTerms);
+            }
+            
+		}
+		
 		return new ValidationError("Cannot parse line: " + line);
 		
 	}
+	
+	
 	
 	public static Object parseBoostInstruction(String line, String lcLine, int lengthPredicate, BoostDirection direction, QuerqyParserFactory querqyParserFactory) {
 	    
@@ -228,16 +262,19 @@ public class LineParser {
 		
 		List<String> result = new LinkedList<>();
 		
-		if (s.charAt(0) == '{' && s.charAt(len - 1) == '}' && (len > 2)) {
-			
-			String[] parts = s.substring(1, len - 1).split(",");
-			for (String part: parts) {
-				part = part.trim();
-				if (part.length() > 0) {
-					result.add(part);
-				}
+		if (s.charAt(0) == '{' && s.charAt(len - 1) == '}') {
+			if (len > 2) {
+    			String[] parts = s.substring(1, len - 1).split(",");
+    			for (String part: parts) {
+    				part = part.trim();
+    				if (part.length() > 0) {
+    					result.add(part);
+    				}
+    			}
 			}
 			
+		} else {
+		    result.add(s);
 		}
 
 		return result;

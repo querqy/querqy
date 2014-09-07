@@ -171,31 +171,7 @@ public class CompoundCharSequence implements ComparableCharSequence {
 
    @Override
    public boolean equals(Object obj) {
-      if (this == obj)
-         return true;
-
-      if (obj == null)
-         return false;
-
-      if (!CharSequence.class.isAssignableFrom(obj.getClass()))
-         return false;
-
-      CharSequence other = (CharSequence) obj;
-      int length = length();
-
-      if (length != other.length())
-         return false;
-
-      for (int i = 0; i < length; i++) {
-         char ch1 = charAt(i);
-         char ch2 = other.charAt(i);
-         if (ch1 != ch2) {
-            return false;
-         }
-      }
-
-      return true;
-
+       return CharSequenceUtil.equals(this, obj);
    }
 
    @Override

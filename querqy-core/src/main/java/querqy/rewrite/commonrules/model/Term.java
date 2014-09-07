@@ -148,4 +148,10 @@ public class Term implements ComparableCharSequence {
       return seqs;
    }
 
+    public List<String> getFieldNames() {
+        return fieldNames;
+    }
+   
+   
+
 }

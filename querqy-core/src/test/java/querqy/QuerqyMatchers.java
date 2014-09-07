@@ -79,6 +79,10 @@ public class QuerqyMatchers {
    public static final TermMatcher term(String field, String value) {
       return new TermMatcher(field, value);
    }
+   
+   public static final TermMatcher term(String field, String value, Boolean generated) {
+       return new TermMatcher(field, value, generated);
+    }
 
    /**
     * Just match term value.
@@ -89,6 +93,10 @@ public class QuerqyMatchers {
    public static TermMatcher term(String value) {
       return new TermMatcher(null, value);
    }
+   
+   public static TermMatcher term(String value, Boolean generated) {
+       return new TermMatcher(null, value, generated);
+    }
 
    /**
     * Expected {@link Occur#MUST}.
@@ -153,15 +161,21 @@ public class QuerqyMatchers {
    private static class TermMatcher extends TypeSafeMatcher<Term> {
       private final String expectedField;
       private final String expectedValue;
+      private final Boolean expectedGenerated;
 
       public TermMatcher(String field, String value) {
+          this(field, value, null);
+      }
+      
+      public TermMatcher(String field, String value, Boolean expectedGenerated) {
          this.expectedField = field;
          this.expectedValue = value;
+         this.expectedGenerated = expectedGenerated;
       }
 
       @Override
       public void describeTo(Description description) {
-         description.appendText("term: " + expectedField + ":" + expectedValue);
+         description.appendText("term: " + expectedField + ":" + expectedValue + " (generated:" + expectedGenerated + ")");
       }
 
       @Override
@@ -171,7 +185,10 @@ public class QuerqyMatchers {
                (expectedField == null || expectedField.equals(item.getField())) &&
                // Using toString() here to avoid incompatibilities between
                // equals() of different char sequences.
-               expectedValue.equals(item.getValue().toString());
+               CharSequenceUtil.equals(expectedValue, item.getValue()) &&
+              // expectedValue.equals(item.getValue().toString()) &&
+               ((expectedGenerated == null) || (expectedGenerated.booleanValue() == item.isGenerated()))
+               ;
       }
    }
 

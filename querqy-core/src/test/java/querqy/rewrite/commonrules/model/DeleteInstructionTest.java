@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
@@ -10,6 +10,7 @@ import org.junit.Test;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.Input;
@@ -34,9 +35,9 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
       assertThat(rewritten,
             bq(
-            dmq(
-            term("a")
-            )
+                    dmq(
+                            term("a")
+                       )
             ));
 
    }
@@ -60,9 +61,9 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
       assertThat(rewritten,
             bq(
-            dmq(
-            term("b")
-            )
+                    dmq(
+                            term("b")
+                       )
             ));
    }
 
