@@ -23,7 +23,7 @@ public class RulesCollectionTest {
    @Test
    public void testSingeInputSingleInstruction() {
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test";
 
@@ -45,7 +45,7 @@ public class RulesCollectionTest {
    @Test
    public void testSingleInputTwoInstructionsFromSameRule() {
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test";
 
@@ -67,7 +67,7 @@ public class RulesCollectionTest {
    @Test
    public void testSameInputTwoInstructionsFromDiffentRules() {
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test";
 
@@ -92,7 +92,7 @@ public class RulesCollectionTest {
    @Test
    public void testTwoInputsOneInstructionsPerInput() {
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test1";
       String s2 = "test2";
@@ -138,7 +138,7 @@ public class RulesCollectionTest {
 
    @Test
    public void testCompoundAndInterlacedInput() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test1";
       String s2 = "test2";
@@ -187,7 +187,7 @@ public class RulesCollectionTest {
 
    @Test
    public void testTwoMatchingInputsOnePartial() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test1";
       String s2 = "test2";
@@ -223,7 +223,7 @@ public class RulesCollectionTest {
 
    @Test
    public void testMultipleTermsPerPosition() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test1";
       String s2 = "test2";
@@ -256,7 +256,7 @@ public class RulesCollectionTest {
 
    @Test
    public void testMultipleTermsWithFieldNamesPerPosition() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
 
       String s1 = "test1";
       String s2 = "test2";

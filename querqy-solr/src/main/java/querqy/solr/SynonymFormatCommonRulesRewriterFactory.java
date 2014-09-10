@@ -50,13 +50,14 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
       String boostUp = (String) args.get("boostUp");
       String boostDown = (String) args.get("boostDown");
+      Boolean ignoreCase = args.getBooleanArg("ignoreCase");
 
       if ((boostUp == null) && (boostDown == null)) {
          // remove this check when we load other instruction types
          throw new IllegalArgumentException("At least on of boostUp or boostDown must be configured");
       }
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(ignoreCase != null && ignoreCase);
 
       if (boostUp != null) {
          addBoostInstructions(builder, BoostDirection.UP, 1f, resourceLoader, boostUp);

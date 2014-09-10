@@ -31,6 +31,8 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
       if (rulesResourceName == null) {
          throw new IllegalArgumentException("Property 'rules' not configured");
       }
+      
+      Boolean ignoreCase = args.getBooleanArg("ignoreCase");
 
       // querqy parser for queries that are part of the instructions in the
       // rules
@@ -43,7 +45,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
          }
       }
       return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
-            resourceLoader.openResource(rulesResourceName), querqyParser);
+            resourceLoader.openResource(rulesResourceName), querqyParser, ignoreCase != null && ignoreCase);
    }
 
 }

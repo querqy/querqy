@@ -25,10 +25,10 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
    /**
      * 
      */
-   public SimpleCommonRulesRewriterFactory(InputStream is, QuerqyParserFactory querqyParserFactory) throws IOException {
+   public SimpleCommonRulesRewriterFactory(InputStream is, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) throws IOException {
       InputStreamReader reader = new InputStreamReader(is);
       try {
-         rules = new SimpleCommonRulesParser(reader, querqyParserFactory).parse();
+         rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
       } catch (RuleParseException e) {
          throw new IOException(e);
       } finally {

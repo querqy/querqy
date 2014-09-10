@@ -52,30 +52,12 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
     */
    @Override
    public int compareTo(CharSequence other) {
-
-      for (int i = 0, len = Math.min(length(), other.length()); i < len; i++) {
-         char ch1 = charAt(i);
-         char ch2 = other.charAt(i);
-         if (ch1 != ch2) {
-            return ch1 - ch2;
-         }
-      }
-
-      return length() - other.length();
+       return CharSequenceUtil.compare(this, other);
    }
 
    @Override
    public int hashCode() {
-
-      final int prime = 31;
-
-      int result = 1;
-
-      for (int i = 0, length = length(); i < length; i++) {
-         result = prime * result + charAt(i);
-      }
-
-      return result;
+      return CharSequenceUtil.hashCode(this);
    }
 
    @Override

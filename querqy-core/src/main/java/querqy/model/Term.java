@@ -6,6 +6,7 @@ package querqy.model;
 import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
 import querqy.CompoundCharSequence;
+import querqy.LowerCaseCharSequence;
 import querqy.SimpleComparableCharSequence;
 
 /**
@@ -15,13 +16,14 @@ import querqy.SimpleComparableCharSequence;
 public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence {
 
    protected final String field;
-   protected final CharSequence value;
+   protected final ComparableCharSequence value;
 
    public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value, boolean generated) {
       super(parentQuery, generated);
       this.field = field;
-      this.value = ComparableCharSequence.class.isAssignableFrom(value.getClass()) ? value
-            : new ComparableCharSequenceWrapper(value);
+      this.value = ComparableCharSequence.class.isAssignableFrom(value.getClass()) 
+              ? (ComparableCharSequence) value
+              : new ComparableCharSequenceWrapper(value);
    }
 
    public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value) {
@@ -82,8 +84,9 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
       return value.subSequence(start, end);
    }
 
-   public CharSequence toCharSequenceWithField() {
-      return (field == null) ? value : new CompoundCharSequence(":", field, this);
+   public ComparableCharSequence toCharSequenceWithField(boolean lowerCaseValue) {
+       ComparableCharSequence valueToUse = lowerCaseValue ? new LowerCaseCharSequence(this) : value;
+       return (field == null) ? valueToUse : new CompoundCharSequence(":", field, valueToUse);
    }
 
    @Override

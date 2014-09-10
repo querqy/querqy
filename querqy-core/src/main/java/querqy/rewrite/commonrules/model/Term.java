@@ -6,6 +6,7 @@ import java.util.List;
 
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
+import querqy.LowerCaseCharSequence;
 import querqy.SimpleComparableCharSequence;
 
 public class Term implements ComparableCharSequence {
@@ -134,9 +135,14 @@ public class Term implements ComparableCharSequence {
       return new SimpleComparableCharSequence(value, this.start + start, end - start);
    }
 
-   public List<ComparableCharSequence> getCharSequences() {
-      SimpleComparableCharSequence valueSequence = new SimpleComparableCharSequence(value, start, length);
+   public List<ComparableCharSequence> getCharSequences(boolean lowerCaseValue) {
+       
+      SimpleComparableCharSequence seq = new SimpleComparableCharSequence(value, start, length);
+      
+      ComparableCharSequence valueSequence = lowerCaseValue ? new LowerCaseCharSequence(seq) : seq;
+      
       List<ComparableCharSequence> seqs = new LinkedList<>();
+      
       if (fieldNames == null) {
          seqs.add(valueSequence);
       } else {

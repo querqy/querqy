@@ -39,6 +39,10 @@ ts1 ts2 =>
 	
 ts6 =>
 	SYNONYM: syn5 f1:syn6 {f2,f3}:syn7
-	
-	
+
+# test ignore case	
+tS7 Ts8 TS => 
+	FILTER : FLT4
+	 
+
 	

@@ -39,16 +39,16 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     
     SimpleCommonRulesParser createParserWithEmptyReader() {
         reader = new StringReader("");
-        return new SimpleCommonRulesParser(reader, querqyParserFactory);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory, false);
     }
     
-    SimpleCommonRulesParser createParserFromResource(String resourceName) {
+    SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
-        return new SimpleCommonRulesParser(reader, querqyParserFactory);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase);
     }
     
-    RulesCollection createRulesFromResource(String resourceName) throws IOException, RuleParseException {
-        SimpleCommonRulesParser parser = createParserFromResource(resourceName);
+    RulesCollection createRulesFromResource(String resourceName, boolean ignoreCase) throws IOException, RuleParseException {
+        SimpleCommonRulesParser parser = createParserFromResource(resourceName, ignoreCase);
         return parser.parse();
     }
     
@@ -77,7 +77,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     
     @Test
     public void test01() throws Exception {
-        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "aa");
         Term t2 = new Term(null, "l");
         PositionSequence<Term> seq = new PositionSequence<Term>();
@@ -95,7 +95,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     
     @Test
     public void test02() throws Exception {
-        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "a");
         Term t2 = new Term(null, "b");
         Term t3 = new Term(null, "c");
@@ -140,7 +140,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     
     @Test
     public void test04() throws Exception {
-        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "t1");
         Term t2 = new Term(null, "t2");
         PositionSequence<Term> seq = new PositionSequence<>();
@@ -164,7 +164,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     
     @Test
     public void test05() throws Exception {
-        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "tf2");
         PositionSequence<Term> seq = new PositionSequence<>();
         seq.nextPosition();
@@ -204,7 +204,7 @@ ts6 =>
      */
     @Test
     public void test06() throws Exception {
-        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "ts1");
         Term t2 = new Term(null, "ts2");
         PositionSequence<Term> seq = new PositionSequence<>();
@@ -233,11 +233,11 @@ ts6 =>
      */
     @Test
     public void test07() throws Exception {
-        RulesCollection rules = createRulesFromResource("rules-test.txt");
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "ts6");
         PositionSequence<Term> seq = new PositionSequence<>();
         seq.nextPosition();
-        seq.addElement(t1);
+        seq.addElement(t1);Character.toLowerCase('L');
         List<Action> actions = rules.getRewriteActions(seq);
         assertThat(actions, contains( 
                 new Action(
@@ -256,10 +256,140 @@ ts6 =>
                 
                 ));
     }
+    
+    /**
+     * tS7 Ts8 TS => 
+     *    FILTER : FLT4
+     * @throws Exception
+     */
+    @Test
+    public void test08() throws Exception {
+        // test case sensitive - no match
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
+        Term t1 = new Term(null, "ts7");
+        Term t2 = new Term(null, "ts8");
+        Term t3 = new Term(null, "ts");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+        assertTrue(actions.isEmpty());
+        
+    }
+    
+    /**
+     * tS7 Ts8 TS => 
+     *    FILTER : FLT4
+     * @throws Exception
+     */
+    @Test
+    public void test09() throws Exception {
+        // test case sensitive -  match
+        RulesCollection rules = createRulesFromResource("rules-test.txt", false);
+        Term t1 = new Term(null, "tS7");
+        Term t2 = new Term(null, "Ts8");
+        Term t3 = new Term(null, "TS");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
+                                                                
+                                                        )))), 
+                                Arrays.asList(t1, t2, t3), 0, 3)
+                
+                
+                ));
+    }
+    
+    /**
+     * tS7 Ts8 TS => 
+     *    FILTER : FLT4
+     * @throws Exception
+     */
+    @Test
+    public void test10() throws Exception {
+        // test case insensitive -  match
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t1 = new Term(null, "tS7");
+        Term t2 = new Term(null, "Ts8");
+        Term t3 = new Term(null, "TS");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
+                                                                
+                                                        )))), 
+                                Arrays.asList(t1, t2, t3), 0, 3)
+                
+                
+                ));
+    }
+    
+    /**
+     * tS7 Ts8 TS => 
+     *    FILTER : FLT4
+     * @throws Exception
+     */
+    @Test
+    public void test11() throws Exception {
+        // test case insensitive -  match
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t1 = new Term(null, "Ts7");
+        Term t2 = new Term(null, "tS8");
+        Term t3 = new Term(null, "ts");
+        PositionSequence<Term> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
+                                                                
+                                                        )))), 
+                                Arrays.asList(t1, t2, t3), 0, 3)
+                
+                
+                ));
+    }
+    
     @Test
     public void testError01() throws Exception {
         try {
-            createRulesFromResource("rules-with-errors01.txt");
+            createRulesFromResource("rules-with-errors01.txt", false);
             fail();
         } catch (RuleParseException e) {
             assertEquals("Line 5: Condition doesn't contain the term to delete: "

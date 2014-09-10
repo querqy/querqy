@@ -22,7 +22,7 @@ public class InputTest {
       Term term1 = new Term(s1, 0, s1.length, null);
 
       Input input = new Input(Arrays.asList(term1));
-      List<ComparableCharSequence> sequences = input.getInputSequences();
+      List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
       ComparableCharSequence seq = sequences.get(0);
@@ -41,7 +41,7 @@ public class InputTest {
       Term term2 = new Term(s2, 0, s2.length, null);
 
       Input input = new Input(Arrays.asList(term1, term2));
-      List<ComparableCharSequence> sequences = input.getInputSequences();
+      List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
       ComparableCharSequence seq = sequences.get(0);
@@ -57,7 +57,7 @@ public class InputTest {
       Term term1 = new Term(s1, 0, s1.length, Arrays.asList("name1"));
 
       Input input = new Input(Arrays.asList(term1));
-      List<ComparableCharSequence> sequences = input.getInputSequences();
+      List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
       ComparableCharSequence seq = sequences.get(0);
@@ -73,7 +73,7 @@ public class InputTest {
       Term term1 = new Term(s1, 0, s1.length, Arrays.asList("name1", "name2"));
 
       Input input = new Input(Arrays.asList(term1));
-      List<ComparableCharSequence> sequences = input.getInputSequences();
+      List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(2, sequences.size());
       ComparableCharSequence seq = sequences.get(0);
@@ -95,7 +95,7 @@ public class InputTest {
       Term term2 = new Term(s2, 0, s2.length, Arrays.asList("name3", "name4"));
 
       Input input = new Input(Arrays.asList(term1, term2));
-      List<ComparableCharSequence> sequences = input.getInputSequences();
+      List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(4, sequences.size());
       ComparableCharSequence seq = sequences.get(0);
@@ -125,7 +125,7 @@ public class InputTest {
       Term term2 = new Term(s2, 0, s2.length, null);
 
       Input input = new Input(Arrays.asList(term1, term2));
-      List<ComparableCharSequence> sequences = input.getInputSequences();
+      List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(2, sequences.size());
       ComparableCharSequence seq = sequences.get(0);
