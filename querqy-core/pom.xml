@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>eu.danieldk.dictomaton</groupId>
 			<artifactId>dictomaton</artifactId>
-			<version>1.1.1-SNAPSHOT</version>
+			<version>1.1.1-MM-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -32,4 +32,14 @@
 			</plugin>
 		</plugins>
 	</build>
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/muellenborn/maven</url>
+		</repository>
+	</repositories>
 </project>

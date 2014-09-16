@@ -4,7 +4,7 @@
 
 	<groupId>querqy</groupId>
 	<artifactId>querqy-parent</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0-MM-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<prerequisites>
@@ -20,7 +20,6 @@
 	</properties>
 
 	<modules>
-		<module>dictomaton</module>
 		<module>querqy-core</module>
 		<module>querqy-antlr</module>
 		<module>querqy-lucene</module>
