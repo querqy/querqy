@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>eu.danieldk.dictomaton</groupId>
 			<artifactId>dictomaton</artifactId>
-			<version>1.1.1-MM-SNAPSHOT</version>
+			<version>1.1.1-MM</version>
 		</dependency>
 	</dependencies>
 	<build>
