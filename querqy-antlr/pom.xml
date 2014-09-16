@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>querqy</groupId>
 		<artifactId>querqy-parent</artifactId>
-		<version>1.0-MM</version>
+		<version>1.1-MM-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>querqy-antlr</artifactId>

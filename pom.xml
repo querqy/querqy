@@ -3,14 +3,14 @@
 
 	<groupId>querqy</groupId>
 	<artifactId>querqy-parent</artifactId>
-	<version>1.0-MM</version>
+	<version>1.1-MM-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<scm>
         <url>git@github.com:muellenborn/querqy.git</url>
         <connection>scm:git:git@github.com:muellenborn/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:muellenborn/querqy.git</developerConnection>
-      <tag>querqy-parent-1.0-MM</tag>
+      <tag>querqy-1.0-MM</tag>
   	</scm>
 
 	<prerequisites>
