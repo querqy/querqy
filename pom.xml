@@ -109,5 +109,11 @@
           		</plugin>
         	</plugins>
     </reporting>
-
+	<distributionManagement>
+		<repository>
+			<id>bintray-muellenborn-maven-querqy</id>
+			<name>muellenborn-maven-querqy</name>
+			<url>https://api.bintray.com/maven/muellenborn/maven/querqy</url>
+		</repository>
+	</distributionManagement>
 </project>
