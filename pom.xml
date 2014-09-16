@@ -1,17 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>querqy</groupId>
 	<artifactId>querqy-parent</artifactId>
-	<version>1.0-MM-SNAPSHOT</version>
+	<version>1.0-MM</version>
 	<packaging>pom</packaging>
 	
 	<scm>
         <url>git@github.com:muellenborn/querqy.git</url>
         <connection>scm:git:git@github.com:muellenborn/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:muellenborn/querqy.git</developerConnection>
-      <tag>querqy-1.0-MM</tag>
+      <tag>querqy-parent-1.0-MM</tag>
   	</scm>
 
 	<prerequisites>
