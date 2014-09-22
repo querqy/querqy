@@ -3,14 +3,13 @@
 
 	<groupId>querqy</groupId>
 	<artifactId>querqy-parent</artifactId>
-	<version>1.1-MM-SNAPSHOT</version>
+	<version>1.0.1-RK-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<scm>
-        <url>git@github.com:muellenborn/querqy.git</url>
-        <connection>scm:git:git@github.com:muellenborn/querqy.git</connection>
-        <developerConnection>scm:git:git@github.com:muellenborn/querqy.git</developerConnection>
-      <tag>querqy-1.0-MM</tag>
+        <url>git@github.com:renekrie/querqy.git</url>
+        <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
+        <developerConnection>scm:git:git@github.com:renekrie/querqy.git</developerConnection>
   	</scm>
 
 	<prerequisites>
@@ -126,9 +125,9 @@
     </reporting>
 	<distributionManagement>
 		<repository>
-			<id>bintray-muellenborn-maven-querqy</id>
+			<id>bintray-renekrie-maven-querqy</id>
 			<name>muellenborn-maven-querqy</name>
-			<url>https://api.bintray.com/maven/muellenborn/maven/querqy</url>
+			<url>https://api.bintray.com/maven/renekrie/maven/querqy</url>
 		</repository>
 	</distributionManagement>
 </project>
