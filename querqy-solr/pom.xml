@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>querqy</groupId>
 		<artifactId>querqy-parent</artifactId>
-		<version>1.0.1-RK-SNAPSHOT</version>
+		<version>1.0.1-RK</version>
 	</parent>
 
 	<artifactId>querqy-solr</artifactId>
