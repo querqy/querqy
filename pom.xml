@@ -3,14 +3,14 @@
 
 	<groupId>querqy</groupId>
 	<artifactId>querqy-parent</artifactId>
-	<version>1.0.1-RK</version>
+	<version>1.0.2-RK-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<scm>
         <url>git@github.com:renekrie/querqy.git</url>
         <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:renekrie/querqy.git</developerConnection>
-  	  <tag>querqy-parent-1.0.1-RK</tag>
+  	  <tag>HEAD</tag>
   </scm>
 
 	<prerequisites>
