@@ -1,3 +1,6 @@
 a =>
 	FILTER: * f2:c
 	
+t1 t2 =>
+	DELETE: t2
+
