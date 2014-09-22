@@ -126,8 +126,8 @@
     </reporting>
 	<distributionManagement>
 		<repository>
-			<id>bintray-renekrie-maven-querqy</id>
-			<name>muellenborn-maven-querqy</name>
+			<id>bintray-rene-maven</id>
+			<name>renekrie-maven-querqy</name>
 			<url>https://api.bintray.com/maven/renekrie/maven/querqy</url>
 		</repository>
 	</distributionManagement>
