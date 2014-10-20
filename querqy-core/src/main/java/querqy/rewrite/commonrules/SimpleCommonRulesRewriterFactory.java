@@ -26,7 +26,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
      * 
      */
    public SimpleCommonRulesRewriterFactory(InputStream is, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) throws IOException {
-      InputStreamReader reader = new InputStreamReader(is);
+      InputStreamReader reader = new InputStreamReader(is, "UTF-8");
       try {
          rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
       } catch (RuleParseException e) {
