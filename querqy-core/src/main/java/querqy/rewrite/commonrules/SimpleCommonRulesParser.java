@@ -30,10 +30,10 @@ public class SimpleCommonRulesParser {
    Input input = null;
    Instructions instructions;
 
-   public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory) {
+   public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) {
       this.reader = new BufferedReader(in);
       this.querqyParserFactory = querqyParserFactory;
-      builder = new RulesCollectionBuilder();
+      builder = new RulesCollectionBuilder(ignoreCase);
       instructions = new Instructions();
    }
 

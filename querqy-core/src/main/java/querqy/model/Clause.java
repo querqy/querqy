@@ -8,33 +8,56 @@ package querqy.model;
  *
  */
 public abstract class Clause<P extends Node> extends AbstractNode<P> {
+	
+	public enum Occur {
+		
+		SHOULD(""), MUST("+"), MUST_NOT("-");
+		
+		final String txt;
+		
+		Occur(String txt) {
+			this.txt = txt;
+		}
+		
+		@Override
+		public String toString() {
+			return txt;
+		}
 
-   public enum Occur {
+	}
+	
+	public final Occur occur;
+	
+	
+	public Clause(P parent, Occur occur, boolean isGenerated) {
+		super(parent, isGenerated);
+		this.occur = occur;
+	}
 
-      SHOULD(""), MUST("+"), MUST_NOT("-");
+	public Occur getOccur() {
+		return occur;
+	}
 
-      final String txt;
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((occur == null) ? 0 : occur.hashCode());
+        return result;
+    }
 
-      Occur(String txt) {
-         this.txt = txt;
-      }
-
-      @Override
-      public String toString() {
-         return txt;
-      }
-
-   }
-
-   public final Occur occur;
-
-   public Clause(P parent, Occur occur, boolean isGenerated) {
-      super(parent, isGenerated);
-      this.occur = occur;
-   }
-
-   public Occur getOccur() {
-      return occur;
-   }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Clause<?> other = (Clause<?>) obj;
+        if (occur != other.occur)
+            return false;
+        return true;
+    }
 
 }

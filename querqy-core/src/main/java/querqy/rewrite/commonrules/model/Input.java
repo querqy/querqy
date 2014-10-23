@@ -25,16 +25,16 @@ public class Input {
       return inputTerms == null || inputTerms.isEmpty();
    }
 
-   public List<ComparableCharSequence> getInputSequences() {
+   public List<ComparableCharSequence> getInputSequences(boolean lowerCaseValues) {
 
       if (inputTerms.size() == 1) {
-         return inputTerms.get(0).getCharSequences();
+         return inputTerms.get(0).getCharSequences(lowerCaseValues);
       }
 
       LinkedList<List<ComparableCharSequence>> slots = new LinkedList<>();
 
       for (Term inputTerm : inputTerms) {
-         slots.add(inputTerm.getCharSequences());
+         slots.add(inputTerm.getCharSequences(lowerCaseValues));
       }
 
       List<ComparableCharSequence> seqs = new LinkedList<>();

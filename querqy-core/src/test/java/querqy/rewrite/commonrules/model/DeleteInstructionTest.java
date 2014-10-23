@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
@@ -10,6 +10,7 @@ import org.junit.Test;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.Input;
@@ -23,7 +24,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
    @Test
    public void testThatNothingIsDeletedIfWeWouldEndUpWithAnEmptyQuery() {
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Arrays.asList(mkTerm("a")));
       builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) delete)));
       RulesCollection rules = builder.build();
@@ -34,16 +35,16 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
       assertThat(rewritten,
             bq(
-            dmq(
-            term("a")
-            )
+                    dmq(
+                            term("a")
+                       )
             ));
 
    }
 
    @Test
    public void testThatTermIsRemovedIfThereIsAnotherTermInTheSameDMQ() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Arrays.asList(mkTerm("a")));
       builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) delete)));
       RulesCollection rules = builder.build();
@@ -60,15 +61,15 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
       assertThat(rewritten,
             bq(
-            dmq(
-            term("b")
-            )
+                    dmq(
+                            term("b")
+                       )
             ));
    }
 
    @Test
    public void testThatTermIsRemovedOnceIfItExistsTwiceInSameDMQAndNoOtherTermExistsInQuery() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Arrays.asList(mkTerm("a")));
       builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) delete)));
       RulesCollection rules = builder.build();
@@ -94,7 +95,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
    @Test
    public void testThatTermIsRemovedIfThereASecondDMQWithoutTheTerm() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Arrays.asList(mkTerm("a")));
       builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) delete)));
       RulesCollection rules = builder.build();
@@ -112,7 +113,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
    @Test
    public void testThatTermIsNotRemovedOnceIfThereASecondDMQWithTheSameTermAndNoOtherTermExists() throws Exception {
-      RulesCollectionBuilder builder = new RulesCollectionBuilder();
+      RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Arrays.asList(mkTerm("a")));
       builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) delete)));
       RulesCollection rules = builder.build();

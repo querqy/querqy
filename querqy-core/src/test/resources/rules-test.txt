@@ -24,7 +24,25 @@ a b c =>
 pf xp =>
 	FILTER: * price:[* TO 100]
 	
+tf2 =>
+	FILTER: flt2 flt3
+	
 a =>
 	DOWN(2): * color:x
 	
+t1 t2 =>
+	UP(3.5): tboost tb2
+	
+	
+ts1 ts2 =>
+	SYNONYM: syn1
+	
+ts6 =>
+	SYNONYM: syn5 f1:syn6 {f2,f3}:syn7
+
+# test ignore case	
+tS7 Ts8 TS => 
+	FILTER : FLT4
+	 
+
 	

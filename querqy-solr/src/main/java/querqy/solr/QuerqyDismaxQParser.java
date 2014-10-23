@@ -425,6 +425,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                List<Query> filters = rb.getFilters();
                if (filters == null) {
                   filters = new ArrayList<>(filterQueries.size());
+                  rb.setFilters(filters);
                }
 
                for (QuerqyQuery<?> qfq : filterQueries) {

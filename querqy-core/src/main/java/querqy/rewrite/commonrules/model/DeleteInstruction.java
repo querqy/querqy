@@ -9,13 +9,12 @@ import java.util.List;
 import java.util.Set;
 
 import querqy.ComparableCharSequence;
-import querqy.ComparableCharSequenceWrapper;
 import querqy.model.ExpandedQuery;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 
 /**
- * @author rene
+ * @author René Kriegler, @renekrie
  *
  */
 public class DeleteInstruction implements Instruction {
@@ -30,7 +29,7 @@ public class DeleteInstruction implements Instruction {
       this.termsToDelete = termsToDelete;
       charSequencesToDelete = new HashSet<>();
       for (Term term : termsToDelete) {
-         charSequencesToDelete.addAll(term.getCharSequences());
+         charSequencesToDelete.addAll(term.getCharSequences(true));
       }
    }
 
@@ -83,15 +82,11 @@ public class DeleteInstruction implements Instruction {
       List<querqy.model.Term> toBeDeleted = new LinkedList<>();
 
       for (List<querqy.model.Term> position : sequence) {
+          
          for (querqy.model.Term term : position) {
 
-            CharSequence seq = term.toCharSequenceWithField();
-            if (!ComparableCharSequence.class.isAssignableFrom(seq.getClass())) {
-               // CharSequence does not have a specific contract on hashcode()
-               // and equals()
-               // so we wrap the sequence to look it up in charSequencesToDelete
-               seq = new ComparableCharSequenceWrapper(seq);
-            }
+             ComparableCharSequence seq = term.toCharSequenceWithField(true);
+           
 
             if (pos >= startPosition && pos < endPosition && charSequencesToDelete.contains(seq)) {
                // TODO: check whether it would be faster to use a LinkedHashMap
