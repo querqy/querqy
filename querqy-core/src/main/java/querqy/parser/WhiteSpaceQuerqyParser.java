@@ -3,6 +3,10 @@
  */
 package querqy.parser;
 
+import java.util.regex.Pattern;
+
+import com.google.common.base.Splitter;
+
 import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
@@ -18,6 +22,8 @@ import querqy.model.Term;
  */
 public class WhiteSpaceQuerqyParser implements QuerqyParser {
 
+   private final static Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+
    /*
     * (non-Javadoc)
     * 
@@ -25,9 +31,8 @@ public class WhiteSpaceQuerqyParser implements QuerqyParser {
     */
    @Override
    public Query parse(String input) {
-      String[] tokens = input.split("\\s+");
       Query query = new Query();
-      for (String token : tokens) {
+      for (String token : Splitter.on(WHITESPACE_PATTERN).split(input)) {
 
          Occur occur = Occur.SHOULD;
 
@@ -42,8 +47,7 @@ public class WhiteSpaceQuerqyParser implements QuerqyParser {
          }
          DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, occur, false);
          query.addClause(dmq);
-         Term term = new Term(dmq, token);
-         dmq.addClause(term);
+         dmq.addClause(new Term(dmq, token));
       }
       return query;
    }
