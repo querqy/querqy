@@ -8,6 +8,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.DisjunctionMaxQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.hamcrest.Description;
@@ -42,6 +43,12 @@ public class AbstractLuceneQueryTest {
    public BQMatcher bq(ClauseMatcher... clauses) {
       return bq(1f, clauses);
    }
+   
+   public ClauseMatcher all(Occur occur) {
+       return c(occur, all());
+   }
+   
+   public AllDocsQueryMatcher all() {return  new AllDocsQueryMatcher(); }
 
    public ClauseMatcher bq(Occur occur, float boost, int mm, ClauseMatcher... clauses) {
       return c(occur, bq(boost, mm, clauses));
@@ -163,6 +170,20 @@ public class AbstractLuceneQueryTest {
       }
 
    }
+   
+    class AllDocsQueryMatcher extends TypeSafeMatcher<Query> {
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("AllDocs");
+        }
+
+        @Override
+        protected boolean matchesSafely(Query item) {
+            return MatchAllDocsQuery.class.isAssignableFrom(item.getClass());
+        }
+       
+    }
 
    class BQMatcher extends TypeSafeMatcher<Query> {
 

@@ -3,14 +3,20 @@ package querqy.lucene.rewrite;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.util.Version;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,6 +31,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
    Analyzer keywordAnalyzer;
    Map<String, Float> searchFields;
+   Set<String> stopWords;
+   
    IndexStats dummyIndexStats = new IndexStats() {
 
       @Override
@@ -58,6 +66,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       searchFields.put("f34", 3.0f);
       searchFields.put("f35", 3.0f);
 
+      stopWords = new HashSet<>(Arrays.asList("stopA", "stopB", "stopC"));
    }
 
    Map<String, Float> fields(String... names) {
@@ -95,6 +104,17 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
       return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
 
+   }
+   
+   protected Query buildWithStopWords(String input, float tie, String... names) throws IOException {
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(
+               null, 
+               new DocumentFrequencyCorrection(dummyIndexStats),
+               new StandardAnalyzer(Version.LUCENE_48, new CharArraySet(Version.LUCENE_48, stopWords, true)), 
+               fields(names), dummyIndexStats, tie);
+       ANTLRQueryParser parser = new ANTLRQueryParser();
+       querqy.model.Query q = parser.parse(input);
+       return builder.createQuery(q);
    }
 
    @Test
@@ -263,4 +283,24 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
             ));
    }
 
+   @Test
+   public  void testStopWordRemoval() throws Exception {
+       float tie = (float) Math.random();
+       Query q = buildWithStopWords("a stopA b", tie, "f1");
+       assertThat(q, bq(1f,
+               tq(Occur.SHOULD, 1f, "f1", "a"),
+               tq(Occur.SHOULD, 1f, "f1", "b")
+               ));
+   }
+   
+   @Test
+   public  void testStopWordAsSingleTermRemoval() throws Exception {
+       float tie = (float) Math.random();
+       Query q = buildWithStopWords("stopA", tie, "f1", "f2");
+       assertThat(q, 
+               bq(all(Occur.MUST_NOT))
+               );
+       
+       
+   }
 }

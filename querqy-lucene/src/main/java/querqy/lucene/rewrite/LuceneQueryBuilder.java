@@ -112,13 +112,13 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
       switch (bq.getNumberOfClauses()) {
       case 0:
-         throw new IllegalArgumentException("No subqueries found for BQ. Parent: " + booleanQuery.getParent());
+       // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
+          return new NullQueryFactory();
       case 1:
-         result = bq.getFirstClause();
-         break;
+          result = bq.getFirstClause();
+          break;
       default:
-
-         result = new Clause(bq, occur(booleanQuery.occur));
+          result = new Clause(bq, occur(booleanQuery.occur));
       }
 
       switch (parentType) {
@@ -173,7 +173,8 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
       switch (dmq.getNumberOfDisjuncts()) {
       case 0:
-         throw new IllegalArgumentException("No subqueries found for DMQ. Parent: " + disjunctionMaxQuery.getParent());
+         // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
+         return new NullQueryFactory();
       case 1:
          LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
          clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
@@ -279,9 +280,11 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
          }
 
-         if (sequence.size() == 1) {
-            target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), applicableBoost));
-         } else {
+         switch (sequence.size()) {
+         case 0: break;
+         case 1: target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), applicableBoost));
+                 break;
+         default:
             BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
             for (List<org.apache.lucene.index.Term> posTerms : sequence) {
                bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, applicableBoost), Occur.MUST);
