@@ -15,9 +15,15 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
         assertU(adoc("id", "1", "f1", "a", "f2", "c"));
 
-        assertU(adoc("id", "2", "f1", "a", "f2", "b"));
+        assertU(adoc("id", "2", "f1", "a", "f2", "b", "f4", "d"));
         
-        assertU(adoc("id", "3", "f1", "a", "f3", "c"));
+        assertU(adoc("id", "3", "f1", "a", "f3", "c", "f4", "e"));
+        
+        assertU(adoc("id", "4", "f1", "m", "f2", "c"));
+        
+        assertU(adoc("id", "5", "f1", "m", "f2", "b", "f4", "d"));
+        
+        assertU(adoc("id", "6", "f1", "m", "f2", "c", "f4", "e"));
         
 
 
@@ -55,6 +61,44 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         req.close();
         
         
+    }
+    
+    @Test
+    public void testThatDownRuleIsApplied() throws Exception {
+        String q = "m b";
+
+        SolrQueryRequest req = req("q", q,
+              DisMaxParams.QF, "f1 f2 f4",
+              DisMaxParams.MM, "1",
+              QueryParsing.OP, "OR",
+              "defType", "edismax",
+              "debugQuery", "on"
+              );
+
+        assertQ("Down rule failed",
+              req,
+              "//result[@name='response' and @numFound='4']/doc[1]/str[@name='id'][text()='5']"
+        );
+
+        req.close();
+        
+        
+        req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f4",
+                DisMaxParams.MM, "1",
+                QueryParsing.OP, "OR",
+                "defType", "querqy",
+                "debugQuery", "on"
+                );
+
+          assertQ("Down rule failed",
+                req,
+                "//result[@name='response' and @numFound='4']/doc[1]/str[@name='id'][not(text()='5')]"
+          );
+
+          req.close();
+          
+          
     }
     
     

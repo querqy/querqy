@@ -19,7 +19,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<lucene.version>4.9.0</lucene.version>
+		<lucene.version>4.10.2</lucene.version>
         <commons.io.version>2.1</commons.io.version>
         <guava.version>14.0</guava.version>
 		<dictomaton.version>1.2.0</dictomaton.version>

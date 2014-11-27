@@ -1,6 +1,11 @@
 a =>
 	FILTER: * f2:c
 	
+m => 
+	DOWN(20): d
+
 t1 t2 =>
 	DELETE: t2
+	
+	
 

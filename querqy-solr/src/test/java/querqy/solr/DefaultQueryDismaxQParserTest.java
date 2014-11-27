@@ -109,7 +109,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3",
             QueryParsing.OP, "OR",
-            DisMaxParams.PF, "f3^2 f4^0.5",
+            DisMaxParams.PF, "f3^2 f40^0.5",
             "defType", "querqy",
             "debugQuery", "true"
             );
@@ -118,7 +118,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
       assertQ("wrong ps",
             req,
             "//str[@name='parsedquery'][contains(.,'f3:\"a b c d\"^2.0')]",
-            "//str[@name='parsedquery'][not(contains(.,'f4:\"a b c d\"^0.5'))]");
+            "//str[@name='parsedquery'][not(contains(.,'f40:\"a b c d\"^0.5'))]");
 
       req.close();
 
@@ -182,17 +182,17 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
             QueryParsing.OP, "OR",
             "defType", "querqy",
             "debugQuery", "true",
-            DisMaxParams.PF2, "f1^2 f4^0.5");
+            DisMaxParams.PF2, "f1^2 f40^0.5");
 
-      // f4 does not exists
+      // f40 does not exists
       assertQ("wrong ps2",
             req,
             "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^2.0')]",
             "//str[@name='parsedquery'][contains(.,'f1:\"b c\"^2.0')]",
             "//str[@name='parsedquery'][contains(.,'f1:\"c d\"^2.0')]",
-            "//str[@name='parsedquery'][not(contains(.,'f4:\"a b\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f4:\"b c\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f4:\"c d\"^0.5'))]");
+            "//str[@name='parsedquery'][not(contains(.,'f40:\"a b\"^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f40:\"b c\"^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f40:\"c d\"^0.5'))]");
 
       req.close();
 
