@@ -249,13 +249,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                QParser bqp = QParser.getParser(((RawQuery) boostQuery).getQueryString(), null, req);
                luceneQuery = bqp.getQuery();
 
-            }
-            if (boostQuery instanceof querqy.model.Query) {
+            } else if (boostQuery instanceof querqy.model.Query) {
 
                builder.reset();
                try {
 
-                  luceneQuery = builder.createQuery((querqy.model.Query) boostQuery);
+                  luceneQuery = builder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
 
                } catch (IOException e) {
                   throw new RuntimeException(e);

@@ -47,6 +47,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
    LinkedList<DisjunctionMaxQueryFactory> dmqStack = new LinkedList<>();
+   boolean useBooleanQueryForDMQ = false;
 
    protected ParentType parentType = ParentType.BQ;
 
@@ -81,8 +82,19 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    public void reset() {
       clauseStack.clear();
       dmqStack.clear();
+      useBooleanQueryForDMQ = false;
    }
 
+   public Query createQuery(querqy.model.Query query, boolean useBooleanQueryForDMQ) throws IOException {
+       boolean tmp = this.useBooleanQueryForDMQ;
+       try {
+           this.useBooleanQueryForDMQ = useBooleanQueryForDMQ;
+           return visit(query).createQuery(dfc, false);
+       } finally {
+           this.useBooleanQueryForDMQ = tmp;
+       }
+   }
+   
    public Query createQuery(querqy.model.Query query) throws IOException {
       return visit(query).createQuery(dfc, false);
    }
@@ -182,13 +194,15 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       default:
          // FIXME: we can decide this earlier --> avoid creating DMQ in case of
          // MUST_NOT
-         if (disjunctionMaxQuery.occur == querqy.model.SubQuery.Occur.MUST_NOT) {
+          boolean useBQ = this.useBooleanQueryForDMQ || (disjunctionMaxQuery.occur == querqy.model.SubQuery.Occur.MUST_NOT);
+              
+         if (useBQ) {
             // FIXME: correct to normalize boost?
             BooleanQueryFactory bq = new BooleanQueryFactory(1f, true, false);
             for (LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
                bq.add(queryFactory, Occur.SHOULD);
             }
-            clauseStack.getLast().add(bq, Occur.MUST_NOT);
+            clauseStack.getLast().add(bq, occur(disjunctionMaxQuery.occur));
             return bq;
          }
 

@@ -93,7 +93,8 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
           assertQ("Down rule failed",
                 req,
-                "//result[@name='response' and @numFound='4']/doc[1]/str[@name='id'][not(text()='5')]"
+                "//result[@name='response' and @numFound='4']/doc[1]/str[@name='id'][not(text()='5')]",
+                "//lst[@name='explain']/str[@name='5'][not(contains(., '0.0 = (MATCH) max of'))]"
           );
 
           req.close();
