@@ -13,6 +13,7 @@ import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
  * @author rene
@@ -33,7 +34,7 @@ public class SimpleCommonRulesParser {
    public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) {
       this.reader = new BufferedReader(in);
       this.querqyParserFactory = querqyParserFactory;
-      builder = new RulesCollectionBuilder(ignoreCase);
+      builder = new TrieMapRulesCollectionBuilder(ignoreCase);
       instructions = new Instructions();
    }
 

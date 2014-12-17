@@ -16,7 +16,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testThatSingleTermIsExpandedWithSingleTerm() {
-        RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
         builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) synInstruction)));
         RulesCollection rules = builder.build();
@@ -38,7 +38,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     
     @Test
     public void testThatTermInManyIsExpandedWithSingleTerm() throws Exception {
-        RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction1 = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
         SynonymInstruction synInstruction2 = new SynonymInstruction(Arrays.asList(mkTerm("s2")));
         SynonymInstruction synInstruction3 = new SynonymInstruction(Arrays.asList(mkTerm("s3")));
@@ -75,7 +75,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     
     @Test
     public void testThatSingleTermIsExpandedByMany() throws Exception {
-        RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1_1"), mkTerm("s1_2")));
         builder.addRule(new Input(Arrays.asList(mkTerm("a"))), new Instructions(Arrays.asList((Instruction) synInstruction)));
         RulesCollection rules = builder.build();
@@ -99,7 +99,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     
     @Test
     public void testThatMultipleTermsAreExpandedBySingle() throws Exception {
-        RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
         builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b"))), new Instructions(Arrays.asList((Instruction) synInstruction)));
         RulesCollection rules = builder.build();
@@ -139,7 +139,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     
     @Test
     public void testThatMultipleTermsAreExpandedByMany() throws Exception {
-        RulesCollectionBuilder builder = new RulesCollectionBuilder(false);
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "s1_1"), mkTerm("s1_2")));
         builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b"))), new Instructions(Arrays.asList((Instruction) synInstruction)));
         RulesCollection rules = builder.build();

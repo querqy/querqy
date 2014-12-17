@@ -17,8 +17,8 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.PositionSequence;
+import querqy.rewrite.commonrules.model.RulesCollection;
 
 /**
  * @author rene

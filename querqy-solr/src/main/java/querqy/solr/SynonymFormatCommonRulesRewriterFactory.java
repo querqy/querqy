@@ -28,7 +28,9 @@ import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.PerfectHashDictionaryRulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
  * @author René Kriegler, @renekrie
@@ -57,7 +59,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
          throw new IllegalArgumentException("At least on of boostUp or boostDown must be configured");
       }
 
-      RulesCollectionBuilder builder = new RulesCollectionBuilder(ignoreCase != null && ignoreCase);
+      RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(ignoreCase != null && ignoreCase);
 
       if (boostUp != null) {
          addBoostInstructions(builder, BoostDirection.UP, 1f, resourceLoader, boostUp);
