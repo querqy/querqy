@@ -12,11 +12,17 @@ public class State<T> {
     public final T value;
     public final boolean isKnown;
     public final Node<T> node;
+    public final int index;
     
-    public State(boolean isKnown, T value, Node<T> entry) {
+    public State(boolean isKnown, T value, Node<T> node) {
+        this(isKnown, value, node, -1);
+    }
+    
+    public State(boolean isKnown, T value, Node<T> node, int index) {
         this.isKnown = isKnown;
         this.value = value;
-        this.node = entry;
+        this.node = node;
+        this.index = index;
     }
     
     public boolean isKnown() {
@@ -29,6 +35,15 @@ public class State<T> {
 
     public T getValue() {
         return value;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    @Override
+    public String toString() {
+        return "State [value=" + value + ", isKnown=" + isKnown + ", index=" + index + "]";
     }
     
     

@@ -11,8 +11,10 @@ public class Node<T> {
     
     public final char character;
     T value;
+    T prefixValue;
     Node<T> firstChild;
     Node<T> next;
+    boolean hasPrefix = false;
     
     public Node(char character, T value) {
         this.character = character;
@@ -22,10 +24,28 @@ public class Node<T> {
         this(character, null);
     }
     
+    public void putPrefix(CharSequence seq, int index, T value) {
+        put(seq, index, value, true);
+    }
+    
     public void put(CharSequence seq, int index, T value) {
+        put(seq, index, value, false);
+    }
+    
+    public void put(CharSequence seq, int index, T value, boolean isPrefix) {
+        
         if (seq.charAt(index) == character) {
+            
             if (index == (seq.length() - 1)) {
-                this.value = value;
+                
+                if (isPrefix) {
+                    this.prefixValue = value;
+                } else {
+                    this.value = value;
+                }
+                
+                this.hasPrefix |= isPrefix;
+                
             } else {
                 
                 if (firstChild == null) {
@@ -35,8 +55,7 @@ public class Node<T> {
                         }
                     }
                 }
-                
-                firstChild.put(seq, index + 1, value);
+                firstChild.put(seq, index + 1, value, isPrefix);
             }
         } else {
             if (next == null) {
@@ -46,24 +65,42 @@ public class Node<T> {
                     }
                 }
             }
-            next.put(seq, index, value);
+            next.put(seq, index, value, isPrefix);
         }
     }
     
-    public State<T> get(CharSequence seq, int index) {
+    public States<T> get(CharSequence seq, int index) {
         if (seq.charAt(index) == character) {
             if (index == seq.length() - 1) {
-                return new State<T>(true, value, this);
+                States<T> states = new States<>(new State<T>(true, value, this, index));
+                if (hasPrefix) {
+                    states.addPrefix(new State<T>(true, prefixValue, this, index));
+                }
+                return states;
             } else {
-                return (firstChild != null) ? firstChild.get(seq, index + 1) : new State<T>(false, null, null);
+                if (firstChild == null) {
+                    States<T> states = new States<>(new State<T>(false, null, null));
+                    if (hasPrefix) {
+                        states.addPrefix(new State<>(true, prefixValue, this, index));
+                    }
+                    return states;
+                } else {
+                    States<T> states = firstChild.get(seq, index + 1);
+                    if (hasPrefix) {
+                        states.addPrefix(new State<>(true, prefixValue, this, index));
+                    }
+                    return states;
+                }
+                
+//                return (firstChild != null) ?  : new States<>(new State<T>(false, null, null));
             }
         } else {
-            return (next != null) ? next.get(seq, index) : new State<T>(false, null, null);
+            return (next != null) ? next.get(seq, index) : new States<>(new State<T>(false, null, null));
         }
     }
     
-    public State<T> getNext(CharSequence seq, int index) {
-        return (firstChild != null) ? firstChild.get(seq, index) : new State<T>(false, null, null);
+    public States<T> getNext(CharSequence seq, int index) {
+        return (firstChild != null) ? firstChild.get(seq, index) : new States<>(new State<T>(false, null, null));
     }
 
 }

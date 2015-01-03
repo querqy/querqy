@@ -44,7 +44,7 @@ public class TrieMapRulesCollection implements RulesCollection {
         if (sequence.size() == 1) {
             for (Term term : sequence.getFirst()) {
                 
-                State<List<Instructions>> stateInfo = trieMap.get(term.toCharSequenceWithField(ignoreCase));
+                State<List<Instructions>> stateInfo = trieMap.get(term.toCharSequenceWithField(ignoreCase)).getStateForCompleteSequence();
                 if (stateInfo.isKnown && stateInfo.value != null) {
                     result.add(new Action(stateInfo.value, Arrays.asList(term), 0, 1));
                 }
@@ -64,7 +64,7 @@ public class TrieMapRulesCollection implements RulesCollection {
                     for (Prefix<List<Instructions>> prefix : prefixes) {
                         
                         State<List<Instructions>> stateInfo = trieMap.get(
-                                new CompoundCharSequence(null, " ", term.toCharSequenceWithField(ignoreCase)), prefix.stateInfo);
+                                new CompoundCharSequence(null, " ", term.toCharSequenceWithField(ignoreCase)), prefix.stateInfo).getStateForCompleteSequence();
                         
                         if (stateInfo.isKnown()) {
                             if (stateInfo.isFinal()) {
@@ -76,7 +76,7 @@ public class TrieMapRulesCollection implements RulesCollection {
                         }
                     }
 
-                    State<List<Instructions>> stateInfo = trieMap.get(term.toCharSequenceWithField(ignoreCase));
+                    State<List<Instructions>> stateInfo = trieMap.get(term.toCharSequenceWithField(ignoreCase)).getStateForCompleteSequence();
                     if (stateInfo.isKnown()) {
                         if (stateInfo.isFinal()) {
                             result.add(new Action(stateInfo.value, Arrays.asList(term), pos, pos + 1));
