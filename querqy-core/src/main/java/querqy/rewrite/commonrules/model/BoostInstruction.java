@@ -3,8 +3,6 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.List;
-
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
@@ -38,18 +36,13 @@ public class BoostInstruction implements Instruction {
       this.boost = boost;
    }
 
-   /*
-    * (non-Javadoc)
-    * 
-    * @see
-    * querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules
-    * .model.PositionSequence, java.util.List, int, int,
-    * querqy.model.ExpandedQuery)
+   /* (non-Javadoc)
+    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, 
+    *                           querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
     */
    @Override
-   public void apply(PositionSequence<Term> sequence, List<Term> matchedTerms,
-         int startPosition, int endPosition, ExpandedQuery expandedQuery) {
-
+   public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
+           int startPosition, int endPosition, ExpandedQuery expandedQuery) {
       BoostQuery bq = new BoostQuery(query.clone(null), boost);
       if (direction == BoostDirection.DOWN) {
          expandedQuery.addBoostDownQuery(bq);

@@ -3,12 +3,12 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import querqy.ComparableCharSequence;
+import querqy.trie.State;
+import querqy.trie.States;
 import querqy.trie.TrieMap;
 
 /**
@@ -17,8 +17,8 @@ import querqy.trie.TrieMap;
  */
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
-    
-    Map<CharSequence, List<Instructions>> rules = new HashMap<>();
+    final TrieMap<List<Instructions>> map = new TrieMap<>();
+    //Map<CharSequence, List<Instructions>> rules = new HashMap<>();
     
     final boolean ignoreCase;
     
@@ -31,16 +31,68 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      */
     @Override
     public void addRule(Input input, Instructions instructions) {
-        for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
+        
+        List<Term> inputTerms = input.getInputTerms();
+        
+        if (inputTerms.size() == 1) {
             
-            List<Instructions> instructionsList = rules.get(seq);
-            if (instructionsList == null) {
-                instructionsList = new LinkedList<>();
-                rules.put(seq, instructionsList);
+            Term term = inputTerms.get(0);
+            
+            boolean isPrefix = term instanceof PrefixTerm;
+            
+            for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
+                
+                States<List<Instructions>> states = map.get(seq);
+                
+                if (isPrefix) {
+                    boolean added = false;
+                    
+                    List<State<List<Instructions>>> prefixes = states.getPrefixes();
+                    
+                    if (prefixes != null) {
+                        for (State<List<Instructions>> state: prefixes) {
+                            if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
+                                state.value.add(instructions);
+                                added = true;
+                                break;
+                            }
+                            
+                        }
+                    }
+                    
+                    if (!added) {
+                        List<Instructions> instructionsList = new LinkedList<>();
+                        instructionsList.add(instructions);
+                        map.putPrefix(seq, instructionsList);
+                    }
+                
+                } else {
+                    State<List<Instructions>> state = states.getStateForCompleteSequence();
+                    if (state.value != null) {
+                        state.value.add(instructions);
+                    } else {
+                        List<Instructions> instructionsList = new LinkedList<>();
+                        instructionsList.add(instructions);
+                        map.put(seq, instructionsList);
+                    }
+                    
+                }
             }
             
-            instructionsList.add(instructions);
-            
+        } else {
+            for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
+                
+                States<List<Instructions>> states = map.get(seq);
+                State<List<Instructions>> state = states.getStateForCompleteSequence();
+                if (state.value != null) {
+                    state.value.add(instructions);
+                } else {
+                    List<Instructions> instructionsList = new LinkedList<>();
+                    instructionsList.add(instructions);
+                    map.put(seq, instructionsList);
+                }
+                
+            } 
        }
 
     }
@@ -50,10 +102,15 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      */
     @Override
     public RulesCollection build() {
-        TrieMap<List<Instructions>> map = new TrieMap<>();
-        for (Map.Entry<CharSequence, List<Instructions>> entry: rules.entrySet()) {
-            map.put(entry.getKey(), entry.getValue());
-        }
+//        TrieMap<List<Instructions>> map = new TrieMap<>();
+//        for (Map.Entry<CharSequence, List<Instructions>> entry: rules.entrySet()) {
+//            CharSequence input = entry.getKey();
+//            if (entry instanceof PrefixTerm) {
+//                map.putPrefix(input, entry.getValue());
+//            } else {
+//                map.put(entry.getKey(), entry.getValue());
+//            }
+//        }
         
        
         return new TrieMapRulesCollection(map, ignoreCase);

@@ -16,12 +16,99 @@ public class Term implements ComparableCharSequence {
    protected final int start;
    protected final int length;
    protected final List<String> fieldNames;
+   protected final LinkedList<PlaceHolder> placeHolders;
 
    public Term(char[] value, int start, int length, List<String> fieldNames) {
-      this.value = value;
-      this.start = start;
-      this.length = length;
-      this.fieldNames = (fieldNames != null && fieldNames.isEmpty()) ? null : fieldNames;
+       if (start + length > value.length) {
+           throw new ArrayIndexOutOfBoundsException("start + length > value.length");
+       }
+       this.value = value;
+       this.start = start;
+       this.length = length;
+       this.fieldNames = (fieldNames != null && fieldNames.isEmpty()) ? null : fieldNames;
+       this.placeHolders = parsePlaceHolders();
+   }
+   
+   private enum ParseState {None, Started, InRef}
+   
+   public int getMaxPlaceHolderRef() {
+       return placeHolders == null ? -1 : placeHolders.getFirst().ref;
+   }
+   
+   public ComparableCharSequence fillPlaceholders(TermMatches termMatches) {
+       if (placeHolders == null || placeHolders.isEmpty()) {
+           return this;
+       }
+       List<ComparableCharSequence> parts = new LinkedList<>();
+       int pos = 0;
+       for (PlaceHolder placeHolder: placeHolders) {
+           if (placeHolder.start > pos) {
+               parts.add(subSequence(pos, placeHolder.start));
+           }
+           parts.add(termMatches.getReplacement(placeHolder.ref));
+           pos = placeHolder.start + placeHolder.length;
+       }
+       if (pos < length) {
+           parts.add(subSequence(pos, start + length));
+       }
+       return new CompoundCharSequence(null, parts);
+   }
+   
+   protected LinkedList<PlaceHolder> parsePlaceHolders() {
+       
+       LinkedList<PlaceHolder> placeHolders = new LinkedList<>();
+       
+       ParseState state = ParseState.None; 
+       int begin = -1;
+       int end = -1;
+       
+       for (int idx = start, last = start + length; idx < last; idx++) {
+           char ch = value[idx];
+           switch (state) {
+           case None: 
+               if (ch == '$') {
+                   state = ParseState.Started;
+               }
+               break;
+           case Started:
+               if (Character.isDigit(ch)) {
+                   begin = idx - 1;
+                   end = idx;
+                   state = ParseState.InRef;
+               } else if (ch != '$') {
+                   state = ParseState.None;
+                   begin = -1;
+               }
+               break;
+           case InRef:
+               if (Character.isDigit(ch)) {
+                   end = idx;
+               } else {
+                   int ref = Integer.parseInt(new String(value, begin + 1, end - begin));
+                   PlaceHolder placeHolder = new PlaceHolder(begin, end - begin + 1, ref);
+                   
+                   if (placeHolders.isEmpty() || placeHolders.getFirst().ref < ref) {
+                       placeHolders.addFirst(placeHolder);
+                   } else {
+                       placeHolders.add(placeHolder);
+                   }
+                   state = ch == '$' ? ParseState.Started : ParseState.None;
+               }
+               break;
+           }
+       }
+       if (state == ParseState.InRef) {
+           int ref = Integer.parseInt(new String(value, begin + 1, end - begin));
+           PlaceHolder placeHolder = new PlaceHolder(begin, end - begin + 1, ref);
+           
+           if (placeHolders.isEmpty() || placeHolders.getFirst().ref < ref) {
+               placeHolders.addFirst(placeHolder);
+           } else {
+               placeHolders.add(placeHolder);
+           }
+       }
+       
+       return placeHolders.isEmpty() ? null : placeHolders;
    }
 
    @Override
@@ -97,15 +184,15 @@ public class Term implements ComparableCharSequence {
             + fieldNames + ", value=" + new String(value, start, length) + "]";
    }
 
-   public static Term findFirstMatch(Term needle, Collection<? extends Term> haystack) {
+   public Term findFirstMatch(Collection<? extends Term> haystack) {
 
       for (Term h : haystack) {
-         if (needle.compareTo(h) == 0) {
-            if (needle.fieldNames == h.fieldNames) {
+         if (compareTo(h) == 0) {
+            if (fieldNames == h.fieldNames) {
                return h;
             } else {
-               if (h.fieldNames != null && needle.fieldNames != null) {
-                  for (String name : needle.fieldNames) {
+               if (h.fieldNames != null && fieldNames != null) {
+                  for (String name : fieldNames) {
                      if (h.fieldNames.contains(name)) {
                         return h;
                      }
@@ -124,7 +211,7 @@ public class Term implements ComparableCharSequence {
    }
 
    @Override
-   public CharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(int start, int end) {
       if (end > length) {
          throw new ArrayIndexOutOfBoundsException(end);
       }
@@ -156,6 +243,10 @@ public class Term implements ComparableCharSequence {
 
     public List<String> getFieldNames() {
         return fieldNames;
+    }
+
+    public LinkedList<PlaceHolder> getPlaceHolders() {
+        return placeHolders;
     }
    
    

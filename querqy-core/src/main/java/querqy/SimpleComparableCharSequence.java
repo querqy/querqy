@@ -51,7 +51,7 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
     * @see java.lang.CharSequence#subSequence(int, int)
     */
    @Override
-   public CharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(int start, int end) {
 
       if (end > length) {
          throw new ArrayIndexOutOfBoundsException(end);

@@ -14,13 +14,17 @@ package querqy;
  * </ul>
  * 
  * @author rene
- *
+ * 
  */
-public interface ComparableCharSequence extends CharSequence, Comparable<CharSequence> {
+public interface ComparableCharSequence extends CharSequence,
+        Comparable<CharSequence> {
 
-   @Override
-   public int hashCode();
+    @Override
+    public int hashCode();
 
-   @Override
-   public boolean equals(Object obj);
+    @Override
+    public boolean equals(Object obj);
+
+    @Override
+    public ComparableCharSequence subSequence(int start, int end);
 }

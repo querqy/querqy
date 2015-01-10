@@ -60,7 +60,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
       for (Action action : rules.getRewriteActions(sequence)) {
          for (Instructions instructions : action.getInstructions()) {
             for (Instruction instruction : instructions) {
-               instruction.apply(sequence, action.getMatchedTerms(), action.getStartPosition(),
+               instruction.apply(sequence, action.getTermMatches(), action.getStartPosition(),
                      action.getEndPosition(), expandedQuery);
             }
          }

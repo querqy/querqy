@@ -68,10 +68,12 @@ public class DeleteInstruction implements Instruction {
       return "DeleteInstruction [termsToDelete=" + termsToDelete + "]";
    }
 
+   /* (non-Javadoc)
+    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
+    */
    @Override
-   public void apply(PositionSequence<querqy.model.Term> sequence,
-         List<querqy.model.Term> matchedTerms, int startPosition,
-         int endPosition, ExpandedQuery expandedQuery) {
+   public void apply(PositionSequence<querqy.model.Term> sequence, TermMatches termMatches,
+           int startPosition, int endPosition, ExpandedQuery expandedQuery) {
       // make sure that at least one term will be left in the query after we
       // apply this instruction
 

@@ -11,6 +11,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.rewrite.commonrules.LineParser;
 
 public class SynonymInstructionTest extends AbstractCommonRulesTest {
 
@@ -178,6 +179,38 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
                          
                          
               ));
+    }
+    
+    @Test
+    public void testThatPrefixIsMatchedAndPlaceHolderGetsReplaced() throws Exception {
+        
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
+        builder.addRule((Input) LineParser.parseInput("p1*"), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("p1xyz");
+        Query rewritten = rewriter.rewrite(query).getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("p1xyz", false),
+                              bq(
+                                      dmq(must(), term("p1", true)),
+                                      dmq(must(), term("xyz", true))
+                                      
+                              )
+                              
+                         )
+                         
+                         
+              ));
+        
+        
+        
     }
 
 }

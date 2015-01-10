@@ -16,6 +16,7 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Input;
+import querqy.rewrite.commonrules.model.PrefixTerm;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.Term;
 
@@ -24,6 +25,8 @@ import querqy.rewrite.commonrules.model.Term;
  *
  */
 public class LineParser {
+    
+    static final char WILDCARD = '*';
 	
 	public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
 		
@@ -57,11 +60,15 @@ public class LineParser {
 			}
 			
 			instructionTerms = instructionTerms.substring(1).trim();
-			
-			List<Term> deleteTerms = parseTermExpression(instructionTerms);
+			Object expr = parseTermExpression(instructionTerms);
+			if (expr instanceof ValidationError) {
+			    return new ValidationError("Cannot parse line: " + line +" : " + ((ValidationError)expr).getMessage());
+			}
+			@SuppressWarnings("unchecked")
+            List<Term> deleteTerms = (List<Term>) expr;
 			List<Term> inputTerms = previousInput.getInputTerms();
 			for (Term term: deleteTerms) {
-                if (Term.findFirstMatch(term, inputTerms) == null) {
+                if (term.findFirstMatch(inputTerms) == null) {
                     return new ValidationError("Condition doesn't contain the term to delete: " + term);
                 }
             }
@@ -127,7 +134,11 @@ public class LineParser {
             List<Term> synonymTerms = new LinkedList<>();
             for (String token: synonymString.split("\\s+")) {
                 if (token.length() > 0) {
-                    synonymTerms.add(parseTerm(token));
+                    Term term = parseTerm(token);
+                    if (term.getMaxPlaceHolderRef() > 1) {
+                        return new ValidationError("Max. wild card reference is 1: " + line);
+                    }
+                    synonymTerms.add(term);
                 }
             }
             if (synonymTerms.isEmpty()) {
@@ -201,18 +212,30 @@ public class LineParser {
         }
 	}
 	
-	public static Input parseInput(String s) {
-		
-		return new Input(parseTermExpression(s));
+	@SuppressWarnings("unchecked")
+    public static Object parseInput(String s) {
+	    
+	    s = s.trim();
+	    
+	    int pos = s.indexOf('*');
+	    if (pos > -1 && pos < (s.length() -1)) {
+	        return new ValidationError("* is only allowed at the end of the input: " + s);
+	    }
+	    Object expr = parseTermExpression(s);
+	    return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr);
 	
 	}
 	
-	public static List<Term> parseTermExpression(String s) {
+	static Object parseTermExpression(String s) {
 	    
 		int len = s.length();
 		
 		if (len == 1) {
-			Term term = new Term(new char[] {s.charAt(0)}, 0, 1, null);
+		    char ch = s.charAt(0);
+            if (ch == WILDCARD) {
+                return new ValidationError("Missing prefix for wildcard " + WILDCARD);
+            }
+			Term term = new Term(new char[] {ch}, 0, 1, null);
 			return Arrays.asList(term);
 		}
 		
@@ -235,7 +258,11 @@ public class LineParser {
 		int len = s.length();
 		
 		if (len == 1) {
-			return new Term(new char[] {s.charAt(0)}, 0, 1, null);
+		    char ch = s.charAt(0);
+		    if (ch == WILDCARD) {
+		        throw new IllegalArgumentException("Missing prefix for wildcard " + WILDCARD);
+		    }
+			return new Term(new char[] {ch}, 0, 1, null);
 		}
 		
 		int pos = s.indexOf(':');
@@ -245,8 +272,13 @@ public class LineParser {
 		List<String> fieldNames = fieldNamesPossible ? parseFieldNames(s.substring(0, pos)) : null;
 		
 		String remaining = fieldNamesPossible ? s.substring(pos + 1).trim() : s;
+		if (fieldNamesPossible && remaining.length() == 1 && remaining.charAt(0) == WILDCARD) {
+		    throw new IllegalArgumentException("Missing prefix for wildcard " + WILDCARD);
+		}
 
-		return new Term(remaining.toCharArray(), 0, remaining.length(), fieldNames);
+		return (remaining.charAt(remaining.length() - 1) == WILDCARD) 
+		        ? new PrefixTerm(remaining.toCharArray(), 0, remaining.length() - 1, fieldNames)
+		        : new Term(remaining.toCharArray(), 0, remaining.length(), fieldNames);
 		
 		
 	}

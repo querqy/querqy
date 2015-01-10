@@ -22,7 +22,7 @@ public class LowerCaseCharSequence implements ComparableCharSequence {
     }
     
     @Override
-    public CharSequence subSequence(int start, int end) {
+    public ComparableCharSequence subSequence(int start, int end) {
         return new LowerCaseCharSequence(delegate.subSequence(start, end));
     }
     

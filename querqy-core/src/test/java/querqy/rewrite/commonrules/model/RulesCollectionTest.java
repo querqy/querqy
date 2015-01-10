@@ -38,7 +38,7 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s1));
 
       List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions), terms(s1), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions), termMatches(s1), 0, 1)));
 
    }
 
@@ -60,7 +60,7 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s1));
 
       List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions), terms(s1), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions), termMatches(s1), 0, 1)));
 
    }
 
@@ -85,7 +85,7 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s1));
 
       List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1, instructions2), terms(s1), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions1, instructions2), termMatches(s1), 0, 1)));
 
    }
 
@@ -113,7 +113,7 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s1));
 
       List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), terms(s1), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions1), termMatches(s1), 0, 1)));
 
       // Input is just s2
       sequence = new PositionSequence<>();
@@ -121,7 +121,7 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s2));
 
       actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions2), terms(s2), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions2), termMatches(s2), 0, 1)));
 
       // Input is s2 s1
       sequence.nextPosition();
@@ -129,8 +129,8 @@ public class RulesCollectionTest {
 
       actions = rulesCollection.getRewriteActions(sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions2), terms(s2), 0, 1),
-            new Action(Arrays.asList(instructions1), terms(s1), 1, 2))
+            new Action(Arrays.asList(instructions2), termMatches(s2), 0, 1),
+            new Action(Arrays.asList(instructions1), termMatches(s1), 1, 2))
 
       );
 
@@ -168,7 +168,7 @@ public class RulesCollectionTest {
 
       actions = rulesCollection.getRewriteActions(sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions1), terms(s1, s2), 0, 2))
+            new Action(Arrays.asList(instructions1), termMatches(s1, s2), 0, 2))
 
       );
 
@@ -177,8 +177,8 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s3));
       actions = rulesCollection.getRewriteActions(sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions1), terms(s1, s2), 0, 2),
-            new Action(Arrays.asList(instructions2), terms(s2, s3), 1, 3)
+            new Action(Arrays.asList(instructions1), termMatches(s1, s2), 0, 2),
+            new Action(Arrays.asList(instructions2), termMatches(s2, s3), 1, 3)
             )
 
       );
@@ -212,8 +212,8 @@ public class RulesCollectionTest {
 
       List<Action> actions = rulesCollection.getRewriteActions(sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions1), terms(s1, s2), 0, 2),
-            new Action(Arrays.asList(instructions2), terms(s2), 1, 2)
+            new Action(Arrays.asList(instructions1), termMatches(s1, s2), 0, 2),
+            new Action(Arrays.asList(instructions2), termMatches(s2), 1, 2)
 
             )
 
@@ -244,13 +244,13 @@ public class RulesCollectionTest {
       sequence.addElement(new Term(null, s1));
 
       List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), terms(s1), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions1), termMatches(s1), 0, 1)));
 
       sequence.addElement(new Term(null, s2));
 
       actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), terms(s1), 0, 1),
-            new Action(Arrays.asList(instructions2), terms(s2), 0, 1)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions1), termMatches(s1), 0, 1),
+            new Action(Arrays.asList(instructions2), termMatches(s2), 0, 1)));
 
    }
 
@@ -297,7 +297,7 @@ public class RulesCollectionTest {
       actions = rulesCollection.getRewriteActions(sequence);
 
       assertThat(actions, contains(new Action(Arrays.asList(instructions1),
-            Arrays.asList(term11, term22), 0, 2)));
+            new TermMatches(Arrays.asList(new TermMatch(term11), new TermMatch(term22))), 0, 2)));
       sequence.clear();
 
       actions = rulesCollection.getRewriteActions(sequence);
@@ -308,7 +308,7 @@ public class RulesCollectionTest {
       sequence.addElement(term21);
       actions = rulesCollection.getRewriteActions(sequence);
 
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), Arrays.asList(term12, term21), 0, 2)));
+      assertThat(actions, contains(new Action(Arrays.asList(instructions1), new TermMatches(Arrays.asList(new TermMatch(term12), new TermMatch(term21))), 0, 2)));
 
    }
 
@@ -321,10 +321,10 @@ public class RulesCollectionTest {
       return result;
    }
 
-   List<Term> terms(String... values) {
-      List<Term> result = new LinkedList<>();
+   TermMatches termMatches(String... values) {
+      TermMatches result = new TermMatches();
       for (String value : values) {
-         result.add(new Term(null, value));
+         result.add(new TermMatch(new Term(null, value)));
       }
       return result;
    }
@@ -385,7 +385,7 @@ public class RulesCollectionTest {
 
       @Override
       public void apply(PositionSequence<Term> sequence,
-            List<Term> matchedTerms, int startPosition, int endPosition, ExpandedQuery expandedQuery) {
+            TermMatches termsMatches, int startPosition, int endPosition, ExpandedQuery expandedQuery) {
       }
 
    }

@@ -5,8 +5,6 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
-import querqy.model.Term;
-
 /**
  * An Action represents all Instructions triggered for specific input positions.
  * It references the sequence of query terms that matched the rule. As there can
@@ -19,13 +17,13 @@ import querqy.model.Term;
 public class Action {
 
    final List<Instructions> instructions;
-   final List<Term> matchedTerms;
+   final TermMatches termMatches;
    final int startPosition;
    final int endPosition; // exclusive
 
-   public Action(List<Instructions> instructions, List<Term> matchedTerms, int startPosition, int endPosition) {
+   public Action(List<Instructions> instructions, TermMatches termMatches, int startPosition, int endPosition) {
       this.instructions = instructions;
-      this.matchedTerms = matchedTerms;
+      this.termMatches = termMatches;
       this.startPosition = startPosition;
       this.endPosition = endPosition;
    }
@@ -38,7 +36,7 @@ public class Action {
       result = prime * result
             + ((instructions == null) ? 0 : instructions.hashCode());
       result = prime * result + startPosition;
-      result = prime * result + ((matchedTerms == null) ? 0 : matchedTerms.hashCode());
+      result = prime * result + ((termMatches == null) ? 0 : termMatches.hashCode());
       return result;
    }
 
@@ -60,17 +58,17 @@ public class Action {
          return false;
       if (startPosition != other.startPosition)
          return false;
-      if (matchedTerms == null) {
-         if (other.matchedTerms != null)
+      if (termMatches == null) {
+         if (other.termMatches != null)
             return false;
-      } else if (!matchedTerms.equals(other.matchedTerms))
+      } else if (!termMatches.equals(other.termMatches))
          return false;
       return true;
    }
 
    @Override
    public String toString() {
-      return "Action [instructions=" + instructions + ", terms=" + matchedTerms
+      return "Action [instructions=" + instructions + ", terms=" + termMatches
             + ", startPosition=" + startPosition + ", endPosition="
             + endPosition + "]";
    }
@@ -79,8 +77,8 @@ public class Action {
       return instructions;
    }
 
-   public List<Term> getMatchedTerms() {
-      return matchedTerms;
+   public TermMatches getTermMatches() {
+      return termMatches;
    }
 
    public int getStartPosition() {

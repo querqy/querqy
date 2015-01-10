@@ -7,5 +7,10 @@ m =>
 t1 t2 =>
 	DELETE: t2
 	
+p* =>
+	SYNONYM: p $1
+
+
+	
 	
 

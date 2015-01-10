@@ -25,6 +25,8 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         
         assertU(adoc("id", "6", "f1", "m", "f2", "c", "f4", "e"));
         
+        assertU(adoc("id", "7", "f1", "p", "f2", "x"));
+        
 
 
         assertU(commit());
@@ -140,6 +142,29 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
               "//str[@name='parsedquery'][not(contains(.,'t2'))]",
               "//str[@name='parsedquery'][not(contains(.,'T2'))]"
         );
+
+        req.close();
+    }
+    
+    @Test
+    public void testPrefixWithSynoynm() throws Exception {
+        String q = "Px";
+
+        SolrQueryRequest req = req("q", q,
+              DisMaxParams.QF, "f1 f2",
+              DisMaxParams.MM, "2",
+              QueryParsing.OP, "AND",
+              "defType", "querqy",
+              "debugQuery", "on"
+              );
+        
+        assertQ("Synonym for prefix fails",
+                req,
+                "//result[@name='response' and @numFound='1']"
+
+          );
+
+        
 
         req.close();
     }

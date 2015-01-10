@@ -31,6 +31,8 @@ import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.PositionSequence;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
+import querqy.rewrite.commonrules.model.TermMatch;
+import querqy.rewrite.commonrules.model.TermMatches;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
     
@@ -90,7 +92,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                 new Action(
                         Arrays.asList(
                                 new Instructions(Arrays.asList((Instruction) new DeleteInstruction(Arrays.asList(mkTerm("aa")))))), 
-                                Arrays.asList(t1), 0, 1)));
+                                new TermMatches(new TermMatch(t1)), 0, 1)));
     }
     
     @Test
@@ -117,13 +119,13 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                         Arrays.asList(
                                                 (Instruction) new BoostInstruction(
                                                         new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN ,2f)))),
-                                Arrays.asList(t1), 0, 1),
+                                                        new TermMatches(new TermMatch(t1)), 0, 1),
                 new Action(
                         Arrays.asList(
                                 new Instructions(
                                         Arrays.asList(
                                                 (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("b")))))), 
-                                Arrays.asList(t1, t2), 0, 2),
+                                                new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2),
                                 
                 new Action(
                         Arrays.asList(
@@ -132,7 +134,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                                 (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("a"))),
                                                 (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("c")))
                                                         ))), 
-                                Arrays.asList(t1, t2, t3), 0, 3)
+                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
                 ));	
@@ -156,7 +158,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                         Arrays.asList(
                                                 (Instruction) new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f))
                                                         )), 
-                                Arrays.asList(t1, t2), 0, 2)
+                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
                 
                 ));
@@ -177,7 +179,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                         Arrays.asList(
                                                 (Instruction) new FilterInstruction(makeQueryUsingFactory("flt2 flt3")))
                                                         )), 
-                                Arrays.asList(t1), 0, 1)
+                                                        new TermMatches(new TermMatch(t1)), 0, 1)
                 
                 
                 ));
@@ -220,7 +222,7 @@ ts6 =>
                                         Arrays.asList(
                                                 (Instruction) new SynonymInstruction(Arrays.asList(mkTerm("syn1"))))
                                                         )), 
-                                Arrays.asList(t1, t2), 0, 2)
+                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
                 
                 ));
@@ -251,7 +253,7 @@ ts6 =>
                                                                 mkTerm("syn7", "f2", "f3")
                                                                 )))
                                                         )), 
-                                Arrays.asList(t1), 0, 1)
+                                                        new TermMatches(new TermMatch(t1)), 0, 1)
                 
                 
                 ));
@@ -310,7 +312,7 @@ ts6 =>
                                                 (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
                                                                 
                                                         )))), 
-                                Arrays.asList(t1, t2, t3), 0, 3)
+                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
                 ));
@@ -345,7 +347,7 @@ ts6 =>
                                                 (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
                                                                 
                                                         )))), 
-                                Arrays.asList(t1, t2, t3), 0, 3)
+                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
                 ));
@@ -380,7 +382,7 @@ ts6 =>
                                                 (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
                                                                 
                                                         )))), 
-                                Arrays.asList(t1, t2, t3), 0, 3)
+                                          new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
                 ));

@@ -13,6 +13,10 @@ import java.util.List;
 public class CompoundCharSequence implements ComparableCharSequence {
 
    final CharSequence[] parts;
+   
+   public CompoundCharSequence(List<? extends CharSequence> parts) {
+       this(null, parts);
+   }
 
    public CompoundCharSequence(CharSequence separator, List<? extends CharSequence> parts) {
       this(separator, parts.toArray(new CharSequence[parts.size()]));
@@ -103,18 +107,20 @@ public class CompoundCharSequence implements ComparableCharSequence {
     * @see java.lang.CharSequence#subSequence(int, int)
     */
    @Override
-   public CharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(int start, int end) {
 
       if (parts.length == 1) {
-         return parts[0].subSequence(start, end);
+          // TODO: do subsequence as view in wrapper
+         return new ComparableCharSequenceWrapper(parts[0].subSequence(start, end));
       }
 
       PartInfo partInfoStart = getPartInfoForCharIndex(start);
       PartInfo partInfoEnd = getPartInfoForCharIndex(end - 1); // end is
                                                                // exclusive
       if (partInfoStart.partIndex == partInfoEnd.partIndex) {
-         return parts[partInfoStart.partIndex].subSequence(start - partInfoStart.globalStart, end
-               - partInfoStart.globalStart);
+       // TODO: do subsequence as view in wrapper
+         return new ComparableCharSequenceWrapper(parts[partInfoStart.partIndex].subSequence(start - partInfoStart.globalStart, end
+               - partInfoStart.globalStart));
       }
 
       CharSequence[] resParts = new CharSequence[partInfoEnd.partIndex - partInfoStart.partIndex + 1];

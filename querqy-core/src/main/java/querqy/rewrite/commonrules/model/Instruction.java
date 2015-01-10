@@ -3,8 +3,6 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.List;
-
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 
@@ -26,7 +24,7 @@ public interface Instruction {
     * @param endPosition
     * @param expandedQuery
     */
-   void apply(PositionSequence<Term> sequence, List<Term> matchedTerms, int startPosition, int endPosition,
+   void apply(PositionSequence<Term> sequence, TermMatches termMatches, int startPosition, int endPosition,
          ExpandedQuery expandedQuery);
 
 }

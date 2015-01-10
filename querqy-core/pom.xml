@@ -9,13 +9,6 @@
 
 	<artifactId>querqy-core</artifactId>
 
-	<dependencies>
-		<dependency>
-			<groupId>eu.danieldk.dictomaton</groupId>
-			<artifactId>dictomaton</artifactId>
-			<version>${dictomaton.version}</version>
-		</dependency>
-	</dependencies>
 	<build>
 		<plugins>
 			<plugin>

@@ -32,21 +32,21 @@ public class SynonymInstruction implements Instruction {
     }
 
     /* (non-Javadoc)
-     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, java.util.List, int, int, querqy.model.ExpandedQuery)
+     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
      */
     @Override
-    public void apply(PositionSequence<Term> sequence, List<Term> matchedTerms,
+    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
             int startPosition, int endPosition, ExpandedQuery expandedQuery) {
         
-        switch (matchedTerms.size()) {
+        switch (termMatches.size()) {
             
-        case 0: throw new IllegalArgumentException("matchedTerms must not be empty");
+        case 0: throw new IllegalArgumentException("termMatches must not be empty");
         case 1: {
-            Term match = matchedTerms.get(0);
+            Term match = termMatches.get(0).getQueryTerm();
             DisjunctionMaxQuery parent = match.getParent();
             
             if (synonym.size() == 1) {
-                addSynonymTermToDisjunctionMaxQuery(parent, synonym.get(0));
+                addSynonymTermToDisjunctionMaxQuery(parent, synonym.get(0), termMatches);
                 
             } else {
                 
@@ -55,16 +55,16 @@ public class SynonymInstruction implements Instruction {
                 for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
                     DisjunctionMaxQuery dmq = new  DisjunctionMaxQuery(bq, Occur.MUST, true);
                     bq.addClause(dmq);
-                    addSynonymTermToDisjunctionMaxQuery(dmq, synTerm);
+                    addSynonymTermToDisjunctionMaxQuery(dmq, synTerm, termMatches);
                 }
                 
             }
         }
         break;
         default:
-            for (Term match: matchedTerms) {
+            for (TermMatch match: termMatches) {
                 
-                DisjunctionMaxQuery clauseDmq = match.getParent();
+                DisjunctionMaxQuery clauseDmq = match.getQueryTerm().getParent();
                 
                 BooleanQuery bq = new BooleanQuery(clauseDmq, Occur.SHOULD, true);
                 clauseDmq.addClause(bq);
@@ -72,15 +72,15 @@ public class SynonymInstruction implements Instruction {
                 for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
                     DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Occur.MUST, true);
                     bq.addClause(dmq);
-                    addSynonymTermToDisjunctionMaxQuery(dmq, synTerm);
+                    addSynonymTermToDisjunctionMaxQuery(dmq, synTerm, termMatches);
                 }
                 
                 BooleanQuery bqNeg = new BooleanQuery(bq, Occur.MUST_NOT, true);
                 bq.addClause(bqNeg);
-                for (Term matchedTerm: matchedTerms) {
+                for (TermMatch matchedTerm: termMatches) {
                     DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bqNeg, Occur.MUST, true);
                     bqNeg.addClause(dmq);
-                    dmq.addClause(matchedTerm.clone(dmq, true));
+                    dmq.addClause(matchedTerm.getQueryTerm().clone(dmq, true));
                 }
             }
             
@@ -88,13 +88,14 @@ public class SynonymInstruction implements Instruction {
 
     }
     
-    protected void addSynonymTermToDisjunctionMaxQuery(DisjunctionMaxQuery dmq, querqy.rewrite.commonrules.model.Term synTerm) {
+    protected void addSynonymTermToDisjunctionMaxQuery(DisjunctionMaxQuery dmq, querqy.rewrite.commonrules.model.Term synTerm, TermMatches termMatches) {
         List<String> fieldNames = synTerm.getFieldNames();
+        ComparableCharSequence charSequence = synTerm.fillPlaceholders(termMatches);
         if (fieldNames == null || fieldNames.isEmpty()) {
-            dmq.addClause(new Term(dmq, (ComparableCharSequence) synTerm, true));
+            dmq.addClause(new Term(dmq, charSequence, true));
         } else {
             for (String fieldName: fieldNames) {
-                dmq.addClause(new Term(dmq, fieldName, synTerm, true));
+                dmq.addClause(new Term(dmq, fieldName, charSequence, true));
             }
         }
     }

@@ -28,7 +28,6 @@ import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.PerfectHashDictionaryRulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 

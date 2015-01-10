@@ -41,8 +41,9 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
     * @see java.lang.CharSequence#subSequence(int, int)
     */
    @Override
-   public CharSequence subSequence(int start, int end) {
-      return sequence.subSequence(start, end);
+   public ComparableCharSequence subSequence(int start, int end) {
+       // TODO: do subSequence as view in new wrapper
+       return new ComparableCharSequenceWrapper(sequence.subSequence(start, end));
    }
 
    /*

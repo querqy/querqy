@@ -16,7 +16,6 @@ import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.PerfectHashDictionaryRulesCollectionBuilder;
 
 public class DeleteInstructionTest extends AbstractCommonRulesTest {
 

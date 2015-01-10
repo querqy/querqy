@@ -80,7 +80,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
    }
 
    @Override
-   public CharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(int start, int end) {
       return value.subSequence(start, end);
    }
 
