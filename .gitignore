@@ -2,6 +2,7 @@
 .classpath
 .project
 .settings/*
+.idea/*
 target/*
 .DS_Store
 
@@ -11,4 +12,6 @@ target/*
 */.settings
 */target
 
+#files
+*.iml
 
