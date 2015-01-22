@@ -8,7 +8,7 @@ import querqy.rewrite.RewriterFactory;
 import java.io.IOException;
 
 /**
- * Factory for {@link ShingleRewriterFactory}
+ * FactoryAdapter for {@link ShingleRewriterFactory}
  */
 public class ShingleRewriterFactory implements RewriterFactoryAdapter {
 

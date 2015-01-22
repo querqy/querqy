@@ -1,7 +1,5 @@
 package querqy.solr;
 
-import static org.junit.Assert.*;
-
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;

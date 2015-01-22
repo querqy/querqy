@@ -1,0 +1,5 @@
+ab =>
+	SYNONYM: shingleab
+	
+c =>
+	SYNONYM: synonymforc

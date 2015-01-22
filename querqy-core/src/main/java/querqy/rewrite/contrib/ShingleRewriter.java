@@ -8,7 +8,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by muellenborn on 20.01.15.
+ * <p>A query rewriter that joins two adjacent query terms into a new term and adds this new term
+ * to the query as a synonym to the two original terms. A query A B C thus becomes:</p>
+ * <pre>
+ (A OR (AB AND -A)) (B OR (AB AND -B) OR (BC AND -B)) (C OR (BC AND -C))
+ </pre>
+ * <p>The resulting structure has the same number of clauses like the original query and assures that 
+ * additive term scoring algorithms will not favour documents that have the shingle term and one or 
+ * both component terms over documents that only have the shingle term.<P>
+ * 
+ * @author muellenborn
+ * @author René Kriegler, @renekrie
  */
 public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 

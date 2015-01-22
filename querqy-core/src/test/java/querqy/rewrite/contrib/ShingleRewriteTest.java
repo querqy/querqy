@@ -1,9 +1,10 @@
 package querqy.rewrite.contrib;
 
 import org.junit.Test;
-import querqy.model.*;
 
+import querqy.model.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 import static querqy.QuerqyMatchers.*;
 
 /**
@@ -34,6 +35,24 @@ public class ShingleRewriteTest {
                                         dmq(must(), term("cdeajk")),
                                         dmq(mustNot(), term("ajk"))
                                 )
+                        )
+                )
+        );
+    }
+    
+    @Test
+    public void testThatShinglingDoesNotTriggerExceptionOnSingleTerm() throws Exception {
+        Query query = new Query();
+        addTerm(query, "t1");
+        
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery);
+
+        assertThat(expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("t1")
                         )
                 )
         );
@@ -77,6 +96,18 @@ public class ShingleRewriteTest {
         rewriter.rewrite(expandedQuery);
 
         assertThat(expandedQuery.getUserQuery(), bq(dmq(term("cde")), dmq(term("ajk"))));
+    }
+    
+    @Test
+    public void testShinglingForTwoTokensWithOnFieldNameNullDontShingle() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde");
+        addTerm(query, "ajk");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery);
+
+        assertThat(expandedQuery.getUserQuery(), bq(dmq(term("f1", "cde")), dmq(term("ajk"))));
     }
 
     @Test
