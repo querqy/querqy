@@ -66,22 +66,20 @@ public class SynonymInstruction implements Instruction {
                 
                 DisjunctionMaxQuery clauseDmq = match.getQueryTerm().getParent();
                 
-                BooleanQuery bq = new BooleanQuery(clauseDmq, Occur.SHOULD, true);
-                clauseDmq.addClause(bq);
+                if (synonym.size() == 1) {
+                    addSynonymTermToDisjunctionMaxQuery(clauseDmq, synonym.get(0), termMatches);
+                } else {
+                    BooleanQuery bq = new BooleanQuery(clauseDmq, Occur.SHOULD, true);
+                    clauseDmq.addClause(bq);
+                    
+                    for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
+                        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Occur.MUST, true);
+                        bq.addClause(dmq);
+                        addSynonymTermToDisjunctionMaxQuery(dmq, synTerm, termMatches);
+                    }
                 
-                for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
-                    DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Occur.MUST, true);
-                    bq.addClause(dmq);
-                    addSynonymTermToDisjunctionMaxQuery(dmq, synTerm, termMatches);
                 }
                 
-                BooleanQuery bqNeg = new BooleanQuery(bq, Occur.MUST_NOT, true);
-                bq.addClause(bqNeg);
-                for (TermMatch matchedTerm: termMatches) {
-                    DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bqNeg, Occur.MUST, true);
-                    bqNeg.addClause(dmq);
-                    dmq.addClause(matchedTerm.getQueryTerm().clone(dmq, true));
-                }
             }
             
         }

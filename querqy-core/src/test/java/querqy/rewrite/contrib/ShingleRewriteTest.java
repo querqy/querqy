@@ -25,16 +25,11 @@ public class ShingleRewriteTest {
                 bq(
                         dmq(
                                 term("cde"),
-                                bq(
-                                        dmq(must(), term("cdeajk")),
-                                        dmq(mustNot(), term("cde"))
-                                )
+                                term("cdeajk")
                         ),
-                        dmq(term("ajk"),
-                                bq(
-                                        dmq(must(), term("cdeajk")),
-                                        dmq(mustNot(), term("ajk"))
-                                )
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk")
                         )
                 )
         );
@@ -71,16 +66,11 @@ public class ShingleRewriteTest {
                 bq(
                         dmq(
                                 term("f1", "cde"),
-                                bq(
-                                        dmq(must(), term("f1", "cdeajk")),
-                                        dmq(mustNot(), term("f1", "cde"))
-                                )
+                                term("f1", "cdeajk")
                         ),
-                        dmq(term("f1", "ajk"),
-                                bq(
-                                        dmq(must(), term("f1", "cdeajk")),
-                                        dmq(mustNot(), term("f1", "ajk"))
-                                )
+                        dmq(
+                                term("f1", "ajk"),
+                                term("f1", "cdeajk")
                         )
                 )
         );
@@ -122,27 +112,18 @@ public class ShingleRewriteTest {
 
         assertThat(expandedQuery.getUserQuery(),
                 bq(
-                        dmq(term("cde"),
-                                bq(
-                                        dmq(must(), term("cdeajk")),
-                                        dmq(mustNot(), term("cde"))
-                                )
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
                         ),
-                        dmq(term("ajk"),
-                                bq(
-                                        dmq(must(), term("cdeajk")),
-                                        dmq(mustNot(), term("ajk"))
-                                ),
-                                bq(
-                                        dmq(must(), term("ajkxyz")),
-                                        dmq(mustNot(), term("ajk"))
-                                )
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk"),
+                                term("ajkxyz")
                         ),
-                        dmq(term("xyz"),
-                                bq(
-                                        dmq(must(), term("ajkxyz")),
-                                        dmq(mustNot(), term("xyz"))
-                                )
+                        dmq(
+                                term("xyz"),
+                                term("ajkxyz")
                         )
                 )
         );
@@ -162,16 +143,11 @@ public class ShingleRewriteTest {
                 bq(
                         dmq(
                                 term("f1", "cde"),
-                                bq(
-                                        dmq(must(), term("f1", "cdeajk")),
-                                        dmq(mustNot(), term("f1", "cde"))
-                                )
+                                term("f1", "cdeajk")
                         ),
-                        dmq(term("f1", "ajk"),
-                                bq(
-                                        dmq(must(), term("f1", "cdeajk")),
-                                        dmq(mustNot(), term("f1", "ajk"))
-                                )
+                        dmq(    
+                                term("f1", "ajk"),
+                                term("f1", "cdeajk")
                         ),
                         dmq(term("f2", "xyz"))
                 )

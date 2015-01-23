@@ -11,11 +11,9 @@ import java.util.List;
  * <p>A query rewriter that joins two adjacent query terms into a new term and adds this new term
  * to the query as a synonym to the two original terms. A query A B C thus becomes:</p>
  * <pre>
- (A OR (AB AND -A)) (B OR (AB AND -B) OR (BC AND -B)) (C OR (BC AND -C))
+ (A OR AB) (B OR AB OR BC) (C OR BC)
  </pre>
- * <p>The resulting structure has the same number of clauses like the original query and assures that 
- * additive term scoring algorithms will not favour documents that have the shingle term and one or 
- * both component terms over documents that only have the shingle term.<P>
+ * <p>The resulting structure has the same number of clauses like the original query.<P>
  * 
  * @author muellenborn
  * @author René Kriegler, @renekrie
@@ -23,17 +21,17 @@ import java.util.List;
 public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
     Term previousTerm = null;
-    List<BooleanQuery> bqToAdd = null;
+    List<Term> termsToAdd = null;
 
     @Override
     public ExpandedQuery rewrite(ExpandedQuery query) {
         Query userQuery = query.getUserQuery();
         if (userQuery != null){
             previousTerm = null;
-            bqToAdd = new LinkedList<>();
+            termsToAdd = new LinkedList<>();
             visit(userQuery);
-            for (BooleanQuery bq : bqToAdd) {
-                ((DisjunctionMaxQuery) bq.getParent()).addClause(bq);
+            for (Term term : termsToAdd) {
+                term.getParent().addClause(term);
             }
         }
         return query;
@@ -55,12 +53,8 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
     public Node visit(Term term) {
         if (previousTerm != null && eq(previousTerm.getField(), term.getField())) {
             CharSequence seq = new CompoundCharSequence(null, previousTerm, term);
-
-            BooleanQuery bqPrev = buildShingleWithExcludedTerm(previousTerm, seq);
-            bqToAdd.add(bqPrev);
-
-            BooleanQuery bq = buildShingleWithExcludedTerm(term, seq);
-            bqToAdd.add(bq);
+            termsToAdd.add(buildShingle(previousTerm, seq));
+            termsToAdd.add(buildShingle(term, seq));
         }
         previousTerm = term;
         return term;
@@ -70,22 +64,9 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
         return value1 == null && value2 == null || value1 != null && value1.equals(value2);
     }
 
-    private BooleanQuery buildShingleWithExcludedTerm(Term term, CharSequence seq) {
-        BooleanQuery bq = new BooleanQuery(term.getParent(), Clause.Occur.SHOULD, true);
+    private Term buildShingle(Term term, CharSequence seq) {
 
-        DisjunctionMaxQuery dmqShingle =  new DisjunctionMaxQuery(bq, Clause.Occur.MUST, true);
-        bq.addClause(dmqShingle);
-
-        Term shingleTerm = new Term(dmqShingle, term.getField(), seq, true);
-        dmqShingle.addClause(shingleTerm);
-
-        DisjunctionMaxQuery dmqNeg = new DisjunctionMaxQuery(bq, Clause.Occur.MUST_NOT, true);
-        bq.addClause(dmqNeg);
-
-        Term negTerm = new Term(dmqNeg, term.getField(), term, true);
-        dmqNeg.addClause(negTerm);
-
-        return bq;
+        return new Term(term.getParent(), term.getField(), seq, true);
     }
 
     @Override

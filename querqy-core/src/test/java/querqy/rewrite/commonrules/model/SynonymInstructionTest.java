@@ -113,25 +113,12 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
               bq(
                       dmq(
                               term("a", false),
-                              bq(
-                                      dmq(must(), term("s1", true)),
-                                      bq(mustNot(),
-                                              dmq(must(), term("a", true)),
-                                              dmq(must(), term("b", true))
-                                              )
-                              )
+                              term("s1", true)
                               
                          ),
                          dmq(
                                  term("b", false),
-                                 bq(
-                                         dmq(must(), term("s1", true)),
-                                         bq(mustNot(),
-                                                 dmq(must(), term("a", true)),
-                                                 dmq(must(), term("b", true))
-                                                 )
-                                 )
-                                 
+                                 term("s1", true)
                             )
                          
                          
@@ -155,11 +142,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
                               term("a", false),
                               bq(
                                       dmq(must(), term("s1_1", true)),
-                                      dmq(must(), term("s1_2", true)),
-                                      bq(mustNot(),
-                                              dmq(must(), term("a", true)),
-                                              dmq(must(), term("b", true))
-                                              )
+                                      dmq(must(), term("s1_2", true))
                               )
                               
                          ),
@@ -167,11 +150,8 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
                                  term("b", false),
                                  bq(
                                          dmq(must(), term("s1_1", true)),
-                                         dmq(must(), term("s1_2", true)),
-                                         bq(mustNot(),
-                                                 dmq(must(), term("a", true)),
-                                                 dmq(must(), term("b", true))
-                                                 )
+                                         dmq(must(), term("s1_2", true))
+                                        
                                  )
                                  
                             ),
