@@ -13,7 +13,7 @@ import querqy.SimpleComparableCharSequence;
  * @author René Kriegler, @renekrie
  *
  */
-public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence {
+public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence, InputSequenceElement {
 
    protected final String field;
    protected final ComparableCharSequence value;

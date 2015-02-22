@@ -29,13 +29,13 @@ public class SimpleCommonRulesParser {
    int lineNumber = 0;
    final RulesCollectionBuilder builder;
    Input input = null;
-   Instructions instructions;
+   Instructions instructions = null;
 
    public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) {
       this.reader = new BufferedReader(in);
       this.querqyParserFactory = querqyParserFactory;
       builder = new TrieMapRulesCollectionBuilder(ignoreCase);
-      instructions = new Instructions();
+     // instructions = new Instructions();
    }
 
    public RulesCollection parse() throws IOException, RuleParseException {
@@ -64,7 +64,7 @@ public class SimpleCommonRulesParser {
          }
          builder.addRule(input, instructions);
          input = null;
-         instructions = new Instructions();
+       //  instructions = new Instructions();
       }
    }
 
@@ -75,6 +75,7 @@ public class SimpleCommonRulesParser {
          if (lineObject instanceof Input) {
             putRule();
             input = (Input) lineObject;
+            instructions = new Instructions();
          } else if (lineObject instanceof ValidationError) {
             throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
          } else {

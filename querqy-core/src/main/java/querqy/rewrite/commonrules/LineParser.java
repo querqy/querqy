@@ -26,6 +26,7 @@ import querqy.rewrite.commonrules.model.Term;
  */
 public class LineParser {
     
+    static final char BOUNDARY = '=';
     static final char WILDCARD = '*';
 	
 	public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
@@ -215,14 +216,26 @@ public class LineParser {
 	@SuppressWarnings("unchecked")
     public static Object parseInput(String s) {
 	    
+	    boolean requiresLeftBoundary = false;
+	    boolean requiresRightBoundary = false;
+	    
 	    s = s.trim();
+	    if (s.length() > 0 && s.charAt(0) == BOUNDARY) {
+	        requiresLeftBoundary = true;
+	        s = s.substring(1).trim();
+	    }
+	
+	    if (s.length() > 0 && s.charAt(s.length() - 1) == BOUNDARY) {
+	        requiresRightBoundary = true;
+	        s = s.substring(0, s.length() - 1).trim();
+	    }
 	    
 	    int pos = s.indexOf('*');
 	    if (pos > -1 && pos < (s.length() -1)) {
 	        return new ValidationError("* is only allowed at the end of the input: " + s);
 	    }
 	    Object expr = parseTermExpression(s);
-	    return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr);
+	    return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary);
 	
 	}
 	

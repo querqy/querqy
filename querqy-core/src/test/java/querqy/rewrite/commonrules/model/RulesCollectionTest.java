@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import querqy.model.ExpandedQuery;
+import querqy.model.InputSequenceElement;
 import querqy.model.Term;
 
 public class RulesCollectionTest {
@@ -27,13 +28,13 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1));
+      Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions = instructions("instruction1");
       builder.addRule(input, instructions);
 
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -49,13 +50,13 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1));
+      Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions = instructions("instruction1", "instruction2");
       builder.addRule(input, instructions);
 
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -71,7 +72,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1));
+      Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions1 = instructions("instruction1");
       builder.addRule(input, instructions1);
@@ -80,7 +81,7 @@ public class RulesCollectionTest {
       builder.addRule(input, instructions2);
 
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -97,8 +98,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1));
-      Input input2 = new Input(inputTerms(null, s2));
+      Input input1 = new Input(inputTerms(null, s1), false, false);
+      Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions("instruction1");
       builder.addRule(input1, instructions1);
@@ -108,7 +109,7 @@ public class RulesCollectionTest {
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -144,8 +145,8 @@ public class RulesCollectionTest {
       String s2 = "test2";
       String s3 = "test3";
 
-      Input input1 = new Input(inputTerms(null, s1, s2));
-      Input input2 = new Input(inputTerms(null, s2, s3));
+      Input input1 = new Input(inputTerms(null, s1, s2), false, false);
+      Input input2 = new Input(inputTerms(null, s2, s3), false, false);
 
       Instructions instructions1 = instructions("instruction1");
       builder.addRule(input1, instructions1);
@@ -155,7 +156,7 @@ public class RulesCollectionTest {
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -192,8 +193,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1, s2));
-      Input input2 = new Input(inputTerms(null, s2));
+      Input input1 = new Input(inputTerms(null, s1, s2), false, false);
+      Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions("instruction1");
       Instructions instructions2 = instructions("instruction2");
@@ -203,7 +204,7 @@ public class RulesCollectionTest {
 
       // Input is s1 s2
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -228,8 +229,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1));
-      Input input2 = new Input(inputTerms(null, s2));
+      Input input1 = new Input(inputTerms(null, s1), false, false);
+      Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions("instruction1");
       builder.addRule(input1, instructions1);
@@ -239,7 +240,7 @@ public class RulesCollectionTest {
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
@@ -268,7 +269,7 @@ public class RulesCollectionTest {
                   new querqy.rewrite.commonrules.model.Term(s2.toCharArray(), 0, s2.length(), Arrays.asList("f21",
                         "f22"))
 
-                  ));
+                  ), false, false);
 
       Instructions instructions1 = instructions("instruction1");
       builder.addRule(input1, instructions1);
@@ -280,7 +281,7 @@ public class RulesCollectionTest {
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
-      PositionSequence<Term> sequence = new PositionSequence<>();
+      PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(term11);
       sequence.addElement(term21);

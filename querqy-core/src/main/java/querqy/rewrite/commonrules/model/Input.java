@@ -16,9 +16,17 @@ import querqy.CompoundCharSequence;
 public class Input {
 
    final List<Term> inputTerms;
+   final boolean requiresLeftBoundary;
+   final boolean requiresRightBoundary;
 
    public Input(List<Term> inputTerms) {
+       this(inputTerms, false, false);
+   }
+   
+   public Input(List<Term> inputTerms, boolean requiresLeftBoundary, boolean requiresRightBoundary) {
       this.inputTerms = inputTerms;
+      this.requiresLeftBoundary = requiresLeftBoundary;
+      this.requiresRightBoundary = requiresRightBoundary;
    }
 
    public boolean isEmpty() {

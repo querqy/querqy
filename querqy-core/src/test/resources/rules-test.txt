@@ -43,6 +43,14 @@ ts6 =>
 # test ignore case	
 tS7 Ts8 TS => 
 	FILTER : FLT4
-	 
+	
 
+=tb1 =>
+	FILTER: FLTTB1
+	 
+=tb2= =>
+	FILTER: FLTTB2
+	
+tb3= =>
+	FILTER: FLTTB3
 	

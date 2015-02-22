@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import querqy.ComparableCharSequence;
+import querqy.CompoundCharSequence;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -41,6 +42,8 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
             boolean isPrefix = term instanceof PrefixTerm;
             
             for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
+                
+                seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
                 
                 States<List<Instructions>> states = map.get(seq);
                 
@@ -82,6 +85,8 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         } else {
             for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
                 
+                seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
+                
                 States<List<Instructions>> states = map.get(seq);
                 State<List<Instructions>> state = states.getStateForCompleteSequence();
                 if (state.value != null) {
@@ -96,23 +101,27 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
        }
 
     }
+    
+    ComparableCharSequence applyBoundaries(ComparableCharSequence seq, boolean requiresLeftBoundary, boolean requiresRightBoundary) {
+        if (requiresLeftBoundary == requiresRightBoundary) {
+            if (requiresLeftBoundary) {
+                return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq, TrieMapRulesCollection.BOUNDARY_WORD);
+            } else {
+                return seq;
+            }
+        } else if (requiresLeftBoundary) {
+            return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq);
+        } else {
+            return new CompoundCharSequence(" ", seq, TrieMapRulesCollection.BOUNDARY_WORD);
+        }
+    }
+    
 
     /* (non-Javadoc)
      * @see querqy.rewrite.commonrules.model.RulesCollectionBuilder#build()
      */
     @Override
     public RulesCollection build() {
-//        TrieMap<List<Instructions>> map = new TrieMap<>();
-//        for (Map.Entry<CharSequence, List<Instructions>> entry: rules.entrySet()) {
-//            CharSequence input = entry.getKey();
-//            if (entry instanceof PrefixTerm) {
-//                map.putPrefix(input, entry.getValue());
-//            } else {
-//                map.put(entry.getKey(), entry.getValue());
-//            }
-//        }
-        
-       
         return new TrieMapRulesCollection(map, ignoreCase);
     }
 

@@ -1,6 +1,7 @@
 package querqy.rewrite.commonrules;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import querqy.model.Clause.Occur;
+import querqy.model.InputSequenceElement;
 import querqy.model.Query;
 import querqy.model.RawQuery;
 import querqy.model.Term;
@@ -82,7 +84,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "aa");
         Term t2 = new Term(null, "l");
-        PositionSequence<Term> seq = new PositionSequence<Term>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -102,7 +104,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         Term t2 = new Term(null, "b");
         Term t3 = new Term(null, "c");
         Term t4 = new Term(null, "l");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -145,7 +147,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "t1");
         Term t2 = new Term(null, "t2");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -168,7 +170,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     public void test05() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "tf2");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         List<Action> actions = rules.getRewriteActions(seq);
@@ -209,7 +211,7 @@ ts6 =>
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "ts1");
         Term t2 = new Term(null, "ts2");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -237,7 +239,7 @@ ts6 =>
     public void test07() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
         Term t1 = new Term(null, "ts6");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);Character.toLowerCase('L');
         List<Action> actions = rules.getRewriteActions(seq);
@@ -271,7 +273,7 @@ ts6 =>
         Term t1 = new Term(null, "ts7");
         Term t2 = new Term(null, "ts8");
         Term t3 = new Term(null, "ts");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -295,7 +297,7 @@ ts6 =>
         Term t1 = new Term(null, "tS7");
         Term t2 = new Term(null, "Ts8");
         Term t3 = new Term(null, "TS");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -330,7 +332,7 @@ ts6 =>
         Term t1 = new Term(null, "tS7");
         Term t2 = new Term(null, "Ts8");
         Term t3 = new Term(null, "TS");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -365,7 +367,7 @@ ts6 =>
         Term t1 = new Term(null, "Ts7");
         Term t2 = new Term(null, "tS8");
         Term t3 = new Term(null, "ts");
-        PositionSequence<Term> seq = new PositionSequence<>();
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
         seq.nextPosition();
@@ -387,6 +389,191 @@ ts6 =>
                 
                 ));
     }
+    
+    /**
+     * =tb1 =>
+     *   FILTER: FLTTB1
+     *
+     * =tb2= =>
+     *   FILTER: FLTTB2
+     *
+     * tb3= =>
+     *   FILTER: FLTTB3
+     * @throws Exception
+     */
+    @Test
+    public void test12() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t1 = new Term(null, "tb1");
+        Term t2 = new Term(null, "tbx");
+       // Term t3 = new Term(null, "tb3");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+//        seq.nextPosition();
+//        seq.addElement(t2);
+//        seq.nextPosition();
+//        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB1")
+                                                                
+                                                        )))), 
+                                          new TermMatches(Arrays.asList(new TermMatch(t1))), 0, 1)
+                
+                
+                ));
+    }
+    
+    /**
+     * =tb1 =>
+     *   FILTER: FLTTB1
+     *
+     * =tb2= =>
+     *   FILTER: FLTTB2
+     *
+     * tb3= =>
+     *   FILTER: FLTTB3
+     * @throws Exception
+     */
+    @Test
+    public void test13() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t1 = new Term(null, "tb1");
+        Term tx = new Term(null, "tbx");
+       // Term t3 = new Term(null, "tb3");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(tx);
+        seq.nextPosition();
+        seq.addElement(t1);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+//        seq.nextPosition();
+//        seq.addElement(t2);
+//        seq.nextPosition();
+//        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, not(contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB1")
+                                                                
+                                                        )))), 
+                                          new TermMatches(Arrays.asList(new TermMatch(t1))), 0, 1)
+                
+                
+                )));
+    }   
+    
+    /**
+     * =tb1 =>
+     *   FILTER: FLTTB1
+     *
+     * =tb2= =>
+     *   FILTER: FLTTB2
+     *
+     * tb3= =>
+     *   FILTER: FLTTB3
+     * @throws Exception
+     */
+    @Test
+    public void test14() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t2 = new Term(null, "tb2");
+        //Term tx = new Term(null, "tbx");
+       // Term t3 = new Term(null, "tb3");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+//        seq.addElement(tx);
+//        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+//        seq.nextPosition();
+//        seq.addElement(t2);
+//        seq.nextPosition();
+//        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB2")
+                                                                
+                                                        )))), 
+                                          new TermMatches(Arrays.asList(new TermMatch(t2))), 0, 1)
+                
+                
+                ));
+    }  
+    
+    /**
+     * =tb1 =>
+     *   FILTER: FLTTB1
+     *
+     * =tb2= =>
+     *   FILTER: FLTTB2
+     *
+     * tb3= =>
+     *   FILTER: FLTTB3
+     * @throws Exception
+     */
+    @Test
+    public void test15() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t2 = new Term(null, "tb2");
+        Term tx = new Term(null, "tbx");
+       // Term t3 = new Term(null, "tb3");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(t2);
+        seq.nextPosition();
+        seq.addElement(tx);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+//        seq.nextPosition();
+//        seq.addElement(t2);
+//        seq.nextPosition();
+//        seq.addElement(t3);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, not(contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB2")
+                                                                
+                                                        )))), 
+                                          new TermMatches(Arrays.asList(new TermMatch(t2))), 0, 1)
+                
+                
+                )));
+    }  
+    
     
     @Test
     public void testError01() throws Exception {
