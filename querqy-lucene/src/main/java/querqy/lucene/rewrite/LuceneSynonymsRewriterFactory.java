@@ -6,7 +6,6 @@ package querqy.lucene.rewrite;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -17,7 +16,6 @@ import org.apache.lucene.analysis.core.KeywordTokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.synonym.SolrSynonymParser;
 import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.apache.lucene.util.Version;
 
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
@@ -41,11 +39,11 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
 
       Analyzer analyzer = new Analyzer() {
          @Override
-         protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-            Tokenizer tokenizer = new KeywordTokenizer(reader);
+         protected TokenStreamComponents createComponents(String fieldName) {
+            Tokenizer tokenizer = new KeywordTokenizer();
             TokenStream stream = tokenizer;
             if (ignoreCase) {
-               stream = new LowerCaseFilter(Version.LUCENE_4_9, stream);
+               stream = new LowerCaseFilter(stream);
             }
             return new TokenStreamComponents(tokenizer, stream);
          }

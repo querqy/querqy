@@ -2,12 +2,17 @@
 
 <config>
 
-	<luceneMatchVersion>4.8</luceneMatchVersion>
+	<luceneMatchVersion>5.0.0</luceneMatchVersion>
 	<directoryFactory name="DirectoryFactory" class="solr.RAMDirectoryFactory" />
 
 	<dataDir>${solr.core0.data.dir:}</dataDir>
 
 	<schemaFactory class="ClassicIndexSchemaFactory" />
+
+    <indexConfig>
+        <!-- Needed for RAMDirectoryFactory -->
+        <lockType>single</lockType>
+    </indexConfig>
 
 	<updateHandler class="solr.DirectUpdateHandler2" />
 
@@ -29,18 +34,6 @@
 		default="true" />
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
-	<requestHandler name="/update" class="solr.UpdateRequestHandler" />
-	<requestHandler name="/admin/"
-		class="org.apache.solr.handler.admin.AdminHandlers" />
-
-	<requestHandler name="/admin/ping" class="solr.PingRequestHandler">
-		<lst name="invariants">
-			<str name="q">*:*</str>
-		</lst>
-		<lst name="defaults">
-			<str name="echoParams">all</str>
-		</lst>
-	</requestHandler>
 
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
