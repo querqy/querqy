@@ -46,7 +46,6 @@ class Sequence {
       bytesReader.reset(finalOutput.bytes, finalOutput.offset, finalOutput.length);
 
       BytesRef scratchBytes = new BytesRef();
-      CharsRef scratchChars = new CharsRef();
 
       final int code = bytesReader.readVInt();
       // final boolean keepOrig = (code & 0x1) == 0;
@@ -56,12 +55,13 @@ class Sequence {
       for (int outputIDX = 0; outputIDX < count; outputIDX++) {
 
          map.words.get(bytesReader.readVInt(), scratchBytes);
+         char[] scratchChars = new char[scratchBytes.length];
          UnicodeUtil.UTF8toUTF16(scratchBytes, scratchChars);
 
          boolean replacementIsMultiTerm = false;
          // ignore ' ' at beginning and end
          for (int i = 1; i < scratchChars.length - 1 && !replacementIsMultiTerm; i++) {
-            replacementIsMultiTerm = scratchChars.charAt(i) == ' ';
+            replacementIsMultiTerm = scratchChars[i] == ' ';
          }
 
          // iterate through all input terms
@@ -77,11 +77,11 @@ class Sequence {
 
                int start = 0;
                for (int i = 0; i < scratchChars.length; i++) {
-                  if (scratchChars.charAt(i) == ' ' && (i > start)) {
+                  if (scratchChars[i] == ' ' && (i > start)) {
                      DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST, true);
                      newDmq.addClause(
                            new Term(newDmq,
-                                 new SimpleComparableCharSequence(scratchChars.chars, start, i - start)));
+                                 new SimpleComparableCharSequence(scratchChars, start, i - start)));
                      replaceSeq.addClause(newDmq);
                      start = i + 1;
                   }
@@ -89,7 +89,7 @@ class Sequence {
 
                if (start < scratchChars.length) {
                   DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(replaceSeq, Occur.MUST, true);
-                  newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars.chars, start,
+                  newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars, start,
                         scratchChars.length - start)));
                   replaceSeq.addClause(newDmq);
                }
@@ -99,7 +99,7 @@ class Sequence {
             } else {
 
                DisjunctionMaxQuery replaceDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
-               replaceDmq.addClause(new Term(replaceDmq, new SimpleComparableCharSequence(scratchChars.chars, 0,
+               replaceDmq.addClause(new Term(replaceDmq, new SimpleComparableCharSequence(scratchChars, 0,
                      scratchChars.length)));
                add.addClause(replaceDmq);
             }

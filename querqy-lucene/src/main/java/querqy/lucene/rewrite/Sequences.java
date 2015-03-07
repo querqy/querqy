@@ -15,7 +15,6 @@ import java.util.Set;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.UnicodeUtil;
 import org.apache.lucene.util.fst.FST;
 
@@ -174,24 +173,23 @@ class Sequences {
 
       for (int outputIDX = 0; outputIDX < count; outputIDX++) {
 
+         map.words.get(bytesReader.readVInt(), scratchBytes);
          // not re-using scratchChars globally -> would have to copy to Terms
          // anyway
-         CharsRef scratchChars = new CharsRef();
-
-         map.words.get(bytesReader.readVInt(), scratchBytes);
+         char[] scratchChars = new char[scratchBytes.length];
          UnicodeUtil.UTF8toUTF16(scratchBytes, scratchChars);
 
          BooleanQuery add = null;
 
          int start = 0;
          for (int i = 0; i < scratchChars.length; i++) {
-            if (scratchChars.charAt(i) == ' ' && (i > start)) {
+            if (scratchChars[i] == ' ' && (i > start)) {
                if (add == null) {
                   add = new BooleanQuery(currentDmq, Occur.SHOULD, true);
                }
                DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
                newDmq.addClause(new Term(newDmq,
-                     new SimpleComparableCharSequence(scratchChars.chars, start, i - start), true));
+                     new SimpleComparableCharSequence(scratchChars, start, i - start), true));
                add.addClause(newDmq);
                start = i + 1;
             }
@@ -200,13 +198,13 @@ class Sequences {
          if (add != null) {
             if (start < scratchChars.length) {
                DisjunctionMaxQuery newDmq = new DisjunctionMaxQuery(add, Occur.MUST, true);
-               newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars.chars, start,
+               newDmq.addClause(new Term(newDmq, new SimpleComparableCharSequence(scratchChars, start,
                      scratchChars.length - start), true));
                add.addClause(newDmq);
             }
             adds.add(add);
          } else {
-            adds.add(new Term(currentDmq, new SimpleComparableCharSequence(scratchChars.chars, 0, scratchChars.length),
+            adds.add(new Term(currentDmq, new SimpleComparableCharSequence(scratchChars, 0, scratchChars.length),
                   true));
          }
 

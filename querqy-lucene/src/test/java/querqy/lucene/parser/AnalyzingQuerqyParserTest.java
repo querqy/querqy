@@ -4,7 +4,6 @@ import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
 
-import java.io.Reader;
 import java.util.Collections;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -15,7 +14,6 @@ import org.apache.lucene.analysis.synonym.SynonymFilter;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.LuceneTestCase;
-import org.apache.lucene.util.Version;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,9 +39,9 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
    public void createAnalyzers() throws Exception {
       queryAnalyzer = new Analyzer() {
          @Override
-         protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+         protected TokenStreamComponents createComponents(String fieldName) {
             // White space tokenizer, to lower case tokenizer.
-            return new TokenStreamComponents(new MockTokenizer(reader));
+            return new TokenStreamComponents(new MockTokenizer());
          }
       };
 
@@ -54,14 +52,14 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
 
       synonymAnalyzer = new Analyzer() {
          @Override
-         protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+         protected TokenStreamComponents createComponents(String fieldName) {
             // White space tokenizer, to lower case tokenizer.
-            MockTokenizer tokenizer = new MockTokenizer(reader);
+            MockTokenizer tokenizer = new MockTokenizer();
             // Filter for adding synonyms
             TokenStream result = new SynonymFilter(tokenizer, synonyms, true);
             // Filter all non-synonyms, because the synonym filter outputs the
             // original token too.
-            result = new TypeTokenFilter(Version.LUCENE_4_9, result, Collections.singleton(SynonymFilter.TYPE_SYNONYM),
+            result = new TypeTokenFilter(result, Collections.singleton(SynonymFilter.TYPE_SYNONYM),
                   true);
             return new TokenStreamComponents(tokenizer, result);
          }
