@@ -25,7 +25,7 @@ public class DefaultQuerqyDismaxQParserWithEmptyCommonRulesTest extends SolrTest
 
      @BeforeClass
      public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene46");
+        System.setProperty("tests.codec", "Lucene500");
         initCore("solrconfig-commonrules-empty.xml", "schema.xml");
         index();
      }

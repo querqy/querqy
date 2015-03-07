@@ -5,7 +5,7 @@ package querqy.lucene.rewrite;
 
 import java.io.IOException;
 
-import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.Term;
@@ -70,7 +70,7 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
 
       boolean updated = false;
 
-      for (final AtomicReaderContext ctx : context.leaves()) {
+      for (final LeafReaderContext ctx : context.leaves()) {
          // if (DEBUG) System.out.println("  r=" + leaves[i].reader);
          final Fields fields = ctx.reader().fields();
          if (fields != null) {

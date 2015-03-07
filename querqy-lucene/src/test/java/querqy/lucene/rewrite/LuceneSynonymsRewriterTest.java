@@ -12,7 +12,6 @@ import querqy.antlr.QueryTransformerVisitor;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
 import querqy.antlr.parser.QueryParser.QueryContext;
-import querqy.lucene.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;

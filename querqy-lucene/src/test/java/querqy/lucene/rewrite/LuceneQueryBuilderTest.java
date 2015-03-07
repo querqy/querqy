@@ -16,14 +16,10 @@ import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.Version;
 import org.junit.Before;
 import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
-import querqy.lucene.rewrite.IndexStats;
-import querqy.lucene.rewrite.LuceneQueryBuilder;
-import querqy.lucene.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 
@@ -110,7 +106,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        LuceneQueryBuilder builder = new LuceneQueryBuilder(
                null, 
                new DocumentFrequencyCorrection(dummyIndexStats),
-               new StandardAnalyzer(Version.LUCENE_48, new CharArraySet(Version.LUCENE_48, stopWords, true)), 
+               new StandardAnalyzer(new CharArraySet(stopWords, true)),
                fields(names), dummyIndexStats, tie);
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
