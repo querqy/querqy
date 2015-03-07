@@ -26,8 +26,9 @@ import querqy.rewrite.commonrules.model.Term;
  */
 public class LineParser {
     
-    static final char BOUNDARY = '=';
+    static final char BOUNDARY = '"';
     static final char WILDCARD = '*';
+    static final char RAWQUERY = '*';
 	
 	public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
 		
@@ -94,7 +95,7 @@ public class LineParser {
 				return new ValidationError("Cannot parse line: " + line);
 			}
 			
-			if (filterString.charAt(0) == '*') {
+			if (filterString.charAt(0) == RAWQUERY) {
 				if (filterString.length() == 1) {
 					return new ValidationError("Missing raw query after * in line: " + line);
 				}
@@ -192,10 +193,10 @@ public class LineParser {
             return new ValidationError("Query expected: " + line);
         }
         
-        if (boostLine.charAt(0) == '*') {
+        if (boostLine.charAt(0) == RAWQUERY) {
             
             if (boostLine.length() == 1) {
-                return new ValidationError("Missing raw query after * in line: " + line);
+                return new ValidationError("Missing raw query after " + RAWQUERY + " in line: " + line);
             }
             
             String rawQuery = boostLine.substring(1).trim();
@@ -205,7 +206,7 @@ public class LineParser {
         
         } else if (querqyParserFactory == null) {
         
-            return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' you want to pass this line as a raw query String to your search engine. Line: " + line);
+            return new ValidationError("No querqy parser factory to parse filter query. Prefix '" + RAWQUERY + "' you want to pass this line as a raw query String to your search engine. Line: " + line);
         
         } else {
             QuerqyParser parser = querqyParserFactory.createParser();
@@ -232,7 +233,7 @@ public class LineParser {
 	    
 	    int pos = s.indexOf('*');
 	    if (pos > -1 && pos < (s.length() -1)) {
-	        return new ValidationError("* is only allowed at the end of the input: " + s);
+	        return new ValidationError(WILDCARD + " is only allowed at the end of the input: " + s);
 	    }
 	    Object expr = parseTermExpression(s);
 	    return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary);

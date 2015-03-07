@@ -45,12 +45,17 @@ tS7 Ts8 TS =>
 	FILTER : FLT4
 	
 
-=tb1 =>
+"tb1 =>
 	FILTER: FLTTB1
 	 
-=tb2= =>
+"tb2" =>
 	FILTER: FLTTB2
 	
-tb3= =>
+tb3" =>
 	FILTER: FLTTB3
+	
+# Enable once we can deal with the wildcard followed by the input boundary
+#"tb4*" =>
+#	FILTER: FLTTB4
+
 	

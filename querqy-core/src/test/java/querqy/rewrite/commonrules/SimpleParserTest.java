@@ -391,13 +391,13 @@ ts6 =>
     }
     
     /**
-     * =tb1 =>
+     * "tb1 =>
      *   FILTER: FLTTB1
      *
-     * =tb2= =>
+     * "tb2" =>
      *   FILTER: FLTTB2
      *
-     * tb3= =>
+     * tb3" =>
      *   FILTER: FLTTB3
      * @throws Exception
      */
@@ -406,7 +406,6 @@ ts6 =>
         RulesCollection rules = createRulesFromResource("rules-test.txt", true);
         Term t1 = new Term(null, "tb1");
         Term t2 = new Term(null, "tbx");
-       // Term t3 = new Term(null, "tb3");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
@@ -416,10 +415,6 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-//        seq.nextPosition();
-//        seq.addElement(t2);
-//        seq.nextPosition();
-//        seq.addElement(t3);
         List<Action> actions = rules.getRewriteActions(seq);
        
         assertThat(actions, contains( 
@@ -437,13 +432,13 @@ ts6 =>
     }
     
     /**
-     * =tb1 =>
+     * "tb1 =>
      *   FILTER: FLTTB1
      *
-     * =tb2= =>
+     * "tb2" =>
      *   FILTER: FLTTB2
      *
-     * tb3= =>
+     * tb3" =>
      *   FILTER: FLTTB3
      * @throws Exception
      */
@@ -452,7 +447,6 @@ ts6 =>
         RulesCollection rules = createRulesFromResource("rules-test.txt", true);
         Term t1 = new Term(null, "tb1");
         Term tx = new Term(null, "tbx");
-       // Term t3 = new Term(null, "tb3");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
@@ -462,10 +456,6 @@ ts6 =>
         seq.addElement(t1);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-//        seq.nextPosition();
-//        seq.addElement(t2);
-//        seq.nextPosition();
-//        seq.addElement(t3);
         List<Action> actions = rules.getRewriteActions(seq);
        
         assertThat(actions, not(contains( 
@@ -483,13 +473,13 @@ ts6 =>
     }   
     
     /**
-     * =tb1 =>
+     * "tb1 =>
      *   FILTER: FLTTB1
      *
-     * =tb2= =>
+     * "tb2" =>
      *   FILTER: FLTTB2
      *
-     * tb3= =>
+     * tb3" =>
      *   FILTER: FLTTB3
      * @throws Exception
      */
@@ -497,21 +487,13 @@ ts6 =>
     public void test14() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", true);
         Term t2 = new Term(null, "tb2");
-        //Term tx = new Term(null, "tbx");
-       // Term t3 = new Term(null, "tb3");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
         seq.nextPosition();
-//        seq.addElement(tx);
-//        seq.nextPosition();
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-//        seq.nextPosition();
-//        seq.addElement(t2);
-//        seq.nextPosition();
-//        seq.addElement(t3);
         List<Action> actions = rules.getRewriteActions(seq);
        
         assertThat(actions, contains( 
@@ -529,13 +511,13 @@ ts6 =>
     }  
     
     /**
-     * =tb1 =>
+     * "tb1 =>
      *   FILTER: FLTTB1
      *
-     * =tb2= =>
+     * "tb2" =>
      *   FILTER: FLTTB2
      *
-     * tb3= =>
+     * tb3" =>
      *   FILTER: FLTTB3
      * @throws Exception
      */
@@ -544,7 +526,6 @@ ts6 =>
         RulesCollection rules = createRulesFromResource("rules-test.txt", true);
         Term t2 = new Term(null, "tb2");
         Term tx = new Term(null, "tbx");
-       // Term t3 = new Term(null, "tb3");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
@@ -554,10 +535,6 @@ ts6 =>
         seq.addElement(tx);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-//        seq.nextPosition();
-//        seq.addElement(t2);
-//        seq.nextPosition();
-//        seq.addElement(t3);
         List<Action> actions = rules.getRewriteActions(seq);
        
         assertThat(actions, not(contains( 
@@ -573,6 +550,39 @@ ts6 =>
                 
                 )));
     }  
+    
+    /**
+     * "tb4*" =>
+     *      FILTER: FLTTB4
+     *      
+     * @throws Exception
+     */
+    //@Test TODO enable test once we can handle wild card before right input boundary
+    public void test16() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term t4 = new Term(null, "tb4abc");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(t4);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+        List<Action> actions = rules.getRewriteActions(seq);
+       
+        assertThat(actions, contains( 
+                new Action(
+                        Arrays.asList(
+                                new Instructions(
+                                        Arrays.asList(
+                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB4")
+                                                                
+                                                        )))), 
+                                          new TermMatches(Arrays.asList(new TermMatch(t4))), 0, 1)
+                
+                
+                ));
+    }
     
     
     @Test
