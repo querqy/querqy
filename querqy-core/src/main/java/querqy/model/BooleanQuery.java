@@ -44,4 +44,18 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
       return clone((BooleanParent) newParent);
    }
 
+   @Override
+   public BooleanClause clone(BooleanParent newParent, boolean generated) {
+       BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
+       for (BooleanClause clause : clauses) {
+          bq.addClause(clause.clone(bq, generated));
+       }
+       return bq;
+   }
+
+   @Override
+   public BooleanClause clone(BooleanQuery newParent, boolean generated) {
+       return clone((BooleanParent) newParent, generated);
+   }
+
 }

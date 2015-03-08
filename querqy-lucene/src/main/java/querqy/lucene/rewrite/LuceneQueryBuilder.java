@@ -37,11 +37,12 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    }
 
    final Analyzer analyzer;
-   final Map<String, Float> searchFieldsAndBoostings;
+   final Map<String, Float> queryFieldsAndBoostings;
+   final Map<String, Float> generatedQueryFieldsAndBoostings;
    final IndexStats indexStats;
    final boolean normalizeBooleanQueryBoost;
    final float dmqTieBreakerMultiplier;
-   final float generatedFieldBoostFactor;
+  // final float generatedFieldBoostFactor;
    final DocumentFrequencyCorrection dfc;
    final IndexSearcher indexSearcher;
 
@@ -52,29 +53,31 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    protected ParentType parentType = ParentType.BQ;
 
    public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer,
-         Map<String, Float> searchFieldsAndBoostings,
+           Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings,
          IndexStats indexStats,
          float dmqTieBreakerMultiplier) {
-      this(indexSearcher, dfc, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, 1f, true);
+      this(indexSearcher, dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, true);
    }
 
    public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer,
-         Map<String, Float> searchFieldsAndBoostings,
+           Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings,
          IndexStats indexStats,
          float dmqTieBreakerMultiplier, float generatedFieldBoostFactor) {
-      this(indexSearcher, dfc, analyzer, searchFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier,
-            generatedFieldBoostFactor, true);
+      this(indexSearcher, dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier,
+             true);
    }
 
    public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer,
-         Map<String, Float> searchFieldsAndBoostings, IndexStats indexStats,
-         float dmqTieBreakerMultiplier, float generatedFieldBoostFactor, boolean normalizeBooleanQueryBoost) {
+         Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings, IndexStats indexStats,
+         float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost) {
+       
       this.analyzer = analyzer;
-      this.searchFieldsAndBoostings = searchFieldsAndBoostings;
+      this.queryFieldsAndBoostings = queryFieldsAndBoostings;
+      this.generatedQueryFieldsAndBoostings = generatedQueryFieldsAndBoostings;
       this.indexStats = indexStats;
       this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
       this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
-      this.generatedFieldBoostFactor = generatedFieldBoostFactor;
+     // this.generatedFieldBoostFactor = generatedFieldBoostFactor;
       this.indexSearcher = indexSearcher;
       this.dfc = dfc;
    }
@@ -219,10 +222,13 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
       try {
 
-         if (fieldname != null) {
+          Map<String, Float> searchFieldsAndBoostings = (term.isGenerated()) ? generatedQueryFieldsAndBoostings : queryFieldsAndBoostings;
+
+          if (fieldname != null) {
+             
             Float boost = searchFieldsAndBoostings.get(fieldname);
             if (boost != null) {
-               addTerm(fieldname, boost, siblings, term);
+                addTerm(fieldname, boost, siblings, term);
             } else {
                // someone searches in a field that is not set as a search field
                // --> set value to fieldname + ":" + value in search in all
@@ -233,9 +239,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                }
             }
          } else {
-            for (Map.Entry<String, Float> field : searchFieldsAndBoostings.entrySet()) {
-               addTerm(field.getKey(), field.getValue(), siblings, term);
-            }
+             for (Map.Entry<String, Float> field : searchFieldsAndBoostings.entrySet()) {
+                 addTerm(field.getKey(), field.getValue(), siblings, term);
+             }
          }
       } catch (IOException e) {
          // REVISIT: throw more specific exception?
@@ -274,8 +280,6 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     */
    void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
 
-      float applicableBoost = sourceTerm.isGenerated() ? generatedFieldBoostFactor * boost : boost;
-
       PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
 
       TokenStream ts = null;
@@ -296,12 +300,12 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
          switch (sequence.size()) {
          case 0: break;
-         case 1: target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), applicableBoost));
+         case 1: target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost));
                  break;
          default:
             BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
             for (List<org.apache.lucene.index.Term> posTerms : sequence) {
-               bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, applicableBoost), Occur.MUST);
+               bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, boost), Occur.MUST);
             }
             target.add(bq);
          }

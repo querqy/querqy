@@ -24,6 +24,8 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
+import org.apache.solr.common.SolrException;
+import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
@@ -61,6 +63,8 @@ import querqy.rewrite.RewriteChain;
 public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
    public static final String GFB = "gfb"; // generated field boost
+   public static final String GQF = "gqf"; // generated query fields (query generated terms only in these fields)
+   public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
 
    static final String MATCH_ALL = "*:*";
 
@@ -76,6 +80,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    final IndexStats indexStats;
    final QuerqyParser querqyParser;
    final Map<String, Float> userQueryFields;
+   final Map<String, Float> generatedQueryFields;
    final LuceneQueryBuilder builder;
    final DocumentFrequencyCorrection dfc;
 
@@ -100,10 +105,27 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       queryAnalyzer = schema.getQueryAnalyzer();
       this.rewriteChain = rewriteChain;
       this.indexStats = indexStats;
-      userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params));
+      userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params), DisMaxParams.QF, 1f, true);
+      generatedQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params), GQF, null, false);
+      if (generatedQueryFields.isEmpty()) {
+          for (Map.Entry<String, Float> entry: userQueryFields.entrySet()) {
+              generatedQueryFields.put(entry.getKey(), entry.getValue() * config.generatedFieldBoostFactor);
+          }
+      } else {
+          for (Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
+              String name = entry.getKey();
+              Float nonGeneratedBoostFactor = userQueryFields.get(name);
+              if (nonGeneratedBoostFactor == null) {
+                  nonGeneratedBoostFactor = 1f;
+              }
+              if (entry.getValue() == null) {
+                  entry.setValue(nonGeneratedBoostFactor * config.generatedFieldBoostFactor);
+              }
+          }
+      }
       dfc = new DocumentFrequencyCorrection(indexStats);
-      builder = new LuceneQueryBuilder(req.getSearcher(), dfc, queryAnalyzer, userQueryFields, indexStats,
-            config.getTieBreaker(), config.generatedFieldBoostFactor);
+      builder = new LuceneQueryBuilder(req.getSearcher(), dfc, queryAnalyzer, userQueryFields, generatedQueryFields, indexStats,
+            config.getTieBreaker());
 
    }
 
@@ -491,8 +513,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * @return Map of fieldOne =&gt; 2.3, fieldTwo =&gt; null, fieldThree =&gt;
     *         -0.4
     */
-   public static Map<String, Float> parseFieldBoosts(String in) {
-      return parseFieldBoosts(new String[] { in });
+   public static Map<String, Float> parseFieldBoosts(String in, Float defaultBoost) {
+      return parseFieldBoosts(new String[] { in }, defaultBoost);
    }
 
    /**
@@ -505,7 +527,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * @return Map of fieldOne =&gt; 2.3, fieldTwo =&gt; null, fieldThree =&gt;
     *         -0.4
     */
-   public static Map<String, Float> parseFieldBoosts(String[] fieldLists) {
+   public static Map<String, Float> parseFieldBoosts(String[] fieldLists, Float defaultBoost) {
       if (null == fieldLists || 0 == fieldLists.length) {
          return new HashMap<>();
       }
@@ -522,7 +544,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          String[] bb = whitespacePattern.split(in);
          for (String s : bb) {
             String[] bbb = caratPattern.split(s);
-            out.put(bbb[0], 1 == bbb.length ? 1f : Float.valueOf(bbb[1]));
+            out.put(bbb[0], 1 == bbb.length ? defaultBoost : Float.valueOf(bbb[1]));
          }
       }
       return out;
@@ -535,16 +557,16 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * parameter. Falls back to the 'df' parameter or
     * {@link org.apache.solr.schema.IndexSchema#getDefaultSearchFieldName()}.
     */
-   public static Map<String, Float> parseQueryFields(final IndexSchema indexSchema, final SolrParams solrParams)
+   public static Map<String, Float> parseQueryFields(final IndexSchema indexSchema, final SolrParams solrParams, String fieldName, Float defaultBoost, boolean useDfFallback)
          throws SyntaxError {
-      Map<String, Float> queryFields = parseFieldBoosts(solrParams.getParams(DisMaxParams.QF));
-      if (queryFields.isEmpty()) {
+      Map<String, Float> queryFields = parseFieldBoosts(solrParams.getParams(fieldName), defaultBoost);
+      if (queryFields.isEmpty() && useDfFallback) {
          String df = QueryParsing.getDefaultField(indexSchema, solrParams.get(CommonParams.DF));
          if (df == null) {
-            throw new SyntaxError("Neither " + DisMaxParams.QF + ", " + CommonParams.DF
+            throw new SyntaxError("Neither " + fieldName + ", " + CommonParams.DF
                   + ", nor the default search field are present.");
          }
-         queryFields.put(df, 1.0f);
+         queryFields.put(df, defaultBoost);
       }
       return queryFields;
    }

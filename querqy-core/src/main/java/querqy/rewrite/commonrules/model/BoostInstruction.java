@@ -43,7 +43,7 @@ public class BoostInstruction implements Instruction {
    @Override
    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
            int startPosition, int endPosition, ExpandedQuery expandedQuery) {
-      BoostQuery bq = new BoostQuery(query.clone(null), boost);
+      BoostQuery bq = new BoostQuery(query.clone(null, true), boost);
       if (direction == BoostDirection.DOWN) {
          expandedQuery.addBoostDownQuery(bq);
       } else {

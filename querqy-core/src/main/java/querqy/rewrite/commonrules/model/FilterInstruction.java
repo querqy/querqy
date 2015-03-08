@@ -28,7 +28,7 @@ public class FilterInstruction implements Instruction {
    @Override
    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
            int startPosition, int endPosition, ExpandedQuery expandedQuery) {
-      expandedQuery.addFilterQuery((QuerqyQuery<?>) filterQuery.clone(null));
+      expandedQuery.addFilterQuery((QuerqyQuery<?>) filterQuery.clone(null, true));
 
    }
 

@@ -348,13 +348,30 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
             "defType", "querqy",
             "debugQuery", "true");
 
-      assertQ("ps2/3 with synonyms not working",
+      assertQ(QuerqyDismaxQParser.GFB + " not working",
             req,
             "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
             "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]");
 
       req.close();
    }
+   
+   @Test
+   public void testThatGeneratedQueryFieldsAreApplied() throws Exception {
+      SolrQueryRequest req = req("q", "a",
+            DisMaxParams.QF, "f1^2 f2^3",
+            QuerqyDismaxQParser.GFB, "0.8",
+            QuerqyDismaxQParser.GQF, "f2^10 f4",
+            "defType", "querqy",
+            "debugQuery", "true");
+
+      assertQ("Generated query fields not working",
+            req,
+            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f2:a^3.0 | f2:x^10.0 | f4:x^0.8')]"
+      );
+      req.close();
+   }
+   
 
    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 

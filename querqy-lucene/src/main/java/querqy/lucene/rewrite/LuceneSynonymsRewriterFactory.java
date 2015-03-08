@@ -17,7 +17,6 @@ import org.apache.lucene.analysis.core.KeywordTokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.synonym.SolrSynonymParser;
 import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.apache.lucene.util.Version;
 
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
@@ -45,7 +44,7 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
             Tokenizer tokenizer = new KeywordTokenizer(reader);
             TokenStream stream = tokenizer;
             if (ignoreCase) {
-               stream = new LowerCaseFilter(Version.LUCENE_4_9, stream);
+               stream = new LowerCaseFilter(stream);
             }
             return new TokenStreamComponents(tokenizer, stream);
          }
