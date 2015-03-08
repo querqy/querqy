@@ -11,4 +11,7 @@ public interface QuerqyQuery<P extends Node> extends CloneableNode<P> {
 
    @Override
    QuerqyQuery<P> clone(P newParent);
+   
+   @Override
+   QuerqyQuery<P> clone(P newParent, boolean generated);
 }

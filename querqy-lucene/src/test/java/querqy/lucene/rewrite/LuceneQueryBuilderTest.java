@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
 import querqy.model.ExpandedQuery;
+import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
 
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
@@ -78,36 +79,40 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    }
 
    protected Query build(String input, float tie, String... names) throws IOException {
-      LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
-            keywordAnalyzer, fields(names), dummyIndexStats, tie);
+       Map<String, Float> fields = fields(names);
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
+            keywordAnalyzer, fields, fields, dummyIndexStats, tie);
 
-      ANTLRQueryParser parser = new ANTLRQueryParser();
-      querqy.model.Query q = parser.parse(input);
-      return builder.createQuery(q);
+       ANTLRQueryParser parser = new ANTLRQueryParser();
+       querqy.model.Query q = parser.parse(input);
+       return builder.createQuery(q);
    }
 
    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
-      LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
-            keywordAnalyzer, fields(names), dummyIndexStats, tie);
+       Map<String, Float> fields = fields(names);
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
+            keywordAnalyzer, fields, fields, dummyIndexStats, tie);
 
-      ANTLRQueryParser parser = new ANTLRQueryParser();
-      querqy.model.Query q = parser.parse(input);
-      LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
-      factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
-      factory.build();
+       ANTLRQueryParser parser = new ANTLRQueryParser();
+       querqy.model.Query q = parser.parse(input);
+       LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+       factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+       factory.build();
 
-      QueryRewriter rewriter = factory.createRewriter(null, null);
+       QueryRewriter rewriter = factory.createRewriter(null, null);
 
-      return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
+       return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
 
    }
    
    protected Query buildWithStopWords(String input, float tie, String... names) throws IOException {
+       Map<String, Float> fields = fields(names);
+       
        LuceneQueryBuilder builder = new LuceneQueryBuilder(
                null, 
                new DocumentFrequencyCorrection(dummyIndexStats),
-               new StandardAnalyzer(new CharArraySet(stopWords, true)),
-               fields(names), dummyIndexStats, tie);
+               new StandardAnalyzer(new CharArraySet(stopWords, true)), 
+               fields, fields, dummyIndexStats, tie);
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
        return builder.createQuery(q);
@@ -278,6 +283,44 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
             tq(1f, "f1", "q")
             ));
    }
+   
+   
+   @Test
+   public void testSynonymsWithRestrictedFieldsForGeneratedTerms() throws Exception {
+       
+       
+       Map<String, Float> fieldsQuery = new HashMap<>();
+       fieldsQuery.put("f1", 2f);
+       fieldsQuery.put("f2", 3f);
+       
+       Map<String, Float> fieldsGenerated = new HashMap<>();
+       fieldsGenerated.put("f1", 4f);
+       
+       
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
+            keywordAnalyzer, fieldsQuery, fieldsGenerated, dummyIndexStats, 0.1f);
+
+       WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
+       querqy.model.Query q = parser.parse("a");
+       LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+       factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+       factory.build();
+
+       QueryRewriter rewriter = factory.createRewriter(null, null);
+
+       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
+       
+       assertThat(query, 
+           dmq(1f, 0.1f,
+                      tq(2f, "f1", "a"),
+                      tq(3f, "f2", "a"),
+                      tq(4f, "f1", "x")
+           ));
+      
+   }
+
+   
+   
 
    @Test
    public  void testStopWordRemoval() throws Exception {

@@ -33,11 +33,16 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
 
    @Override
    public BooleanClause clone(BooleanQuery newParent) {
-      DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
-      for (DisjunctionMaxClause clause : clauses) {
-         dmq.addClause(clause.clone(dmq));
-      }
-      return dmq;
+       return clone(newParent, this.generated);
+   }
+
+   @Override
+   public BooleanClause clone(BooleanQuery newParent, boolean generated) {
+       DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
+       for (DisjunctionMaxClause clause : clauses) {
+          dmq.addClause(clause.clone(dmq));
+       }
+       return dmq;
    }
 
 }

@@ -10,5 +10,6 @@ package querqy.model;
 public interface BooleanClause extends Node {
 
    BooleanClause clone(BooleanQuery newParent);
+   BooleanClause clone(BooleanQuery newParent, boolean generated);
 
 }

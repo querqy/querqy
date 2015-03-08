@@ -27,7 +27,12 @@ public class RawQuery extends Clause<BooleanParent> implements QuerqyQuery<Boole
 
    @Override
    public RawQuery clone(BooleanParent newParent) {
-      return new RawQuery(newParent, queryString, occur, generated);
+      return clone(newParent, this.generated);
+   }
+   
+   @Override
+   public RawQuery clone(BooleanParent newParent, boolean generated) {
+       return new RawQuery(newParent, queryString, occur, generated);
    }
 
    @Override
@@ -67,5 +72,7 @@ public class RawQuery extends Clause<BooleanParent> implements QuerqyQuery<Boole
    public String getQueryString() {
       return queryString;
    }
+
+
 
 }
