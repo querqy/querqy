@@ -14,7 +14,6 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
 
@@ -39,12 +38,10 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    final Analyzer analyzer;
    final Map<String, Float> queryFieldsAndBoostings;
    final Map<String, Float> generatedQueryFieldsAndBoostings;
-   final IndexStats indexStats;
    final boolean normalizeBooleanQueryBoost;
    final float dmqTieBreakerMultiplier;
   // final float generatedFieldBoostFactor;
    final DocumentFrequencyCorrection dfc;
-   final IndexSearcher indexSearcher;
 
    LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
    LinkedList<DisjunctionMaxQueryFactory> dmqStack = new LinkedList<>();
@@ -52,33 +49,28 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    protected ParentType parentType = ParentType.BQ;
 
-   public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer,
+   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
            Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings,
-         IndexStats indexStats,
          float dmqTieBreakerMultiplier) {
-      this(indexSearcher, dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier, true);
+      this(dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, dmqTieBreakerMultiplier, true);
    }
 
-   public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer,
+   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
            Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings,
-         IndexStats indexStats,
          float dmqTieBreakerMultiplier, float generatedFieldBoostFactor) {
-      this(indexSearcher, dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, indexStats, dmqTieBreakerMultiplier,
+      this(dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, dmqTieBreakerMultiplier,
              true);
    }
 
-   public LuceneQueryBuilder(IndexSearcher indexSearcher, DocumentFrequencyCorrection dfc, Analyzer analyzer,
-         Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings, IndexStats indexStats,
+   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
+         Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings, 
          float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost) {
        
       this.analyzer = analyzer;
       this.queryFieldsAndBoostings = queryFieldsAndBoostings;
       this.generatedQueryFieldsAndBoostings = generatedQueryFieldsAndBoostings;
-      this.indexStats = indexStats;
       this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
       this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
-     // this.generatedFieldBoostFactor = generatedFieldBoostFactor;
-      this.indexSearcher = indexSearcher;
       this.dfc = dfc;
    }
 
@@ -324,12 +316,12 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    protected LuceneQueryFactory<?> getLuceneQueryFactoryForStreamPosition(List<org.apache.lucene.index.Term> posTerms,
          float boost) {
       if (posTerms.size() == 1) {
-         return new TermQueryFactory(posTerms.get(0), boost, indexSearcher);
+         return new TermQueryFactory(posTerms.get(0), boost);
       } else {
          // TODO: use tiebreak = 0 ?
          DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, dmqTieBreakerMultiplier);
          for (org.apache.lucene.index.Term term : posTerms) {
-            dmq.add(new TermQueryFactory(term, 1f, indexSearcher));
+            dmq.add(new TermQueryFactory(term, 1f));
          }
          return dmq;
       }

@@ -40,24 +40,14 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
    public DisjunctionMaxQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
       if (!isBelowDMQ) {
          dfc.newClause();
-         collectMaxDocFreqInSubtree(dfc);
       }
       DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(tieBreakerMultiplier);
       dmq.setBoost(boost);
-      // int dfToSendToChildren = dfToSet < 0 ?
-      // getMaxDocFreqInSubtree(indexStats) : dfToSet;
+
       for (LuceneQueryFactory<?> disjunct : disjuncts) {
          dmq.add(disjunct.createQuery(dfc, true));
       }
       return dmq;
-   }
-
-   @Override
-   public void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc) {
-      for (LuceneQueryFactory<?> disjunct : disjuncts) {
-         disjunct.collectMaxDocFreqInSubtree(dfc);
-      }
-
    }
 
 }

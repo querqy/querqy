@@ -1,6 +1,5 @@
 package querqy.solr;
 
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.SolrTestCaseJ4;
@@ -10,19 +9,11 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import querqy.lucene.rewrite.IndexStats;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 
 public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
 
-   static final IndexStats DUMMY_INDEX_STATS = new IndexStats() {
-
-      @Override
-      public int df(Term term) {
-         return 10;
-      }
-   };
 
    public static void index() throws Exception {
 
@@ -49,7 +40,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.MM, "2");
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(),
-            DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+            new WhiteSpaceQuerqyParser());
 
       Query query = parser.parse();
 
@@ -69,7 +60,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3");
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+            new WhiteSpaceQuerqyParser());
       Query query = parser.parse();
 
       req.close();
@@ -90,7 +81,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
             QueryParsing.OP, "OR"
             );
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+            new WhiteSpaceQuerqyParser());
       Query query = parser.parse();
 
       req.close();
@@ -376,7 +367,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            DUMMY_INDEX_STATS, new WhiteSpaceQuerqyParser());
+           new WhiteSpaceQuerqyParser());
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);

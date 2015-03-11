@@ -21,8 +21,6 @@ public class NullQueryFactory implements LuceneQueryFactory<Query> {
         return new BooleanQuery();
     }
 
-    @Override
-    public void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc) {
-    }
+   
 
 }
