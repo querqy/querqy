@@ -6,6 +6,7 @@ package querqy.rewrite.commonrules;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
@@ -16,7 +17,7 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
-import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.InputBoundary;
 import querqy.rewrite.commonrules.model.Instruction;
@@ -29,7 +30,7 @@ import querqy.rewrite.commonrules.model.InputBoundary.Type;
  * @author rene
  *
  */
-public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
+public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements ContextAwareQueryRewriter {
     
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
@@ -38,6 +39,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     protected final RulesCollection rules;
     protected final LinkedList<PositionSequence<Term>> sequencesStack;
     protected ExpandedQuery expandedQuery;
+    protected Map<String, Object> context;
 
    /**
      * 
@@ -46,15 +48,22 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
       this.rules = rules;
       sequencesStack = new LinkedList<>();
    }
-
+   
    @Override
    public ExpandedQuery rewrite(ExpandedQuery query) {
+       throw new UnsupportedOperationException("This rewriter needs a query context");
+   }
+
+   @Override
+   public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
 
       QuerqyQuery<?> userQuery = query.getUserQuery();
       
       if (userQuery instanceof Query) {
           
          this.expandedQuery = query;
+         this.context = context;
+         
          sequencesStack.add(new PositionSequence<Term>());
         
          super.visit((BooleanQuery) query.getUserQuery());
@@ -85,7 +94,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
            for (Instructions instructions : action.getInstructions()) {
               for (Instruction instruction : instructions) {
                  instruction.apply(sequence, action.getTermMatches(), action.getStartPosition(),
-                       action.getEndPosition(), expandedQuery);
+                       action.getEndPosition(), expandedQuery, context);
               }
            }
         }

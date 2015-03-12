@@ -3,6 +3,8 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.Map;
+
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Term;
@@ -23,11 +25,11 @@ public class FilterInstruction implements Instruction {
    }
 
    /* (non-Javadoc)
-    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
+    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
    @Override
    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
-           int startPosition, int endPosition, ExpandedQuery expandedQuery) {
+           int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
       expandedQuery.addFilterQuery((QuerqyQuery<?>) filterQuery.clone(null, true));
 
    }

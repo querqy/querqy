@@ -4,6 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -14,6 +16,8 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.LineParser;
 
 public class SynonymInstructionTest extends AbstractCommonRulesTest {
+    
+    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
 
     @Test
     public void testThatSingleTermIsExpandedWithSingleTerm() {
@@ -24,7 +28,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = rewriter.rewrite(query).getUserQuery();
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -50,7 +54,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a b c");
-        Query rewritten = rewriter.rewrite(query).getUserQuery();
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -83,7 +87,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = rewriter.rewrite(query).getUserQuery();
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -107,7 +111,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a b");
-        Query rewritten = rewriter.rewrite(query).getUserQuery();
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -134,7 +138,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a b c");
-        Query rewritten = rewriter.rewrite(query).getUserQuery();
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -172,7 +176,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("p1xyz");
-        Query rewritten = rewriter.rewrite(query).getUserQuery();
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(

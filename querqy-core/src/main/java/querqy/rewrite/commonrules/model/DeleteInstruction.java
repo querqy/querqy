@@ -6,6 +6,7 @@ package querqy.rewrite.commonrules.model;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import querqy.ComparableCharSequence;
@@ -69,11 +70,11 @@ public class DeleteInstruction implements Instruction {
    }
 
    /* (non-Javadoc)
-    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
+    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
    @Override
    public void apply(PositionSequence<querqy.model.Term> sequence, TermMatches termMatches,
-           int startPosition, int endPosition, ExpandedQuery expandedQuery) {
+           int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
       // make sure that at least one term will be left in the query after we
       // apply this instruction
 

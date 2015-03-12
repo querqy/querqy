@@ -9,6 +9,12 @@ t1 t2 =>
 	
 p* =>
 	SYNONYM: p $1
+	
+d1 =>
+	DECORATE: deco 1
+	
+d2 =>
+	DECORATE: deco 2
 
 
 	

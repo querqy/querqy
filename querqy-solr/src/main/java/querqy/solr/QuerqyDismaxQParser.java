@@ -6,7 +6,6 @@ package querqy.solr;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,6 +61,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    public static final String GFB = "gfb"; // generated field boost
    public static final String GQF = "gqf"; // generated query fields (query generated terms only in these fields)
    public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
+   
+   public static final String CONTEXT_ATTRIBUTE_NAME = "querqy.qparser.context";
 
    static final String MATCH_ALL = "*:*";
 
@@ -120,7 +121,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       }
       dfc = new DocumentFrequencyCorrection();
       builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor, config.getTieBreaker());
-
+      
    }
 
    @Override
@@ -163,9 +164,15 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          dfc.finishedUserQuery();
       } else {
          expandedQuery = makeExpandedQuery();
-         expandedQuery = rewriteChain.rewrite(expandedQuery, Collections.<String, Object> emptyMap());
+         
+         Map<String, Object> context = new HashMap<>();
+         expandedQuery = rewriteChain.rewrite(expandedQuery, context);
+         req.getContext().put(CONTEXT_ATTRIBUTE_NAME, context);
+         
          mainQuery = makeMainQuery(expandedQuery);
+         
          dfc.finishedUserQuery();
+         
          applyMinShouldMatch(mainQuery);
          applyFilterQueries(expandedQuery);
          querqyBoostQueries = getQuerqyBoostQueries(expandedQuery);
