@@ -13,8 +13,6 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 
-import com.google.common.base.Preconditions;
-
 /**
  * A {@linkplain QuerqyParser} that works solely on Lucene {@linkplain Analyzer}
  * s. The query is run through a query analyzer. The resulting tokens are used
@@ -43,7 +41,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
     *           {@link Analyzer} for the synonyms.
     */
    public AnalyzingQuerqyParser(Analyzer queryAnalyzer, Analyzer optSynonymAnalyzer) {
-      Preconditions.checkNotNull(queryAnalyzer);
+      checkNotNull(queryAnalyzer);
 
       this.queryAnalyzer = queryAnalyzer;
       this.optSynonymAnalyzer = optSynonymAnalyzer;
@@ -57,7 +55,7 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
     */
    @Override
    public Query parse(String input) {
-      Preconditions.checkNotNull(input);
+      checkNotNull(input);
 
       try (TokenStream queryTokens = queryAnalyzer.tokenStream("querqy", new CharSequenceReader(input))) {
          Query query = new Query();
@@ -109,5 +107,11 @@ public class AnalyzingQuerqyParser implements QuerqyParser {
          }
          synonymTokens.end();
       }
+   }
+   
+   public static void checkNotNull(Object obj) {
+       if (obj == null) {
+           throw new NullPointerException();
+       }
    }
 }
