@@ -1,6 +1,7 @@
 package querqy.lucene.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -13,7 +14,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
 import org.junit.Before;
@@ -29,14 +29,6 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    Analyzer keywordAnalyzer;
    Map<String, Float> searchFields;
    Set<String> stopWords;
-   
-   IndexStats dummyIndexStats = new IndexStats() {
-
-      @Override
-      public int df(Term term) {
-         return 10;
-      }
-   };
 
    @Before
    public void setUp() throws Exception {
@@ -80,8 +72,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
    protected Query build(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
-            keywordAnalyzer, fields, fields, dummyIndexStats, tie);
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+            keywordAnalyzer, fields, fields, 0.8f,  tie);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -90,8 +82,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
-            keywordAnalyzer, fields, fields, dummyIndexStats, tie);
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+            keywordAnalyzer, fields, fields, 0.8f, tie);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -109,10 +101,9 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        Map<String, Float> fields = fields(names);
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(
-               null, 
-               new DocumentFrequencyCorrection(dummyIndexStats),
+               new DocumentFrequencyCorrection(),
                new StandardAnalyzer(new CharArraySet(stopWords, true)), 
-               fields, fields, dummyIndexStats, tie);
+               fields, fields, 0.8f, tie);
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
        return builder.createQuery(q);
@@ -297,8 +288,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        fieldsGenerated.put("f1", 4f);
        
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(null, new DocumentFrequencyCorrection(dummyIndexStats),
-            keywordAnalyzer, fieldsQuery, fieldsGenerated, dummyIndexStats, 0.1f);
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+            keywordAnalyzer, fieldsQuery, fieldsGenerated, 0.8f, 0.1f);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");
@@ -337,9 +328,18 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        float tie = (float) Math.random();
        Query q = buildWithStopWords("stopA", tie, "f1", "f2");
        assertThat(q, 
-               bq(all(Occur.MUST_NOT))
+               bq()
                );
        
        
+   }
+   
+   @Test
+   public void testEqualityOfCreatedQueries() throws Exception {
+       float tie = (float) Math.random();
+       Query q1 = buildWithSynonyms("a b j c", tie, "f1", "f2");
+       Query q2 = buildWithSynonyms("a b j c", tie, "f1", "f2");
+       assertTrue(q1.equals(q2));
+       assertEquals(q1.hashCode(), q2.hashCode());
    }
 }

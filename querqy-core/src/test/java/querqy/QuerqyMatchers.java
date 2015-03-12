@@ -9,6 +9,7 @@ import org.hamcrest.TypeSafeMatcher;
 
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
+import querqy.model.BoostQuery;
 import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
@@ -20,6 +21,9 @@ import querqy.model.Term;
  * {@link Matcher}s for {@link SubQuery}s.
  */
 public class QuerqyMatchers {
+    
+    
+    
    /**
     * Match {@link DisjunctionMaxClause} with {@link Occur#SHOULD}.
     * 
@@ -27,7 +31,7 @@ public class QuerqyMatchers {
     *           Expected clauses.
     */
    @SafeVarargs
-   public static final DMQMatcher dmq(TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
+   public static DMQMatcher dmq(TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
       return dmq(should(), clauses);
    }
 
@@ -40,7 +44,7 @@ public class QuerqyMatchers {
     *           Expected clauses.
     */
    @SafeVarargs
-   public static final DMQMatcher dmq(OccurMatcher occur, TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
+   public static DMQMatcher dmq(OccurMatcher occur, TypeSafeMatcher<? extends DisjunctionMaxClause>... clauses) {
       return new DMQMatcher(occur, clauses);
    }
 
@@ -51,7 +55,7 @@ public class QuerqyMatchers {
     *           Expected clauses.
     */
    @SafeVarargs
-   public static final BQMatcher bq(TypeSafeMatcher<? extends BooleanClause>... clauses) {
+   public static BQMatcher bq(TypeSafeMatcher<? extends BooleanClause>... clauses) {
       return bq(should(), clauses);
    }
 
@@ -64,7 +68,7 @@ public class QuerqyMatchers {
     *           Expected clauses.
     */
    @SafeVarargs
-   public static final BQMatcher bq(OccurMatcher occur, TypeSafeMatcher<? extends BooleanClause>... clauses) {
+   public static BQMatcher bq(OccurMatcher occur, TypeSafeMatcher<? extends BooleanClause>... clauses) {
       return new BQMatcher(occur, clauses);
    }
 
@@ -76,11 +80,11 @@ public class QuerqyMatchers {
     * @param value
     *           Expected value.
     */
-   public static final TermMatcher term(String field, String value) {
+   public static TermMatcher term(String field, String value) {
       return new TermMatcher(field, value);
    }
    
-   public static final TermMatcher term(String field, String value, Boolean generated) {
+   public static TermMatcher term(String field, String value, Boolean generated) {
        return new TermMatcher(field, value, generated);
     }
 
@@ -97,11 +101,23 @@ public class QuerqyMatchers {
    public static TermMatcher term(String value, Boolean generated) {
        return new TermMatcher(null, value, generated);
     }
+   
+   /**
+    * Match a boost query.
+    * 
+    * @param queryMatcher The expected query matcher
+    * @param boost The expected boost factor
+    * 
+    * @return
+    */
+   public static BoostQueryMatcher boostQ(TypeSafeMatcher<? extends Node> queryMatcher, float boost) {
+       return new BoostQueryMatcher(queryMatcher, boost);
+   }
 
    /**
     * Expected {@link Occur#MUST}.
     */
-   public static final OccurMatcher must() {
+   public static OccurMatcher must() {
       return new OccurMatcher(Occur.MUST);
    }
 
@@ -191,6 +207,36 @@ public class QuerqyMatchers {
                ;
       }
    }
+   
+   /**
+    * {@link Matcher} for {@link BoostQuery}s.
+    */
+   private static class BoostQueryMatcher extends TypeSafeMatcher<BoostQuery> {
+       
+       final TypeSafeMatcher<? extends Node> queryMatcher;
+       final float boost;
+       
+       public BoostQueryMatcher(TypeSafeMatcher<? extends Node> queryMatcher, float boost) {
+           this.queryMatcher = queryMatcher;
+           this.boost = boost;
+       }
+
+      @Override
+      public void describeTo(Description description) {
+         description.appendText("BoostQuery:\n ");
+         description.appendText("(");
+         queryMatcher.describeTo(description);
+         description.appendText(", boost: ");
+         description.appendValue(boost);
+         description.appendText(")\n");
+      }
+
+    @Override
+    protected boolean matchesSafely(BoostQuery item) {
+        return queryMatcher.matches(item.getQuery()) && item.getBoost() == boost;
+    }
+   }
+
 
    /**
     * {@link Matcher} for {@link Occur}s.

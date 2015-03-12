@@ -24,8 +24,6 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
-import org.apache.solr.common.SolrException;
-import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
@@ -44,7 +42,6 @@ import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
-import querqy.lucene.rewrite.IndexStats;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.model.BoostQuery;
 import querqy.model.DisjunctionMaxClause;
@@ -77,7 +74,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
    final Analyzer queryAnalyzer;
    final RewriteChain rewriteChain;
-   final IndexStats indexStats;
    final QuerqyParser querqyParser;
    final Map<String, Float> userQueryFields;
    final Map<String, Float> generatedQueryFields;
@@ -88,7 +84,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    protected List<Query> boostQueries;
 
    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
-         SolrQueryRequest req, RewriteChain rewriteChain, IndexStats indexStats, QuerqyParser querqyParser)
+         SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser)
          throws SyntaxError {
 
       super(qstr, localParams, params, req);
@@ -104,7 +100,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       IndexSchema schema = req.getSchema();
       queryAnalyzer = schema.getQueryAnalyzer();
       this.rewriteChain = rewriteChain;
-      this.indexStats = indexStats;
       userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params), DisMaxParams.QF, 1f, true);
       generatedQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params), GQF, null, false);
       if (generatedQueryFields.isEmpty()) {
@@ -113,19 +108,18 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           }
       } else {
           for (Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
-              String name = entry.getKey();
-              Float nonGeneratedBoostFactor = userQueryFields.get(name);
-              if (nonGeneratedBoostFactor == null) {
-                  nonGeneratedBoostFactor = 1f;
-              }
               if (entry.getValue() == null) {
+                  String name = entry.getKey();
+                  Float nonGeneratedBoostFactor = userQueryFields.get(name);
+                  if (nonGeneratedBoostFactor == null) {
+                      nonGeneratedBoostFactor = 1f;
+                  }
                   entry.setValue(nonGeneratedBoostFactor * config.generatedFieldBoostFactor);
               }
           }
       }
-      dfc = new DocumentFrequencyCorrection(indexStats);
-      builder = new LuceneQueryBuilder(req.getSearcher(), dfc, queryAnalyzer, userQueryFields, generatedQueryFields, indexStats,
-            config.getTieBreaker());
+      dfc = new DocumentFrequencyCorrection();
+      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor, config.getTieBreaker());
 
    }
 

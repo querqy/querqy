@@ -9,6 +9,6 @@ package querqy.model;
  */
 public interface DisjunctionMaxClause extends Node {
 
-   DisjunctionMaxClause clone(DisjunctionMaxQuery newParent);
+   DisjunctionMaxClause clone(DisjunctionMaxQuery newParent, boolean generated);
 
 }

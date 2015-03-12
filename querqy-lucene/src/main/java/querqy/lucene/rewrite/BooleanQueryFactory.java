@@ -71,10 +71,4 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
       }
    }
 
-   @Override
-   public void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc) {
-      for (Clause clause : clauses) {
-         clause.queryFactory.collectMaxDocFreqInSubtree(dfc);
-      }
-   }
 }

@@ -15,6 +15,4 @@ public interface LuceneQueryFactory<T extends Query> {
 
    T createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException;
 
-   void collectMaxDocFreqInSubtree(DocumentFrequencyCorrection dfc);
-
 }

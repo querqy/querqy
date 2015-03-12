@@ -35,8 +35,8 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
    }
 
    @Override
-   public BooleanQuery clone(DisjunctionMaxQuery newParent) {
-      return clone((BooleanParent) newParent);
+   public BooleanQuery clone(DisjunctionMaxQuery newParent, boolean generated) {
+      return clone((BooleanParent) newParent, generated);
    }
 
    @Override
@@ -45,7 +45,7 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
    }
 
    @Override
-   public BooleanClause clone(BooleanParent newParent, boolean generated) {
+   public BooleanQuery clone(BooleanParent newParent, boolean generated) {
        BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
        for (BooleanClause clause : clauses) {
           bq.addClause(clause.clone(bq, generated));
