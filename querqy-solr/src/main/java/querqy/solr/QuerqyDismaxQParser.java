@@ -108,18 +108,18 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           }
       } else {
           for (Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
-              String name = entry.getKey();
-              Float nonGeneratedBoostFactor = userQueryFields.get(name);
-              if (nonGeneratedBoostFactor == null) {
-                  nonGeneratedBoostFactor = 1f;
-              }
               if (entry.getValue() == null) {
+                  String name = entry.getKey();
+                  Float nonGeneratedBoostFactor = userQueryFields.get(name);
+                  if (nonGeneratedBoostFactor == null) {
+                      nonGeneratedBoostFactor = 1f;
+                  }
                   entry.setValue(nonGeneratedBoostFactor * config.generatedFieldBoostFactor);
               }
           }
       }
       dfc = new DocumentFrequencyCorrection();
-      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.getTieBreaker());
+      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor, config.getTieBreaker());
 
    }
 

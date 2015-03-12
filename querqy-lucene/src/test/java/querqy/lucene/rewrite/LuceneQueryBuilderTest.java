@@ -1,6 +1,7 @@
 package querqy.lucene.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -72,7 +73,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    protected Query build(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fields, fields, tie);
+            keywordAnalyzer, fields, fields, 0.8f,  tie);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -82,7 +83,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fields, fields, tie);
+            keywordAnalyzer, fields, fields, 0.8f, tie);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -102,7 +103,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        LuceneQueryBuilder builder = new LuceneQueryBuilder(
                new DocumentFrequencyCorrection(),
                new StandardAnalyzer(new CharArraySet(stopWords, true)), 
-               fields, fields, tie);
+               fields, fields, 0.8f, tie);
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
        return builder.createQuery(q);
@@ -288,7 +289,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fieldsQuery, fieldsGenerated, 0.1f);
+            keywordAnalyzer, fieldsQuery, fieldsGenerated, 0.8f, 0.1f);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");
@@ -331,5 +332,14 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                );
        
        
+   }
+   
+   @Test
+   public void testEqualityOfCreatedQueries() throws Exception {
+       float tie = (float) Math.random();
+       Query q1 = buildWithSynonyms("a b j c", tie, "f1", "f2");
+       Query q2 = buildWithSynonyms("a b j c", tie, "f1", "f2");
+       assertTrue(q1.equals(q2));
+       assertEquals(q1.hashCode(), q2.hashCode());
    }
 }

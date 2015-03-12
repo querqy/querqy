@@ -348,17 +348,33 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
    }
    
    @Test
+   public void testThatGeneratedQueryFieldBoostsAreApplied() throws Exception {
+      SolrQueryRequest req = req("q", "a",
+            DisMaxParams.QF, "f1^2 f2^3",
+            QuerqyDismaxQParser.GFB, "0.8",
+            QuerqyDismaxQParser.GQF, "f2^10",
+            "defType", "querqy",
+            "debugQuery", "true");
+
+      assertQ("Generated query field boosts not working",
+            req,
+            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f2:a^3.0 | f2:x^10.0')]"
+      );
+      req.close();
+   }
+   
+   @Test
    public void testThatGeneratedQueryFieldsAreApplied() throws Exception {
       SolrQueryRequest req = req("q", "a",
             DisMaxParams.QF, "f1^2 f2^3",
             QuerqyDismaxQParser.GFB, "0.8",
-            QuerqyDismaxQParser.GQF, "f2^10 f4",
+            QuerqyDismaxQParser.GQF, "f2 f4",
             "defType", "querqy",
             "debugQuery", "true");
 
       assertQ("Generated query fields not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f2:a^3.0 | f2:x^10.0 | f4:x^0.8')]"
+            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f2:a^3.0 | f2:x^2.4 | f4:x^0.8')]"
       );
       req.close();
    }
