@@ -3,6 +3,8 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.Map;
+
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
@@ -38,11 +40,11 @@ public class BoostInstruction implements Instruction {
 
    /* (non-Javadoc)
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, 
-    *                           querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
+    *                           querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
    @Override
    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
-           int startPosition, int endPosition, ExpandedQuery expandedQuery) {
+           int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
       BoostQuery bq = new BoostQuery(query.clone(null, true), boost);
       if (direction == BoostDirection.DOWN) {
          expandedQuery.addBoostDownQuery(bq);

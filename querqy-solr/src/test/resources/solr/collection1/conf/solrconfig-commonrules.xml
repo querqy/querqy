@@ -27,11 +27,11 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
+ 		<arr name="last-components">
+        	<str>querqyComponent</str>
+     	</arr>	
+    </requestHandler>
 
-	</requestHandler>
-
-	<requestHandler name="standard" class="solr.StandardRequestHandler"
-		default="true" />
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 
@@ -52,6 +52,9 @@
      	 </lst>
      	 
 	</queryParser>
+	
+	<searchComponent name="querqyComponent" class="querqy.solr.QuerqySearchComponent"/>
+	
 	<admin>
 		<defaultQuery>solr</defaultQuery>
 	</admin>

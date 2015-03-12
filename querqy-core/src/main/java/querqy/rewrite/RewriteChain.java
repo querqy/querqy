@@ -25,11 +25,18 @@ public class RewriteChain {
       this.factories = factories;
    }
 
-   public ExpandedQuery rewrite(ExpandedQuery query, Map<String, ?> context) {
-      ExpandedQuery work = query;
+   public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
+      
+       ExpandedQuery work = query;
+      
       for (RewriterFactory factory : factories) {
-         QueryRewriter rewriter = factory.createRewriter(work, context);
-         work = rewriter.rewrite(work);
+         
+          QueryRewriter rewriter = factory.createRewriter(work, context);
+         
+         work = (rewriter instanceof ContextAwareQueryRewriter)
+                 ? ((ContextAwareQueryRewriter) rewriter).rewrite(work, context)
+                 : rewriter.rewrite(work);
+         
       }
       return work;
    }

@@ -13,6 +13,7 @@ import querqy.parser.QuerqyParser;
 import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Input;
@@ -29,6 +30,13 @@ public class LineParser {
     static final char BOUNDARY = '"';
     static final char WILDCARD = '*';
     static final char RAWQUERY = '*';
+    
+    static final String INSTR_BOOST_DOWN = "down";
+    static final String INSTR_BOOST_UP = "up";
+    static final String INSTR_DECORATE = "decorate";
+    static final String INSTR_DELETE = "delete";
+    static final String INSTR_FILTER = "filter";
+    static final String INSTR_SYNONYM = "synonym";
 	
 	public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
 		
@@ -46,7 +54,7 @@ public class LineParser {
 		
 		String lcLine = line.toLowerCase();
 		
-		if (lcLine.startsWith("delete")) {
+		if (lcLine.startsWith(INSTR_DELETE)) {
 			
 			if (lcLine.length() == 6) {
 				return new DeleteInstruction(previousInput.getInputTerms());
@@ -79,7 +87,7 @@ public class LineParser {
 			
 		}
 		
-		if (lcLine.startsWith("filter")) {
+		if (lcLine.startsWith(INSTR_FILTER)) {
 		
 			if (lcLine.length() == 6) {
 				return new ValidationError("Cannot parse line: " + line);
@@ -109,15 +117,15 @@ public class LineParser {
 			}
 		}
 		
-		if (lcLine.startsWith("down")) {
+		if (lcLine.startsWith(INSTR_BOOST_DOWN)) {
 		    return parseBoostInstruction(line, lcLine, 4, BoostDirection.DOWN, querqyParserFactory);
 		}
 		
-		if (lcLine.startsWith("up")) {
+		if (lcLine.startsWith(INSTR_BOOST_UP)) {
             return parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, querqyParserFactory);
         }
 		
-		if (lcLine.startsWith("synonym")) {
+		if (lcLine.startsWith(INSTR_SYNONYM)) {
 		    
 		    if (lcLine.length() == 7) {
                 return new ValidationError("Cannot parse line: " + line);
@@ -125,7 +133,7 @@ public class LineParser {
             
             String synonymString = line.substring(7).trim();
             if (synonymString.charAt(0) != ':') {
-                return new ValidationError("Cannot parse line: " + line);
+                return new ValidationError("Cannot parse line, ':' expetcted in " + line);
             }
             
             synonymString = synonymString.substring(1).trim();
@@ -152,11 +160,32 @@ public class LineParser {
             
 		}
 		
+		if (lcLine.startsWith(INSTR_DECORATE)) {
+		    return parseDecorateInstruction(line, lcLine);
+		}
+		
 		return new ValidationError("Cannot parse line: " + line);
 		
 	}
 	
-	
+	public static Object parseDecorateInstruction(String line, String lcLine) {
+	    if (lcLine.length() == INSTR_DECORATE.length()) {
+	        return new ValidationError(INSTR_DECORATE + " requires a value");
+	    }
+	    
+	    String decValue = lcLine.substring(INSTR_DECORATE.length()).trim();
+	    if (decValue.charAt(0) != ':') {
+	        return new ValidationError("Cannot parse line, ':' expetcted in " + line);
+	    }
+	    
+	    decValue = decValue.substring(1).trim();
+	    if (decValue.length() == 0) {
+            return new ValidationError(INSTR_DECORATE + " requires a value");
+        }
+	    
+	    return new DecorateInstruction(decValue);
+	    
+	}
 	
 	public static Object parseBoostInstruction(String line, String lcLine, int lengthPredicate, BoostDirection direction, QuerqyParserFactory querqyParserFactory) {
 	    

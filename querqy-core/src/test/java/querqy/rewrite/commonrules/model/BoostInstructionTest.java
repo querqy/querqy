@@ -7,9 +7,10 @@ import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
 
-
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -20,6 +21,8 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
 public class BoostInstructionTest extends AbstractCommonRulesTest {
+    
+    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
 
     @Test
     public void testThatBoostQueriesAreMarkedAsGenerated() {
@@ -33,7 +36,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<BoostQuery> upQueries = rewriter.rewrite(query).getBoostUpQueries();
+        Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
 
         assertThat(upQueries,
               contains( 

@@ -166,5 +166,58 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
         req.close();
     }
+    
+    @Test
+    public void testThatSingleDecorationIsApplied() throws Exception {
+        
+        String q = "a d1";
+
+        SolrQueryRequest req = req("q", q,
+              DisMaxParams.QF, "f1 f2",
+              DisMaxParams.MM, "2",
+              "defType", "querqy",
+              "echoParams", "all",
+              "debugQuery", "on"
+              );
+        
+        assertQ("Single decoration fails",
+                req,
+                "//arr[@name='querqy_decorations'][count(str)=1]",
+                "//arr[@name='querqy_decorations']/str[text()='deco 1']"
+
+          );
+
+        
+
+        req.close();
+        
+    }
+    
+    @Test
+    public void testThatMultipleDecorationsAreApplied() throws Exception {
+        
+        String q = "a d2 d1 d1";
+
+        SolrQueryRequest req = req("q", q,
+              DisMaxParams.QF, "f1 f2",
+              DisMaxParams.MM, "2",
+              "defType", "querqy",
+              "echoParams", "all",
+              "debugQuery", "on"
+              );
+        
+        assertQ("Multiple decorations fail",
+                req,
+                "//arr[@name='querqy_decorations'][count(str)=2]",
+                "//arr[@name='querqy_decorations']/str[text()='deco 1']",
+                "//arr[@name='querqy_decorations']/str[text()='deco 2']"
+
+          );
+
+        
+
+        req.close();
+        
+    }
 
 }

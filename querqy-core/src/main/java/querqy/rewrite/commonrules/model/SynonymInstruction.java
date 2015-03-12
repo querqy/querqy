@@ -4,6 +4,7 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.List;
+import java.util.Map;
 
 import querqy.ComparableCharSequence;
 import querqy.model.BooleanQuery;
@@ -32,11 +33,11 @@ public class SynonymInstruction implements Instruction {
     }
 
     /* (non-Javadoc)
-     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery)
+     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
      */
     @Override
     public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
-            int startPosition, int endPosition, ExpandedQuery expandedQuery) {
+            int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
         
         switch (termMatches.size()) {
             
