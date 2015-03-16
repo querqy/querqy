@@ -47,6 +47,7 @@
 		<lst name="rewriteChain">
 		   <lst name="rewriter">
 		   		<str name="class">querqy.solr.ShingleRewriterFactory</str>
+		   		<str name="acceptGeneratedTerms">true</str>
 		   </lst>
            <lst name="rewriter">
                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
