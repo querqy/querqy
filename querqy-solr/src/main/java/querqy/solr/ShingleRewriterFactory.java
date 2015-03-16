@@ -14,6 +14,8 @@ public class ShingleRewriterFactory implements RewriterFactoryAdapter {
 
     @Override
     public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
-        return new querqy.rewrite.contrib.ShingleRewriterFactory();
+        Boolean acceptGeneratedTerms = args.getBooleanArg("acceptGeneratedTerms");
+        boolean t = (acceptGeneratedTerms == null) ? false : acceptGeneratedTerms;
+        return new querqy.rewrite.contrib.ShingleRewriterFactory(t);
     }
 }

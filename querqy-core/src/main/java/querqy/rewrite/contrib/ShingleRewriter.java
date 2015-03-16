@@ -22,6 +22,15 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     Term previousTerm = null;
     List<Term> termsToAdd = null;
+    boolean acceptGeneratedTerms = false;
+
+    public ShingleRewriter(){
+        this(false);
+    }
+
+    public ShingleRewriter(boolean acceptGeneratedTerms) {
+        this.acceptGeneratedTerms = acceptGeneratedTerms;
+    }
 
     @Override
     public ExpandedQuery rewrite(ExpandedQuery query) {
@@ -51,7 +60,10 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     @Override
     public Node visit(Term term) {
-        if (previousTerm != null && eq(previousTerm.getField(), term.getField())) {
+        if (previousTerm != null
+                && eq(previousTerm.getField(), term.getField())
+                && (term.isGenerated() == acceptGeneratedTerms || !term.isGenerated())
+                && (previousTerm.isGenerated() == acceptGeneratedTerms || !previousTerm.isGenerated())) {
             CharSequence seq = new CompoundCharSequence(null, previousTerm, term);
             termsToAdd.add(buildShingle(previousTerm, seq));
             termsToAdd.add(buildShingle(term, seq));

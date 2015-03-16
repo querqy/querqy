@@ -122,11 +122,11 @@
           		</plugin>
         	</plugins>
     </reporting>
+
 	<distributionManagement>
 		<repository>
-			<id>bintray-rene-maven</id>
-			<name>renekrie-maven-querqy</name>
-			<url>https://api.bintray.com/maven/renekrie/maven/querqy</url>
+			<id>bintray</id>
+			<url>https://bintray.com/lichtsprung/maven/querqy</url>
 		</repository>
 	</distributionManagement>
 </project>
