@@ -10,10 +10,11 @@ import java.util.Map;
  * Factory for {@link ShingleRewriter}
  */
 public class ShingleRewriterFactory implements RewriterFactory {
-    private boolean acceptGeneratedTerms;
+    
+    protected final boolean acceptGeneratedTerms;
 
-    public ShingleRewriterFactory(){
-        this.acceptGeneratedTerms = false;
+    public ShingleRewriterFactory() {
+        this(false);
     }
 
     public ShingleRewriterFactory(boolean acceptGeneratedTerms){

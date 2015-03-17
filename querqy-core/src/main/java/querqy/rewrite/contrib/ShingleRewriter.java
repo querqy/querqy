@@ -22,7 +22,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     Term previousTerm = null;
     List<Term> termsToAdd = null;
-    boolean acceptGeneratedTerms = false;
+    final boolean acceptGeneratedTerms;
 
     public ShingleRewriter(){
         this(false);
@@ -48,14 +48,47 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     @Override
     public Node visit(DisjunctionMaxQuery dmq) {
+        
         List<DisjunctionMaxClause> clauses = dmq.getClauses();
-        if (clauses != null && !clauses.isEmpty()){
-            if (clauses.size() > 1) {
-                throw new IllegalArgumentException("cannot handle more then one DMQ clause");
+        
+        if (clauses != null) {
+            
+            switch (clauses.size()) {
+            
+            case 0: break;
+            
+            case 1: super.visit(dmq); break;
+            
+            default:
+                
+                if (acceptGeneratedTerms) {
+                    
+                    throw new IllegalArgumentException("cannot handle more then one DMQ clause");
+                    
+                } else {
+                    
+                    DisjunctionMaxClause nonGeneratedClause = null;
+                    
+                    for (DisjunctionMaxClause clause: clauses) {
+                        
+                        if (!clause.isGenerated()) {
+                            // second non-generated clause - cannot handle this
+                            if (nonGeneratedClause != null) {
+                                throw new IllegalArgumentException("cannot handle more then one non-generated DMQ clause");
+                            }
+                            nonGeneratedClause = clause;
+                        }
+                    }
+                    nonGeneratedClause.accept(this);
+                }
+            
             }
-            super.visit(dmq);
+        
+           
         }
+        
         return null;
+        
     }
 
     @Override
