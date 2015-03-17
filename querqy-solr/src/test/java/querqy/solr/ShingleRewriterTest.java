@@ -1,11 +1,9 @@
 package querqy.solr;
 
-import static org.junit.Assert.*;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.search.QueryParsing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -54,6 +52,26 @@ public class ShingleRewriterTest extends SolrTestCaseJ4 {
               req,
               "//str[@name='parsedquery'][contains(.,'shingleab')]",
               "//str[@name='parsedquery'][contains(.,'synonymforc')]"
+
+        );
+
+        req.close();    
+    }
+    
+    @Test
+    public void testThatShinglesAreNotCreatedOnGeneratedTerms() throws Exception {
+        String q = "t1 t2";
+
+        SolrQueryRequest req = req("q", q,
+              DisMaxParams.QF, "f1",
+              "defType", "querqy",
+              "debugQuery", "on"
+              );
+
+        assertQ("Problem with shingles on generated terms",
+              req,
+              "//str[@name='parsedquery'][contains(.,'t1t2')]",
+              "//str[@name='parsedquery'][not(contains(.,'s1t2'))]"
 
         );
 
