@@ -77,6 +77,29 @@ public class ShingleRewriteTest {
     }
 
     @Test
+    public void testShinglingForTwoTokensWithSameFieldAndGeneratedFlag() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde", true);
+        addTerm(query, "f1", "ajk", true);
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(true);
+        rewriter.rewrite(expandedQuery);
+
+        assertThat(expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("f1", "cde"),
+                                term("f1", "cdeajk")
+                        ),
+                        dmq(
+                                term("f1", "ajk"),
+                                term("f1", "cdeajk")
+                        )
+                )
+        );
+    }
+
+    @Test
     public void testShinglingForTwoTokensWithDifferentFieldsDontShingle() {
         Query query = new Query();
         addTerm(query, "f1", "cde");
@@ -130,6 +153,66 @@ public class ShingleRewriteTest {
     }
 
     @Test
+    public void testShinglingForThreeTokensWithThreeTokenGenerated() {
+        Query query = new Query();
+        addTerm(query, "cde", true);
+        addTerm(query, "ajk", true);
+        addTerm(query, "xyz", true);
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(true);
+        rewriter.rewrite(expandedQuery);
+
+        assertThat(expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk"),
+                                term("ajkxyz")
+                        ),
+                        dmq(
+                                term("xyz"),
+                                term("ajkxyz")
+                        )
+                )
+        );
+    }
+
+
+
+    @Test
+    public void testShinglingForThreeTokensWithOneTokenGeneratedIgnoringGenerated() {
+        Query query = new Query();
+        addTerm(query, "cde", false);
+        addTerm(query, "ajk", false);
+        addTerm(query, "xyz", true);
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(false);
+        rewriter.rewrite(expandedQuery);
+
+        System.out.println(expandedQuery.getUserQuery());
+        assertThat(expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("xyz")
+                        )
+                )
+        );
+    }
+
+
+    @Test
     public void testShinglingForThreeTokensWithMixedFields() {
         Query query = new Query();
         addTerm(query, "f1", "cde");
@@ -159,9 +242,20 @@ public class ShingleRewriteTest {
     }
 
     private void addTerm(Query query, String field, String value) {
-        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, false);
+        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, true);
         query.addClause(dmq);
         Term term = new Term(dmq, field, value);
+        dmq.addClause(term);
+    }
+
+    private void addTerm(Query query, String value, boolean isGenerated) {
+        addTerm(query, null, value, isGenerated);
+    }
+
+    private void addTerm(Query query, String field, String value, boolean isGenerated) {
+        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, true);
+        query.addClause(dmq);
+        Term term = new Term(dmq, field, value, isGenerated);
         dmq.addClause(term);
     }
 
