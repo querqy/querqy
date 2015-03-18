@@ -77,8 +77,9 @@ public class DocumentFrequencyCorrection {
                    final TermsEnum termsEnum = terms.iterator(null);
                    if (termsEnum.seekExact(term.bytes())) { 
                      final TermState termState = termsEnum.termState();
-                     dfs[i] = termsEnum.docFreq();
-                     contexts[i].register(termState, ctx.ord, termsEnum.docFreq(), -1);
+                     int df = termsEnum.docFreq();
+                     dfs[i] = dfs[i] + df;
+                     contexts[i].register(termState, ctx.ord, df, -1);
                    }
                  }
                }
@@ -103,7 +104,10 @@ public class DocumentFrequencyCorrection {
            pos = start;
            
            while (pos < end) {
-               contexts[pos++].setDocFreq(max);
+               if (dfs[pos] > 0) {
+                   contexts[pos].setDocFreq(max);
+               }
+               pos++;
            }
        }
        
@@ -111,7 +115,7 @@ public class DocumentFrequencyCorrection {
        
    }
    
-   private TermStats setDfAndContexts(int[] dfs, TermContext[] contexts, IndexReaderContext topReaderContext) {
+   private synchronized TermStats setDfAndContexts(int[] dfs, TermContext[] contexts, IndexReaderContext topReaderContext) {
        TermStats ts = new TermStats(dfs, contexts, topReaderContext);
        this.termStats = ts;
        return ts;

@@ -13,11 +13,13 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
 
       assertU(adoc("id", "1", "f1", "a"));
 
+      assertU(commit());
       assertU(adoc("id", "2", "f1", "a", "f2", "b"));
 
       assertU(adoc("id", "3", "f1", "a", "f2", "c"));
 
       assertU(adoc("id", "4", "f1", "a", "f2", "k"));
+      assertU(commit());
       assertU(adoc("id", "5", "f1", "a", "f2", "k"));
       assertU(adoc("id", "6", "f1", "a", "f2", "k"));
       assertU(adoc("id", "7", "f1", "a", "f2", "k"));
