@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import querqy.model.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 import static querqy.QuerqyMatchers.*;
 
 /**
@@ -193,7 +192,6 @@ public class ShingleRewriteTest {
         ShingleRewriter rewriter = new ShingleRewriter(false);
         rewriter.rewrite(expandedQuery);
 
-        System.out.println(expandedQuery.getUserQuery());
         assertThat(expandedQuery.getUserQuery(),
                 bq(
                         dmq(

@@ -196,5 +196,33 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         
         
     }
+    
+    @Test
+    public void testThatWildcardDoesNotMatchZeroChars() throws Exception {
+        
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
+        builder.addRule((Input) LineParser.parseInput("p1*"), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("p1");
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("p1", false)
+                         )
+                         
+                         
+              ));
+        
+        
+        
+    }
+    
+    
 
 }
