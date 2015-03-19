@@ -12,6 +12,9 @@ public class State<T> {
     public final T value;
     public final boolean isKnown;
     public final Node<T> node;
+    /**
+     * The index of the last matching char
+     */
     public final int index;
     
     public State(boolean isKnown, T value, Node<T> node) {

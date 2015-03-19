@@ -168,6 +168,29 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
+    public void testPrefixWithNoCharLeftForWildcard() throws Exception {
+        String q = "p";
+
+        SolrQueryRequest req = req("q", q,
+              DisMaxParams.QF, "f1 f2",
+              DisMaxParams.MM, "2",
+              QueryParsing.OP, "AND",
+              "defType", "querqy",
+              "debugQuery", "on"
+              );
+        
+        assertQ("Prefix with no char left for wildcard fails",
+                req,
+                "//result[@name='response' and @numFound='1']"
+
+          );
+
+        
+
+        req.close();
+    }
+    
+    @Test
     public void testThatSingleDecorationIsApplied() throws Exception {
         
         String q = "a d1";

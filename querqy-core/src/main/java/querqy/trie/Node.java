@@ -72,11 +72,8 @@ public class Node<T> {
     public States<T> get(CharSequence seq, int index) {
         if (seq.charAt(index) == character) {
             if (index == seq.length() - 1) {
-                States<T> states = new States<>(new State<T>(true, value, this, index));
-                if (hasPrefix) {
-                    states.addPrefix(new State<T>(true, prefixValue, this, index));
-                }
-                return states;
+                return new States<>(new State<T>(true, value, this, index));
+                // do not add prefix match here, as we should have at least one char matching the wildcard
             } else {
                 if (firstChild == null) {
                     States<T> states = new States<>(new State<T>(false, null, null));
@@ -92,7 +89,6 @@ public class Node<T> {
                     return states;
                 }
                 
-//                return (firstChild != null) ?  : new States<>(new State<T>(false, null, null));
             }
         } else {
             return (next != null) ? next.get(seq, index) : new States<>(new State<T>(false, null, null));

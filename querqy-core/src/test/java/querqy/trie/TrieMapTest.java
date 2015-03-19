@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -168,20 +169,20 @@ public class TrieMapTest {
     @Test
     public void testGetPrefixIfAloneInMap() throws Exception {
         TrieMap<Integer> map = new TrieMap<>();
-        map.putPrefix("ab", 1);
+        map.putPrefix("a", 1);
         States<Integer> states = map.get("ab");
         State<Integer> completeSequenceState = states.getStateForCompleteSequence();
         assertFalse(completeSequenceState.isFinal());
-        assertTrue(completeSequenceState.isKnown());
+        assertFalse(completeSequenceState.isKnown());
         List<State<Integer>> prefixes = states.getPrefixes();
         assertNotNull(prefixes);
-        assertThat(prefixes, contains(state(true, true, 1, 1)));
+        assertThat(prefixes, contains(state(true, true, 0, 1)));
     }
     
     @Test
     public void testGetPrefixAsSubstringOfOther() throws Exception {
         TrieMap<Integer> map = new TrieMap<>();
-        map.putPrefix("ab", 1);
+        map.putPrefix("a", 1);
         map.put("abc", 2);
         States<Integer> states = map.get("ab");
         State<Integer> completeSequenceState = states.getStateForCompleteSequence();
@@ -189,7 +190,7 @@ public class TrieMapTest {
         assertTrue(completeSequenceState.isKnown());
         List<State<Integer>> prefixes = states.getPrefixes();
         assertNotNull(prefixes);
-        assertThat(prefixes, contains(state(true, true, 1, 1)));
+        assertThat(prefixes, contains(state(true, true, 0, 1)));
     }
     
     @Test
@@ -217,8 +218,7 @@ public class TrieMapTest {
         assertThat(completeSequenceState, state(true, true, 1, 2));
         
         List<State<Integer>> prefixes = states.getPrefixes();
-        assertNotNull(prefixes);
-        assertThat(prefixes, contains(state(true, true, 1, 1)));
+        assertNull(prefixes);
     }
     
     public static <T> StateMatcher<T> state(boolean isKnown, boolean isFinal, int index, T value) {
