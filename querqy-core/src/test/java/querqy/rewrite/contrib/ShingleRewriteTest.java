@@ -1,15 +1,28 @@
 package querqy.rewrite.contrib;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 import querqy.model.*;
+import querqy.rewrite.commonrules.AbstractCommonRulesTest;
+import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.rewrite.commonrules.LineParser;
+import querqy.rewrite.commonrules.model.Input;
+import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.model.SynonymInstruction;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 import static querqy.QuerqyMatchers.*;
 
 /**
  * Test for ShingleRewriter.
  */
-public class ShingleRewriteTest {
+public class ShingleRewriteTest extends AbstractCommonRulesTest {
 
     @Test
     public void testShinglingForTwoTokens() {
@@ -233,6 +246,42 @@ public class ShingleRewriteTest {
                         dmq(term("f2", "xyz"))
                 )
         );
+    }
+    
+    @Test
+    public void testChainingWithWildCard() throws Exception {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
+        builder.addRule((Input) LineParser.parseInput("p1*"), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter commonRulesRewriter = new CommonRulesRewriter(rules);
+        ShingleRewriter shingleRewriter = new ShingleRewriter(false);
+
+        ExpandedQuery query = makeQuery("p1xyz t2");
+        query = commonRulesRewriter.rewrite(query, EMPTY_CONTEXT);
+        query = shingleRewriter.rewrite(query);
+        
+        assertThat(query.getUserQuery(),
+                bq(
+                        dmq(
+                                term("p1xyz", false),
+                                bq(
+                                        dmq(must(), term ("p1", true)),
+                                        dmq(must(), term ("xyz", true))
+                                        
+                                        ),
+                                term("p1xyzt2", true)
+                        ),
+                        dmq(
+                                term("t2", false),
+                                term("p1xyzt2", true)
+                                )
+                )
+        );
+        
+        
+
     }
 
     private void addTerm(Query query, String value) {

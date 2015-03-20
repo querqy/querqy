@@ -4,8 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 
 import org.junit.Test;
 
@@ -17,8 +15,6 @@ import querqy.rewrite.commonrules.LineParser;
 
 public class SynonymInstructionTest extends AbstractCommonRulesTest {
     
-    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
-
     @Test
     public void testThatSingleTermIsExpandedWithSingleTerm() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
