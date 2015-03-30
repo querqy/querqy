@@ -15,6 +15,7 @@ import org.junit.Test;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.rewrite.commonrules.LineParser;
 
 public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
@@ -37,6 +38,30 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         
         
         assertThat((Set<Object>)context.get(DecorateInstruction.CONTEXT_KEY),
+              contains( 
+                      equalTo((Object) "deco1")
+              ));
+        
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testDecorationForEmptyInput() throws Exception {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        DecorateInstruction deco = new DecorateInstruction("deco1");
+        builder.addRule((Input) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
+                    new Instructions(Arrays.asList((Instruction) deco)));
+        
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("");
+        Map<String, Object> context = new HashMap<>();
+        rewriter.rewrite(query, context);
+
+        
+        
+        assertThat((Set<Object>) context.get(DecorateInstruction.CONTEXT_KEY),
               contains( 
                       equalTo((Object) "deco1")
               ));

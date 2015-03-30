@@ -19,7 +19,6 @@ import querqy.trie.TrieMap;
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     final TrieMap<List<Instructions>> map = new TrieMap<>();
-    //Map<CharSequence, List<Instructions>> rules = new HashMap<>();
     
     final boolean ignoreCase;
     
@@ -35,7 +34,28 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         
         List<Term> inputTerms = input.getInputTerms();
         
-        if (inputTerms.size() == 1) {
+        switch (inputTerms.size()) {
+        
+        case 0: {
+            if (!(input.requiresLeftBoundary && input.requiresRightBoundary)) {
+                throw new IllegalArgumentException("Empty input!");
+            }
+            
+            ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, TrieMapRulesCollection.BOUNDARY_WORD);
+            States<List<Instructions>> states = map.get(seq);
+            State<List<Instructions>> state = states.getStateForCompleteSequence();
+            if (state.value != null) {
+                state.value.add(instructions);
+            } else {
+                List<Instructions> instructionsList = new LinkedList<>();
+                instructionsList.add(instructions);
+                map.put(seq, instructionsList);
+            }
+            
+        }
+        break;
+        
+        case 1: {
             
             Term term = inputTerms.get(0);
             
@@ -81,20 +101,49 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                     
                 }
             }
-            
-        } else {
+        }
+        break;
+        
+        default:
+            Term lastTerm = input.inputTerms.get(input.inputTerms.size() -1);
+            boolean isPrefix = lastTerm instanceof PrefixTerm;
             for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
                 
                 seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
                 
                 States<List<Instructions>> states = map.get(seq);
-                State<List<Instructions>> state = states.getStateForCompleteSequence();
-                if (state.value != null) {
-                    state.value.add(instructions);
+                
+                if (isPrefix) { 
+                    
+                    boolean added = false;
+                    
+                    List<State<List<Instructions>>> prefixes = states.getPrefixes();
+                    
+                    if (prefixes != null) {
+                        for (State<List<Instructions>> state: prefixes) {
+                            if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
+                                state.value.add(instructions);
+                                added = true;
+                                break;
+                            }
+                            
+                        }
+                    }
+                    
+                    if (!added) {
+                        List<Instructions> instructionsList = new LinkedList<>();
+                        instructionsList.add(instructions);
+                        map.putPrefix(seq, instructionsList);
+                    }
                 } else {
-                    List<Instructions> instructionsList = new LinkedList<>();
-                    instructionsList.add(instructions);
-                    map.put(seq, instructionsList);
+                    State<List<Instructions>> state = states.getStateForCompleteSequence();
+                    if (state.value != null) {
+                        state.value.add(instructions);
+                    } else {
+                        List<Instructions> instructionsList = new LinkedList<>();
+                        instructionsList.add(instructions);
+                        map.put(seq, instructionsList);
+                    }
                 }
                 
             } 

@@ -79,4 +79,12 @@ public class Input {
       return "Input [inputTerms=" + inputTerms + "]";
    }
 
+   public boolean requiresLeftBoundary() {
+       return requiresLeftBoundary;
+   }
+
+   public boolean requiresRightBoundary() {
+       return requiresRightBoundary;
+   }
+
 }

@@ -28,7 +28,10 @@ public class TermMatches extends LinkedList<TermMatch> {
     }
     
     public TermMatches(Collection<? extends TermMatch> c) {
-        super(c);
+        super();
+        for (TermMatch match: c) {
+            add(match);
+        }
     }
     
     public TermMatches(TermMatch match) {
@@ -50,7 +53,9 @@ public class TermMatches extends LinkedList<TermMatch> {
     
     @Override
     public boolean add(TermMatch match) {
-        updateReplacements(match);
+        if (match.isPrefix) {
+            updateReplacements(match);
+        }
         return super.add(match);
     }
     

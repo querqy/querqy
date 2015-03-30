@@ -189,6 +189,73 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
                          
               ));
         
+    }
+    
+    @Test
+    public void testThatPrefixIsMatchedAndPlaceHolderGetsReplacedForLongerTerms() throws Exception {
+        
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "bus"), mkTerm("$1")));
+        builder.addRule((Input) LineParser.parseInput("bus*"), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("busstop");
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("busstop", false),
+                              bq(
+                                      dmq(must(), term("bus", true)),
+                                      dmq(must(), term("stop", true))
+                                      
+                              )
+                              
+                         )
+                         
+                         
+              ));
+        
+    }
+    
+    @Test
+    public void testThatPrefixIsMatchedAndPlaceHolderGetsReplacedAtLastOfTwoTerms() throws Exception {
+        
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p2"), mkTerm("$1")));
+        builder.addRule((Input) LineParser.parseInput("p1 p2*"), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("p1 p2xyz");
+        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("p1", false),
+                              bq( 
+                                      dmq(must(), term("p2", true)),
+                                      dmq(must(), term("xyz", true))
+                                      )
+                         ),
+                      dmq(
+                              term("p2xyz", false),
+                              bq(
+                                      dmq(must(), term("p2", true)),
+                                      dmq(must(), term("xyz", true))
+                                      
+                              )
+                              
+                         )
+                         
+                         
+              ));
+        
         
         
     }

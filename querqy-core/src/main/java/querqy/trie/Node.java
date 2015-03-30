@@ -78,13 +78,13 @@ public class Node<T> {
                 if (firstChild == null) {
                     States<T> states = new States<>(new State<T>(false, null, null));
                     if (hasPrefix) {
-                        states.addPrefix(new State<>(true, prefixValue, this, index));
+                        states.addPrefix(new State<>(true, prefixValue, this, seq.charAt(0) == ' ' ? index - 1 : index));
                     }
                     return states;
                 } else {
                     States<T> states = firstChild.get(seq, index + 1);
                     if (hasPrefix) {
-                        states.addPrefix(new State<>(true, prefixValue, this, index));
+                        states.addPrefix(new State<>(true, prefixValue, this, seq.charAt(0) == ' ' ? index - 1 : index));
                     }
                     return states;
                 }
