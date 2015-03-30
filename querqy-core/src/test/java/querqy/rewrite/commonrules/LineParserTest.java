@@ -12,6 +12,7 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
+import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.PrefixTerm;
 import querqy.rewrite.commonrules.model.Term;
 
@@ -120,6 +121,41 @@ public class LineParserTest {
             // expected
         }
     }
+    
+    @Test
+    public void testThatWildcardCannotBeFollowedByRightBoundary() throws Exception {
+        Object parseResult = LineParser.parseInput("a" + LineParser.WILDCARD + LineParser.BOUNDARY);
+        assertEquals("Wildcard should not be allowed before right boundary", 
+                new ValidationError(LineParser.WILDCARD + " cannot be combined with right boundary"), parseResult);
+    }
+    
+    @Test
+    public void testThatWildcardCanBeCombinedWithLeftBoundary() throws Exception {
+        Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.WILDCARD);
+        assertTrue(parseResult instanceof Input);
+        Input input = (Input) parseResult;
+        assertTrue(input.requiresLeftBoundary());
+        assertFalse(input.requiresRightBoundary());
+    }
+    
+    @Test
+    public void testThatBoundariesAreParsedInInput() throws Exception {
+        Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.BOUNDARY);
+        assertTrue(parseResult instanceof Input);
+        Input input = (Input) parseResult;
+        assertTrue(input.requiresLeftBoundary());
+        assertTrue(input.requiresRightBoundary());
+    }
+    
+    @Test
+    public void testThatBoundariesAreParsedInOtherwiseEmptyInput() throws Exception {
+        Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY);
+        assertTrue(parseResult instanceof Input);
+        Input input = (Input) parseResult;
+        assertTrue(input.requiresLeftBoundary());
+        assertTrue(input.requiresRightBoundary());   
+    }
+    
     
     @SuppressWarnings("unchecked")
     @Test

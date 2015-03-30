@@ -27,16 +27,17 @@ import querqy.rewrite.commonrules.model.Term;
  */
 public class LineParser {
     
-    static final char BOUNDARY = '"';
-    static final char WILDCARD = '*';
-    static final char RAWQUERY = '*';
+    public static final char BOUNDARY = '"';
+    public static final char WILDCARD = '*';
     
-    static final String INSTR_BOOST_DOWN = "down";
-    static final String INSTR_BOOST_UP = "up";
-    static final String INSTR_DECORATE = "decorate";
-    static final String INSTR_DELETE = "delete";
-    static final String INSTR_FILTER = "filter";
-    static final String INSTR_SYNONYM = "synonym";
+    public static final String INSTR_BOOST_DOWN = "down";
+    public static final String INSTR_BOOST_UP = "up";
+    public static final String INSTR_DECORATE = "decorate";
+    public static final String INSTR_DELETE = "delete";
+    public static final String INSTR_FILTER = "filter";
+    public static final String INSTR_SYNONYM = "synonym";
+    
+    static final char RAWQUERY = '*';
 	
 	public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
 		
@@ -261,8 +262,12 @@ public class LineParser {
 	    }
 	    
 	    int pos = s.indexOf('*');
-	    if (pos > -1 && pos < (s.length() -1)) {
-	        return new ValidationError(WILDCARD + " is only allowed at the end of the input: " + s);
+	    if (pos > -1) { 
+	        if (pos < (s.length() -1)) {
+	            return new ValidationError(WILDCARD + " is only allowed at the end of the input: " + s);
+	        } else if (requiresRightBoundary) {
+	            return new ValidationError(WILDCARD + " cannot be combined with right boundary");
+	        }
 	    }
 	    Object expr = parseTermExpression(s);
 	    return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary);
