@@ -73,5 +73,10 @@ public class DecorateInstruction implements Instruction {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "DecorateInstruction [decorationValue=" + decorationValue + "]";
+    }
+
     
 }

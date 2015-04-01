@@ -12,6 +12,7 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
+import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.PrefixTerm;
 import querqy.rewrite.commonrules.model.Term;
@@ -200,6 +201,12 @@ public class LineParserTest {
     @Test
     public void testParseTermExpressionDoesNotAllowAWildCardOnly() {
         assertTrue("parseTermExpression must not allow single wild card", LineParser.parseTermExpression("*") instanceof ValidationError);
+    }
+    
+    @Test
+    public void testThatCaseIsPreservedInDecorateInstruction() throws Exception {
+        Input input = (Input) LineParser.parseInput("in");
+        assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", input, null));
     }
 
     TermMatcher term(String value, String...fieldNames) {
