@@ -162,19 +162,19 @@ public class LineParser {
 		}
 		
 		if (lcLine.startsWith(INSTR_DECORATE)) {
-		    return parseDecorateInstruction(line, lcLine);
+		    return parseDecorateInstruction(line);
 		}
 		
 		return new ValidationError("Cannot parse line: " + line);
 		
 	}
 	
-	public static Object parseDecorateInstruction(String line, String lcLine) {
-	    if (lcLine.length() == INSTR_DECORATE.length()) {
+	public static Object parseDecorateInstruction(String line) {
+	    if (line.length() == INSTR_DECORATE.length()) {
 	        return new ValidationError(INSTR_DECORATE + " requires a value");
 	    }
 	    
-	    String decValue = lcLine.substring(INSTR_DECORATE.length()).trim();
+	    String decValue = line.substring(INSTR_DECORATE.length()).trim();
 	    if (decValue.charAt(0) != ':') {
 	        return new ValidationError("Cannot parse line, ':' expetcted in " + line);
 	    }
