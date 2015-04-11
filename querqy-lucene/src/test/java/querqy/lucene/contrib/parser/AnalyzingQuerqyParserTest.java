@@ -1,4 +1,4 @@
-package querqy.lucene.parser;
+package querqy.lucene.contrib.parser;
 
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
@@ -17,6 +17,7 @@ import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Before;
 import org.junit.Test;
 
+import querqy.lucene.contrib.parser.AnalyzingQuerqyParser;
 import querqy.model.Query;
 import querqy.parser.QuerqyParser;
 

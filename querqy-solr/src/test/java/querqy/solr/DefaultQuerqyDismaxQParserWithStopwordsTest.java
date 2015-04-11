@@ -7,7 +7,7 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class DefaultQueryDismaxQParserWithStopwordsTest extends SolrTestCaseJ4 {
+public class DefaultQuerqyDismaxQParserWithStopwordsTest extends SolrTestCaseJ4 {
 
     public static void index() throws Exception {
 

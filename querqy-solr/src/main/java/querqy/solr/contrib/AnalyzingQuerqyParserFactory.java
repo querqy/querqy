@@ -1,7 +1,7 @@
 /**
  * 
  */
-package querqy.solr;
+package querqy.solr.contrib;
 
 import java.io.IOException;
 
@@ -15,8 +15,9 @@ import org.apache.solr.schema.IndexSchema;
 
 import com.google.common.base.Preconditions;
 
-import querqy.lucene.parser.AnalyzingQuerqyParser;
+import querqy.lucene.contrib.parser.AnalyzingQuerqyParser;
 import querqy.parser.QuerqyParser;
+import querqy.solr.SolrQuerqyParserFactory;
 
 /**
  * @author René Kriegler, @renekrie

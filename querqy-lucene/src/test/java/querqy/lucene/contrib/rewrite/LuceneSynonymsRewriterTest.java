@@ -1,4 +1,4 @@
-package querqy.lucene.rewrite;
+package querqy.lucene.contrib.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;

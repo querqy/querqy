@@ -4,6 +4,8 @@
 package querqy.parser;
 
 /**
+ * This factory creates a {@link WhiteSpaceQuerqyParser}.
+ * 
  * @author René Kriegler, @renekrie
  *
  */

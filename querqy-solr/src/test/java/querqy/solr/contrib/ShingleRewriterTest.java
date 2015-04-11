@@ -1,4 +1,4 @@
-package querqy.solr;
+package querqy.solr.contrib;
 
 
 import org.apache.solr.SolrTestCaseJ4;
@@ -14,7 +14,7 @@ public class ShingleRewriterTest extends SolrTestCaseJ4 {
      @BeforeClass
      public static void beforeClass() throws Exception {
         System.setProperty("tests.codec", "Lucene46");
-        initCore("solrconfig-shingles-and-commonrules.xml", "schema.xml");
+        initCore("contrib/solrconfig-shingles-and-commonrules.xml", "schema.xml");
      }
      
 

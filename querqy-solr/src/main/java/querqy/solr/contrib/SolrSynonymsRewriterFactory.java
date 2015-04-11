@@ -1,15 +1,16 @@
 /**
  * 
  */
-package querqy.solr;
+package querqy.solr.contrib;
 
 import java.io.IOException;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
-import querqy.lucene.rewrite.LuceneSynonymsRewriterFactory;
+import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.RewriterFactoryAdapter;
 
 /**
  * @author rene

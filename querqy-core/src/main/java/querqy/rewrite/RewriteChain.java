@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import querqy.model.ExpandedQuery;
+import querqy.model.Query;
 
 /**
+ * The chain of rewriters to manipulate a {@link Query}.
+ * 
  * @author rene
  *
  */
