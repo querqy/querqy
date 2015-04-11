@@ -1,9 +1,10 @@
-package querqy.solr;
+package querqy.solr.contrib;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.RewriterFactoryAdapter;
 
 import java.io.IOException;
 

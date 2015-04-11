@@ -12,7 +12,7 @@ import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 
-public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
+public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
 
    public static void index() throws Exception {
@@ -28,7 +28,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
    @BeforeClass
    public static void beforeClass() throws Exception {
       System.setProperty("tests.codec", "Lucene46");
-      initCore("solrconfig.xml", "schema.xml");
+      initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
       index();
    }
 
@@ -331,7 +331,7 @@ public class DefaultQueryDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatGeneratedTermsArePanalised() throws Exception {
+   public void testThatGeneratedTermsArePenalised() throws Exception {
       SolrQueryRequest req = req("q", "a b",
             DisMaxParams.QF, "f1^2",
             DisMaxParams.PF, "f1^0.5",

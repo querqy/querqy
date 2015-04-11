@@ -16,6 +16,8 @@ import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
+ * This parser reads a set of rules in the Common Rules format and creates a {@link RulesCollection}.
+ * 
  * @author rene
  *
  */

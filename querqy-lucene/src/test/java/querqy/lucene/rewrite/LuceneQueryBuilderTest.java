@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
+import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.model.ExpandedQuery;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;

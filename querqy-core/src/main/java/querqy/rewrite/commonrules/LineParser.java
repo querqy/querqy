@@ -111,7 +111,7 @@ public class LineParser {
 				String rawQuery = filterString.substring(1).trim();
 				return new FilterInstruction(new RawQuery(null, rawQuery, Occur.MUST, false));
 			} else if (querqyParserFactory == null) {
-				return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' you want to pass this line as a raw query String to your search engine. Line: " + line);
+				return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' if you want to pass this line as a raw query String to your search engine. Line: " + line);
 			} else {
 				QuerqyParser parser = querqyParserFactory.createParser();
 				return new FilterInstruction(parser.parse(filterString));

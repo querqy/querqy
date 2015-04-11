@@ -1,4 +1,4 @@
-package querqy.lucene.parser;
+package querqy.lucene.contrib.parser;
 
 import java.io.IOException;
 

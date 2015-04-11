@@ -43,31 +43,17 @@
 	</requestHandler>
 
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
-	
 		<lst name="rewriteChain">
-		   <lst name="rewriter">
-		   		<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-               	<str name="rules">rules-before-shingles.txt</str>
-               	<bool name="ignoreCase">true</bool>
-               	<str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
-		   </lst>
-		   <lst name="rewriter">
-		   		<str name="class">querqy.solr.ShingleRewriterFactory</str>
-		   		<str name="acceptGeneratedTerms">false</str>
-		   </lst>
-           <lst name="rewriter">
-               <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-               <str name="rules">rules-shingles.txt</str>
-               <bool name="ignoreCase">true</bool>
-               <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
-           </lst>
-     	 </lst>
-     	 
-		 <lst name="parser">
-         	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-         	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
-     	 </lst>
-     	 
+		    <lst name="rewriter">
+				<str name="class">querqy.solr.contrib.SolrSynonymsRewriterFactory</str>
+				<str name="synonyms">contrib/synonyms.txt</str>
+				<bool name="expand">true</bool>
+			</lst>
+		</lst>
+		<lst name="parser">
+         <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+         <str name="class">querqy.antlr.ANTLRQueryParser</str>
+      </lst>
 	</queryParser>
 	<admin>
 		<defaultQuery>solr</defaultQuery>
