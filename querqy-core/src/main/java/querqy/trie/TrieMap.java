@@ -3,12 +3,15 @@
  */
 package querqy.trie;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 
 /**
  * @author René Kriegler, @renekrie
  *
  */
-public class TrieMap<T> {
+public class TrieMap<T> implements Iterable<T> {
     
     Node<T> root;
     
@@ -26,6 +29,25 @@ public class TrieMap<T> {
         }
         
         root.put(seq, 0, value);
+    }
+    
+    public Iterator<T> iterator() {
+        if (root == null) {
+            return new Iterator<T>() {
+
+                @Override
+                public boolean hasNext() {
+                    return false;
+                }
+
+                @Override
+                public T next() {
+                    throw new NoSuchElementException();
+                }
+            };
+        } else {
+            return root.iterator();
+        }
     }
     
     public void putPrefix(CharSequence seq, T value) {

@@ -1,15 +1,14 @@
 package querqy.trie;
 
 import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -219,6 +218,98 @@ public class TrieMapTest {
         
         List<State<Integer>> prefixes = states.getPrefixes();
         assertNull(prefixes);
+    }
+    
+    @Test
+    public void testValueIteratorEmptyMap() throws Exception {
+        TrieMap<Integer> map = new TrieMap<Integer>();
+        Iterator<Integer> it = map.iterator();
+        assertFalse(it.hasNext());
+        try {
+            it.next();
+            fail("NoSuchElementException expected");
+        } catch (NoSuchElementException e) {
+            // expected
+        }
+    }
+    
+    @Test
+    public void testValueIteratorOneChar() throws Exception {
+        TrieMap<Integer> map = new TrieMap<Integer>();
+        map.put("1", 1);
+        Iterator<Integer> it = map.iterator();
+        assertTrue(it.hasNext());
+        assertEquals((Integer) 1, it.next());
+        try {
+            it.next();
+            fail("NoSuchElementException expected");
+        } catch (NoSuchElementException e) {
+            // expected
+        }
+    }
+    
+    @Test
+    public void testValueIteratorTwoValuesOneCharDeep() throws Exception {
+        TrieMap<Integer> map = new TrieMap<Integer>();
+        map.put("1", 1);
+        map.put("2", 2);
+        List<Integer> values = new LinkedList<Integer>();
+        for (Integer v: map) {
+            values.add(v);
+        }
+        
+        assertThat(values, containsInAnyOrder((Integer) 1, (Integer) 2));
+        
+    }
+    
+    @Test
+    public void testValueIteratorOneValueTwoCharsDeep() throws Exception {
+        
+        TrieMap<Integer> map = new TrieMap<Integer>();
+        map.put("12", 1);
+        
+        Iterator<Integer> it = map.iterator();
+        assertTrue(it.hasNext());
+        assertEquals((Integer) 1, it.next());
+        
+        try {
+            it.next();
+            fail("NoSuchElementException expected");
+        } catch (NoSuchElementException e) {
+            // expected
+        }
+        
+    }
+    
+    @Test
+    public void testValueIteratorTwoValuesTwoCharsDeepOverlap() throws Exception {
+        TrieMap<Integer> map = new TrieMap<Integer>();
+        map.put("11", 1);
+        map.put("12", 2);
+        List<Integer> values = new LinkedList<Integer>();
+        for (Integer v: map) {
+            values.add(v);
+        }
+        
+        assertThat(values, containsInAnyOrder((Integer) 1, (Integer) 2));
+        
+    }
+    
+    @Test
+    public void testValueIteratorValuesAndPrefix() throws Exception {
+        TrieMap<Integer> map = new TrieMap<Integer>();
+        map.put("11", 1);
+        map.put("12", 2);
+        map.putPrefix("1", 3);
+        map.put("2459", 4);
+        map.putPrefix("245", 5);
+        List<Integer> values = new LinkedList<Integer>();
+        for (Integer v: map) {
+            values.add(v);
+        }
+        
+        assertThat(values, containsInAnyOrder((Integer) 1, (Integer) 2, (Integer) 3, (Integer) 4, (Integer) 5));
+        
     }
     
     public static <T> StateMatcher<T> state(boolean isKnown, boolean isFinal, int index, T value) {
