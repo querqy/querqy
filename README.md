@@ -164,7 +164,7 @@ The rules for the 'Common Rules Rewriter' are maintained in the file that you co
             <str name="rules">rules.txt</str>
 ~~~
 
-Note that the maximum size of this file is 1 MB if Solr runs as SolrCloud and if you didn't change the maximum file size in Zookeeper (see [this issue](https://github.com/renekrie/querqy/issues/14) on GitHub).
+Note that the expected character encoding is UTF-8 and that the maximum size of this file is 1 MB if Solr runs as SolrCloud and if you didn't change the maximum file size in Zookeeper (see [this issue](https://github.com/renekrie/querqy/issues/14) on GitHub).
 
 
 #### Input matching
