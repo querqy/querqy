@@ -31,6 +31,16 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
       index();
    }
+   
+   @Test
+   public void testLocalParams() throws Exception {
+       SolrQueryRequest req = req("q", "{!querqy qf='f1 f2'}a b");
+    
+       assertQ("local params don't work",
+             req,"//result[@name='response' and @numFound='4']");
+
+       req.close();
+   }
 
    @Test
    public void testThatAMMof2getsSetFor3optionalClauses() throws Exception {
