@@ -2,3 +2,7 @@ language: java
 jdk:
   - oraclejdk7
   - openjdk7
+branches:
+  only:
+    - master
+    - solr5
