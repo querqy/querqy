@@ -1,15 +1,566 @@
-![travis ci build status](https://travis-ci.org/renekrie/querqy.png)
+![travis ci build status](https://travis-ci.org/renekrie/querqy.png) 
+# Querqy
 
-Querqy is a rule-based query rewriter for Java-based search engines.
+Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
 
-This is still work in process - check back frequently, we're going to release Querqy soon. Meanwhile you can get in touch at post@rene-kriegler.com
+## Getting started: setting up Common Rules under Solr
 
+### Getting Querqy and deploying it to Solr
+Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x are for Solr 5.x.x.
+
+You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+
+Alternatively, if you already have a Maven build for your Solr plugins, you can add artifact 'querqy-solr' as a dependency to your pom.xml:
+
+
+~~~xml
+<!-- Add the Querqy repository URL -->
+<repository>
+    <id>querqy-repo</id>
+    <name>Querqy repo</name>
+    <url>http://dl.bintray.com/renekrie/maven</url>
+</repository>
+
+<!-- Add the querqy-solr dependency -->
+<dependencies>
+	<dependency>
+		<groupId>querqy</groupId>
+		<artifactId>querqy-solr</artifactId>
+		<version>...</version>
+	</dependency>
+</dependencies>
+     
+~~~
+
+### Configuring Solr for Querqy
+Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/org/apache/solr/search/QParserPlugin.html) that needs to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
+
+~~~xml
+<!-- 
+    Add the Querqy query parser. 
+ -->
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
+    <!--
+        Querqy has to parse the user's query text into a query object.
+        We use WhiteSpaceQuerqyParser, which only provides a very
+        limited syntax (no field names, just -/+ as boolean
+        operators). 
+        
+        Note that the Querqy query parser must not be confused with
+        Solr or Lucene query parsers: it is completely independent
+        from Lucene/Solr and parses the input into Querqy's internal
+        query object model.
+    -->
+    <lst name="parser">
+      <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+      <!-- 
+        The parser is provided by a factory, in our case
+        by a SimpleQuerqyQParserFactory, which is a very generic 
+        factory that just creates an instance for the configured class:
+      -->
+      <str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+    </lst>
+     	 
+	
+	<!--
+		Define a chain of query rewriters. We'll use just one rewriter
+		- SimpleCommonRulesRewriter - which provides 'Common Rules'
+		preprocessing.
+    --> 
+    <lst name="rewriteChain">
+    
+        <lst name="rewriter">
+            <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+            <!-- 
+           	   The file that contains rules for synonyms, 
+           	   boosting etc.
+            -->
+            <str name="rules">rules.txt</str>
+            <!--
+           	   If true, case will be ignored while trying to find
+           	   rules that match the user query input: 
+            -->
+            <bool name="ignoreCase">true</bool>
+            <!-- 
+                Some rules in the rules file declare boost queries,
+                synonym queries or filter queries that need to be added 				   to the user query. This query parser parses the 
+                additional queries from the rules file:
+            -->
+            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+        </lst>
+       
+        <!--
+            You can add further rewriters to the chain. For example, 
+            you could add a second SimpleCommonRulesRewriter for
+            a different group of rules, which would consume the 
+            output of the first rewriter. Or you might add a completely 			  different rewriter imlementation, like the ShingleRewriter, 			  that would combine pairs of tokens of the query input and 			  add the concatenated forms as synonyms.
+        -->
+        <!--
+        <lst name="rewriter">
+            <str name="class">querqy.solr.contrib.ShingleRewriterFactory</str>
+            <bool name="acceptGeneratedTerms">false</bool>
+        </lst>
+        -->
+       
+   </lst>
+     	 
+</queryParser>
+~~~
+
+### Making requests to Solr using Querqy
+You can activate the Querqy query parser in Solr by setting the defType request parameter - in other words, just like you would enable any other query parser in a Solr search request):
+
+~~~
+defType=querqy
+~~~
+
+Alternatively, you can activate and control Querqy using [local parameters](https://cwiki.apache.org/confluence/display/solr/Local+Parameters+in+Queries).
+
+You'll have to set further parameters for Querqy to process the query. These parameters are exactly the same like for the [Extended DisMax Query Parser](https://cwiki.apache.org/confluence/display/solr/The+Extended+DisMax+Query+Parser), including [DisMax parameters](https://cwiki.apache.org/confluence/display/solr/The+DisMax+Query+Parser), with the following exceptions:
+
+-  ``q.alt`` - not implemented yet
+-  ``uf, lowercaseOperators`` and query field aliasing - not implemented. Work on this will depend on the availability of a Querqy-internal query parser that accepts field names and boolean (non-prefix) operators. The currently recommended parser, the querqy.parser.WhiteSpaceQuerqyParser, does not provide these features, though field names and boolean operators are part of Querqy's internal query object model.
+-  ``stopwords`` - no plans to implement
+
+
+Example:
+
+~~~
+q=personal computer&defType=querqy&qf=name^2.0 description^0.5&pf=name
+~~~
+
+With the exception of the defType paramter this query looks like a standard ExtendedDisMax query, and if you haven't configured any rules for the query 'personal computer', the results and their order would be the same like for ExtendedDisMax. If, on the other hand, you have configured a rule
+
+~~~
+personal computer =>
+    SYNONYM: pc
+~~~
+Querqy would also search for 'pc' in the 'name' and 'description' fields. You'll learn how to write such rules in the next section.
+
+Querqy has the following optional parameters in addition to those shared with the ExtendedDisMax query parser (you can savely skip this list for the moment):
+
+|Name|Meaning    |Value  |Example|Default value|
+|----|-----------|-------------|-------|-------------|
+|`gqf` |"generated query fields" - where to query generated terms like synonyms, boost queries etc.|space-separated list of field names and boost factors|`gqf=name^1.1 color^0.9`|use values from param `qf`|
+|`gfb`|"generated field boost" - a global boost factor that is multiplied with field-specific boosts of generated fields (use this to quickly give a lower boost to all generated terms and queries) |decimal number (float)|`gfb=0.8`|1.0
+
+### Configuring rules
+
+The rules for the 'Common Rules Rewriter' are maintained in the file that you configured as attribute 'rules' for the SimpleCommonRulesRewriterFactory, i.e. file rules.txt in the following example configuration:
+
+~~~xml
+
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
+    <lst name="rewriteChain">
+    
+        <lst name="rewriter">
+            <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+            <!-- 
+           	   The file that contains rules for synonyms, 
+           	   boosting etc.
+            -->
+            <str name="rules">rules.txt</str>
+~~~
+
+Note that the maximum size of this file is 1 MB if Solr runs as SolrCloud and if you didn't change the maximum file size in Zookeeper (see [this issue](https://github.com/renekrie/querqy/issues/14) on GitHub).
+
+
+#### Input matching
+The first line of a rule declaration defines the matching criteria for the input query. This line must end in an arrow (`=>`). The next line defines an instruction that shall be applied if the input matches. The same input line can be used for multiple instructions, one per line:
+
+~~~
+# if the input contains 'personal computer', add two synonyms 'pc' and
+# 'desktop computer' and rank down by factor 50 documents that 
+# match 'software':
+personal computer =>
+    SYNONYM: pc
+    SYNONYM: desktop computer
+    DOWN(50): software
+~~~
+
+Querqy applies the above rule if it can find the matching criteria 'personal computer' anywhere in the query, provided that there is no other term between 'personal' and 'computer'. It would thus also match the input 'cheap personal computer'. If you want to match the input exactly, or at the beginning or end of the input, you have to mark the input boundaries using double quotation marks:
+
+~~~
+# only match the query 'personal computer'.
+"personal computer" => 
+    ....
+    
+# only match queries starting with 'personal computer'
+"personal computer =>
+    ....
+
+# only match queries ending with 'personal computer'
+personal computer" =>
+    ....
+
+~~~
+
+Each input token is matched exactly. Matching is even case-sensitive, but you can make it case-insensitive in the configuration:
+
+~~~xml
+
+<lst name="rewriter">
+            <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+                        <str name="rules">rules.txt</str>
+            <!--
+           	   If true, case will be ignored while trying to find
+           	   rules that match the user query input: 
+            -->
+            <bool name="ignoreCase">true</bool>
+
+
+~~~
+
+
+There is no stemming or fuzzy matching applied to the input. If you want to make 'pc' a synonym for both, 'personal computer' and 'personal computer*s*', you will have to declare two rules:
+
+~~~
+personal computer =>
+    SYNONYM: pc
+
+personal computers =>
+    SYNONYM: pc
+
+
+~~~ 
+
+
+You can use a wildcard at the very end of the input declaration:
+
+~~~
+sofa* =>
+    SYNONYM: sofa $1
+
+~~~ 
+
+The above rule matches if the input contains a token that starts with 'sofa-' and adds a synonym 'sofa + <wildcard matching string>' to the query. For example, a user query 'sofabed' would yield the synonym 'sofa bed'.
+
+The wildcard matches 1 (!) or more characters. It is not intended as a replacement for stemming but to provide some support for decompounding in languages like German where compounding is very productive. For example, compounds of the structure 'material + product type' and 'intended audience + product type' are very common in German. Wildcards in Querqy can help to decompound them and allow to search the components accross multiple fields:
+
+~~~
+# match queries like 'kinderschuhe' (= kids' shoes) and 
+# 'kinderjacke' (= kids' jacket) and search for 
+# 'kinder schuhe'/'kinder jacke' etc. in all search fields
+kinder* =>
+	SYNONYM: kinder $1
+
+~~~
+
+Wildcard matching can be used for all rule types. There are some restrictions in the current wildcard implementation, which might be removed in the future: 
+
+  - Synonyms are the only rules type that can pick up the '$1' placeholder. 
+  - The wildcard can only occur at the very end of the input matching.
+  -  It cannot be combined with the right-hand input boundary marker (...").
+   
+
+#### SYNONYM rules
+
+Querqy gives you a mighty toolset for using synonyms at query time. As opposed to analysis-based query-time synonyms in Solr, Querqy matches multi-term input and avoids scoring issues related to different document frequencies of the original input and synonym terms (see [this blog post](http://opensourceconnections.com/blog/2013/10/27/why-is-multi-term-synonyms-so-hard-in-solr/) and the [discussion on index-time vs. query-time synonyms in the Solr wiki](https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters#solr.SynonymFilterFactory)). It also allows to configure synonyms in a field-independent manner, making the maintenance of synonyms a lot more intuitive.
+
+You have already seen rules for synonyms:
+
+~~~
+personal computer =>
+    SYNONYM: pc
+    
+sofa* =>
+    SYNONYM: sofa $1
+~~~
+
+Synonyms work in only one direction in Querqy. It always tries to match the input that is specified in the rule and adds a synonym if a given user query matches this input. If you need bi-directional synonyms or synonym groups, you have to declare a rule for each direction. For example, if the query 'personal computer' should also search for 'pc' while query 'pc' should also search for 'personal computer', you would write these two rules:
+
+~~~
+personal computer =>
+    SYNONYM: pc
+
+pc =>
+	SYNONYM: personal computer
+~~~
+
+##### Boost factors
+In addition to the rule syntax that you've seen so far, you can specify a boost factor for the synonym expansion:
+
+~~~
+evening dress =>
+	SYNONYM(0.1): cocktail dress
+
+~~~
+Synonym 'cocktail dress' will be added to the query 'evening dress' but with a very low boost of 0.1. This down-ranking helps to keep search results for the orgininal query at the top of the result list while results for the synonym expression will follow later. The default boost factor for synonyms is 1.0. The interpretation of this value is left to the search engine.
+
+##### The right-hand side of synonym rules
+
+The right-hand side of the synonym expression ('cocktail dress') will be parsed by the parser that you configured as `queryParser` for the Common Rules rewriter:
+
+~~~xml
+<lst name="rewriteChain">
+    
+        <lst name="rewriter">
+            <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+            <str name="rules">rules.txt</str>
+            ..
+            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+        </lst>
+
+~~~
+
+Querqy will assign fields in which it searches for the synonym query only after applying all rules and all rewriters when it finally creates a Lucene query from the Querqy-internal query object model. The search fields for synonyms are taken from the `gqf` parameter (priority) or from `qf` (see [request parameters](#making-requests-to-solr-using-querqy)).
+
+If you want to restrict synonyms to specific fields, you will have to use a *raw query* on the right-hand side of the synonym instruction (future implementations of WhiteSpaceQuerqyParser might be capable of dealing with field names as well). 
+
+A raw query is a query in the query language of the search engine - Solr in our case - prefixed by '*'.  The following example adds a raw query for input 'notebook'. The synonymous raw query matches 'laptop' in field 'name' if field 'department' contains 'computers':
+
+~~~
+notebook =>
+	SYNONYM: * +name:laptop +department:computers
+~~~
+
+The raw query '+name:laptop +department:computers' is parsed using the Lucene query parser in Solr but you can use local parameter syntax to change the query parser and set further parameters.
+
+##### Expert: Structure of expanded queries
+
+Querqy preserves the 'minimum should match' semantics for boolean queries (parameter `mm` for the DisMax query parser) when constructing synonyms. In order to provide this semantics, given mm=1, the rule
+
+~~~
+personal computer =>
+    SYNONYM: pc
+~~~
+
+produces the query 
+
+~~~
+boolean_query (mm=1) (
+	dismax('personal','pc'),
+	dismax('computer','pc')
+)
+~~~
+
+and *NOT*
+
+~~~
+boolean_query(mm=??) (
+	boolean_query(mm=1) (
+		dismax('personal'),
+		dismax('computer')
+	),
+	dismax('pc')
+)
+~~~
+
+#### UP/DOWN rules
+
+UP and DOWN rules add a positive or negative boost query to the user query, which helps to bring documents that match the boost query further up or down in the result list.
+
+The following rules add UP and DOWN queries to the input query 'iphone'. The UP instruction promotes documents also containing 'apple' further to the top of the result list, while the DOWN query puts documents containing 'case' further down the search results:
+
+~~~
+iphone =>
+	UP(10): apple
+	DOWN(20): case
+
+~~~
+
+UP and DOWN both take boost factors as parameters. The default boost factor is 1.0. The interpretation of the boost factor is left to the search engine and it might differ between UP and DOWN, which means that UP(10):x and DOWN(10):x do not necessarily equal out each other.
+
+The right-hand side of UP and DOWN instructions accept raw queries (see [The right-hand side of synonym rules](#the-right-hand-side-of-synonym-rules)). In the following example we favour a certain price range as an interpretation of 'cheap' and penalise documents from category 'accessories' using raw Solr queries:
+
+
+~~~
+cheap notebook =>
+	UP(10): * price:[350 TO 450]
+	DOWN(20): * category:accessories
+
+~~~
+
+#### FILTER rules
+Filter rules work similar to UP and DOWN rules but instead of moving search results up or down the result list they do restrict search results to those that match the filter query. The following rule looks similar to the 'iphone' example above but it restricts the search results to documents that contain 'apple' and not 'case':
+
+~~~
+iphone =>
+	FILTER: apple
+	FILTER: -case
+~~~
+
+The filter is applied to all fields given in the `gqf` or `qf` parameters. In the case of a required keyword ('apple') the filter matches if the keyword occurs in one or more query fields. The negative filter ('-case') only matches documents where the keyword occurs in none of the query fields.
+
+The right-hand side of filter instructions accepts raw queries. To completely exclude results from category 'accessories' for query 'notebook' you would write:
+
+~~~
+notebook =>
+	FILTER: * -category:accessories
+
+~~~
+   
+#### DELETE rules
+
+Delete rules allow you to remove keywords from a query. This is comparable to stopwords in Solr but in Querqy keywords are removed before starting the field analysis chain. Delete rules are thus field-independent. It is also possible to apply delete rules before all other rules (see [Rule ordering](#rule-ordering)), which helps to remove stopwords that could otherwise prevent further Querqy rules from matching.  
+
+The following rule declares that whenever Querqy sees the input 'cheap iphone' it should remove keyword 'cheap' from the query and only search for 'iphone':
+
+~~~
+cheap iphone =>
+	DELETE: cheap
+~~~
+
+While in this example the keyword 'cheap' will only be deleted if it is followed by 'iphone', you can also delete keywords regardless of the context:
+
+~~~
+cheap =>
+	DELETE: cheap
+~~~
+
+or simply:
+
+~~~
+cheap =>
+	DELETE
+~~~
+
+If the right-hand side of the delete instruction contains more than one term, each term will be removed from the query individually (= they are not considered a phrase and further terms can occur between them):
+
+~~~
+cheap iphone unlocked =>
+	DELETE: cheap unlocked
+~~~	
+
+The above rule would turn the input query 'cheap iphone unlocked' into search query 'iphone'.
+
+The following restrictions apply to delete rules:
+
+   - Terms to be deleted must be part of the input declaration.
+   - Querqy will not delete the only term in a query.
+
+#### DECORATE rules
+
+Decorate rules are not strictly query rewriting rules but they are quite handy to add query-dependent information to search results. For example, in online shops there are almost always a few search queries that have nothing to do with the products in the shop but with deliveries, T&C, FAQs and other service information. A decorate rule matches those search terms and adds the configured information to the search results:
+
+~~~
+faq =>
+	DECORATE: redirect, /service/faq
+
+~~~
+
+The Solr response will then contain an array 'querqy_decorations' with the right-hand side expressions of the matching decorate rules:
+
+~~~xml
+<response>
+    <lst name="responseHeader">...</lst>
+    <result name="response" numFound="0" start="0">...</result>
+    <lst name="facet_counts">...</lst>
+    <arr name="querqy_decorations">
+        <str>redirect, /service/faq</str>
+        ...
+    </arr>
+</response>
+
+~~~
+
+Querqy does not inspect the right-hand side of the decorate instruction ('redirect, /service/faq') but returns the configured value 'as is'. You could even configure a JSON-formatted value in this place but you have to assure that the value does not contain any line break.
+
+In order to pass the decorate output to the Solr response you have to configure and enable an additional [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) in solrconfig.xml:
+
+~~~xml
+
+<!-- 
+	define the Querqy search component 
+-->
+<searchComponent name="querqyComponent" class="querqy.solr.QuerqySearchComponent"/>
+
+<!-- 
+	add the search component to a searchHandler, for example to 
+	the /select searchHandler 
+-->
+<requestHandler name="/select" class="solr.SearchHandler">
+
+	<arr name="last-components">
+   		<str>querqyComponent</str>
+   </arr>
+
+</requestHandler>
+
+~~~
+
+#### Rule ordering
+
+There is no defined order for the application of rules in Querqy's Common Rules rewriter. When the rewriter sees a query it first tries to find all rules that match the input and then it applies these rules. If you want to make the output of one rule the input for matching another rule, you can split your rules across multiple rewriters, each with its own rules file. 
+
+For example, it is often handy to first apply delete rules before applying further rule types:
+
+~~~xml
+
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
+    <lst name="parser">
+      <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+      <str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+    </lst>
+     	 	
+	<!--
+		The chain of query rewriters.
+    --> 
+    <lst name="rewriteChain">
+    
+        <lst name="rewriter">
+            <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+            <!-- 
+           	   The file only contains delete rules.
+            -->
+            <str name="rules">delete-rules.txt</str>
+            <bool name="ignoreCase">true</bool>
+            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+        </lst>
+        <!-- 
+        	The rewritten query of the above rewriter becomes
+        	the input for the rewriter below:
+        -->
+        <lst name="rewriter">
+            <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+            <!-- 
+           	   The file only contains further rules (synonyms etc.)
+            -->
+            <str name="rules">rules.txt</str>
+            <bool name="ignoreCase">true</bool>
+            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+        </lst>
+
+   </lst>
+
+</queryParser>
+
+~~~
+
+
+
+## License
 Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/licenses/LICENSE-2.0.html).
+
+## Development
+
+### Branches
+Please base development for Lucene/Solr 4.x and Lucene/Solr-independent features (querqy-core) on branch master and for Lucene/Solr 5.x on branch solr5.
+
+### Modules
+  
+ - `querqy-antlr` - An [ANTLR-based](http://www.antlr.org/) Querqy query parser (incomplete, do not use)
+ - `querqy-core` - The core component. Search-engine independent, Querqy's query object model, Common Rules Rewriter
+ - `querqy-lucene` - Lucene-specific components. Builder for creating a Lucene query from Querqy's query object model
+ - `querqy-solr` - Solr-specific components. QParserPlugin, SearchComponent. 
+
+### Contributors
+
+ - [Anton Dumler](https://github.com/jagile)
+ - [Markus Heiden](https://github.com/markus-s24)
+ - [Markus Müllenborn](https://github.com/muellenborn)
+ - [Martin Grotzke](https://github.com/magro)
+ - [René Kriegler](https://github.com/renekrie), Committer/Maintainer
+ - [Robert Giacinto](https://github.com/lichtsprung)
+ - [Tobias Kässmann](https://github.com/tkaessmann)
+ - [Torsten Bøgh Köster](https://github.com/tboeghk)
+
+Many thanks to [Galeria Kaufhof](https://github.com/Galeria-Kaufhof), [shopping24](https://github.com/shopping24/) and [inoio](https://github.com/inoio) for their support.
 
 [Querqy is built using Travis CI](https://travis-ci.org/renekrie/querqy).
 
-## Building the project
 
-    $ export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
-    $ mvn clean install
 
