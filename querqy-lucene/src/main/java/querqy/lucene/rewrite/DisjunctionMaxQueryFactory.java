@@ -38,7 +38,7 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
 
    @Override
    public DisjunctionMaxQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
-      if (!isBelowDMQ) {
+      if ((!isBelowDMQ) && (dfc != null)) {
          dfc.newClause();
       }
       DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(tieBreakerMultiplier);

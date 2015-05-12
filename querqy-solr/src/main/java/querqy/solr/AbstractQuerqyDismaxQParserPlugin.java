@@ -31,9 +31,11 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
     
     protected NamedList<?> initArgs = null;
     protected RewriteChain rewriteChain = null;
+
     protected SolrQuerqyParserFactory querqyParserFactory = null;
     protected String termQueryCacheName = null;
-   
+    
+    public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req, TermQueryCache termQueryCache);
 
     @Override
     public void init(@SuppressWarnings("rawtypes") NamedList args) {
@@ -113,6 +115,10 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
        }
    }
    
-   public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req, TermQueryCache termQueryCache);
+
+   
+   public RewriteChain getRewriteChain() {
+       return rewriteChain;
+   }
 
 }

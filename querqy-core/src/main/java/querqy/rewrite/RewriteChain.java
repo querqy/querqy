@@ -18,29 +18,33 @@ import querqy.model.Query;
  */
 public class RewriteChain {
 
-   final List<RewriterFactory> factories;
+    final List<RewriterFactory> factories;
 
-   public RewriteChain() {
-      this(Collections.<RewriterFactory> emptyList());
-   }
+    public RewriteChain() {
+        this(Collections.<RewriterFactory> emptyList());
+    }
 
-   public RewriteChain(List<RewriterFactory> factories) {
-      this.factories = factories;
-   }
+    public RewriteChain(List<RewriterFactory> factories) {
+        this.factories = factories;
+    }
 
-   public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
+    public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
       
-       ExpandedQuery work = query;
+        ExpandedQuery work = query;
       
-      for (RewriterFactory factory : factories) {
+        for (RewriterFactory factory : factories) {
          
-          QueryRewriter rewriter = factory.createRewriter(work, context);
+            QueryRewriter rewriter = factory.createRewriter(work, context);
          
-         work = (rewriter instanceof ContextAwareQueryRewriter)
+            work = (rewriter instanceof ContextAwareQueryRewriter)
                  ? ((ContextAwareQueryRewriter) rewriter).rewrite(work, context)
                  : rewriter.rewrite(work);
          
-      }
-      return work;
-   }
+        }
+        return work;
+    }
+    
+    public List<RewriterFactory> getRewriterFactories() {
+        return factories;
+    }
 }
