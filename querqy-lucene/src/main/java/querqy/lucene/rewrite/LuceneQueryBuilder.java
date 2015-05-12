@@ -300,10 +300,12 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param sourceTerm
     * @throws IOException
     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
-        
-        CacheKey cacheKey = null;
+        LuceneQueryFactory<?> queryFactory = termToFactory(fieldname, sourceTerm, boost);
+        if (queryFactory != null) {
+            target.add(queryFactory);
+        }
+       /* CacheKey cacheKey = null;
 
         if (termQueryCache != null) {
             
@@ -371,9 +373,79 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
            } else {
                target.add(new CachingQueryFactory(termQueryCache, cacheKey, clause));
            }
-       }
+       }*/
 
    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public LuceneQueryFactory<?> termToFactory(String fieldname, Term sourceTerm, float boost) throws IOException {
+        
+        CacheKey cacheKey = null;
+
+        if (termQueryCache != null) {
+            
+            cacheKey = new CacheKey(fieldname, sourceTerm);
+           
+            TermQueryCacheValue cacheValue = termQueryCache.get(cacheKey);
+            if (cacheValue != null) {
+                return (cacheValue.hasQuery()) ? cacheValue : null;
+            } 
+            
+        }
+        
+        LuceneQueryFactory<? extends Query> clause = null;
+        TokenStream ts = null;
+        try {
+           
+           ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
+           CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
+           PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
+           ts.reset();
+         
+           PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
+           while (ts.incrementToken()) {
+
+               int inc = posIncAttr.getPositionIncrement();
+               if (inc > 0 || sequence.isEmpty()) {
+                   sequence.nextPosition();
+               }
+
+               sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
+           }
+
+           switch (sequence.size()) {
+           case 0: break;
+           case 1: clause = getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost);
+                   //target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost));
+                   break;
+           default:
+               BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
+               for (List<org.apache.lucene.index.Term> posTerms : sequence) {
+                   bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, boost), Occur.MUST);
+               }
+               //target.add(bq);
+               clause = bq;
+           }
+
+        } finally {
+           if (ts != null) {
+               try {
+                   ts.close();
+               } catch (IOException e) {
+               }
+           }
+        }
+       
+        if (cacheKey != null) {
+           if (clause == null) {
+               termQueryCache.put(cacheKey, new TermQueryCacheValue(null));
+           } else {
+               clause = new CachingQueryFactory(termQueryCache, cacheKey, clause);
+           }
+        }
+        
+        return clause;
+    }
 
    protected LuceneQueryFactory<?> getLuceneQueryFactoryForStreamPosition(List<org.apache.lucene.index.Term> posTerms,
          float boost) {
