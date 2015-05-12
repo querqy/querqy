@@ -8,7 +8,7 @@
 	<dataDir>${solr.core0.data.dir:}</dataDir>
 
 	<schemaFactory class="ClassicIndexSchemaFactory" />
-
+	
     <indexConfig>
         <!-- Needed for RAMDirectoryFactory -->
         <lockType>single</lockType>
