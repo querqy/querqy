@@ -42,6 +42,7 @@ import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
+import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.BoostQuery;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
@@ -85,7 +86,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    protected List<Query> boostQueries;
 
    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
-         SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser)
+         SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
          throws SyntaxError {
 
       super(qstr, localParams, params, req);
@@ -120,7 +121,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           }
       }
       dfc = new DocumentFrequencyCorrection();
-      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor, config.getTieBreaker());
+      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor, config.getTieBreaker(), termQueryCache);
       
    }
 

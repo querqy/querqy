@@ -4,6 +4,7 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.Map;
+import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
@@ -18,6 +19,7 @@ import querqy.model.Term;
  *
  */
 public interface Instruction {
+    
    /**
     * 
     * @param sequence
@@ -29,5 +31,7 @@ public interface Instruction {
     */
    void apply(PositionSequence<Term> sequence, TermMatches termMatches, int startPosition, int endPosition,
          ExpandedQuery expandedQuery,  Map<String, Object> context);
+   
+   Set<Term> getGenerableTerms();
 
 }

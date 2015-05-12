@@ -35,6 +35,10 @@ public class Term implements ComparableCharSequence {
        return placeHolders == null ? -1 : placeHolders.getFirst().ref;
    }
    
+   public boolean hasPlaceHolder() {
+       return placeHolders != null && !placeHolders.isEmpty();
+   }
+   
    public ComparableCharSequence fillPlaceholders(TermMatches termMatches) {
        if (placeHolders == null || placeHolders.isEmpty()) {
            return this;

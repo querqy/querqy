@@ -10,64 +10,35 @@ import java.util.Map;
 import java.util.Set;
 
 import querqy.ComparableCharSequence;
-import querqy.model.ExpandedQuery;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.ExpandedQuery;
+import querqy.rewrite.QueryRewriter;
 
 /**
  * @author René Kriegler, @renekrie
  *
  */
 public class DeleteInstruction implements Instruction {
+    
+    protected final List<? extends Term> termsToDelete;
+    protected final Set<CharSequence> charSequencesToDelete;
 
-   protected final List<? extends Term> termsToDelete;
-   protected final Set<CharSequence> charSequencesToDelete;
+    /**
+      * 
+      */
+    public DeleteInstruction(List<? extends Term> termsToDelete) {
+        this.termsToDelete = termsToDelete;
+        charSequencesToDelete = new HashSet<>();
+        for (Term term : termsToDelete) {
+            charSequencesToDelete.addAll(term.getCharSequences(true));
+        }
+    }
 
-   /**
-     * 
-     */
-   public DeleteInstruction(List<? extends Term> termsToDelete) {
-      this.termsToDelete = termsToDelete;
-      charSequencesToDelete = new HashSet<>();
-      for (Term term : termsToDelete) {
-         charSequencesToDelete.addAll(term.getCharSequences(true));
-      }
-   }
+    public List<? extends Term> getTermsToDelete() {
+        return termsToDelete;
+    }
 
-   public List<? extends Term> getTermsToDelete() {
-      return termsToDelete;
-   }
-
-   @Override
-   public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result
-            + ((termsToDelete == null) ? 0 : termsToDelete.hashCode());
-      return result;
-   }
-
-   @Override
-   public boolean equals(Object obj) {
-      if (this == obj)
-         return true;
-      if (obj == null)
-         return false;
-      if (getClass() != obj.getClass())
-         return false;
-      DeleteInstruction other = (DeleteInstruction) obj;
-      if (termsToDelete == null) {
-         if (other.termsToDelete != null)
-            return false;
-      } else if (!termsToDelete.equals(other.termsToDelete))
-         return false;
-      return true;
-   }
-
-   @Override
-   public String toString() {
-      return "DeleteInstruction [termsToDelete=" + termsToDelete + "]";
-   }
 
    /* (non-Javadoc)
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
@@ -142,6 +113,42 @@ public class DeleteInstruction implements Instruction {
          }
       }
 
+   }
+
+   @Override
+   public Set<querqy.model.Term> getGenerableTerms() {
+       return QueryRewriter.EMPTY_GENERABLE_TERMS;
+   }
+   
+   @Override
+   public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result
+           + ((termsToDelete == null) ? 0 : termsToDelete.hashCode());
+      return result;
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+       if (this == obj)
+           return true;
+       if (obj == null)
+           return false;
+       if (getClass() != obj.getClass())
+           return false;
+       DeleteInstruction other = (DeleteInstruction) obj;
+       if (termsToDelete == null) {
+           if (other.termsToDelete != null)
+               return false;
+       } else if (!termsToDelete.equals(other.termsToDelete))
+           return false;
+       return true;
+   }
+
+   @Override
+   public String toString() {
+       return "DeleteInstruction [termsToDelete=" + termsToDelete + "]";
    }
 
 }

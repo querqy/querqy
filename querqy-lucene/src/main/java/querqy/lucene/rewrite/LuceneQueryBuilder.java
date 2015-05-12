@@ -19,6 +19,9 @@ import org.apache.lucene.util.BytesRef;
 
 import querqy.CompoundCharSequence;
 import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
+import querqy.lucene.rewrite.cache.CacheKey;
+import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.cache.TermQueryCacheValue;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
@@ -42,6 +45,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    final float dmqTieBreakerMultiplier;
    final float defaultGeneratedFieldBoostFactor;
    final DocumentFrequencyCorrection dfc;
+   final TermQueryCache termQueryCache;
 
    LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
    LinkedList<DisjunctionMaxQueryFactory> dmqStack = new LinkedList<>();
@@ -51,8 +55,16 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
            Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings,
-           float generatedFieldBoostFactor, float dmqTieBreakerMultiplier) {
-      this(dfc, analyzer, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings, generatedFieldBoostFactor, dmqTieBreakerMultiplier, true);
+           float generatedFieldBoostFactor, float dmqTieBreakerMultiplier, TermQueryCache termQueryCache) {
+      this(   
+              dfc, 
+              analyzer, 
+              queryFieldsAndBoostings, 
+              generatedQueryFieldsAndBoostings, 
+              generatedFieldBoostFactor, 
+              dmqTieBreakerMultiplier, 
+              true, 
+              termQueryCache);
    }
 
    /**
@@ -72,12 +84,13 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param defaultGeneratedFieldBoostFactor Default boost factor for generated fields
     * @param dmqTieBreakerMultiplier
     * @param normalizeBooleanQueryBoost
+    * @param termQueryCache The term query cache or null
     */
    public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
          Map<String, Float> queryFieldsAndBoostings,  
          Map<String, Float> generatedQueryFieldsAndBoostings, 
          float defaultGeneratedFieldBoostFactor,
-         float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost) {
+         float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost, TermQueryCache termQueryCache) {
        
       this.analyzer = analyzer;
       this.queryFieldsAndBoostings = queryFieldsAndBoostings;
@@ -86,6 +99,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
       this.defaultGeneratedFieldBoostFactor = defaultGeneratedFieldBoostFactor;
       this.dfc = dfc;
+      this.termQueryCache = termQueryCache;
    }
 
    public void reset() {
@@ -286,46 +300,78 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param sourceTerm
     * @throws IOException
     */
-   void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
+        
+        CacheKey cacheKey = null;
 
-      PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
-
-      TokenStream ts = null;
-      try {
-         ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
-         CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
-         PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
-         ts.reset();
-         while (ts.incrementToken()) {
-
-            int inc = posIncAttr.getPositionIncrement();
-            if (inc > 0 || sequence.isEmpty()) {
-               sequence.nextPosition();
+        if (termQueryCache != null) {
+            
+            cacheKey = new CacheKey(fieldname, sourceTerm);
+           
+            TermQueryCacheValue cacheValue = termQueryCache.get(cacheKey);
+            if (cacheValue != null) {
+                if (cacheValue.hasQuery()) {
+                    target.add(cacheValue);
+                }
+                return;
             }
+        }
+       
+        LuceneQueryFactory<? extends Query> clause = null;
+        TokenStream ts = null;
+        try {
+           
+           ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
+           CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
+           PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
+           ts.reset();
+         
+           PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
+           while (ts.incrementToken()) {
 
-            sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
-         }
+               int inc = posIncAttr.getPositionIncrement();
+               if (inc > 0 || sequence.isEmpty()) {
+                   sequence.nextPosition();
+               }
 
-         switch (sequence.size()) {
-         case 0: break;
-         case 1: target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost));
-                 break;
-         default:
-            BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
-            for (List<org.apache.lucene.index.Term> posTerms : sequence) {
-               bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, boost), Occur.MUST);
-            }
-            target.add(bq);
-         }
+               sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
+           }
 
-      } finally {
-         if (ts != null) {
-            try {
-               ts.close();
-            } catch (IOException e) {
-            }
-         }
-      }
+           switch (sequence.size()) {
+           case 0: break;
+           case 1: clause = getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost);
+                   //target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost));
+                   break;
+           default:
+               BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
+               for (List<org.apache.lucene.index.Term> posTerms : sequence) {
+                   bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, boost), Occur.MUST);
+               }
+               //target.add(bq);
+               clause = bq;
+           }
+
+        } finally {
+           if (ts != null) {
+               try {
+                   ts.close();
+               } catch (IOException e) {
+               }
+           }
+        }
+       
+        if (cacheKey == null) {
+           if (clause != null) {
+               target.add(clause);
+           }
+        } else {
+           if (clause == null) {
+               termQueryCache.put(cacheKey, new TermQueryCacheValue(null));
+           } else {
+               target.add(new CachingQueryFactory(termQueryCache, cacheKey, clause));
+           }
+       }
 
    }
 

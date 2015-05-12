@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -19,6 +20,7 @@ import org.apache.lucene.analysis.synonym.SolrSynonymParser;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 
 import querqy.model.ExpandedQuery;
+import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 
@@ -64,5 +66,10 @@ public class LuceneSynonymsRewriterFactory implements RewriterFactory {
    public void build() throws IOException {
       synonymMap = parser.build();
    }
+
+    @Override
+    public Set<Term> getGenerableTerms() {
+        return QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
 
 }

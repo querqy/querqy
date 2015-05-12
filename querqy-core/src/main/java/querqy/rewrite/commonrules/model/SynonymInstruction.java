@@ -3,8 +3,10 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import querqy.ComparableCharSequence;
 import querqy.model.BooleanQuery;
@@ -100,6 +102,24 @@ public class SynonymInstruction implements Instruction {
     }
 
     @Override
+    public Set<Term> getGenerableTerms() {
+        Set<Term> result = new HashSet<Term>();
+        for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
+            if (!synTerm.hasPlaceHolder()) {
+                List<String> fieldNames = synTerm.getFieldNames();
+                if (fieldNames == null || fieldNames.isEmpty()) {
+                    result.add(new Term(null, synTerm, true));
+                } else {
+                    for (String fieldName: fieldNames) {
+                        result.add(new Term(null, fieldName, synTerm, true));
+                    }
+                }
+            }
+        }
+        return result;
+    }
+    
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -128,6 +148,7 @@ public class SynonymInstruction implements Instruction {
     public String toString() {
         return "SynonymInstruction [synonym=" + synonym + "]";
     }
+
 
     
 }

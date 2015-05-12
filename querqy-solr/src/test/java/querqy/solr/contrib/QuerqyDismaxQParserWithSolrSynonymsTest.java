@@ -127,7 +127,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-           new WhiteSpaceQuerqyParser());
+           new WhiteSpaceQuerqyParser(), null);
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);

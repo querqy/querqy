@@ -4,8 +4,10 @@
 package querqy.rewrite;
 
 import java.util.Map;
+import java.util.Set;
 
 import querqy.model.ExpandedQuery;
+import querqy.model.Term;
 
 /**
  * @author rene
@@ -14,5 +16,7 @@ import querqy.model.ExpandedQuery;
 public interface RewriterFactory {
 
    QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context);
+   
+   Set<Term> getGenerableTerms();
 
 }

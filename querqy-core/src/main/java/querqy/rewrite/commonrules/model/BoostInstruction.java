@@ -4,11 +4,14 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.Map;
+import java.util.Set;
 
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
+import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.QueryRewriter;
 
 /**
  * @author René Kriegler, @renekrie
@@ -53,6 +56,13 @@ public class BoostInstruction implements Instruction {
       }
 
    }
+   
+   @Override
+   public Set<Term> getGenerableTerms() {
+       return (query instanceof Query) 
+           ?  TermsCollector.collect((Query) query)
+           : QueryRewriter.EMPTY_GENERABLE_TERMS;
+   }
 
    @Override
    public int hashCode() {
@@ -91,5 +101,6 @@ public class BoostInstruction implements Instruction {
       return "BoostInstruction [query=" + query + ", direction=" + direction
             + ", boost=" + boost + "]";
    }
+
 
 }

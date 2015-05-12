@@ -11,7 +11,16 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
+import org.apache.solr.search.SolrCache;
+import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.util.RefCounted;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import querqy.lucene.rewrite.cache.CacheKey;
+import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.cache.TermQueryCacheValue;
+import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
@@ -21,14 +30,18 @@ import querqy.rewrite.RewriterFactory;
  */
 public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
-   protected NamedList<?> initArgs = null;
-   protected RewriteChain rewriteChain = null;
-   protected SolrQuerqyParserFactory querqyParserFactory = null;
+    protected Logger logger = LoggerFactory.getLogger(getClass());
+    
+    protected NamedList<?> initArgs = null;
+    protected RewriteChain rewriteChain = null;
+    protected SolrQuerqyParserFactory querqyParserFactory = null;
+    protected String termQueryCacheName = null;
+   
 
-   @Override
-   public void init(@SuppressWarnings("rawtypes") NamedList args) {
-      this.initArgs = args;
-   }
+    @Override
+    public void init(@SuppressWarnings("rawtypes") NamedList args) {
+        this.initArgs = args;
+    }
 
    @Override
    public void inform(ResourceLoader loader) throws IOException {
@@ -47,6 +60,8 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
       factory.init(parserConfig, loader);
 
       rewriteChain = loadRewriteChain(loader);
+      
+      termQueryCacheName = (String) initArgs.get("termQueryCache");
 
       this.querqyParserFactory = factory;
    }
@@ -72,8 +87,9 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
             }
          }
       }
-
+      
       return new RewriteChain(factories);
+      
    }
 
    protected QuerqyParser createQuerqyParser(String qstr, SolrParams localParams, SolrParams params,
@@ -82,6 +98,32 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
    }
 
    @Override
-   public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req);
+   public final QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
+       
+       if (termQueryCacheName == null) {
+           return createParser(qstr, localParams, params, req, null);
+       } else {
+       
+           RefCounted<SolrIndexSearcher> refSearcher = null;
+           try {
+               refSearcher = req.getCore().getSearcher();
+               @SuppressWarnings("unchecked")
+               SolrCache<CacheKey, TermQueryCacheValue> solrCache = refSearcher.get().getCache(termQueryCacheName);
+               if (solrCache == null) {
+                   logger.warn("Missing Solr cache {}", termQueryCacheName);
+                   return createParser(qstr, localParams, params, req, null);
+               } else {
+                   return createParser(qstr, localParams, params, req, new TermQueryCacheAdapter(solrCache));
+               }
+               
+           } finally {
+               if (refSearcher != null) {
+                   refSearcher.decref();
+               }
+           }
+       }
+   }
+   
+   public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req, TermQueryCache termQueryCache);
 
 }
