@@ -12,15 +12,12 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrCache;
-import org.apache.solr.search.SolrIndexSearcher;
-import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.lucene.rewrite.cache.TermQueryCacheValue;
-import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
@@ -104,23 +101,15 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
            return createParser(qstr, localParams, params, req, null);
        } else {
        
-           RefCounted<SolrIndexSearcher> refSearcher = null;
-           try {
-               refSearcher = req.getCore().getSearcher();
-               @SuppressWarnings("unchecked")
-               SolrCache<CacheKey, TermQueryCacheValue> solrCache = refSearcher.get().getCache(termQueryCacheName);
-               if (solrCache == null) {
-                   logger.warn("Missing Solr cache {}", termQueryCacheName);
-                   return createParser(qstr, localParams, params, req, null);
-               } else {
-                   return createParser(qstr, localParams, params, req, new TermQueryCacheAdapter(solrCache));
-               }
-               
-           } finally {
-               if (refSearcher != null) {
-                   refSearcher.decref();
-               }
+           @SuppressWarnings("unchecked")
+           SolrCache<CacheKey, TermQueryCacheValue> solrCache = req.getSearcher().getCache(termQueryCacheName);
+           if (solrCache == null) {
+               logger.warn("Missing Solr cache {}", termQueryCacheName);
+               return createParser(qstr, localParams, params, req, null);
+           } else {
+               return createParser(qstr, localParams, params, req, new TermQueryCacheAdapter(solrCache));
            }
+           
        }
    }
    
