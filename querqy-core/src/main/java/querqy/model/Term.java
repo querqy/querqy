@@ -65,7 +65,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
       return value.charAt(index);
    }
 
-   public CharSequence getValue() {
+   public ComparableCharSequence getValue() {
       return value;
    }
 

@@ -50,7 +50,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.MM, "2");
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(),
-            new WhiteSpaceQuerqyParser());
+            new WhiteSpaceQuerqyParser(), null);
 
       Query query = parser.parse();
 
@@ -70,7 +70,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3");
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            new WhiteSpaceQuerqyParser());
+            new WhiteSpaceQuerqyParser(), null);
       Query query = parser.parse();
 
       req.close();
@@ -91,7 +91,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             QueryParsing.OP, "OR"
             );
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            new WhiteSpaceQuerqyParser());
+            new WhiteSpaceQuerqyParser(), null);
       Query query = parser.parse();
 
       req.close();
@@ -393,7 +393,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-           new WhiteSpaceQuerqyParser());
+           new WhiteSpaceQuerqyParser(), null);
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);

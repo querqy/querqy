@@ -9,6 +9,7 @@ import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
+import querqy.rewrite.QueryRewriter;
 
 /**
  * @author René Kriegler, @renekrie
@@ -48,6 +49,11 @@ public class DecorateInstruction implements Instruction {
     }
 
     @Override
+    public Set<Term> getGenerableTerms() {
+        return QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+    
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -77,6 +83,8 @@ public class DecorateInstruction implements Instruction {
     public String toString() {
         return "DecorateInstruction [decorationValue=" + decorationValue + "]";
     }
+
+    
 
     
 }

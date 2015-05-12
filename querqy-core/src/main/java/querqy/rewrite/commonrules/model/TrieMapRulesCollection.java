@@ -4,8 +4,10 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import querqy.CompoundCharSequence;
 import querqy.model.InputSequenceElement;
@@ -26,6 +28,9 @@ public class TrieMapRulesCollection implements RulesCollection {
     final boolean ignoreCase;
     
     public TrieMapRulesCollection(TrieMap<List<Instructions>> trieMap, boolean ignoreCase) {
+        if (trieMap == null) {
+            throw new IllegalArgumentException("trieMap must not be null");
+        }
         this.trieMap = trieMap;
         this.ignoreCase = ignoreCase;
     }
@@ -188,6 +193,21 @@ public class TrieMapRulesCollection implements RulesCollection {
 
         return result;    
     }
+    
+    @Override
+    public Set<Instruction> getInstructions() {
+        
+        Set<Instruction> result = new HashSet<Instruction>();
+        
+        for (List<Instructions> instructionsList: trieMap) {
+            for (Instructions instructions: instructionsList) {
+                result.addAll(instructions);
+            }
+        }
+        
+        return result;
+    }
+
     
     CharSequence getCharSequenceForLookup(InputSequenceElement element) {
         if (element instanceof InputBoundary) {

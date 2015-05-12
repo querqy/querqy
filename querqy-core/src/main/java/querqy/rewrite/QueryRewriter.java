@@ -3,7 +3,11 @@
  */
 package querqy.rewrite;
 
+import java.util.Collections;
+import java.util.Set;
+
 import querqy.model.ExpandedQuery;
+import querqy.model.Term;
 
 /**
  * A query rewriter.
@@ -12,7 +16,9 @@ import querqy.model.ExpandedQuery;
  *
  */
 public interface QueryRewriter {
+    
+    static final Set<Term> EMPTY_GENERABLE_TERMS = Collections.emptySet();
 
-   ExpandedQuery rewrite(ExpandedQuery query);
+    ExpandedQuery rewrite(ExpandedQuery query);
 
 }

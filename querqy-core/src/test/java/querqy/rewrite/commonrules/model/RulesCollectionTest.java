@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import querqy.model.ExpandedQuery;
 import querqy.model.InputSequenceElement;
 import querqy.model.Term;
+import querqy.rewrite.QueryRewriter;
 
 public class RulesCollectionTest {
 
@@ -389,6 +391,11 @@ public class RulesCollectionTest {
       public void apply(PositionSequence<Term> sequence,
             TermMatches termsMatches, int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
       }
+
+    @Override
+    public Set<Term> getGenerableTerms() {
+        return QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
 
    }
 }

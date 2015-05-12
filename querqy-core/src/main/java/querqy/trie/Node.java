@@ -3,6 +3,9 @@
  */
 package querqy.trie;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * @author René Kriegler, @renekrie
  *
@@ -97,6 +100,76 @@ public class Node<T> {
     
     public States<T> getNext(CharSequence seq, int index) {
         return (firstChild != null) ? firstChild.get(seq, index) : new States<>(new State<T>(false, null, null));
+    }
+    
+    public ValueIterator iterator() {
+        return new ValueIterator();
+    }
+    
+    enum IterationState {THIS, THIS_PREFIX, CHILD, NEXT}
+    public class ValueIterator implements Iterator<T> {
+        
+        IterationState iterationState = IterationState.THIS;
+        
+        ValueIterator childIterator = null;
+        ValueIterator nextIterator = null;
+
+        @Override
+        public boolean hasNext() {
+            switch (iterationState) {
+            case THIS: 
+                if (value != null) return true;
+                iterationState = IterationState.THIS_PREFIX;
+                return hasNext();
+            case THIS_PREFIX:
+                if (prefixValue != null) {
+                    return true;
+                }
+                iterationState = IterationState.CHILD;
+                return hasNext();
+            case CHILD:
+                if (childIterator == null) {
+                    if (firstChild == null) {
+                        iterationState = IterationState.NEXT;
+                        return hasNext();
+                    }
+                    childIterator = firstChild.iterator();
+                }
+                if (childIterator.hasNext()) {
+                    return true;
+                }
+                iterationState = IterationState.NEXT;
+                return hasNext();
+            case NEXT:
+                if (nextIterator == null) {
+                    if (next == null) {
+                        return false;
+                    }
+                    nextIterator = next.iterator();
+                }
+                return nextIterator.hasNext();
+            }
+            return false;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) throw new NoSuchElementException();
+            switch (iterationState) {
+            case THIS: iterationState = IterationState.THIS_PREFIX; return value;
+            case THIS_PREFIX: iterationState = IterationState.CHILD; return prefixValue;
+            case CHILD: return childIterator.next();
+            case NEXT: return nextIterator.next();
+            }
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+            
+        }
+        
     }
 
 }

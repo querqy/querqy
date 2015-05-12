@@ -7,9 +7,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
@@ -34,7 +36,9 @@ import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 /**
  * @author René Kriegler, @renekrie
  *
+ * 
  */
+@Deprecated
 public class SynonymFormatCommonRulesRewriterFactory implements
       RewriterFactoryAdapter {
 
@@ -189,6 +193,15 @@ public class SynonymFormatCommonRulesRewriterFactory implements
             Map<String, ?> context) {
          return new CommonRulesRewriter(rules);
       }
+
+    @Override
+    public Set<Term> getGenerableTerms() {
+        Set<Term> result = new HashSet<Term>();
+        for (Instruction instruction: rules.getInstructions()) {
+            result.addAll(instruction.getGenerableTerms());
+        }
+        return result;
+    }
 
    }
 

@@ -74,7 +74,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    protected Query build(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fields, fields, 0.8f,  tie);
+            keywordAnalyzer, fields, fields, 0.8f,  tie, null);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -84,7 +84,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fields, fields, 0.8f, tie);
+            keywordAnalyzer, fields, fields, 0.8f, tie, null);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -104,7 +104,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        LuceneQueryBuilder builder = new LuceneQueryBuilder(
                new DocumentFrequencyCorrection(),
                new StandardAnalyzer(new CharArraySet(stopWords, true)), 
-               fields, fields, 0.8f, tie);
+               fields, fields, 0.8f, tie, null);
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
        return builder.createQuery(q);
@@ -290,7 +290,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fieldsQuery, fieldsGenerated, 0.8f, 0.1f);
+            keywordAnalyzer, fieldsQuery, fieldsGenerated, 0.8f, 0.1f, null);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");
