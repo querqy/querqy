@@ -30,5 +30,8 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
                 dmqTieBreakerMultiplier,         
                 dfc, isBelowDMQ);
     }
-
+    
+    public boolean isNeverMatchQuery() {
+        return root instanceof NeverMatchQueryFactory;
+    }
 }

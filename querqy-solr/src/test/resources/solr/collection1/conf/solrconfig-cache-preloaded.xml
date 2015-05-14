@@ -31,12 +31,14 @@
       		<str name="fields">f1</str>
       		<str name="qParserPlugin">querqy</str>
       		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
     	</listener>
     	
     	<listener event="newSearcher" class="querqy.solr.TermQueryCachePreloader">
       		<str name="fields">f1 f2</str>
       		<str name="qParserPlugin">querqy</str>
       		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
     	</listener>
 	</query>
 
