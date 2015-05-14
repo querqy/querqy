@@ -13,10 +13,10 @@ import org.apache.lucene.search.Query;
  * @author René Kriegler, @renekrie
  *
  */
-public class NullQueryFactory implements LuceneQueryFactory<Query> {
+public class NeverMatchQueryFactory implements LuceneQueryFactory<Query> {
 
     @Override
-    public Query createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ)
+    public Query createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ)
             throws IOException {
         return new BooleanQuery();
     }
