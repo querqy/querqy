@@ -13,20 +13,24 @@ import querqy.lucene.rewrite.cache.TermQueryCacheValue;
  * @author rene
  *
  */
-public class TermQueryCacheAdapter implements TermQueryCache {
+public class SolrTermQueryCacheAdapter implements TermQueryCache {
     
     final SolrCache<CacheKey, TermQueryCacheValue> delegate;
+    final boolean ignoreUpdates;
     
-    public TermQueryCacheAdapter(SolrCache<CacheKey, TermQueryCacheValue> delegate) {
+    public SolrTermQueryCacheAdapter(boolean ignoreUpdates, SolrCache<CacheKey, TermQueryCacheValue> delegate) {
         if (delegate == null) {
             throw new IllegalArgumentException("Solr cache must not be null");
         }
         this.delegate = delegate;
+        this.ignoreUpdates = ignoreUpdates;
     }
 
     @Override
-    public TermQueryCacheValue put(CacheKey cacheKey, TermQueryCacheValue value) {
-        return delegate.put(cacheKey, value);
+    public void put(CacheKey cacheKey, TermQueryCacheValue value) {
+        if (!ignoreUpdates) {
+            delegate.put(cacheKey, value);
+        }
     }
 
     @Override

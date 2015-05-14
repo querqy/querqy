@@ -11,6 +11,8 @@ import org.apache.solr.core.AbstractSolrEventListener;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.search.SolrCache;
 import org.apache.solr.search.SolrIndexSearcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
@@ -27,11 +29,14 @@ import querqy.rewrite.RewriterFactory;
  */
 public class TermQueryCachePreloader extends AbstractSolrEventListener {
     
+    static final Logger LOG = LoggerFactory.getLogger(TermQueryCachePreloader.class); 
+    
+    public static final String CONF_Q_PARSER_PLUGIN = "qParserPlugin";
+    
     public static final String CONF_PRELOAD_FIELDS = "fields";
     
-    // FIXME:  configure name
-    final String parserName = "querqy";
-    final String cacheName = "querqyTermQueryCache";
+    public static final String CONF_CACHE_NAME = "cacheName";
+    
 
     public TermQueryCachePreloader(SolrCore core) {
         super(core);
@@ -43,25 +48,42 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
        return QuerqyDismaxQParser.parseFieldBoosts(fieldConf, 1f).keySet();
     }
     
-    @Override
-    public void newSearcher(SolrIndexSearcher newSearcher, SolrIndexSearcher currentSearcher) {
-        
-        AbstractQuerqyDismaxQParserPlugin queryPlugin = (AbstractQuerqyDismaxQParserPlugin) getCore().getQueryPlugin(parserName);
-        if (queryPlugin == null) {
-            throw new RuntimeException("No query plugin for name '" + parserName + "'");
+    protected AbstractQuerqyDismaxQParserPlugin getQParserPlugin() {
+        String parserName = (String) getArgs().get(CONF_Q_PARSER_PLUGIN); 
+        if (parserName == null) {
+            throw new RuntimeException("Missing configuration property: " + CONF_Q_PARSER_PLUGIN);
+        }
+        AbstractQuerqyDismaxQParserPlugin qParserPlugin = (AbstractQuerqyDismaxQParserPlugin) getCore().getQueryPlugin(parserName);
+        if (qParserPlugin == null) {
+            throw new RuntimeException("No query parser plugin for name '" + parserName + "'");
+        }
+        return qParserPlugin;
+    }
+    
+    protected TermQueryCache getCache(SolrIndexSearcher searcher) {
+        String cacheName = (String) getArgs().get(CONF_CACHE_NAME); 
+        if (cacheName == null) {
+            throw new RuntimeException("Missing configuration property: " + CONF_CACHE_NAME);
         }
         
         @SuppressWarnings("unchecked")
-        SolrCache<CacheKey, TermQueryCacheValue> solrCache = newSearcher.getCache(cacheName);
+        SolrCache<CacheKey, TermQueryCacheValue> solrCache = searcher.getCache(cacheName);
         if (solrCache == null) {
             throw new RuntimeException("No TermQueryCache for name '" + cacheName + "'");
         }
         
-        TermQueryCache cache = new TermQueryCacheAdapter(solrCache);
+        return new SolrTermQueryCacheAdapter(false, solrCache);
+    }
+    
+    @Override
+    public void newSearcher(SolrIndexSearcher newSearcher, SolrIndexSearcher currentSearcher) {
+        
+        TermQueryCache cache = getCache(newSearcher);
         
         Set<String> preloadFields = getPreloadFields();
         
-        RewriteChain rewriteChain = queryPlugin.getRewriteChain();
+        AbstractQuerqyDismaxQParserPlugin queryPluginPlugin = getQParserPlugin();
+        RewriteChain rewriteChain = queryPluginPlugin.getRewriteChain();
         
         if (rewriteChain != null && !preloadFields.isEmpty()) {
         
@@ -81,8 +103,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
                                 try {
                                     luceneQueryBuilder.termToFactory(field, term, 1f);
                                 } catch (IOException e) {
-                                    // FIXME: log
-                                    e.printStackTrace();
+                                    LOG.error("Error preloading term " + term.toString(), e);
                                 }
                             }
                         } else {
@@ -90,8 +111,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
                                 try {
                                     luceneQueryBuilder.termToFactory(fieldname, term, 1f);
                                 } catch (IOException e) {
-                                    // FIXME: log
-                                    e.printStackTrace();
+                                    LOG.error("Error preloading term " + term.toString(), e);
                                 }
                             }
                         }

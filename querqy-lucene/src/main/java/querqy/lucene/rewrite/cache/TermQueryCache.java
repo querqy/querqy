@@ -9,7 +9,7 @@ package querqy.lucene.rewrite.cache;
  */
 public interface TermQueryCache {
     
-    TermQueryCacheValue put(CacheKey key, TermQueryCacheValue value);
+    void put(CacheKey key, TermQueryCacheValue value);
     
     TermQueryCacheValue get(CacheKey key);
 
