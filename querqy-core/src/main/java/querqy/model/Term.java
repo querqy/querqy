@@ -3,6 +3,7 @@
  */
 package querqy.model;
 
+import querqy.CharSequenceUtil;
 import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
 import querqy.CompoundCharSequence;
@@ -94,7 +95,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
       final int prime = 31;
       int result = 1;
       result = prime * result + ((field == null) ? 0 : field.hashCode());
-      result = prime * result + ((value == null) ? 0 : value.hashCode());
+      result = prime * result + ((value == null) ? 0 : CharSequenceUtil.hashCode(value));
       return result;
    }
 
@@ -121,7 +122,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
          if (other.value != null) {
             return false;
          }
-      } else if (!value.equals(other.value)) {
+      } else if (! CharSequenceUtil.equals(this, value)) {
          return false;
       }
       return true;

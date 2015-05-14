@@ -14,6 +14,8 @@ import org.apache.lucene.search.Query;
  *
  */
 public class NeverMatchQueryFactory implements LuceneQueryFactory<Query> {
+    
+    public static final NeverMatchQueryFactory FACTORY = new NeverMatchQueryFactory();
 
     @Override
     public Query createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ)

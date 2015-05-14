@@ -3,6 +3,7 @@
  */
 package querqy.lucene.rewrite.cache;
 
+import querqy.CharSequenceUtil;
 import querqy.ComparableCharSequence;
 import querqy.model.Term;
 
@@ -13,12 +14,12 @@ import querqy.model.Term;
 public class CacheKey {
     
     public final String fieldname;
-    public final Term term;
+   // public final Term term;
     protected final ComparableCharSequence value;
     
     public CacheKey(String fieldname, Term term) {
         this.fieldname = fieldname;
-        this.term = term;
+       // this.term = term;
         value = term.getValue();
     }
 
@@ -28,7 +29,7 @@ public class CacheKey {
         int result = 1;
         result = prime * result
                 + ((fieldname == null) ? 0 : fieldname.hashCode());
-        result = prime * result + ((value == null) ? 0 : value.hashCode());
+        result = prime * result + ((value == null) ? 0 : CharSequenceUtil.hashCode(value));
         return result;
     }
 
@@ -49,7 +50,7 @@ public class CacheKey {
         if (value == null) {
             if (other.value != null)
                 return false;
-        } else if (!value.equals(other.value))
+        } else if (!CharSequenceUtil.equals(value, other.value))
             return false;
         return true;
     }

@@ -25,6 +25,21 @@
               autowarmCount="0"
               regenerator="solr.NoOpRegenerator"
         />
+        
+      	
+    	<listener event="firstSearcher" class="querqy.solr.TermQueryCachePreloader">
+      		<str name="fields">f1</str>
+      		<str name="qParserPlugin">querqy</str>
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
+    	</listener>
+    	
+    	<listener event="newSearcher" class="querqy.solr.TermQueryCachePreloader">
+      		<str name="fields">f1 f2</str>
+      		<str name="qParserPlugin">querqy</str>
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
+    	</listener>
 	</query>
 
 	<requestDispatcher handleSelect="false">
@@ -61,6 +76,7 @@
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 	    
 	    <str name="termQueryCache.name">querqyTermQueryCache</str>
+	    <bool name="termQueryCache.update">false</bool>
 	    
 		<lst name="rewriteChain">
            <lst name="rewriter">

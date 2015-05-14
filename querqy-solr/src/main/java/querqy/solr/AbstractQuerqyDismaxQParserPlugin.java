@@ -26,6 +26,9 @@ import querqy.rewrite.RewriterFactory;
  * Abstract superclass for QuerqyDismaxQParserPlugins.
  */
 public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
+    
+    public static final String CONF_CACHE_NAME = "termQueryCache.name";
+    public static final String CONF_CACHE_UPDATE = "termQueryCache.update";
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
     
@@ -34,6 +37,7 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
 
     protected SolrQuerqyParserFactory querqyParserFactory = null;
     protected String termQueryCacheName = null;
+    protected boolean ignoreTermQueryCacheUpdates = true; 
     
     public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req, TermQueryCache termQueryCache);
 
@@ -42,28 +46,35 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
         this.initArgs = args;
     }
 
-   @Override
-   public void inform(ResourceLoader loader) throws IOException {
+    @Override
+    public void inform(ResourceLoader loader) throws IOException {
 
-      NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
-      if (parserConfig == null) {
-         throw new IOException("Missing querqy parser configuration");
-      }
+        NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
+        if (parserConfig == null) {
+            throw new IOException("Missing querqy parser configuration");
+        }
 
-      String className = (String) parserConfig.get("factory");
-      if (className == null) {
-         throw new IOException("Missing attribute 'factory' in querqy parser configuration");
-      }
+        String className = (String) parserConfig.get("factory");
+        if (className == null) {
+            throw new IOException("Missing attribute 'factory' in querqy parser configuration");
+        }
 
-      SolrQuerqyParserFactory factory = loader.newInstance(className, SolrQuerqyParserFactory.class);
-      factory.init(parserConfig, loader);
+        SolrQuerqyParserFactory factory = loader.newInstance(className, SolrQuerqyParserFactory.class);
+        factory.init(parserConfig, loader);
 
-      rewriteChain = loadRewriteChain(loader);
+        rewriteChain = loadRewriteChain(loader);
       
-      termQueryCacheName = (String) initArgs.get("termQueryCache");
+        termQueryCacheName = (String) initArgs.get(CONF_CACHE_NAME);
+        
+        Boolean updateCache = initArgs.getBooleanArg(CONF_CACHE_UPDATE);
+        if (termQueryCacheName == null && updateCache != null) {
+            throw new IOException("Configuration property " + CONF_CACHE_NAME + " required if " + CONF_CACHE_UPDATE + " is set");
+        }
 
-      this.querqyParserFactory = factory;
-   }
+        ignoreTermQueryCacheUpdates = (updateCache != null) ? !updateCache : false;
+        
+        this.querqyParserFactory = factory;
+    }
 
    /**
     * Loads the whole {@link RewriteChain}s from the args and returns a list of
@@ -109,7 +120,7 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
                logger.warn("Missing Solr cache {}", termQueryCacheName);
                return createParser(qstr, localParams, params, req, null);
            } else {
-               return createParser(qstr, localParams, params, req, new TermQueryCacheAdapter(solrCache));
+               return createParser(qstr, localParams, params, req, new SolrTermQueryCacheAdapter(ignoreTermQueryCacheUpdates, solrCache));
            }
            
        }
