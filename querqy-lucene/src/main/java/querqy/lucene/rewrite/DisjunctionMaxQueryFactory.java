@@ -12,42 +12,44 @@ import org.apache.lucene.search.DisjunctionMaxQuery;
  * @author rene
  *
  */
-public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<DisjunctionMaxQuery> {
+public class DisjunctionMaxQueryFactory extends AbstractLuceneQueryFactory<DisjunctionMaxQuery> {
 
-   protected final float boost;
    protected final LinkedList<LuceneQueryFactory<?>> disjuncts;
-   protected final float tieBreakerMultiplier;
+   
+   public DisjunctionMaxQueryFactory() {
+       this(null);
+   }
 
-   public DisjunctionMaxQueryFactory(float boost, float tieBreakerMultiplier) {
-      this.boost = boost;
-      this.tieBreakerMultiplier = tieBreakerMultiplier;
-      disjuncts = new LinkedList<>();
+   public DisjunctionMaxQueryFactory(Float boost) {
+       super(boost);
+       disjuncts = new LinkedList<>();
    }
 
    public void add(LuceneQueryFactory<?> disjunct) {
-      disjuncts.add(disjunct);
+       disjuncts.add(disjunct);
    }
 
    public int getNumberOfDisjuncts() {
-      return disjuncts.size();
+       return disjuncts.size();
    }
 
    public LuceneQueryFactory<?> getFirstDisjunct() {
-      return disjuncts.getFirst();
+       return disjuncts.getFirst();
    }
 
    @Override
-   public DisjunctionMaxQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
-      if ((!isBelowDMQ) && (dfc != null)) {
-         dfc.newClause();
-      }
-      DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(tieBreakerMultiplier);
-      dmq.setBoost(boost);
+   public DisjunctionMaxQuery createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+       float bf = getBoostFactor(boostFactor);
+       if ((!isBelowDMQ) && (dfc != null)) {
+           dfc.newClause();
+       }
+       DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(dmqTieBreakerMultiplier);
+       dmq.setBoost(bf);
 
-      for (LuceneQueryFactory<?> disjunct : disjuncts) {
-         dmq.add(disjunct.createQuery(dfc, true));
-      }
-      return dmq;
-   }
+       for (LuceneQueryFactory<?> disjunct : disjuncts) {
+           dmq.add(disjunct.createQuery(null, dmqTieBreakerMultiplier, dfc, true));
+       }
+       return dmq;
+    }
 
 }

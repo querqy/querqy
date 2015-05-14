@@ -1,7 +1,5 @@
 package querqy.solr;
 
-import static org.junit.Assert.*;
-
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -18,14 +16,14 @@ public class SolrTermQueryCacheTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "2", "f1", "a", "f2", "b"));
         assertU(adoc("id", "3", "f1", "a", "f2", "c"));
         assertU(commit());
-     }
+    }
 
-     @BeforeClass
-     public static void beforeClass() throws Exception {
+    @BeforeClass
+    public static void beforeClass() throws Exception {
         System.setProperty("tests.codec", "Lucene46");
         initCore("solrconfig-cache.xml", "schema.xml");
         index();
-     }
+    }
      
     @Test
     public void testThatCacheIsAvailable() throws Exception {

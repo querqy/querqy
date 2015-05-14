@@ -5,18 +5,15 @@ package querqy.solr;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.core.AbstractSolrEventListener;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrCache;
 import org.apache.solr.search.SolrIndexSearcher;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
-import querqy.lucene.rewrite.LuceneQueryFactory;
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.lucene.rewrite.cache.TermQueryCacheValue;
@@ -55,7 +52,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         }
         
         @SuppressWarnings("unchecked")
-        SolrCache<CacheKey, TermQueryCacheValue> solrCache = newSearcher.getCache("cacheName");
+        SolrCache<CacheKey, TermQueryCacheValue> solrCache = newSearcher.getCache(cacheName);
         if (solrCache == null) {
             throw new RuntimeException("No TermQueryCache for name '" + cacheName + "'");
         }
@@ -82,10 +79,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
                         if (field != null) {
                             if (preloadFields.contains(field)) {
                                 try {
-                                    LuceneQueryFactory<?> queryFactory = luceneQueryBuilder.termToFactory(field, term, 1f);
-                                    if (queryFactory != null) {
-                                        queryFactory.createQuery(dfc, true);
-                                    }
+                                    luceneQueryBuilder.termToFactory(field, term, 1f);
                                 } catch (IOException e) {
                                     // FIXME: log
                                     e.printStackTrace();
@@ -94,10 +88,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
                         } else {
                             for (String fieldname : preloadFields) {
                                 try {
-                                    LuceneQueryFactory<?> queryFactory = luceneQueryBuilder.termToFactory(fieldname, term, 1f);
-                                    if (queryFactory != null) {
-                                        queryFactory.createQuery(dfc, true);
-                                    }
+                                    luceneQueryBuilder.termToFactory(fieldname, term, 1f);
                                 } catch (IOException e) {
                                     // FIXME: log
                                     e.printStackTrace();

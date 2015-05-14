@@ -12,22 +12,30 @@ import org.apache.lucene.search.TermQuery;
  * @author rene
  *
  */
-public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
+public class TermQueryFactory extends AbstractLuceneQueryFactory<TermQuery> {
 
    protected final Term term;
-   protected final float boost;
+   
+   public TermQueryFactory(Term term) {
+       this(term, null);
+   }
 
-   public TermQueryFactory(Term term, float boost) {
-      this.term = term;
-      this.boost = boost;
+   public TermQueryFactory(Term term, Float boost) {
+       super(boost);
+       this.term = term;
    }
 
    @Override
-   public TermQuery createQuery(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+   public TermQuery createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+       
+       float bf = getBoostFactor(boostFactor);
        
        TermQuery tq = null;
+       
        if (dfc == null) {
+       
            tq = new TermQuery(term);
+       
        } else {
 
            if (!isBelowDMQ) {
@@ -39,7 +47,7 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
            tq = new DocumentFrequencyCorrectedTermQuery(term, dfc);
        }
        
-       tq.setBoost(boost);
+       tq.setBoost(bf);
        
        return tq;
 

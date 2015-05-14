@@ -112,14 +112,14 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
        boolean tmp = this.useBooleanQueryForDMQ;
        try {
            this.useBooleanQueryForDMQ = useBooleanQueryForDMQ;
-           return visit(query).createQuery(dfc, false);
+           return visit(query).createQuery(null, dmqTieBreakerMultiplier, dfc, false);
        } finally {
            this.useBooleanQueryForDMQ = tmp;
        }
    }
    
    public Query createQuery(querqy.model.Query query) throws IOException {
-      return visit(query).createQuery(dfc, false);
+      return visit(query).createQuery(null, dmqTieBreakerMultiplier, dfc, false);
    }
 
    @Override
@@ -131,9 +131,10 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    @Override
    public LuceneQueryFactory<?> visit(BooleanQuery booleanQuery) {
 
-      BooleanQueryFactory bq = new BooleanQueryFactory(1f, booleanQuery.isGenerated(), normalizeBooleanQueryBoost
-            && parentType == ParentType.DMQ); // FIXME: boost param?
-
+      BooleanQueryFactory bq = new BooleanQueryFactory(
+              booleanQuery.isGenerated(), 
+              normalizeBooleanQueryBoost && parentType == ParentType.DMQ); 
+      
       ParentType myParentType = parentType;
       parentType = ParentType.BQ;
 
@@ -148,7 +149,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       switch (bq.getNumberOfClauses()) {
       case 0:
        // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
-          return new NullQueryFactory();
+          return new NeverMatchQueryFactory();
       case 1:
           result = bq.getFirstClause();
           break;
@@ -167,7 +168,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       case DMQ:
          if (result.occur != Occur.SHOULD) {
             // create a wrapper query
-            BooleanQueryFactory wrapper = new BooleanQueryFactory(1f, true, false);
+            BooleanQueryFactory wrapper = new BooleanQueryFactory(true, false);
             wrapper.add(result);
             bq = wrapper;
          }
@@ -197,8 +198,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       ParentType myParentType = parentType;
       parentType = ParentType.DMQ;
 
-      DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(1f, dmqTieBreakerMultiplier); // FIXME
-                                                                                                    // params
+      DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(); 
 
       dmqStack.add(dmq);
       super.visit(disjunctionMaxQuery);
@@ -209,7 +209,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       switch (dmq.getNumberOfDisjuncts()) {
       case 0:
          // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
-         return new NullQueryFactory();
+         return new NeverMatchQueryFactory();
       case 1:
          LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
          clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
@@ -221,7 +221,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
               
          if (useBQ) {
             // FIXME: correct to normalize boost?
-            BooleanQueryFactory bq = new BooleanQueryFactory(1f, true, false);
+            BooleanQueryFactory bq = new BooleanQueryFactory(true, false);
             for (LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
                bq.add(queryFactory, Occur.SHOULD);
             }
@@ -305,80 +305,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         if (queryFactory != null) {
             target.add(queryFactory);
         }
-       /* CacheKey cacheKey = null;
-
-        if (termQueryCache != null) {
-            
-            cacheKey = new CacheKey(fieldname, sourceTerm);
-           
-            TermQueryCacheValue cacheValue = termQueryCache.get(cacheKey);
-            if (cacheValue != null) {
-                if (cacheValue.hasQuery()) {
-                    target.add(cacheValue);
-                }
-                return;
-            }
-        }
-       
-        LuceneQueryFactory<? extends Query> clause = null;
-        TokenStream ts = null;
-        try {
-           
-           ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
-           CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
-           PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
-           ts.reset();
-         
-           PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
-           while (ts.incrementToken()) {
-
-               int inc = posIncAttr.getPositionIncrement();
-               if (inc > 0 || sequence.isEmpty()) {
-                   sequence.nextPosition();
-               }
-
-               sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
-           }
-
-           switch (sequence.size()) {
-           case 0: break;
-           case 1: clause = getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost);
-                   //target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost));
-                   break;
-           default:
-               BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
-               for (List<org.apache.lucene.index.Term> posTerms : sequence) {
-                   bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, boost), Occur.MUST);
-               }
-               //target.add(bq);
-               clause = bq;
-           }
-
-        } finally {
-           if (ts != null) {
-               try {
-                   ts.close();
-               } catch (IOException e) {
-               }
-           }
-        }
-       
-        if (cacheKey == null) {
-           if (clause != null) {
-               target.add(clause);
-           }
-        } else {
-           if (clause == null) {
-               termQueryCache.put(cacheKey, new TermQueryCacheValue(null));
-           } else {
-               target.add(new CachingQueryFactory(termQueryCache, cacheKey, clause));
-           }
-       }*/
-
    }
     
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public LuceneQueryFactory<?> termToFactory(String fieldname, Term sourceTerm, float boost) throws IOException {
+    public TermSubQueryFactory termToFactory(String fieldname, Term sourceTerm, float boost) throws IOException {
         
         CacheKey cacheKey = null;
 
@@ -388,7 +317,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
            
             TermQueryCacheValue cacheValue = termQueryCache.get(cacheKey);
             if (cacheValue != null) {
-                return (cacheValue.hasQuery()) ? cacheValue : null;
+                return (cacheValue.hasQuery()) ? new TermSubQueryFactory(cacheValue.queryFactory, boost) : null;
             } 
             
         }
@@ -415,15 +344,13 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
            switch (sequence.size()) {
            case 0: break;
-           case 1: clause = getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost);
-                   //target.add(getLuceneQueryFactoryForStreamPosition(sequence.getFirst(), boost));
+           case 1: clause = getLuceneQueryFactoryForStreamPosition(sequence.getFirst());
                    break;
            default:
-               BooleanQueryFactory bq = new BooleanQueryFactory(boost, true, true);
+               BooleanQueryFactory bq = new BooleanQueryFactory(true, true);
                for (List<org.apache.lucene.index.Term> posTerms : sequence) {
-                   bq.add(getLuceneQueryFactoryForStreamPosition(posTerms, boost), Occur.MUST);
+                   bq.add(getLuceneQueryFactoryForStreamPosition(posTerms), Occur.MUST);
                }
-               //target.add(bq);
                clause = bq;
            }
 
@@ -435,27 +362,21 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                }
            }
         }
-       
+        
         if (cacheKey != null) {
-           if (clause == null) {
-               termQueryCache.put(cacheKey, new TermQueryCacheValue(null));
-           } else {
-               clause = new CachingQueryFactory(termQueryCache, cacheKey, clause);
-           }
+            termQueryCache.put(cacheKey, new TermQueryCacheValue(clause));
         }
         
-        return clause;
+        return clause == null ? null : new TermSubQueryFactory(clause, boost);
     }
 
-   protected LuceneQueryFactory<?> getLuceneQueryFactoryForStreamPosition(List<org.apache.lucene.index.Term> posTerms,
-         float boost) {
+   protected LuceneQueryFactory<?> getLuceneQueryFactoryForStreamPosition(List<org.apache.lucene.index.Term> posTerms) {
       if (posTerms.size() == 1) {
-         return new TermQueryFactory(posTerms.get(0), boost);
+         return new TermQueryFactory(posTerms.get(0));
       } else {
-         // TODO: use tiebreak = 0 ?
-         DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(boost, dmqTieBreakerMultiplier);
+         DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
          for (org.apache.lucene.index.Term term : posTerms) {
-            dmq.add(new TermQueryFactory(term, 1f));
+            dmq.add(new TermQueryFactory(term));
          }
          return dmq;
       }
