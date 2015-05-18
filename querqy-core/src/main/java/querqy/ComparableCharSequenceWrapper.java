@@ -8,12 +8,14 @@ package querqy;
  *
  */
 public class ComparableCharSequenceWrapper implements ComparableCharSequence {
+    
+    public static final ComparableCharSequence EMPTY_SEQUENCE = new ComparableCharSequenceWrapper("");
 
-   final CharSequence sequence;
+    final CharSequence sequence;
 
-   public ComparableCharSequenceWrapper(CharSequence sequence) {
-      this.sequence = sequence;
-   }
+    public ComparableCharSequenceWrapper(CharSequence sequence) {
+        this.sequence = sequence;
+    }
 
    /*
     * (non-Javadoc)

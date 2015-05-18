@@ -11,7 +11,7 @@ import java.util.List;
  *
  */
 public class CompoundCharSequence implements ComparableCharSequence {
-
+    
    final CharSequence[] parts;
    
    public CompoundCharSequence(List<? extends CharSequence> parts) {
@@ -114,6 +114,14 @@ public class CompoundCharSequence implements ComparableCharSequence {
          return new ComparableCharSequenceWrapper(parts[0].subSequence(start, end));
       }
 
+      if (start == end) {
+          if (start <= length()) {
+              return ComparableCharSequenceWrapper.EMPTY_SEQUENCE;
+          } else {
+              throw new ArrayIndexOutOfBoundsException(start);
+          }
+      }
+      
       PartInfo partInfoStart = getPartInfoForCharIndex(start);
       PartInfo partInfoEnd = getPartInfoForCharIndex(end - 1); // end is
                                                                // exclusive

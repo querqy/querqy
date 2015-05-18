@@ -16,7 +16,6 @@ import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 import static querqy.QuerqyMatchers.*;
 
 /**
@@ -282,6 +281,38 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         
         
 
+    }
+    
+    @Test
+    public void testShingleWithHyphens() throws Exception {
+        
+        Query query = new Query();
+        addTerm(query, "cde-fgh", false);
+        addTerm(query, "-", false);
+        addTerm(query, "xyz", false);
+        
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(false);
+        ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+        assertThat(rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde-fgh", false),
+                                term ("cde-fgh-", true)
+                        ),
+                        dmq(
+                                term("-", false),
+                                term("cde-fgh-", true),
+                                term("-xyz", true)
+                                ),
+                        dmq(
+                                term("xyz", false),
+                                term ("-xyz", true)
+                        )
+                                
+                )
+        );
+        
     }
 
     private void addTerm(Query query, String value) {
