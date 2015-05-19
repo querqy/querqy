@@ -90,24 +90,26 @@ public class DocumentFrequencyCorrection {
            int start = clauseOffsets.get(i);
            int end = (i == last) ? termQueries.size() : clauseOffsets.get(i + 1);
            int pos = start;
-           int max = dfs[pos++];
-           while (pos < end) {
-               max = Math.max(max, dfs[pos++]);
-           }
-           if (start < endUserQuery) {
-               if (max > maxInUserQuery) {
-                   maxInUserQuery = max;
+           if (pos < end) {
+               int max = dfs[pos++];
+               while (pos < end) {
+                   max = Math.max(max, dfs[pos++]);
                }
-           } else {
-               max += (maxInUserQuery - 1);
-           }
-           pos = start;
-           
-           while (pos < end) {
-               if (dfs[pos] > 0) {
-                   contexts[pos].setDocFreq(max);
+               if (start < endUserQuery) {
+                   if (max > maxInUserQuery) {
+                       maxInUserQuery = max;
+                   }
+               } else {
+                   max += (maxInUserQuery - 1);
                }
-               pos++;
+               pos = start;
+               
+               while (pos < end) {
+                   if (dfs[pos] > 0) {
+                       contexts[pos].setDocFreq(max);
+                   }
+                   pos++;
+               }
            }
        }
        
