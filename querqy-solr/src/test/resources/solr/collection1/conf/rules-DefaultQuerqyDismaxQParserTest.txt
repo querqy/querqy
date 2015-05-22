@@ -27,3 +27,6 @@ j =>
 
 j => 
 	SYNONYM:q
+	
+spellcheck =>
+	FILTER: * f1:filtered

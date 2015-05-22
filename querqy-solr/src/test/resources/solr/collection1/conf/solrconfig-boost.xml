@@ -27,13 +27,14 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
-
 	</requestHandler>
 
 	<requestHandler name="standard" class="solr.StandardRequestHandler"
 		default="true" />
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
+
+	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">

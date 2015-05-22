@@ -21,26 +21,68 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertU(adoc("id", "2", "f1", "a"));
       assertU(adoc("id", "3", "f2", "a"));
       assertU(adoc("id", "4", "f1", "b"));
+      assertU(adoc("id", "5", "f1", "spellcheck", "f2", "test"));
+      assertU(adoc("id", "6", "f1", "spellcheck filtered", "f2", "test"));
+      
 
       assertU(commit());
    }
 
-   @BeforeClass
-   public static void beforeClass() throws Exception {
-      System.setProperty("tests.codec", "Lucene46");
-      initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
-      index();
-   }
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        System.setProperty("tests.codec", "Lucene46");
+        initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
+        index();
+    }
    
-   @Test
-   public void testLocalParams() throws Exception {
-       SolrQueryRequest req = req("q", "{!querqy qf='f1 f2'}a b");
+    @Test
+    public void testLocalParams() throws Exception {
+        SolrQueryRequest req = req("q", "{!querqy qf='f1 f2'}a b");
     
-       assertQ("local params don't work",
+        assertQ("local params don't work",
              req,"//result[@name='response' and @numFound='4']");
 
-       req.close();
-   }
+        req.close();
+    }
+   
+    @Test
+    public void testThatFilterRulesFromCollationDontEndUpInMainQuery() throws Exception {
+        
+        SolrQueryRequest req0 = req("q", "spellcheck test",
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "2",
+                
+                "defType", "querqy",
+                "debugQuery", "true"
+                );
+        assertQ("Filter expected",
+                req0,
+                "//result[@name='response' and @numFound='1']",
+                "//arr[@name='parsed_filter_queries']/str[text() = 'f1:filtered']"
+                );
+
+        req0.close();
+        
+        SolrQueryRequest req = req("q", "spellhceck test",
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "2",
+                "spellcheck.collate", "true",
+                "spellcheck.maxCollations", "1",
+                "spellcheck.maxCollationTries", "10",
+                "spellcheck", "true",
+                "defType", "querqy",
+                "debugQuery", "true"
+                );
+        
+        assertQ("Combination with collations doesn't work",
+                req,
+                "//result[@name='response' and @numFound='0']",
+                "//str[@name='collation'][text() = 'spellcheck test']",
+                "not(//arr[@name='parsed_filter_queries']/str[text() = 'f1:filtered'])"
+                );
+
+           req.close();
+    }
 
    @Test
    public void testThatAMMof2getsSetFor3optionalClauses() throws Exception {
@@ -141,7 +183,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertQ("Matchall fails",
             req,
             "//str[@name='parsedquery'][contains(.,'*:*')]",
-            "//result[@name='response' and @numFound='4']"
+            "//result[@name='response' and @numFound='6']"
 
       );
 

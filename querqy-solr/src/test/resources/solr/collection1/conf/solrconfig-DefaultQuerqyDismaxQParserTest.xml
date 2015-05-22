@@ -27,11 +27,14 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
+		<arr name="last-components">
+      		<str>spellcheck</str>
+    	</arr>	
+    </requestHandler>
 
-	</requestHandler>
-
-	<requestHandler name="standard" class="solr.StandardRequestHandler"
-		default="true" />
+	<!-- <requestHandler name="standard" class="solr.StandardRequestHandler"
+		default="false" /> -->
+		
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 	<requestHandler name="/update" class="solr.UpdateRequestHandler" />
@@ -46,7 +49,22 @@
 			<str name="echoParams">all</str>
 		</lst>
 	</requestHandler>
+	
+	<searchComponent name="spellcheck" class="solr.SpellCheckComponent">
+      <str name="queryAnalyzerFieldType">text</str>
+      <lst name="spellchecker">
+        <str name="name">default</str>
+        <str name="field">f1</str>
+        <str name="classname">solr.DirectSolrSpellChecker</str>
+        <str name="distanceMeasure">internal</str>
+        <float name="accuracy">0.5</float>
+        <int name="minPrefix">1</int>
+      </lst>
+    </searchComponent>
+    
 
+	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+	
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
 		<lst name="rewriter">
@@ -60,15 +78,14 @@
 				<str name="synonyms">synonyms.txt</str>
 				<bool name="expand">true</bool>
 			</lst> -->
-			
-			
-			
 		</lst>
 		<lst name="parser">
          <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          <str name="class">querqy.antlr.ANTLRQueryParser</str>
       </lst>
 	</queryParser>
+	
+	
 	<admin>
 		<defaultQuery>solr</defaultQuery>
 	</admin>

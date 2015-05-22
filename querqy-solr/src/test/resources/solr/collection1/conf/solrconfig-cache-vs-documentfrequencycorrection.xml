@@ -53,9 +53,6 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
- 		<arr name="last-components">
-        	<str>querqyComponent</str>
-     	</arr>	
     </requestHandler>
 
 	<requestHandler name="/analysis/field" startup="lazy"
@@ -72,6 +69,8 @@
 			<str name="echoParams">all</str>
 		</lst>
 	</requestHandler>
+
+	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 	    
@@ -93,8 +92,6 @@
      	 </lst>
      	 
 	</queryParser>
-	
-	<searchComponent name="querqyComponent" class="querqy.solr.QuerqySearchComponent"/>
 	
 	<admin>
 		<defaultQuery>solr</defaultQuery>
