@@ -33,7 +33,7 @@ Alternatively, if you already have a Maven build for your Solr plugins, you can 
 ~~~
 
 ### Configuring Solr for Querqy
-Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/org/apache/solr/search/QParserPlugin.html) that needs to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
+Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
 
 ~~~xml
 <!-- 
@@ -106,6 +106,10 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/
    </lst>
      	 
 </queryParser>
+
+<!-- Override the default QueryComponent -->
+<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+
 ~~~
 
 ### Making requests to Solr using Querqy
@@ -458,28 +462,6 @@ The Solr response will then contain an array 'querqy_decorations' with the right
 
 Querqy does not inspect the right-hand side of the decorate instruction ('redirect, /service/faq') but returns the configured value 'as is'. You could even configure a JSON-formatted value in this place but you have to assure that the value does not contain any line break.
 
-In order to pass the decorate output to the Solr response you have to configure and enable an additional [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) in solrconfig.xml:
-
-~~~xml
-
-<!-- 
-	define the Querqy search component 
--->
-<searchComponent name="querqyComponent" class="querqy.solr.QuerqySearchComponent"/>
-
-<!-- 
-	add the search component to a searchHandler, for example to 
-	the /select searchHandler 
--->
-<requestHandler name="/select" class="solr.SearchHandler">
-
-	<arr name="last-components">
-   		<str>querqyComponent</str>
-   </arr>
-
-</requestHandler>
-
-~~~
 
 #### Rule ordering
 

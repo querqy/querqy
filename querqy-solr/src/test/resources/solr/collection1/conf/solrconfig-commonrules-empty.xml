@@ -47,6 +47,8 @@
 		</lst>
 	</requestHandler>
 
+	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+	
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 	
 		<lst name="rewriteChain">

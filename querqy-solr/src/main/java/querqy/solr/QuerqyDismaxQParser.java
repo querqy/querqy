@@ -26,9 +26,7 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
@@ -63,8 +61,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    public static final String GQF = "gqf"; // generated query fields (query generated terms only in these fields)
    public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
    
-   public static final String CONTEXT_ATTRIBUTE_NAME = "querqy.qparser.context";
-
    static final String MATCH_ALL = "*:*";
 
    // the QF parsing code is copied from org.apache.solr.util.SolrPluginUtils
@@ -81,9 +77,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    final Map<String, Float> generatedQueryFields;
    final LuceneQueryBuilder builder;
    final DocumentFrequencyCorrection dfc;
-
-   protected PublicExtendedDismaxConfiguration config;
-   protected List<Query> boostQueries;
+   
+   protected List<Query> filterQueries = null;
+   protected Map<String, Object> context = null;
+   
+   protected PublicExtendedDismaxConfiguration config = null;
+   protected List<Query> boostQueries = null;
 
    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
          SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
@@ -145,7 +144,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     */
    @Override
    public Query parse() throws SyntaxError {
-
       // TODO q.alt
       String userQuery = getString();
       if (userQuery == null) {
@@ -166,9 +164,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       } else {
          expandedQuery = makeExpandedQuery();
          
-         Map<String, Object> context = new HashMap<>();
+         context = new HashMap<>();
          expandedQuery = rewriteChain.rewrite(expandedQuery, context);
-         req.getContext().put(CONTEXT_ATTRIBUTE_NAME, context);
          
          mainQuery = makeMainQuery(expandedQuery);
          
@@ -437,38 +434,32 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       Collection<QuerqyQuery<?>> filterQueries = expandedQuery.getFilterQueries();
 
       if (filterQueries != null && !filterQueries.isEmpty()) {
-
-         SolrRequestInfo info = SolrRequestInfo.getRequestInfo();
-
-         if (info != null) {
-
-            ResponseBuilder rb = info.getResponseBuilder();
-            if (rb != null) {
-
-               List<Query> filters = rb.getFilters();
-               if (filters == null) {
-                  filters = new ArrayList<>(filterQueries.size());
-                  rb.setFilters(filters);
-               }
-
-               for (QuerqyQuery<?> qfq : filterQueries) {
-                  if (qfq instanceof RawQuery) {
-                     QParser fqp = QParser.getParser(((RawQuery) qfq).getQueryString(), null, req);
-                     filters.add(fqp.getQuery());
-                  }
-                  if (qfq instanceof querqy.model.Query) {
-                     builder.reset();
-                     try {
-                        filters.add(builder.createQuery((querqy.model.Query) qfq));
-                     } catch (IOException e) {
+          
+          List<Query> fqs = new LinkedList<Query>();
+          
+          for (QuerqyQuery<?> qfq : filterQueries) {
+          
+              if (qfq instanceof RawQuery) {
+                  
+                  QParser fqParser = QParser.getParser(((RawQuery) qfq).getQueryString(), null, req);
+                  fqs.add(fqParser.getQuery());
+                  
+              } else if (qfq instanceof querqy.model.Query) {
+                  
+                  builder.reset();
+                  
+                  try {
+                      fqs.add(builder.createQuery((querqy.model.Query) qfq));
+                  } catch (IOException e) {
                         throw new RuntimeException(e);
-                     }
                   }
-               }
+                  
+              }
+          }
 
-            }
-         }
+          this.filterQueries = fqs;
       }
+         
    }
 
    public Query makeMainQuery(ExpandedQuery expandedQuery) {
@@ -480,6 +471,14 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
+   }
+   
+   public List<Query> getFilterQueries() {
+       return filterQueries;
+   }
+
+   public Map<String, Object> getContext() {
+       return context;
    }
 
    /**
