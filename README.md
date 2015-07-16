@@ -6,7 +6,10 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
-Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x are for Solr 5.x.x.
+Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x  require the following Solr 5 versions:
+
+  - Querqy 2.0.x to 2.5.x - Solr 5.0
+  - Querqy 2.6.x to ... - Solr 5.1
 
 You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
