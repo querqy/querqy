@@ -23,6 +23,7 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
@@ -40,6 +41,8 @@ import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
+import querqy.lucene.rewrite.SearchFieldsAndBoosting;
+import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.BoostQuery;
 import querqy.model.DisjunctionMaxClause;
@@ -57,8 +60,13 @@ import querqy.rewrite.RewriteChain;
  */
 public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
-   public static final String GFB = "gfb"; // generated field boost
-   public static final String GQF = "gqf"; // generated query fields (query generated terms only in these fields)
+   public static final String GFB             = "gfb";   // generated field boost
+   public static final String GQF             = "gqf";   // generated query fields (query generated terms only in these fields)
+   public static final String FBM             = "fbm";   // field boost model
+   public static final String FBM_FIXED       = "fixed"; // query-independent field boost model, reading boost factors from request params  
+   public static final String FBM_PRMS        = "prms";  // query-dependent field boost model ('Probabilistic Retrieval Model for Semi-structured Data')
+   public static final String FBM_DEFAULT     = FBM_FIXED;
+   
    public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
    
    static final String MATCH_ALL = "*:*";
@@ -101,8 +109,11 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       IndexSchema schema = req.getSchema();
       queryAnalyzer = schema.getQueryAnalyzer();
       this.rewriteChain = rewriteChain;
-      userQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params), DisMaxParams.QF, 1f, true);
-      generatedQueryFields = parseQueryFields(req.getSchema(), SolrParams.wrapDefaults(localParams, params), GQF, null, false);
+      
+      SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
+      
+      userQueryFields = parseQueryFields(req.getSchema(), solrParams, DisMaxParams.QF, 1f, true);
+      generatedQueryFields = parseQueryFields(req.getSchema(), solrParams, GQF, null, false);
       if (generatedQueryFields.isEmpty()) {
           for (Map.Entry<String, Float> entry: userQueryFields.entrySet()) {
               generatedQueryFields.put(entry.getKey(), entry.getValue() * config.generatedFieldBoostFactor);
@@ -120,8 +131,25 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           }
       }
       dfc = new DocumentFrequencyCorrection();
-      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor, config.getTieBreaker(), termQueryCache);
+     
+      SearchFieldsAndBoosting searchFieldsAndBoosting = 
+              new SearchFieldsAndBoosting(getFieldBoostModelFromParam(solrParams), 
+                      userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor);
       
+      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, searchFieldsAndBoosting, config.getTieBreaker(), termQueryCache);
+      
+   }
+   
+   protected FieldBoostModel getFieldBoostModelFromParam(SolrParams solrParams) {
+       String fbm = solrParams.get(FBM, FBM_DEFAULT);
+       if (fbm.equals(FBM_FIXED)) {
+           return FieldBoostModel.FIXED;
+       } else if (fbm.equals(FBM_PRMS)) {
+           return FieldBoostModel.PRMS;
+       }
+       
+       throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, 
+               "Unknown field boost model: " + fbm);
    }
 
    @Override

@@ -12,30 +12,53 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene46");
+        System.setProperty("tests.codec", "Lucene50");
         initCore("solrconfig-cache-preloaded.xml", "schema.xml");
     }
      
     @Test
     public void testThatCacheIsAvailableAndPrefilledAndNotUpdated() throws Exception {
-         
+        
+        
+        
         // firstSearcher
         SolrQueryRequest req = req(
                CommonParams.QT, "/admin/mbeans",
                "cat", "CACHE",
                "stats", "true"
                );
-        assertQ("Missing querqy cache",
-               req,
-               "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']");
-         // only one generated term in one field is preloaded for firstSearcher:
-        assertQ("Querqy cache not prefilled",
-                 req,
-               "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                       + "/lst[@name='stats']/long[@name='size'][text()='1']");
-
-        req.close();
-         
+        
+        // the cache is prefilled asynchronously - retry 3 times to see the cache before giving up
+        int attempts = 3;
+        try {
+            
+            do {
+                
+                try {
+                    assertQ("Missing querqy cache",
+                       req,
+                       "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']");
+                    attempts = 0;
+                }  catch (RuntimeException e) {
+                    if ((!"Exception during query".equals(e.getMessage())) || (attempts <= 1)) {
+                        throw e;
+                    }
+                    attempts--;
+                    synchronized(this) {
+                        wait(100L);
+                    }
+                }   
+            } while (attempts > 0);
+            
+             // only one generated term in one field is preloaded for firstSearcher:
+            assertQ("Querqy cache not prefilled",
+                     req,
+                   "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
+                           + "/lst[@name='stats']/long[@name='size'][text()='1']");
+        } finally {
+            req.close();
+        }
+        
         assertU(adoc("id", "1", "f1", "a"));
         assertU(commit());
          

@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import querqy.antlr.ANTLRQueryParser;
 import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
+import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.model.ExpandedQuery;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
@@ -73,8 +74,11 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
    protected Query build(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
+       
+       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+       
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fields, fields, 0.8f,  tie, null);
+            keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -83,8 +87,11 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
+       
+       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+       
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fields, fields, 0.8f, tie, null);
+            keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
@@ -101,10 +108,11 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    protected Query buildWithStopWords(String input, float tie, String... names) throws IOException {
        Map<String, Float> fields = fields(names);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(
-               new DocumentFrequencyCorrection(),
-               new StandardAnalyzer(new CharArraySet(stopWords, true)), 
-               fields, fields, 0.8f, tie, null);
+       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+       
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+               new StandardAnalyzer(new CharArraySet(stopWords, true)), searchFieldsAndBoosting, tie, null);
+       
        ANTLRQueryParser parser = new ANTLRQueryParser();
        querqy.model.Query q = parser.parse(input);
        return builder.createQuery(q);
@@ -114,7 +122,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    public void test01() throws IOException {
       float tie = (float) Math.random();
       Query q = build("a", tie, "f1");
-      assertThat(q, tq(1f, "f1", "a"));
+      assertThat(q, dtq(1f, "f1", "a"));
    }
 
    @Test
@@ -122,8 +130,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       float tie = (float) Math.random();
       Query q = build("a", tie, "f1", "f2");
       assertThat(q, dmq(1f, tie,
-            tq(1f, "f1", "a"),
-            tq(2f, "f2", "a")
+            dtq(1f, "f1", "a"),
+            dtq(2f, "f2", "a")
             ));
    }
 
@@ -132,8 +140,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       float tie = (float) Math.random();
       Query q = build("a b", tie, "f1");
       assertThat(q, bq(1f,
-            tq(Occur.SHOULD, 1f, "f1", "a"),
-            tq(Occur.SHOULD, 1f, "f1", "b")
+            dtq(Occur.SHOULD, 1f, "f1", "a"),
+            dtq(Occur.SHOULD, 1f, "f1", "b")
             ));
    }
 
@@ -142,8 +150,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       float tie = (float) Math.random();
       Query q = build("a +b", tie, "f1");
       assertThat(q, bq(1f,
-            tq(Occur.SHOULD, 1f, "f1", "a"),
-            tq(Occur.MUST, 1f, "f1", "b")
+            dtq(Occur.SHOULD, 1f, "f1", "a"),
+            dtq(Occur.MUST, 1f, "f1", "b")
             ));
    }
 
@@ -152,8 +160,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       float tie = (float) Math.random();
       Query q = build("-a +b", tie, "f1");
       assertThat(q, bq(1f,
-            tq(Occur.MUST_NOT, 1f, "f1", "a"),
-            tq(Occur.MUST, 1f, "f1", "b")
+            dtq(Occur.MUST_NOT, 1f, "f1", "a"),
+            dtq(Occur.MUST, 1f, "f1", "b")
             ));
    }
 
@@ -163,12 +171,12 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       Query q = build("a b", tie, "f1", "f2");
       assertThat(q, bq(1f,
             dmq(Occur.SHOULD, 1f, tie,
-                  tq(1f, "f1", "a"),
-                  tq(2f, "f2", "a")
+                  dtq(1f, "f1", "a"),
+                  dtq(2f, "f2", "a")
             ),
             dmq(Occur.SHOULD, 1f, tie,
-                  tq(1f, "f1", "b"),
-                  tq(2f, "f2", "b")
+                  dtq(1f, "f1", "b"),
+                  dtq(2f, "f2", "b")
             )
             ));
    }
@@ -179,12 +187,12 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       Query q = build("+a b", tie, "f1", "f2");
       assertThat(q, bq(1f,
             dmq(Occur.MUST, 1f, tie,
-                  tq(1f, "f1", "a"),
-                  tq(2f, "f2", "a")
+                  dtq(1f, "f1", "a"),
+                  dtq(2f, "f2", "a")
             ),
             dmq(Occur.SHOULD, 1f, tie,
-                  tq(1f, "f1", "b"),
-                  tq(2f, "f2", "b")
+                  dtq(1f, "f1", "b"),
+                  dtq(2f, "f2", "b")
             )
             ));
    }
@@ -195,12 +203,12 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       Query q = build("+a -b", tie, "f1", "f2");
       assertThat(q, bq(1f,
             dmq(Occur.MUST, 1f, tie,
-                  tq(1f, "f1", "a"),
-                  tq(2f, "f2", "a")
+                  dtq(1f, "f1", "a"),
+                  dtq(2f, "f2", "a")
             ),
             bq(Occur.MUST_NOT, 1f,
-                  tq(Occur.SHOULD, 1f, "f1", "b"),
-                  tq(Occur.SHOULD, 2f, "f2", "b")
+                  dtq(Occur.SHOULD, 1f, "f1", "b"),
+                  dtq(Occur.SHOULD, 2f, "f2", "b")
             )
             ));
    }
@@ -211,12 +219,12 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       Query q = build("a -b", tie, "f1", "f2");
       assertThat(q, bq(1f,
             dmq(Occur.SHOULD, 1f, tie,
-                  tq(1f, "f1", "a"),
-                  tq(2f, "f2", "a")
+                  dtq(1f, "f1", "a"),
+                  dtq(2f, "f2", "a")
             ),
             bq(Occur.MUST_NOT, 1f,
-                  tq(Occur.SHOULD, 1f, "f1", "b"),
-                  tq(Occur.SHOULD, 2f, "f2", "b")
+                  dtq(Occur.SHOULD, 1f, "f1", "b"),
+                  dtq(Occur.SHOULD, 2f, "f2", "b")
             )
             ));
    }
@@ -227,16 +235,16 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       Query q = build("-a -b c", tie, "f1", "f2");
       assertThat(q, bq(1f,
             dmq(Occur.SHOULD, 1f, tie,
-                  tq(1f, "f1", "c"),
-                  tq(2f, "f2", "c")
+                  dtq(1f, "f1", "c"),
+                  dtq(2f, "f2", "c")
             ),
             bq(Occur.MUST_NOT, 1f,
-                  tq(Occur.SHOULD, 1f, "f1", "a"),
-                  tq(Occur.SHOULD, 2f, "f2", "a")
+                  dtq(Occur.SHOULD, 1f, "f1", "a"),
+                  dtq(Occur.SHOULD, 2f, "f2", "a")
             ),
             bq(Occur.MUST_NOT, 1f,
-                  tq(Occur.SHOULD, 1f, "f1", "b"),
-                  tq(Occur.SHOULD, 2f, "f2", "b")
+                  dtq(Occur.SHOULD, 1f, "f1", "b"),
+                  dtq(Occur.SHOULD, 2f, "f2", "b")
             )
 
             ));
@@ -246,7 +254,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    public void test11() throws Exception {
       float tie = (float) Math.random();
       Query q = build("f2:a", tie, "f1", "f2");
-      assertThat(q, tq(2f, "f2", "a"));
+      assertThat(q, dtq(2f, "f2", "a"));
    }
 
    @Test
@@ -256,8 +264,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       Query q = build("x2:a", tie, "f1", "f2");
 
       assertThat(q, dmq(1f, tie,
-            tq(1f, "f1", "x2:a"),
-            tq(2f, "f2", "x2:a")
+            dtq(1f, "f1", "x2:a"),
+            dtq(2f, "f2", "x2:a")
             ));
 
    }
@@ -267,12 +275,12 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
       float tie = (float) Math.random();
       Query q = buildWithSynonyms("j", tie, "f1");
       assertThat(q, dmq(1f, tie,
-            tq(1f, "f1", "j"),
+            dtq(1f, "f1", "j"),
             bq(0.5f,
-                  tq(Occur.MUST, 1f, "f1", "s"),
-                  tq(Occur.MUST, 1f, "f1", "t")
+                  dtq(Occur.MUST, 1f, "f1", "s"),
+                  dtq(Occur.MUST, 1f, "f1", "t")
             ),
-            tq(1f, "f1", "q")
+            dtq(1f, "f1", "q")
             ));
    }
    
@@ -288,9 +296,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        Map<String, Float> fieldsGenerated = new HashMap<>();
        fieldsGenerated.put("f1", 4f);
        
+       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fieldsQuery, fieldsGenerated, 0.8f);
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
-            keywordAnalyzer, fieldsQuery, fieldsGenerated, 0.8f, 0.1f, null);
+            keywordAnalyzer, searchFieldsAndBoosting, 0.1f, null);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");
@@ -304,9 +313,9 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        assertThat(query, 
            dmq(1f, 0.1f,
-                      tq(2f, "f1", "a"),
-                      tq(3f, "f2", "a"),
-                      tq(4f, "f1", "x")
+                      dtq(2f, "f1", "a"),
+                      dtq(3f, "f2", "a"),
+                      dtq(4f, "f1", "x")
            ));
       
    }
@@ -319,8 +328,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        float tie = (float) Math.random();
        Query q = buildWithStopWords("a stopA b", tie, "f1");
        assertThat(q, bq(1f,
-               tq(Occur.SHOULD, 1f, "f1", "a"),
-               tq(Occur.SHOULD, 1f, "f1", "b")
+               dtq(Occur.SHOULD, 1f, "f1", "a"),
+               dtq(Occur.SHOULD, 1f, "f1", "b")
                ));
    }
    

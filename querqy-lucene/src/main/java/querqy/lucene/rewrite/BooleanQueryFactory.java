@@ -13,18 +13,13 @@ import org.apache.lucene.search.BooleanQuery;
  * @author rene
  *
  */
-public class BooleanQueryFactory extends AbstractLuceneQueryFactory<BooleanQuery> {
+public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
 
     protected final boolean disableCoord;
     protected final LinkedList<Clause> clauses;
     protected final boolean normalizeBoost;
 
-    public BooleanQueryFactory( boolean disableCoord, boolean normalizeBoost) {
-        this(null, disableCoord, normalizeBoost);
-    }
-   
-    public BooleanQueryFactory(Float boost, boolean disableCoord, boolean normalizeBoost) {
-        super(boost);
+    public BooleanQueryFactory(boolean disableCoord, boolean normalizeBoost) {
         this.disableCoord = disableCoord;
         this.normalizeBoost = normalizeBoost;
         clauses = new LinkedList<>();
@@ -39,24 +34,22 @@ public class BooleanQueryFactory extends AbstractLuceneQueryFactory<BooleanQuery
     }
 
     @Override
-    public BooleanQuery createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+    public BooleanQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
         BooleanQuery bq = new BooleanQuery(disableCoord);
-      
-        float bf = getBoostFactor(boostFactor); 
       
         if (normalizeBoost) {
             int size = getNumberOfClauses();
             if (size > 0) {
-                bq.setBoost(bf / (float) size);
+                bq.setBoost(1f / (float) size);
             } else {
-                bq.setBoost(bf);
+                bq.setBoost(1f);
             }
         } else {
-            bq.setBoost(bf);
+            bq.setBoost(1f);
         }
 
         for (Clause clause : clauses) {
-            bq.add(clause.queryFactory.createQuery(null, dmqTieBreakerMultiplier, dfc, isBelowDMQ), clause.occur);
+            bq.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dfc, isBelowDMQ), clause.occur);
         }
       
         return bq;
@@ -78,6 +71,10 @@ public class BooleanQueryFactory extends AbstractLuceneQueryFactory<BooleanQuery
             this.occur = occur;
             this.queryFactory = queryFactory;
         }
+    }
+
+    public LinkedList<Clause> getClauses() {
+        return clauses;
     }
 
 }

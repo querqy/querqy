@@ -26,32 +26,94 @@ import org.apache.lucene.util.Bits;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
 
 /**
+ * A TermQuery that depends on other term queries for the calculation of the document frequency
+ * and/or the boost factor (field weight). 
+ * 
  * @author René Kriegler, @renekrie
  *
  */
-public class DocumentFrequencyCorrectedTermQuery extends TermQuery {
+public class DependentTermQuery extends TermQuery {
     
     final int tqIndex;
-    final DocumentFrequencyCorrection dfc;
+    final DocumentFrequencyAndTermContextProvider dftcp;
+    final FieldBoost fieldBoost;
     final Term term;
+    Float boostFactor = null;
     
-    public DocumentFrequencyCorrectedTermQuery(Term term, DocumentFrequencyCorrection dfc) {
+    public DependentTermQuery(Term term, DocumentFrequencyAndTermContextProvider dftcp, FieldBoost fieldBoost) {
         super(term);
+        if (fieldBoost == null) {
+            throw new IllegalArgumentException("FieldBoost must not be null");
+        }
+        if (dftcp == null) {
+            throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
+        }
+        if (term == null) {
+            throw new IllegalArgumentException("Term must not be null");
+        }
         this.term = term;
-        tqIndex  = dfc.registerTermQuery(this);
-        this.dfc = dfc;
+        tqIndex  = dftcp.registerTermQuery(this);
+        this.dftcp = dftcp;
+        this.fieldBoost = fieldBoost;
     }
     
     @Override
     public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
-        DocumentFrequencyAndTermContext dftc = dfc.getDocumentFrequencyAndTermContext(tqIndex, searcher);
+        DocumentFrequencyAndTermContext dftc = dftcp.getDocumentFrequencyAndTermContext(tqIndex, searcher);
         if (dftc.df < 1) {
             return new NeverMatchWeight();
         }
+        boostFactor = fieldBoost.getBoost(term.field(), searcher);
         return new TermWeight(searcher, needsScores, dftc.termContext);
         
     }
     
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = prime  + dftcp.hashCode();
+        result = prime * result + fieldBoost.hashCode();
+        result = prime * result + term.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (getClass() != obj.getClass())
+            return false;
+        DependentTermQuery other = (DependentTermQuery) obj;
+        if (!dftcp.equals(other.dftcp))
+            return false;
+        if (!fieldBoost.equals(other.fieldBoost))
+            return false;
+        return term.equals(other.term);
+    }
+    
+    @Override
+    public String toString(String field) {
+        StringBuilder buffer = new StringBuilder();
+        if (!term.field().equals(field)) {
+          buffer.append(term.field());
+          buffer.append(":");
+        }
+        buffer.append(term.text());
+        buffer.append(fieldBoost.toString(term.field()));
+        return buffer.toString();
+        
+    }
+    
+    public FieldBoost getFieldBoost() {
+        return fieldBoost;
+    }
+    
+    public Float getBoostFactor() {
+        return boostFactor;
+    }
+
+
     /**
      * Copied from inner class in {@link TermQuery}
      *
@@ -64,19 +126,20 @@ public class DocumentFrequencyCorrectedTermQuery extends TermQuery {
         
         public TermWeight(IndexSearcher searcher, boolean needsScores, TermContext termStates)
           throws IOException {
-            super(DocumentFrequencyCorrectedTermQuery.this);
+            super(DependentTermQuery.this);
             this.needsScores = needsScores;
             assert termStates != null : "TermContext must not be null";
             this.termStates = termStates;
             this.similarity = searcher.getSimilarity();
             this.stats = similarity.computeWeight(
-              getBoost(), 
+                    boostFactor, 
               searcher.collectionStatistics(term.field()), 
               searcher.termStatistics(term, termStates));
         }
 
         @Override
-        public String toString() { return "weight(" + DocumentFrequencyCorrectedTermQuery.this + ")"; }
+        public String toString() { return "weight(" + DependentTermQuery.this + ")"; }
+
 
         @Override
         public float getValueForNormalization() {
@@ -148,7 +211,7 @@ public class DocumentFrequencyCorrectedTermQuery extends TermQuery {
     public class NeverMatchWeight extends Weight {
 
         protected NeverMatchWeight() {
-            super(DocumentFrequencyCorrectedTermQuery.this);
+            super(DependentTermQuery.this);
         }
 
         @Override
@@ -173,4 +236,6 @@ public class DocumentFrequencyCorrectedTermQuery extends TermQuery {
         }
         
     }
+
+    
 }

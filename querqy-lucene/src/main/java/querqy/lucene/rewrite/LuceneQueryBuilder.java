@@ -5,28 +5,18 @@ package querqy.lucene.rewrite;
 
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.io.input.CharSequenceReader;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.BytesRef;
 
 import querqy.CompoundCharSequence;
 import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
-import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
-import querqy.lucene.rewrite.cache.TermQueryCacheValue;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
-import querqy.rewrite.commonrules.model.PositionSequence;
 
 /**
  * @author René Kriegler, @renekrie
@@ -38,14 +28,11 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       BQ, DMQ
    }
 
-   final Analyzer analyzer;
-   final Map<String, Float> queryFieldsAndBoostings;
-   final Map<String, Float> generatedQueryFieldsAndBoostings;
    final boolean normalizeBooleanQueryBoost;
    final float dmqTieBreakerMultiplier;
-   final float defaultGeneratedFieldBoostFactor;
    final DocumentFrequencyCorrection dfc;
-   final TermQueryCache termQueryCache;
+   final SearchFieldsAndBoosting searchFieldsAndBoosting;
+   final TermSubQueryBuilder termSubQueryBuilder;
 
    LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
    LinkedList<DisjunctionMaxQueryFactory> dmqStack = new LinkedList<>();
@@ -53,15 +40,13 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    protected ParentType parentType = ParentType.BQ;
 
-   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
-           Map<String, Float> queryFieldsAndBoostings,  Map<String, Float> generatedQueryFieldsAndBoostings,
-           float generatedFieldBoostFactor, float dmqTieBreakerMultiplier, TermQueryCache termQueryCache) {
+   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer, 
+           SearchFieldsAndBoosting searchFieldsAndBoosting,
+           float dmqTieBreakerMultiplier, TermQueryCache termQueryCache) {
       this(   
               dfc, 
-              analyzer, 
-              queryFieldsAndBoostings, 
-              generatedQueryFieldsAndBoostings, 
-              generatedFieldBoostFactor, 
+              analyzer,
+              searchFieldsAndBoosting,
               dmqTieBreakerMultiplier, 
               true, 
               termQueryCache);
@@ -87,19 +72,14 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param termQueryCache The term query cache or null
     */
    public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
-         Map<String, Float> queryFieldsAndBoostings,  
-         Map<String, Float> generatedQueryFieldsAndBoostings, 
-         float defaultGeneratedFieldBoostFactor,
+           SearchFieldsAndBoosting searchFieldsAndBoosting,
          float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost, TermQueryCache termQueryCache) {
        
-      this.analyzer = analyzer;
-      this.queryFieldsAndBoostings = queryFieldsAndBoostings;
-      this.generatedQueryFieldsAndBoostings = generatedQueryFieldsAndBoostings;
+      this.searchFieldsAndBoosting = searchFieldsAndBoosting;
       this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
       this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
-      this.defaultGeneratedFieldBoostFactor = defaultGeneratedFieldBoostFactor;
       this.dfc = dfc;
-      this.termQueryCache = termQueryCache;
+      termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
    }
 
    public void reset() {
@@ -235,36 +215,39 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    }
 
    @Override
-   public LuceneQueryFactory<?> visit(Term term) {
+   public LuceneQueryFactory<?> visit(final Term term) {
 
       DisjunctionMaxQueryFactory siblings = dmqStack.getLast();
+      
       String fieldname = term.getField();
 
+      Term termToUse = null;
       try {
+          FieldBoost fieldBoost = searchFieldsAndBoosting.getFieldBoost(term);
+          if (fieldBoost == null) {
+              
+              if (fieldname != null && !term.isGenerated() && !searchFieldsAndBoosting.hasSearchField(fieldname, term)) {
+                  // someone searches in a field that is not set as a search field or didn't intend to search in a field at all
+                  // --> set value to fieldname + ":" + value in search in all fields
+                  Term termWithFieldInValue = new Term(null, new CompoundCharSequence(":", fieldname, term.getValue()));
+                  fieldBoost = searchFieldsAndBoosting.getFieldBoost(termWithFieldInValue);
+                  if (fieldBoost != null) {
+                      termToUse = termWithFieldInValue;
+                  }
+              }
+              
+          } else {
+              termToUse = term;
+          }
+          if (fieldBoost == null) {
+              throw new RuntimeException("Could not get FieldBoost for term: " + term);
+          }
+          
+          for (String searchField: searchFieldsAndBoosting.getSearchFields(termToUse)) {
+              addTerm(searchField, fieldBoost, siblings, termToUse);
+          }
 
-          Map<String, Float> searchFieldsAndBoostings = (term.isGenerated()) ? generatedQueryFieldsAndBoostings : queryFieldsAndBoostings;
 
-          if (fieldname != null) {
-             
-            Float boost = searchFieldsAndBoostings.get(fieldname);
-            if (boost != null) {
-                addTerm(fieldname, boost, siblings, term);
-            } else if (term.isGenerated()) {
-                addTerm(fieldname, defaultGeneratedFieldBoostFactor, siblings, term);
-            } else {
-               // someone searches in a field that is not set as a search field
-               // --> set value to fieldname + ":" + value in search in all
-               // fields
-               Term termWithFieldInValue = new Term(null, new CompoundCharSequence(":", fieldname, term.getValue()));
-               for (Map.Entry<String, Float> field : searchFieldsAndBoostings.entrySet()) {
-                  addTerm(field.getKey(), field.getValue(), siblings, termWithFieldInValue);
-               }
-            }
-         } else {
-             for (Map.Entry<String, Float> field : searchFieldsAndBoostings.entrySet()) {
-                 addTerm(field.getKey(), field.getValue(), siblings, term);
-             }
-         }
       } catch (IOException e) {
          // REVISIT: throw more specific exception?
          // - or save exception in Builder and then throw IOException from
@@ -300,86 +283,12 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param sourceTerm
     * @throws IOException
     */
-    void addTerm(String fieldname, float boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
-        LuceneQueryFactory<?> queryFactory = termToFactory(fieldname, sourceTerm, boost);
+    void addTerm(String fieldname, FieldBoost boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
+        TermSubQueryFactory queryFactory = termSubQueryBuilder.termToFactory(fieldname, sourceTerm, boost);//termToFactory(fieldname, sourceTerm, boost);
         if (queryFactory != null) {
             target.add(queryFactory);
+            boost.registerTermSubQuery(fieldname, queryFactory, sourceTerm);
         }
-   }
-    
-    public TermSubQueryFactory termToFactory(String fieldname, Term sourceTerm, float boost) throws IOException {
-        
-        CacheKey cacheKey = null;
-
-        if (termQueryCache != null) {
-            
-            cacheKey = new CacheKey(fieldname, sourceTerm);
-           
-            TermQueryCacheValue cacheValue = termQueryCache.get(cacheKey);
-            if (cacheValue != null) {
-                return (cacheValue.hasQuery()) ? new TermSubQueryFactory(cacheValue.queryFactory, boost) : null;
-            } 
-            
-        }
-        
-        LuceneQueryFactory<? extends Query> clause = null;
-        TokenStream ts = null;
-        try {
-           
-           ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
-           CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
-           PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
-           ts.reset();
-         
-           PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
-           while (ts.incrementToken()) {
-
-               int inc = posIncAttr.getPositionIncrement();
-               if (inc > 0 || sequence.isEmpty()) {
-                   sequence.nextPosition();
-               }
-
-               sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
-           }
-
-           switch (sequence.size()) {
-           case 0: break;
-           case 1: clause = getLuceneQueryFactoryForStreamPosition(sequence.getFirst());
-                   break;
-           default:
-               BooleanQueryFactory bq = new BooleanQueryFactory(true, true);
-               for (List<org.apache.lucene.index.Term> posTerms : sequence) {
-                   bq.add(getLuceneQueryFactoryForStreamPosition(posTerms), Occur.MUST);
-               }
-               clause = bq;
-           }
-
-        } finally {
-           if (ts != null) {
-               try {
-                   ts.close();
-               } catch (IOException e) {
-               }
-           }
-        }
-        
-        if (cacheKey != null) {
-            termQueryCache.put(cacheKey, new TermQueryCacheValue(clause));
-        }
-        
-        return clause == null ? null : new TermSubQueryFactory(clause, boost);
-    }
-
-   protected LuceneQueryFactory<?> getLuceneQueryFactoryForStreamPosition(List<org.apache.lucene.index.Term> posTerms) {
-      if (posTerms.size() == 1) {
-         return new TermQueryFactory(posTerms.get(0));
-      } else {
-         DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
-         for (org.apache.lucene.index.Term term : posTerms) {
-            dmq.add(new TermQueryFactory(term));
-         }
-         return dmq;
-      }
    }
 
 }

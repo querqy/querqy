@@ -16,37 +16,46 @@ import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
 
 /**
  * @author René Kriegler, @renekrie
  *
  */
-public class DocumentFrequencyCorrection {
+public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermContextProvider {
     
-    List<DocumentFrequencyCorrectedTermQuery> termQueries = new ArrayList<>(16);
-    List<Integer> clauseOffsets = new ArrayList<>();
+    final List<DependentTermQuery> termQueries = new ArrayList<>(16);
+    final List<Integer> clauseOffsets = new ArrayList<>();
     int endUserQuery = -1;
     TermStats termStats = null;
 
-   enum Status {
-      USER_QUERY, OTHER_QUERY
-   }
+    enum Status {
+        USER_QUERY, OTHER_QUERY
+    }
 
-   Status status;
+    Status status;
 
-   int maxInClause = -1;
-   private int maxInUserQuery = -1;
+    int maxInClause = -1;
+    private int maxInUserQuery = -1;
 
-   public DocumentFrequencyCorrection() {
-      status = Status.USER_QUERY;
-   }
+    public DocumentFrequencyCorrection() {
+        status = Status.USER_QUERY;
+    }
    
-   public int registerTermQuery(DocumentFrequencyCorrectedTermQuery tq) {
+   /* (non-Javadoc)
+    * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#registerTermQuery(querqy.lucene.rewrite.DependentTermQuery)
+    */
+   @Override
+   public int registerTermQuery(DependentTermQuery tq) {
        int idx = termQueries.size();
        termQueries.add(tq);
        return idx;
    }
    
+   /* (non-Javadoc)
+    * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#getDocumentFrequencyAndTermContext(int, org.apache.lucene.search.IndexSearcher)
+    */
+   @Override
    public DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(int tqIndex, IndexSearcher searcher) throws IOException {
 
        TermStats ts = termStats;
@@ -165,6 +174,47 @@ public class DocumentFrequencyCorrection {
        }
        
        
+   }
+
+   @Override
+   public int hashCode() {
+       final int prime = 31;
+       int result = 1;
+       result = prime * result
+               + ((clauseOffsets == null) ? 0 : clauseOffsets.hashCode());
+       
+       for (TermQuery termQuery: termQueries) {
+           result = prime * result + termQuery.getTerm().hashCode();
+       }
+
+       return result;
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+       if (this == obj)
+           return true;
+       if (obj == null)
+           return false;
+       if (getClass() != obj.getClass())
+           return false;
+       DocumentFrequencyCorrection other = (DocumentFrequencyCorrection) obj;
+       if (clauseOffsets == null) {
+           if (other.clauseOffsets != null)
+               return false;
+       } else if (!clauseOffsets.equals(other.clauseOffsets))
+           return false;
+       if (termQueries == null) {
+           if (other.termQueries != null)
+               return false;
+       } else if (termQueries.size() != other.termQueries.size())
+           return false;
+       for (int i = 0, len = termQueries.size(); i < len; i++) {
+           if (!termQueries.get(i).getTerm().equals(other.termQueries.get(i).getTerm())) {
+               return false;
+           }
+       }
+       return true;
    }
 
 }

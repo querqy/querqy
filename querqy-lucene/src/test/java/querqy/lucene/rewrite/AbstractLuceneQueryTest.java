@@ -31,7 +31,24 @@ public class AbstractLuceneQueryTest {
    public TQMatcher tq(String field, String text) {
       return tq(1f, field, text);
    }
+   
+   public ClauseMatcher dtq(Occur occur, float boost, String field, String text) {
+       return c(occur, dtq(boost, field, text));
+   }
 
+   public ClauseMatcher dtq(Occur occur, String field, String text) {
+       return c(occur, dtq(field, text));
+   }
+    
+
+   public DependentTQMatcher dtq(float boost, String field, String text) {
+       return new DependentTQMatcher(boost, field, text);
+   }
+   
+   public DependentTQMatcher dtq(String field, String text) {
+       return dtq(1f, field, text);
+   }
+   
    public BQMatcher bq(float boost, int mm, ClauseMatcher... clauses) {
       return new BQMatcher(boost, mm, clauses);
    }
@@ -235,6 +252,46 @@ public class AbstractLuceneQueryTest {
       }
 
    }
+   
+   class DependentTQMatcher extends TypeSafeMatcher<Query> {
+
+       final String field;
+       final String text;
+       final float boost;
+
+       public DependentTQMatcher(float boost, String field, String text) {
+          super(DependentTermQuery.class);
+          this.field = field;
+          this.text = text;
+          this.boost = boost;
+       }
+
+       @Override
+       public void describeTo(Description description) {
+          description.appendText("DTQ field: " + field + ", text: " + text + ", boost: " + boost);
+
+       }
+
+       @Override
+       protected boolean matchesSafely(Query termQuery) {
+          Term term = ((DependentTermQuery) termQuery).getTerm();
+          if (!field.equals(term.field()) || !text.equals(term.text())) {
+              return false;
+          }
+          FieldBoost fieldBoost = ((DependentTermQuery) termQuery).getFieldBoost();
+          if (fieldBoost == null) {
+              return false;
+          }
+          if (fieldBoost != null && fieldBoost instanceof IndependentFieldBoost) {
+              return boost == ((IndependentFieldBoost) fieldBoost).getBoost(term.field());
+          } else {
+              return boost == termQuery.getBoost();
+          }
+                
+       }
+
+    }
+
 
    class TQMatcher extends TypeSafeMatcher<Query> {
 

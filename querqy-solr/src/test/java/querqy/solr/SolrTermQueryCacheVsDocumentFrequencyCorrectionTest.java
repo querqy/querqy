@@ -20,7 +20,7 @@ public class SolrTermQueryCacheVsDocumentFrequencyCorrectionTest extends SolrTes
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene46");
+        System.setProperty("tests.codec", "Lucene50");
         initCore("solrconfig-cache-vs-documentfrequencycorrection.xml", "schema.xml");
         index();
     }

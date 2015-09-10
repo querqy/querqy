@@ -8,20 +8,16 @@ import java.util.LinkedList;
 
 import org.apache.lucene.search.DisjunctionMaxQuery;
 
+
 /**
  * @author rene
  *
  */
-public class DisjunctionMaxQueryFactory extends AbstractLuceneQueryFactory<DisjunctionMaxQuery> {
+public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<DisjunctionMaxQuery> {
 
    protected final LinkedList<LuceneQueryFactory<?>> disjuncts;
    
    public DisjunctionMaxQueryFactory() {
-       this(null);
-   }
-
-   public DisjunctionMaxQueryFactory(Float boost) {
-       super(boost);
        disjuncts = new LinkedList<>();
    }
 
@@ -38,18 +34,19 @@ public class DisjunctionMaxQueryFactory extends AbstractLuceneQueryFactory<Disju
    }
 
    @Override
-   public DisjunctionMaxQuery createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
-       float bf = getBoostFactor(boostFactor);
+   public DisjunctionMaxQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+       
        if ((!isBelowDMQ) && (dfc != null)) {
            dfc.newClause();
        }
        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(dmqTieBreakerMultiplier);
-       dmq.setBoost(bf);
+      
 
        for (LuceneQueryFactory<?> disjunct : disjuncts) {
-           dmq.add(disjunct.createQuery(null, dmqTieBreakerMultiplier, dfc, true));
+           dmq.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, dfc, true));
        }
        return dmq;
     }
+
 
 }
