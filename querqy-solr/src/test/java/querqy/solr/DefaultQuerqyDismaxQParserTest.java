@@ -30,7 +30,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene46");
+        System.setProperty("tests.codec", "Lucene49");
         initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
         index();
     }

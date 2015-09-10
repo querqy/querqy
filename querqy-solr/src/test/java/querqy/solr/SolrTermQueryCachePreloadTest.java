@@ -12,7 +12,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene46");
+        System.setProperty("tests.codec", "Lucene49");
         initCore("solrconfig-cache-preloaded.xml", "schema.xml");
     }
      
