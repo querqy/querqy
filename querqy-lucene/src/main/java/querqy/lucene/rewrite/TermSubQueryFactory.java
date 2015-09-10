@@ -7,26 +7,37 @@ import java.io.IOException;
 
 import org.apache.lucene.search.Query;
 
+import querqy.lucene.rewrite.prms.PRMSQuery;
+
 /**
+ * A LuceneQueryFactory that wraps a TermQueryFactory or the factory of a more complex
+ * query that results from Lucene analysis.
+ * 
  * @author rene
  *
  */
 public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
     
     final LuceneQueryFactory<?> root;
-    final Float boost;
+    final FieldBoost boost;
+    public final PRMSQuery prmsQuery;
     
-    public TermSubQueryFactory(LuceneQueryFactory<?> root, Float boost) {
+    public TermSubQueryFactory(LuceneQueryFactoryAndPRMSQuery rootAndPrmsQuery, FieldBoost boost) {
+        this(rootAndPrmsQuery.queryFactory, rootAndPrmsQuery.prmsQuery, boost);
+    }
+    
+    public TermSubQueryFactory(LuceneQueryFactory<?> root, PRMSQuery prmsQuery, FieldBoost boost) {
         this.root = root;
         this.boost = boost;
+        this.prmsQuery = prmsQuery;
     }
 
     @Override
-    public Query createQuery(Float boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc,
+    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc,
             boolean isBelowDMQ) throws IOException {
         
         return root.createQuery(
-                boostFactor != null ? boostFactor : boost, 
+                this.boost, 
                 dmqTieBreakerMultiplier,         
                 dfc, isBelowDMQ);
     }
