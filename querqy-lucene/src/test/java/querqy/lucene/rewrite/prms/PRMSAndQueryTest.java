@@ -55,7 +55,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         };
 
         IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-        conf.setCodec(Codec.forName("Lucene50"));
+        conf.setCodec(Codec.forName("Lucene53"));
         IndexWriter indexWriter = new IndexWriter(directory, conf);
        
         

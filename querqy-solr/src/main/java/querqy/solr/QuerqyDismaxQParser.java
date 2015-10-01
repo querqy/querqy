@@ -199,7 +199,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          
          dfc.finishedUserQuery();
          
-         applyMinShouldMatch(mainQuery);
+         mainQuery = applyMinShouldMatch(mainQuery);
          applyFilterQueries(expandedQuery);
          querqyBoostQueries = getQuerqyBoostQueries(expandedQuery);
       }
@@ -434,26 +434,26 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    /**
     * @param query
     */
-   public void applyMinShouldMatch(Query query) {
+   public Query applyMinShouldMatch(Query query) {
 
       if (!(query instanceof BooleanQuery)) {
-         return;
+         return query;
       }
 
       BooleanQuery bq = (BooleanQuery) query;
       BooleanClause[] clauses = bq.getClauses();
       if (clauses.length < 2) {
-         return;
+         return bq;
       }
 
       for (BooleanClause clause : clauses) {
          if ((clause.getQuery() instanceof BooleanQuery) && (clause.getOccur() != Occur.MUST)) {
-            return; // seems to be a complex query with sub queries - do not
+            return bq; // seems to be a complex query with sub queries - do not
                     // apply mm
          }
       }
 
-      SolrPluginUtils.setMinShouldMatch(bq, config.getMinShouldMatch());
+      return SolrPluginUtils.setMinShouldMatch(bq, config.getMinShouldMatch());
 
    }
 

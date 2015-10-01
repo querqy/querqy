@@ -4,6 +4,7 @@
 package querqy.lucene.rewrite;
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
@@ -13,7 +14,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
 import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.ComplexExplanation;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Scorer;
@@ -21,7 +21,6 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.Similarity.SimScorer;
-import org.apache.lucene.util.Bits;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
 
@@ -130,7 +129,7 @@ public class DependentTermQuery extends TermQuery {
             this.needsScores = needsScores;
             assert termStates != null : "TermContext must not be null";
             this.termStates = termStates;
-            this.similarity = searcher.getSimilarity();
+            this.similarity = searcher.getSimilarity(needsScores);
             this.stats = similarity.computeWeight(
                     boostFactor, 
               searcher.collectionStatistics(term.field()), 
@@ -152,14 +151,14 @@ public class DependentTermQuery extends TermQuery {
         }
 
         @Override
-        public Scorer scorer(LeafReaderContext context, Bits acceptDocs) throws IOException {
+        public Scorer scorer(LeafReaderContext context) throws IOException {
             
             assert termStates.topReaderContext == ReaderUtil.getTopLevelContext(context) : "The top-reader used to create Weight (" + termStates.topReaderContext + ") is not the same as the current reader's top-reader (" + ReaderUtil.getTopLevelContext(context);
             final TermsEnum termsEnum = getTermsEnum(context);
             if (termsEnum == null) {
               return null;
             }
-            PostingsEnum docs = termsEnum.postings(acceptDocs, null, needsScores ? PostingsEnum.FREQS : PostingsEnum.NONE);
+            PostingsEnum docs = termsEnum.postings(null, needsScores ? PostingsEnum.FREQS : PostingsEnum.NONE);
             assert docs != null;
             return new TermScorer(this, docs, similarity.simScorer(stats, context));
             
@@ -176,7 +175,7 @@ public class DependentTermQuery extends TermQuery {
             return null;
           }
           //System.out.println("LD=" + reader.getLiveDocs() + " set?=" + (reader.getLiveDocs() != null ? reader.getLiveDocs().get(0) : "null"));
-          final TermsEnum termsEnum = context.reader().terms(term.field()).iterator(null);
+          final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
           termsEnum.seekExact(term.bytes(), state);
           return termsEnum;
         }
@@ -189,23 +188,29 @@ public class DependentTermQuery extends TermQuery {
         
         @Override
         public Explanation explain(LeafReaderContext context, int doc) throws IOException {
-          Scorer scorer = scorer(context, context.reader().getLiveDocs());
-          if (scorer != null) {
-            int newDoc = scorer.advance(doc);
-            if (newDoc == doc) {
-              float freq = scorer.freq();
-              SimScorer docScorer = similarity.simScorer(stats, context);
-              ComplexExplanation result = new ComplexExplanation();
-              result.setDescription("weight("+getQuery()+" in "+doc+") [" + similarity.getClass().getSimpleName() + "], result of:");
-              Explanation scoreExplanation = docScorer.explain(doc, new Explanation(freq, "termFreq=" + freq));
-              result.addDetail(scoreExplanation);
-              result.setValue(scoreExplanation.getValue());
-              result.setMatch(true);
-              return result;
+            Scorer scorer = scorer(context);
+            if (scorer != null) {
+              int newDoc = scorer.advance(doc);
+              if (newDoc == doc) {
+                float freq = scorer.freq();
+                SimScorer docScorer = similarity.simScorer(stats, context);
+                Explanation freqExplanation = Explanation.match(freq, "termFreq=" + freq);
+                Explanation scoreExplanation = docScorer.explain(doc, freqExplanation);
+                return Explanation.match(
+                    scoreExplanation.getValue(),
+                    "weight(" + getQuery() + " in " + doc + ") ["
+                        + similarity.getClass().getSimpleName() + "], result of:",
+                    scoreExplanation);
+              }
             }
-          }
-          return new ComplexExplanation(false, 0.0f, "no matching term");      
+            return Explanation.noMatch("no matching term");
         }
+
+        @Override
+        public void extractTerms(Set<Term> terms) {
+            terms.add(getTerm());
+        }
+        
       }
 
     public class NeverMatchWeight extends Weight {
@@ -217,7 +222,7 @@ public class DependentTermQuery extends TermQuery {
         @Override
         public Explanation explain(LeafReaderContext context, int doc)
                 throws IOException {
-            return new ComplexExplanation(false, 0.0f, "no matching term");      
+            return Explanation.noMatch("no matching term");
         }
 
         @Override
@@ -230,9 +235,14 @@ public class DependentTermQuery extends TermQuery {
         }
 
         @Override
-        public Scorer scorer(LeafReaderContext context, Bits acceptDocs)
+        public Scorer scorer(LeafReaderContext context)
                 throws IOException {
             return null;
+        }
+
+        @Override
+        public void extractTerms(Set<Term> terms) {
+            terms.add(getTerm());
         }
         
     }

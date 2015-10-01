@@ -83,7 +83,7 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
                if (fields != null) {
                  final Terms terms = fields.terms(term.field());
                  if (terms != null) {
-                   final TermsEnum termsEnum = terms.iterator(null);
+                   final TermsEnum termsEnum = terms.iterator();
                    if (termsEnum.seekExact(term.bytes())) { 
                      final TermState termState = termsEnum.termState();
                      int df = termsEnum.docFreq();
@@ -115,7 +115,10 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
                
                while (pos < end) {
                    if (dfs[pos] > 0) {
-                       contexts[pos].setDocFreq(max);
+                       int delta = max - dfs[pos];
+                       if (delta > 0) {
+                           contexts[pos].accumulateStatistics(delta, -1);
+                       }
                    }
                    pos++;
                }

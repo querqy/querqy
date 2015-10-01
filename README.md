@@ -13,7 +13,7 @@ Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x  requir
 
 You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
-Alternatively, if you already have a Maven build for your Solr plugins, you can add artifact 'querqy-solr' as a dependency to your pom.xml:
+Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
 
 
 ~~~xml
@@ -116,7 +116,7 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/
 ~~~
 
 ### Making requests to Solr using Querqy
-You can activate the Querqy query parser in Solr by setting the defType request parameter - in other words, just like you would enable any other query parser in a Solr search request):
+You can activate the Querqy query parser in Solr by setting the defType request parameter - in other words, just like you would enable any other query parser in a Solr search request:
 
 ~~~
 defType=querqy
@@ -178,8 +178,8 @@ Note that the expected character encoding is UTF-8 and that the maximum size of 
 The first line of a rule declaration defines the matching criteria for the input query. This line must end in an arrow (`=>`). The next line defines an instruction that shall be applied if the input matches. The same input line can be used for multiple instructions, one per line:
 
 ~~~
-# if the input contains 'personal computer', add two synonyms 'pc' and
-# 'desktop computer' and rank down by factor 50 documents that 
+# if the input contains 'personal computer', add two synonyms, 'pc' and
+# 'desktop computer', and rank down by factor 50 documents that 
 # match 'software':
 personal computer =>
     SYNONYM: pc
@@ -190,7 +190,7 @@ personal computer =>
 Querqy applies the above rule if it can find the matching criteria 'personal computer' anywhere in the query, provided that there is no other term between 'personal' and 'computer'. It would thus also match the input 'cheap personal computer'. If you want to match the input exactly, or at the beginning or end of the input, you have to mark the input boundaries using double quotation marks:
 
 ~~~
-# only match the query 'personal computer'.
+# only match the exact query 'personal computer'.
 "personal computer" => 
     ....
     
@@ -242,7 +242,7 @@ sofa* =>
 
 ~~~ 
 
-The above rule matches if the input contains a token that starts with 'sofa-' and adds a synonym 'sofa + <wildcard matching string>' to the query. For example, a user query 'sofabed' would yield the synonym 'sofa bed'.
+The above rule matches if the input contains a token that starts with 'sofa-' and adds a synonym 'sofa + *wildcard matching string*' to the query. For example, a user query 'sofabed' would yield the synonym 'sofa bed'.
 
 The wildcard matches 1 (!) or more characters. It is not intended as a replacement for stemming but to provide some support for decompounding in languages like German where compounding is very productive. For example, compounds of the structure 'material + product type' and 'intended audience + product type' are very common in German. Wildcards in Querqy can help to decompound them and allow to search the components accross multiple fields:
 
@@ -264,7 +264,7 @@ Wildcard matching can be used for all rule types. There are some restrictions in
 
 #### SYNONYM rules
 
-Querqy gives you a mighty toolset for using synonyms at query time. As opposed to analysis-based query-time synonyms in Solr, Querqy matches multi-term input and avoids scoring issues related to different document frequencies of the original input and synonym terms (see [this blog post](http://opensourceconnections.com/blog/2013/10/27/why-is-multi-term-synonyms-so-hard-in-solr/) and the [discussion on index-time vs. query-time synonyms in the Solr wiki](https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters#solr.SynonymFilterFactory)). It also allows to configure synonyms in a field-independent manner, making the maintenance of synonyms a lot more intuitive.
+Querqy gives you a mighty toolset for using synonyms at query time. As opposed to analysis-based query-time synonyms in Solr, Querqy matches multi-term input and avoids scoring issues related to different document frequencies of the original input and synonym terms (see [this blog post](http://opensourceconnections.com/blog/2013/10/27/why-is-multi-term-synonyms-so-hard-in-solr/) and the [discussion on index-time vs. query-time synonyms in the Solr wiki](https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters#solr.SynonymFilterFactory)). It also allows to configure synonyms in a field-independent manner, making the maintenance of synonyms a lot more intuitive than in Solr.
 
 You have already seen rules for synonyms:
 

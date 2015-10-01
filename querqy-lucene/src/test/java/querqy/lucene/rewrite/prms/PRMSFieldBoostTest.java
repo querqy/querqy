@@ -41,7 +41,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         Analyzer analyzer = new StandardAnalyzer();
 
         IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-        conf.setCodec(Codec.forName("Lucene50"));
+        conf.setCodec(Codec.forName("Lucene53"));
         IndexWriter indexWriter = new IndexWriter(directory, conf);
        
         addNumDocs("f1", "abc", indexWriter, 2);
