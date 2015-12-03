@@ -15,6 +15,7 @@ import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.junit.Before;
 import org.junit.Test;
@@ -337,11 +338,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    public  void testStopWordAsSingleTermRemoval() throws Exception {
        float tie = (float) Math.random();
        Query q = buildWithStopWords("stopA", tie, "f1", "f2");
-       assertThat(q, 
-               bq()
-               );
-       
-       
+       assertTrue(q instanceof MatchNoDocsQuery);
    }
    
    @Test
