@@ -182,7 +182,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          throw new SyntaxError("query string is empty");
       }
 
-      Query mainQuery = null;
+      Query mainQuery;
       ExpandedQuery expandedQuery = null;
       List<Query> querqyBoostQueries = null;
 
@@ -220,32 +220,37 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
       if (hasBoost) {
 
-         BooleanQuery bq = new BooleanQuery(true);
-         bq.add(mainQuery, Occur.MUST);
+         BooleanQuery.Builder builder = new BooleanQuery.Builder();
+
+         builder.setDisableCoord(true);
+
+         builder.add(mainQuery, Occur.MUST);
 
          if (boostQueries != null) {
             for (Query f : boostQueries) {
-               bq.add(f, BooleanClause.Occur.SHOULD);
+               builder.add(f, BooleanClause.Occur.SHOULD);
             }
          }
 
          if (boostFunctions != null) {
             for (Query f : boostFunctions) {
-               bq.add(f, BooleanClause.Occur.SHOULD);
+               builder.add(f, BooleanClause.Occur.SHOULD);
             }
          }
 
          if (phraseFieldQueries != null) {
             for (Query pf : phraseFieldQueries) {
-               bq.add(pf, BooleanClause.Occur.SHOULD);
+               builder.add(pf, BooleanClause.Occur.SHOULD);
             }
          }
 
          if (hasQuerqyBoostQueries) {
             for (Query q : querqyBoostQueries) {
-               bq.add(q, BooleanClause.Occur.SHOULD);
+                builder.add(q, BooleanClause.Occur.SHOULD);
             }
          }
+
+         BooleanQuery bq = builder.build();
 
          if (hasMultiplicativeBoosts) {
             if (multiplicativeBoosts.size() > 1) {
@@ -378,31 +383,37 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
                         if (n == 0) {
 
-                           PhraseQuery pq = new PhraseQuery();
-                           pq.setSlop(fieldParams.getSlop());
-                           pq.setBoost(fieldParams.getBoost());
+                            PhraseQuery.Builder builder = new PhraseQuery.Builder();
 
-                           for (Term term : sequence) {
-                              pq.add(
-                                    new org.apache.lucene.index.Term(fieldname,
-                                          new BytesRef(term))
-                                    );
-                           }
+                            builder.setSlop(fieldParams.getSlop());
 
-                           result.add(pq);
+                            for (Term term : sequence) {
+                                builder.add(new org.apache.lucene.index.Term(fieldname,
+                                            new BytesRef(term))
+                                );
+                            }
+                            PhraseQuery pq = builder.build();
+                            pq.setBoost(fieldParams.getBoost());
+
+                            result.add(pq);
 
                         } else {
+
                            for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
-                              PhraseQuery pq = new PhraseQuery();
-                              pq.setSlop(fieldParams.getSlop());
-                              pq.setBoost(fieldParams.getBoost());
-                              for (int j = i, lenJ = j + n; j < lenJ; j++) {
-                                 pq.add(
-                                       new org.apache.lucene.index.Term(fieldname,
-                                             new BytesRef(sequence.get(j)))
-                                       );
-                              }
-                              result.add(pq);
+
+                               PhraseQuery.Builder builder = new PhraseQuery.Builder();
+
+                               builder.setSlop(fieldParams.getSlop());
+                               for (int j = i, lenJ = j + n; j < lenJ; j++) {
+                                   builder.add(
+                                           new org.apache.lucene.index.Term(
+                                                   fieldname,
+                                                   new BytesRef(sequence.get(j)))
+                                   );
+                               }
+                               PhraseQuery pq = builder.build();
+                               pq.setBoost(fieldParams.getBoost());
+                               result.add(pq);
                            }
                         }
 
@@ -441,8 +452,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       }
 
       BooleanQuery bq = (BooleanQuery) query;
-      BooleanClause[] clauses = bq.getClauses();
-      if (clauses.length < 2) {
+      List<BooleanClause> clauses = bq.clauses();
+      if (clauses.size() < 2) {
          return bq;
       }
 
@@ -463,7 +474,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
       if (filterQueries != null && !filterQueries.isEmpty()) {
           
-          List<Query> fqs = new LinkedList<Query>();
+          List<Query> fqs = new LinkedList<>();
           
           for (QuerqyQuery<?> qfq : filterQueries) {
           

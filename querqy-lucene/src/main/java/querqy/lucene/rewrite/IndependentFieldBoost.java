@@ -59,8 +59,7 @@ public class IndependentFieldBoost implements FieldBoost {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = 1;
-        result = 31
+        int result = 31
                 + Float.floatToIntBits(defaultGeneratedFieldBoostFactor);
         result = prime
                 * result

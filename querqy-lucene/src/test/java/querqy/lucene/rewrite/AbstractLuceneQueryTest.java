@@ -170,10 +170,10 @@ public class AbstractLuceneQueryTest {
          if (dmqDisjuncts == null || dmqDisjuncts.size() != disjuncts.length) {
             return false;
          }
-         for (int i = 0; i < disjuncts.length; i++) {
+         for (TypeSafeMatcher<? extends Query> disjunct : disjuncts) {
             boolean found = false;
             for (Query q : dmqDisjuncts) {
-               found = disjuncts[i].matches(q);
+               found = disjunct.matches(q);
                if (found) {
                   break;
                }
@@ -230,8 +230,8 @@ public class AbstractLuceneQueryTest {
             return false;
          }
 
-         BooleanClause[] bqClauses = bq.getClauses();
-         if (bqClauses == null || bqClauses.length != clauses.length) {
+         List<BooleanClause> bqClauses = bq.clauses();
+         if (bqClauses == null || bqClauses.size() != clauses.length) {
             return false;
          }
          for (int i = 0; i < clauses.length; i++) {

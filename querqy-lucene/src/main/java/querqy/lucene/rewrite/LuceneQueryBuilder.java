@@ -64,9 +64,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * 
     * @param dfc
     * @param analyzer
-    * @param queryFieldsAndBoostings Query fields and boostings for non-generated terms
-    * @param generatedQueryFieldsAndBoostings Query fields and boostings for generated terms 
-    * @param defaultGeneratedFieldBoostFactor Default boost factor for generated fields
+    * @param searchFieldsAndBoosting
     * @param dmqTieBreakerMultiplier
     * @param normalizeBooleanQueryBoost
     * @param termQueryCache The term query cache or null
@@ -124,7 +122,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
       parentType = myParentType;
 
-      Clause result = null;
+      Clause result;
 
       switch (bq.getNumberOfClauses()) {
       case 0:

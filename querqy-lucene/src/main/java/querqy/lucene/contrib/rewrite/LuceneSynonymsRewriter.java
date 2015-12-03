@@ -7,16 +7,12 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.apache.lucene.store.ByteArrayDataInput;
-import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.CharsRef;
 
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Node;
-import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -28,9 +24,6 @@ import querqy.rewrite.QueryRewriter;
 public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
    final SynonymMap synonymMap;
-   ByteArrayDataInput bytesReader = new ByteArrayDataInput();
-   BytesRef scratchBytes = new BytesRef();
-   CharsRef scratchChars = new CharsRef();
 
    LinkedList<Sequences> sequencesStack = new LinkedList<>();
 
@@ -45,10 +38,9 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node> implements
     */
    @Override
    public ExpandedQuery rewrite(ExpandedQuery query) {
-      QuerqyQuery<?> userQuery = query.getUserQuery();
-      if (userQuery instanceof Query) {
-         visit((Query) userQuery); // can only handle this QuerqyQueryType for
-                                   // now
+      Query userQuery = query.getUserQuery();
+      if (userQuery != null) {
+         visit(userQuery);
       }
       return query;
    }

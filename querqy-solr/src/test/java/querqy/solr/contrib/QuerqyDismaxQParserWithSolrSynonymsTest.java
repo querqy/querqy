@@ -134,7 +134,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
       BooleanQuery bq = (BooleanQuery) query;
       String qStr = bq.toString();
       for (String exp : expectedSubstrings) {
-         assertTrue("Missing: " + exp, qStr.indexOf(exp) > -1);
+         assertTrue("Missing: " + exp, qStr.contains(exp));
       }
 
    }

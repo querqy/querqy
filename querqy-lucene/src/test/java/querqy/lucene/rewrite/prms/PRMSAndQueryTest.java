@@ -51,7 +51,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
                             , null);
                 filter = new LowerCaseFilter(filter);
                 return new TokenStreamComponents(source, filter);
-            };
+            }
         };
 
         IndexWriterConfig conf = new IndexWriterConfig(analyzer);

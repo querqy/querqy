@@ -4,13 +4,7 @@
 package querqy.lucene.contrib.rewrite;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.store.ByteArrayDataInput;
@@ -33,7 +27,7 @@ class Sequences {
 
    final FST<BytesRef> fst;
 
-   Map<DisjunctionMaxQuery, Set<DisjunctionMaxClause>> addenda = new HashMap<DisjunctionMaxQuery, Set<DisjunctionMaxClause>>();
+   Map<DisjunctionMaxQuery, Set<DisjunctionMaxClause>> addenda = new HashMap<>();
 
    Set<Sequence> sequences = new LinkedHashSet<>();
    Set<Sequence> addSequences = new LinkedHashSet<>();
@@ -65,14 +59,13 @@ class Sequences {
    }
 
    static final int cpBlank = Character.codePointAt(new char[] { ' ' }, 0);
-   static final int lBlank = Character.charCount(cpBlank);
 
    public void appendToSequences(Term term) throws IOException {
 
       FST.BytesReader fstReader = fst.getBytesReader();
-      FST.Arc<BytesRef> scratchArc = new FST.Arc<BytesRef>();
+      FST.Arc<BytesRef> scratchArc = new FST.Arc<>();
 
-      boolean ok = true;
+      boolean ok;
 
       for (Sequence sequence : sequences) {
 
@@ -85,7 +78,6 @@ class Sequences {
             CharSequence termValue = term.getValue();
 
             // iterate over term chars and try to append them to the sequence
-            ;
             for (int pos = 0, len = termValue.length(); ok && pos < len;) {
 
                int codePoint = Character.codePointAt(termValue, pos);
@@ -123,7 +115,7 @@ class Sequences {
 
       appendToSequences(term);
 
-      FST.Arc<BytesRef> scratchArc = new FST.Arc<BytesRef>();
+      FST.Arc<BytesRef> scratchArc = new FST.Arc<>();
       fst.getFirstArc(scratchArc);
       BytesRef pendingOutput = fst.outputs.getNoOutput();
 
@@ -145,19 +137,19 @@ class Sequences {
       }
       if (ok) {
 
-         List<Term> terms = Arrays.asList(term);
+         List<Term> terms = Collections.singletonList(term);
          FST.Arc<BytesRef> arc = new FST.Arc<>();
          addSequences.add(new Sequence(arc.copyFrom(scratchArc), terms, pendingOutput));
 
          if (scratchArc.isFinal()) {
-            addOutput(fst.outputs.add(pendingOutput, scratchArc.nextFinalOutput), term);
+            addOutput(fst.outputs.add(pendingOutput, scratchArc.nextFinalOutput));
          }
 
       }
 
    }
 
-   private void addOutput(BytesRef bytes, Term rewriteSource) {
+   private void addOutput(BytesRef bytes) {
 
       bytesReader.reset(bytes.bytes, bytes.offset, bytes.length);
 

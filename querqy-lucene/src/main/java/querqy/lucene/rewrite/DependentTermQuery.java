@@ -40,16 +40,16 @@ public class DependentTermQuery extends TermQuery {
     Float boostFactor = null;
     
     public DependentTermQuery(Term term, DocumentFrequencyAndTermContextProvider dftcp, FieldBoost fieldBoost) {
+
         super(term);
+
         if (fieldBoost == null) {
             throw new IllegalArgumentException("FieldBoost must not be null");
         }
         if (dftcp == null) {
             throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
         }
-        if (term == null) {
-            throw new IllegalArgumentException("Term must not be null");
-        }
+
         this.term = term;
         tqIndex  = dftcp.registerTermQuery(this);
         this.dftcp = dftcp;

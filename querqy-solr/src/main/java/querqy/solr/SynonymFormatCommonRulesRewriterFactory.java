@@ -6,11 +6,11 @@ package querqy.solr;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
@@ -81,7 +81,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
       try (
             BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.openResource(resourceName)))) {
 
-         String line = null;
+         String line;
 
          while ((line = reader.readLine()) != null) {
 
@@ -115,7 +115,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
                                  if (!query.getClauses().isEmpty()) {
                                     for (Input input : inputs) {
                                        BoostInstruction bi = new BoostInstruction(query, direction, boost);
-                                       builder.addRule(input, new Instructions(Arrays.asList((Instruction) bi)));
+                                       builder.addRule(input, new Instructions(Collections.singletonList((Instruction) bi)));
                                     }
                                  }
                               }
@@ -196,7 +196,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
     @Override
     public Set<Term> getGenerableTerms() {
-        Set<Term> result = new HashSet<Term>();
+        Set<Term> result = new HashSet<>();
         for (Instruction instruction: rules.getInstructions()) {
             result.addAll(instruction.getGenerableTerms());
         }
