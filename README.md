@@ -286,19 +286,9 @@ pc =>
 	SYNONYM: personal computer
 ~~~
 
-##### Boost factors
-In addition to the rule syntax that you've seen so far, you can specify a boost factor for the synonym expansion:
-
-~~~
-evening dress =>
-	SYNONYM(0.1): cocktail dress
-
-~~~
-Synonym 'cocktail dress' will be added to the query 'evening dress' but with a very low boost of 0.1. This down-ranking helps to keep search results for the orgininal query at the top of the result list while results for the synonym expression will follow later. The default boost factor for synonyms is 1.0. The interpretation of this value is left to the search engine.
-
 ##### The right-hand side of synonym rules
 
-The right-hand side of the synonym expression ('cocktail dress') will be parsed by the parser that you configured as `queryParser` for the Common Rules rewriter:
+The right-hand side of the synonym expression will be parsed by the parser that you configured as `queryParser` for the Common Rules rewriter:
 
 ~~~xml
 <lst name="rewriteChain">
@@ -312,18 +302,15 @@ The right-hand side of the synonym expression ('cocktail dress') will be parsed 
 
 ~~~
 
+Thus, in the following example, the `WhiteSpaceQuerqyParser` is used to parse "personal computer" into Querqy's internal query object model:
+
+~~~
+pc =>
+	SYNONYM: personal computer
+~~~
+
+
 Querqy will assign fields in which it searches for the synonym query only after applying all rules and all rewriters when it finally creates a Lucene query from the Querqy-internal query object model. The search fields for synonyms are taken from the `gqf` parameter (priority) or from `qf` (see [request parameters](#making-requests-to-solr-using-querqy)).
-
-If you want to restrict synonyms to specific fields, you will have to use a *raw query* on the right-hand side of the synonym instruction (future implementations of WhiteSpaceQuerqyParser might be capable of dealing with field names as well). 
-
-A raw query is a query in the query language of the search engine - Solr in our case - prefixed by '*'.  The following example adds a raw query for input 'notebook'. The synonymous raw query matches 'laptop' in field 'name' if field 'department' contains 'computers':
-
-~~~
-notebook =>
-	SYNONYM: * +name:laptop +department:computers
-~~~
-
-The raw query '+name:laptop +department:computers' is parsed using the Lucene query parser in Solr but you can use local parameter syntax to change the query parser and set further parameters.
 
 ##### Expert: Structure of expanded queries
 
@@ -370,7 +357,9 @@ iphone =>
 
 UP and DOWN both take boost factors as parameters. The default boost factor is 1.0. The interpretation of the boost factor is left to the search engine and it might differ between UP and DOWN, which means that UP(10):x and DOWN(10):x do not necessarily equal out each other.
 
-The right-hand side of UP and DOWN instructions accept raw queries (see [The right-hand side of synonym rules](#the-right-hand-side-of-synonym-rules)). In the following example we favour a certain price range as an interpretation of 'cheap' and penalise documents from category 'accessories' using raw Solr queries:
+The right-hand side of UP and DOWN instructions will either be parsed using the configured query parser (see [The right-hand side of synonym rules](#the-right-hand-side-of-synonym-rules)), or it will be treated as a query in the syntax of the search engine if the right-hand-side of the query is prefixed by `*`.
+
+In the following example we favour a certain price range as an interpretation of 'cheap' and penalise documents from category 'accessories' using raw Solr queries:
 
 
 ~~~
@@ -381,7 +370,7 @@ cheap notebook =>
 ~~~
 
 #### FILTER rules
-Filter rules work similar to UP and DOWN rules but instead of moving search results up or down the result list they do restrict search results to those that match the filter query. The following rule looks similar to the 'iphone' example above but it restricts the search results to documents that contain 'apple' and not 'case':
+Filter rules work similar to UP and DOWN rules, but instead of moving search results up or down the result list they restrict search results to those that match the filter query. The following rule looks similar to the 'iphone' example above but it restricts the search results to documents that contain 'apple' and not 'case':
 
 ~~~
 iphone =>
@@ -389,7 +378,7 @@ iphone =>
 	FILTER: -case
 ~~~
 
-The filter is applied to all fields given in the `gqf` or `qf` parameters. In the case of a required keyword ('apple') the filter matches if the keyword occurs in one or more query fields. The negative filter ('-case') only matches documents where the keyword occurs in none of the query fields.
+The filter is applied to all fields given in the `gqf` or `qf` parameters. In the case of a required keyword ('apple') the filter matches if the keyword occurs in one or more query fields. The negative filter ('-case') only matches documents where the keyword occurs in none of the query fields. (Note [this issue](https://github.com/renekrie/querqy/issues/16) for purely negative queries.)
 
 The right-hand side of filter instructions accepts raw queries. To completely exclude results from category 'accessories' for query 'notebook' you would write:
 

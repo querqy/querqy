@@ -73,6 +73,9 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
         final LuceneQueryFactory<?> queryFactory;
 
         public Clause(LuceneQueryFactory<?> queryFactory, Occur occur) {
+            if (occur == null) {
+                throw new IllegalArgumentException("Occur must not be null");
+            }
             this.occur = occur;
             this.queryFactory = queryFactory;
         }

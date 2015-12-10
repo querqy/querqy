@@ -284,6 +284,29 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
             dtq(1f, "f1", "q")
             ));
    }
+
+    @Test
+    public void testPurelyNegativeQueriesFromWhitespaceQuerqyParser() throws IOException {
+
+        float tie = (float) Math.random();
+
+        Map<String, Float> fields = fields("f1", "f2");
+
+        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+
+
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+                keywordAnalyzer, searchFieldsAndBoosting, tie, null);
+
+        Query q = builder.createQuery(new WhiteSpaceQuerqyParser().parse("-ab"));
+
+        assertThat(q, bq(
+                bq(Occur.MUST_NOT,
+                        dtq(Occur.SHOULD, 1f, "f1", "ab"),
+                        dtq(Occur.SHOULD, 2f, "f2", "ab")
+                )
+        ));
+    }
    
    
    @Test

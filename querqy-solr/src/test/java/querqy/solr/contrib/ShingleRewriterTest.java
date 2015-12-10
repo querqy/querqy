@@ -8,15 +8,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ShingleRewriterTest extends SolrTestCaseJ4 {
-    
-   
 
      @BeforeClass
-     public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene46");
+     public static void beforeTests() throws Exception {
         initCore("contrib/solrconfig-shingles-and-commonrules.xml", "schema.xml");
      }
-     
 
     @Test
     public void testShinglesOnThreeTerms() {

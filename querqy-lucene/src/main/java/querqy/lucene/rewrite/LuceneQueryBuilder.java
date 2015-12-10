@@ -129,7 +129,16 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
        // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
           return new NeverMatchQueryFactory();
       case 1:
-          result = bq.getFirstClause();
+          Clause firstClause = bq.getFirstClause();
+          if (firstClause.occur == Occur.SHOULD) {
+              // optimise and propagate the single clause up one level, but only
+              // if occur equals neither MUST nor MUST_NOT, which would be lost on the
+              // top level query
+              result = bq.getFirstClause();
+          } else {
+              result = new Clause(bq, occur(booleanQuery.occur));
+          }
+
           break;
       default:
           result = new Clause(bq, occur(booleanQuery.occur));
