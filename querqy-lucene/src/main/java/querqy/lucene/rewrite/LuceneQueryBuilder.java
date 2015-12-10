@@ -64,9 +64,6 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * 
     * @param dfc
     * @param analyzer
-    * @param queryFieldsAndBoostings Query fields and boostings for non-generated terms
-    * @param generatedQueryFieldsAndBoostings Query fields and boostings for generated terms 
-    * @param defaultGeneratedFieldBoostFactor Default boost factor for generated fields
     * @param dmqTieBreakerMultiplier
     * @param normalizeBooleanQueryBoost
     * @param termQueryCache The term query cache or null
@@ -131,7 +128,16 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
        // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
           return new NeverMatchQueryFactory();
       case 1:
-          result = bq.getFirstClause();
+          Clause firstClause = bq.getFirstClause();
+          if (firstClause.occur == Occur.SHOULD) {
+              // optimise and propagate the single clause up one level, but only
+              // if occur equals neither MUST nor MUST_NOT, which would be lost on the
+              // top level query
+              result = bq.getFirstClause();
+          } else {
+              result = new Clause(bq, occur(booleanQuery.occur));
+          }
+
           break;
       default:
           result = new Clause(bq, occur(booleanQuery.occur));

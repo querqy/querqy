@@ -14,7 +14,6 @@ import querqy.rewrite.RewriteChain;
 
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
-
    public static void index() throws Exception {
 
       assertU(adoc("id", "1", "f1", "a"));
@@ -29,8 +28,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
     @BeforeClass
-    public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene49");
+    public static void beforeTests() throws Exception {
         initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
         index();
     }

@@ -11,8 +11,7 @@ import org.junit.Test;
 public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
 
     @BeforeClass
-    public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene49");
+    public static void beforeTest() throws Exception{
         initCore("solrconfig-cache-preloaded.xml", "schema.xml");
     }
      
@@ -25,9 +24,32 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                "cat", "CACHE",
                "stats", "true"
                );
-        assertQ("Missing querqy cache",
-               req,
-               "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']");
+
+        int trials = 0;
+
+        for (;;) {
+            trials ++;
+            try {
+                assertQ("Missing querqy cache",
+                        req,
+                        "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']");
+                break;
+            } catch (RuntimeException e) {
+                if (trials >= 3) {
+                    throw e;
+                } else {
+                    try {
+                        synchronized (this) {
+                            wait(trials * 1000L);
+                        }
+                    } catch (InterruptedException e2) {
+                        throw e;
+                    }
+                }
+            }
+
+        }
+
          // only one generated term in one field is preloaded for firstSearcher:
         assertQ("Querqy cache not prefilled",
                  req,

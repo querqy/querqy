@@ -8,7 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SolrTermQueryCacheVsDocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
-    
+
     public static void index() throws Exception {
 
         assertU(adoc("id", "1", "f1", "a"));
@@ -19,8 +19,7 @@ public class SolrTermQueryCacheVsDocumentFrequencyCorrectionTest extends SolrTes
      }
 
     @BeforeClass
-    public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene49");
+    public static void beforeTests() throws Exception {
         initCore("solrconfig-cache-vs-documentfrequencycorrection.xml", "schema.xml");
         index();
     }

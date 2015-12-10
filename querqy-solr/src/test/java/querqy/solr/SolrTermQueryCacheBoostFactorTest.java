@@ -19,8 +19,7 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
     }
 
     @BeforeClass
-    public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene49");
+    public static void beforeTests() throws Exception {
         initCore("solrconfig-cache.xml", "schema.xml");
         index();
     }
