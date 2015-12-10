@@ -8,7 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ4 {
-    
+
     public static void index() throws Exception {
 
         assertU(adoc("id", "1", "f1", "a", "f2", "c"));
@@ -24,21 +24,25 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         assertU(adoc("id", "6", "f1", "m", "f2", "c", "f4", "e"));
         
         assertU(adoc("id", "7", "f1", "p", "f2", "x"));
-        
+
+        assertU(adoc("id", "8", "f1", "k", "f2", "qneg", "f3", "qneg2"));
+
+        assertU(adoc("id", "9", "f1", "nok", "f2", "qneg", "f3", "qneg2"));
+
+        assertU(adoc("id", "10", "f1", "k", "f2", "qnegraw", "f3", "qnegraw2"));
+
+        assertU(adoc("id", "11", "f1", "nok", "f2", "qnegraw", "f3", "qnegraw2"));
+
 
 
         assertU(commit());
      }
 
      @BeforeClass
-     public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene50");
+     public static void beforeTests() throws Exception {
         initCore("solrconfig-commonrules.xml", "schema.xml");
         index();
      }
-
-     
-     
 
     @Test
     public void testSolrFilterQuery() {
@@ -241,6 +245,91 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
         req.close();
         
+    }
+
+    @Test
+    public void testThatPurelyNegativeFilterIsApplied() throws Exception {
+        String q = "qneg";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy",
+                "echoParams", "all",
+                "debugQuery", "on"
+        );
+
+        assertQ("Purely negative filter fails",
+                req,
+                "//result[@name='response' and @numFound='1']/doc[1]/str[@name='id'][text()='9']"
+        );
+
+
+
+        req.close();
+    }
+
+    @Test
+    public void testThatNegativeFilterIsApplied() throws Exception {
+        String q = "qneg2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy",
+                "echoParams", "all",
+                "debugQuery", "on"
+        );
+
+        assertQ("Negative filter fails",
+                req,
+                "//result[@name='response' and @numFound='1']/doc[1]/str[@name='id'][text()='9']"
+        );
+
+
+
+        req.close();
+    }
+
+
+    @Test
+    public void testThatPurelyNegativeRawQueryFilterIsApplied() throws Exception {
+        String q = "qnegraw";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy",
+                "echoParams", "all",
+                "debugQuery", "on"
+        );
+
+        assertQ("Purely negative filter fails for raw query",
+                req,
+                "//result[@name='response' and @numFound='1']/doc[1]/str[@name='id'][text()='11']"
+        );
+
+
+
+        req.close();
+    }
+
+    @Test
+    public void testThatNegativeRawQueryFilterIsApplied() throws Exception {
+        String q = "qnegraw2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy",
+                "echoParams", "all",
+                "debugQuery", "on"
+        );
+
+        assertQ("Purely negative filter fails for raw query",
+                req,
+                "//result[@name='response' and @numFound='1']/doc[1]/str[@name='id'][text()='11']"
+        );
+
+
+
+        req.close();
     }
 
 }

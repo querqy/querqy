@@ -8,7 +8,7 @@ package querqy.model;
  *
  */
 public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> implements DisjunctionMaxClause,
-      BooleanClause, BooleanParent {
+      BooleanClause, BooleanParent, QuerqyQuery<BooleanParent> {
 
    public BooleanQuery(BooleanParent parentQuery, Occur occur, boolean generated) {
       super(parentQuery, occur, generated);

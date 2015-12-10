@@ -1,6 +1,18 @@
 a =>
 	FILTER: * f2:c
-	
+
+qneg =>
+    FILTER: -k
+
+qneg2 =>
+    FILTER: qneg -k
+
+qnegraw =>
+    FILTER: * -f1:k
+
+qnegraw2 =>
+    FILTER: * -f1:k f2:qnegraw
+
 m => 
 	DOWN(20): d
 

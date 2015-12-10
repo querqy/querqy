@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
 
-   public static void index() throws Exception {
+    public static void index() throws Exception {
 
       assertU(adoc("id", "1", "f1", "a"));
 
@@ -28,8 +28,7 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
    }
 
    @BeforeClass
-   public static void beforeClass() throws Exception {
-      System.setProperty("tests.codec", "Lucene50");
+   public static void beforeTests() throws Exception {
       initCore("solrconfig-boost.xml", "schema.xml");
       index();
    }

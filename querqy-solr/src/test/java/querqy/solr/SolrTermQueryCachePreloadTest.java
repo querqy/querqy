@@ -11,23 +11,19 @@ import org.junit.Test;
 public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
 
     @BeforeClass
-    public static void beforeClass() throws Exception {
-        System.setProperty("tests.codec", "Lucene50");
+    public static void beforeTest() throws Exception{
         initCore("solrconfig-cache-preloaded.xml", "schema.xml");
     }
      
     @Test
     public void testThatCacheIsAvailableAndPrefilledAndNotUpdated() throws Exception {
-        
-        
-        
+
         // firstSearcher
         SolrQueryRequest req = req(
                CommonParams.QT, "/admin/mbeans",
                "cat", "CACHE",
                "stats", "true"
                );
-        
         // the cache is prefilled asynchronously - retry 3 times to see the cache before giving up
         int attempts = 3;
         try {

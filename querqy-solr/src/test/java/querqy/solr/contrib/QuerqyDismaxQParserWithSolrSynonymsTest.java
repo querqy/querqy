@@ -26,8 +26,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    }
 
    @BeforeClass
-   public static void beforeClass() throws Exception {
-      System.setProperty("tests.codec", "Lucene46");
+   public static void beforeTests() throws Exception {
       initCore("contrib/solrconfig-QuerqyDismaxQParserWithSolrSynonymsTest.xml", "schema.xml");
       index();
    }
