@@ -13,4 +13,4 @@ jdk:
 branches:
   only:
     - master
-    - solr5
+    - solr4

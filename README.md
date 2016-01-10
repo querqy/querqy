@@ -513,7 +513,7 @@ Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/l
 ## Development
 
 ### Branches
-Please base development for Lucene/Solr 4.x and Lucene/Solr-independent features (querqy-core) on branch master and for Lucene/Solr 5.x on branch solr5.
+Please base development for Lucene/Solr 5.x and Lucene/Solr-independent features (querqy-core) on branch master and for Lucene/Solr 4.x on branch solr4. Note that before Querqy 2.9.0 development for Solr 5.x was carried out in branch solr5, while branch master contained Lucene/Solr 4.x and Lucene/Solr-independent code.
 
 ### Modules
   
