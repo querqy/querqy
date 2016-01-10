@@ -6,6 +6,7 @@ import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
+import org.apache.solr.search.WrappedQuery;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -82,71 +83,71 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
            req.close();
     }
 
-   @Test
-   public void testThatAMMof2getsSetFor3optionalClauses() throws Exception {
+    @Test
+    public void testThatAMMof2getsSetFor3optionalClauses() throws Exception {
 
-      SolrQueryRequest req = req("q", "a b c",
+        SolrQueryRequest req = req("q", "a b c",
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "2");
 
-      QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(),
+        QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(),
             new WhiteSpaceQuerqyParser(), null);
 
-      Query query = parser.parse();
+        Query query = parser.parse();
 
-      req.close();
+        req.close();
 
-      assertTrue(query instanceof BooleanQuery);
-      BooleanQuery bq = (BooleanQuery) query;
-      assertEquals(2, bq.getMinimumNumberShouldMatch());
-   }
+        BooleanQuery bq = assertBQ(query);
 
-   @Test
-   public void testThatMMIsAppliedWhileQueryContainsMUSTBooleanOperators() throws Exception {
+        assertEquals(2, bq.getMinimumNumberShouldMatch());
+    }
 
-      String q = "a +b c +d e f";
+    @Test
+    public void testThatMMIsAppliedWhileQueryContainsMUSTBooleanOperators() throws Exception {
 
-      SolrQueryRequest req = req("q", q,
+        String q = "a +b c +d e f";
+
+        SolrQueryRequest req = req("q", q,
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3");
-      QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
+
+        QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
             new WhiteSpaceQuerqyParser(), null);
-      Query query = parser.parse();
 
-      req.close();
+        Query query = parser.parse();
 
-      assertTrue(query instanceof BooleanQuery);
-      BooleanQuery bq = (BooleanQuery) query;
-      assertEquals(3, bq.getMinimumNumberShouldMatch());
-   }
+        req.close();
 
-   @Test
-   public void testThatMMIsNotAppliedWhileQueryContainsMUSTNOTBooleanOperator() throws Exception {
+        BooleanQuery bq = assertBQ(query);
+        assertEquals(3, bq.getMinimumNumberShouldMatch());
+    }
 
-      String q = "a +b c -d e f";
+    @Test
+    public void testThatMMIsNotAppliedWhileQueryContainsMUSTNOTBooleanOperator() throws Exception {
 
-      SolrQueryRequest req = req("q", q,
+        String q = "a +b c -d e f";
+
+        SolrQueryRequest req = req("q", q,
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3",
             QueryParsing.OP, "OR"
             );
-      QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
+        QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
             new WhiteSpaceQuerqyParser(), null);
-      Query query = parser.parse();
+        Query query = parser.parse();
 
-      req.close();
+        req.close();
 
-      assertTrue(query instanceof BooleanQuery);
-      BooleanQuery bq = (BooleanQuery) query;
-      assertEquals(0, bq.getMinimumNumberShouldMatch());
-   }
+        BooleanQuery bq = assertBQ(query);
+        assertEquals(0, bq.getMinimumNumberShouldMatch());
+    }
 
-   @Test
-   public void testThatPfIsAppliedOnlyToExistingField() throws Exception {
+    @Test
+    public void testThatPfIsAppliedOnlyToExistingField() throws Exception {
 
-      String q = "a b c d";
+        String q = "a b c d";
 
-      SolrQueryRequest req = req("q", q,
+        SolrQueryRequest req = req("q", q,
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3",
             QueryParsing.OP, "OR",
@@ -155,15 +156,15 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             "debugQuery", "true"
             );
 
-      // f4 doesn't exist
-      assertQ("wrong ps",
+        // f4 doesn't exist
+        assertQ("wrong ps",
             req,
             "//str[@name='parsedquery'][contains(.,'f3:\"a b c d\"^2.0')]",
             "//str[@name='parsedquery'][not(contains(.,'f40:\"a b c d\"^0.5'))]");
 
-      req.close();
+        req.close();
 
-   }
+    }
 
    @Test
    public void testThatMatchAllDoesNotThrowException() throws Exception {
@@ -444,5 +445,20 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       }
 
    }
+
+    protected BooleanQuery assertBQ(Query query) {
+
+        BooleanQuery bq = null;
+        if (query instanceof WrappedQuery) {
+            Query w = ((WrappedQuery) query).getWrappedQuery();
+            assertTrue(w instanceof BooleanQuery);
+            bq = (BooleanQuery) w;
+        } else {
+            assertTrue(query instanceof BooleanQuery);
+            bq = (BooleanQuery) query;
+        }
+
+        return bq;
+    }
 
 }

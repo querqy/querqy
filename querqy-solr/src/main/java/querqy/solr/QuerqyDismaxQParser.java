@@ -23,6 +23,7 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
+
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -37,6 +38,8 @@ import org.apache.solr.search.FieldParams;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
+import org.apache.solr.search.WrappedQuery;
+
 import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
@@ -199,9 +202,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          
          dfc.finishedUserQuery();
          
-         applyMinShouldMatch(mainQuery);
          applyFilterQueries(expandedQuery);
          querqyBoostQueries = getQuerqyBoostQueries(expandedQuery);
+
       }
 
       boostQueries = getBoostQueries();
@@ -280,54 +283,54 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       return result;
    }
 
-   public List<Query> transformBoostQueries(Collection<BoostQuery> boostQueries, float factor) throws SyntaxError {
+    public List<Query> transformBoostQueries(Collection<BoostQuery> boostQueries, float factor) throws SyntaxError {
 
-      List<Query> result = null;
+        List<Query> result = null;
 
-      if (boostQueries != null && !boostQueries.isEmpty()) {
+        if (boostQueries != null && !boostQueries.isEmpty()) {
 
-         result = new LinkedList<>();
+            result = new LinkedList<>();
 
-         for (BoostQuery bq : boostQueries) {
+            for (BoostQuery bq : boostQueries) {
 
-            Query luceneQuery = null;
-            QuerqyQuery<?> boostQuery = bq.getQuery();
+                Query luceneQuery = null;
+                QuerqyQuery<?> boostQuery = bq.getQuery();
 
-            if (boostQuery instanceof RawQuery) {
+                if (boostQuery instanceof RawQuery) {
 
-               QParser bqp = QParser.getParser(((RawQuery) boostQuery).getQueryString(), null, req);
-               luceneQuery = bqp.getQuery();
+                    QParser bqp = QParser.getParser(((RawQuery) boostQuery).getQueryString(), null, req);
+                    luceneQuery = bqp.getQuery();
 
-            } else if (boostQuery instanceof querqy.model.Query) {
+                } else if (boostQuery instanceof querqy.model.Query) {
 
-               builder.reset();
-               try {
+                    builder.reset();
+                    try {
 
-                  luceneQuery = builder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
+                        luceneQuery = builder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
 
-               } catch (IOException e) {
-                  throw new RuntimeException(e);
-               }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+
+                if (luceneQuery != null) {
+                    luceneQuery.setBoost(bq.getBoost() * factor);
+                    result.add(wrapQuery(luceneQuery));
+                }
 
             }
 
-            if (luceneQuery != null) {
-               luceneQuery.setBoost(bq.getBoost() * factor);
-            }
+        }
 
-            result.add(luceneQuery);
-         }
+        return result;
+    }
 
-      }
+    public ExpandedQuery makeExpandedQuery() {
 
-      return result;
-   }
+        return new ExpandedQuery(querqyParser.parse(qstr));
 
-   public ExpandedQuery makeExpandedQuery() {
-
-      return new ExpandedQuery(querqyParser.parse(qstr));
-
-   }
+    }
 
    public List<Query> getPhraseFieldQueries(ExpandedQuery querqyQuery) {
 
@@ -495,11 +498,33 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       builder.reset();
 
       try {
-         return builder.createQuery(expandedQuery.getUserQuery());
+
+          Query query = builder.createQuery(expandedQuery.getUserQuery());
+          applyMinShouldMatch(query);
+
+          return wrapQuery(query);
+
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
    }
+
+    public Query wrapQuery(Query query) {
+
+        if (query == null || dfc == null) {
+
+            return query;
+
+        } else {
+
+            WrappedQuery wrappedQuery = new WrappedQuery(query);
+            wrappedQuery.setCache(true);
+            wrappedQuery.setCacheSep(false);
+            return wrappedQuery;
+
+        }
+
+    }
    
    public List<Query> getFilterQueries() {
        return filterQueries;

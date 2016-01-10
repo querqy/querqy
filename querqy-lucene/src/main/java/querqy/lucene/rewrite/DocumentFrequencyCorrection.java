@@ -147,10 +147,6 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
       endUserQuery = termQueries.size();
    }
 
-   int getDocumentFrequencyToSet() {
-      return (status == Status.USER_QUERY || maxInUserQuery < 1) ? maxInClause : maxInClause + maxInUserQuery - 1;
-   }
-   
    public static class TermStats {
        final int[] documentFrequencies;
        final TermContext[] termContexts;
