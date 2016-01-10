@@ -1,4 +1,4 @@
-![travis ci build status](https://travis-ci.org/renekrie/querqy.png) 
+![travis ci build status](https://travis-ci.org/renekrie/querqy.png)  [ ![Download](https://api.bintray.com/packages/renekrie/maven/querqy/images/download.svg) ](https://bintray.com/renekrie/maven/querqy/_latestVersion) 
 # Querqy
 
 Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
