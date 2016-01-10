@@ -78,6 +78,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  
                  CommonParams.Q, q,
                  DisMaxParams.QF, "f1 f2",
+                 DisMaxParams.MM, "100%",
                  QueryParsing.OP, "AND",
                  "defType", "querqy",
                  "debugQuery", "true"

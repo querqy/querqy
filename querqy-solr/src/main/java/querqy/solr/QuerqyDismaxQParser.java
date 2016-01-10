@@ -312,6 +312,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                     try {
 
                         luceneQuery = builder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
+                        if (luceneQuery != null) {
+                            luceneQuery = wrapQuery(luceneQuery);
+                        }
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -321,7 +324,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
                 if (luceneQuery != null) {
                     luceneQuery.setBoost(bq.getBoost() * factor);
-                    result.add(wrapQuery(luceneQuery));
+                    result.add(luceneQuery);
                 }
 
             }
@@ -510,10 +513,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
       try {
 
-          Query query = builder.createQuery(expandedQuery.getUserQuery());
-          applyMinShouldMatch(query);
-
-          return wrapQuery(query);
+          return wrapQuery(
+                  applyMinShouldMatch(
+                          builder.createQuery(expandedQuery.getUserQuery())));
 
       } catch (IOException e) {
          throw new RuntimeException(e);
