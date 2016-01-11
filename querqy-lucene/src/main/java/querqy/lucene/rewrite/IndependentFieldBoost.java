@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.ToStringUtils;
 
@@ -31,7 +32,7 @@ public class IndependentFieldBoost implements FieldBoost {
     }
     
     @Override
-    public float getBoost(String fieldname, IndexSearcher searcher) {
+    public float getBoost(String fieldname, IndexReader indexReader) {
         return getBoost(fieldname);
     }
     

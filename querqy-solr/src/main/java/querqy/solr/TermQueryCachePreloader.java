@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
@@ -56,7 +57,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
                 TermSubQueryFactory termSubQueryFactory, Term sourceTerm) {
         }
         @Override
-        public float getBoost(String fieldname, IndexSearcher searcher)
+        public float getBoost(String fieldname, IndexReader indexReader)
                 throws IOException {
             return 1f;
         }

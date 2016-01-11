@@ -15,6 +15,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.DisjunctionMaxQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -81,8 +82,8 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         assertNotEquals(dtq1.getTerm().field(), dtq2.getTerm().field());
         
-        float bf1 = ("f1".equals(dtq1.getTerm().field())) ? dtq1.getBoostFactor() : dtq2.getBoostFactor();
-        float bf2 = ("f2".equals(dtq2.getTerm().field())) ? dtq2.getBoostFactor() : dtq1.getBoostFactor();
+        float bf1 = ("f1".equals(dtq1.getTerm().field())) ? ((BoostQuery) dtq1.rewrite(indexReader)).getBoost() : ((BoostQuery) dtq2.rewrite(indexReader)).getBoost();
+        float bf2 = ("f2".equals(dtq2.getTerm().field())) ? ((BoostQuery) dtq2.rewrite(indexReader)).getBoost() : ((BoostQuery) dtq1.rewrite(indexReader)).getBoost();
         
         assertEquals(2f, bf2 / bf1, 0.00001);
         

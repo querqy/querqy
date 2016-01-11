@@ -19,31 +19,6 @@ import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTer
 
 public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
     
-    static final FieldBoost DUMMY_FIELD_BOOST = new ConstantFieldBoost();
-    
-    static class ConstantFieldBoost implements FieldBoost {
-
-        @Override
-        public float getBoost(String fieldname, IndexSearcher searcher)
-                throws IOException {
-            return 1f;
-        }
-
-        @Override
-        public void registerTermSubQuery(String fieldname,
-                TermSubQueryFactory termSubQueryFactory,
-                querqy.model.Term sourceTerm) {
-        }
-
-        @Override
-        public String toString(String fieldname) {
-            return "ConstantFieldBoost(" + fieldname + ")";
-        }
-        
-    }
-    
-    
-
     @Test
     public void testGetDf() throws Exception {
         
@@ -62,8 +37,12 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
         dfc.newClause();
-        // the term query registers itself with the dfc
-        DependentTermQuery tq = new DependentTermQuery(new Term("f1", "a"), dfc, DUMMY_FIELD_BOOST);
+        Term term = new Term("f1", "a");
+
+        // the term gets registered with the dfc
+        dfc.prepareTerm(term);
+
+        DependentTermQuery tq = new DependentTermQuery(term, dfc, ConstantFieldBoost.NORM_BOOST);
         dfc.finishedUserQuery();
         DocumentFrequencyAndTermContext documentFrequencyAndTermContext = dfc.getDocumentFrequencyAndTermContext(tq.tqIndex, indexSearcher);
         
@@ -100,19 +79,28 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         dfc.newClause();
         dfc.newClause();
         
-        // the term query registers itself with the dfc
-        DependentTermQuery tq1 = new DependentTermQuery(new Term("f1", "a"), dfc, DUMMY_FIELD_BOOST);
+        Term t1 = newTerm("f1", "a", dfc);
         dfc.newClause();
         dfc.newClause();
-        DependentTermQuery tq2 = new DependentTermQuery(new Term("f1", "b"), dfc, DUMMY_FIELD_BOOST);
+
+        Term t2 = newTerm("f1", "b", dfc);
+
         dfc.newClause();
         dfc.newClause();
         dfc.finishedUserQuery();
         dfc.newClause();
-        DependentTermQuery tq1a = new DependentTermQuery(new Term("f1", "a"), dfc, DUMMY_FIELD_BOOST);
-        DependentTermQuery tq2a = new DependentTermQuery(new Term("f1", "b"), dfc, DUMMY_FIELD_BOOST);
+
+        Term t1a = newTerm("f1", "a", dfc);
+        Term t2a = newTerm("f1", "b", dfc);
+
         dfc.newClause();
         dfc.newClause();
+
+        DependentTermQuery tq1 = new DependentTermQuery(t1, dfc, ConstantFieldBoost.NORM_BOOST);
+        DependentTermQuery tq2 = new DependentTermQuery(t2, dfc, ConstantFieldBoost.NORM_BOOST);
+        DependentTermQuery tq1a = new DependentTermQuery(t1a, dfc, ConstantFieldBoost.NORM_BOOST);
+        DependentTermQuery tq2a = new DependentTermQuery(t2a, dfc, ConstantFieldBoost.NORM_BOOST);
+
         
         DocumentFrequencyAndTermContext dftc1 = dfc.getDocumentFrequencyAndTermContext(tq1.tqIndex, indexSearcher);
         DocumentFrequencyAndTermContext dftc2 = dfc.getDocumentFrequencyAndTermContext(tq2.tqIndex, indexSearcher);
@@ -130,6 +118,12 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         analyzer.close();
         
         
+    }
+
+    Term newTerm(String field, String value, DocumentFrequencyCorrection dfc) {
+        Term term = new Term(field, value);
+        dfc.prepareTerm(term);
+        return term;
     }
     
     void addNumDocs(String fieldname, String value, RandomIndexWriter indexWriter, int num) throws IOException {

@@ -90,14 +90,19 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
        boolean tmp = this.useBooleanQueryForDMQ;
        try {
            this.useBooleanQueryForDMQ = useBooleanQueryForDMQ;
-           return visit(query).createQuery(null, dmqTieBreakerMultiplier, dfc, false);
+           return createQuery(query);
        } finally {
            this.useBooleanQueryForDMQ = tmp;
        }
    }
    
    public Query createQuery(querqy.model.Query query) throws IOException {
-      return visit(query).createQuery(null, dmqTieBreakerMultiplier, dfc, false);
+
+       LuceneQueryFactory<?> factory = visit(query);
+
+       factory.prepareDocumentFrequencyCorrection(dfc, false);
+
+       return factory.createQuery(null, dmqTieBreakerMultiplier, dfc, false);
    }
 
    @Override

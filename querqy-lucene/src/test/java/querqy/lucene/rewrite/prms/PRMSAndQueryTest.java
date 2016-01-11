@@ -15,11 +15,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.DisjunctionMaxQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
@@ -107,7 +103,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
             assertEquals(Occur.MUST, bc.getOccur());
             Query clauseQuery = bc.getQuery();
             assertTrue(clauseQuery instanceof DependentTermQuery);
-            sumBq1 += ((DependentTermQuery) clauseQuery).getBoostFactor();
+            sumBq1 += ((BoostQuery) clauseQuery.rewrite(indexReader)).getBoost();
         }
         
         
@@ -121,7 +117,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
             assertEquals(Occur.MUST, bc.getOccur());
             Query clauseQuery = bc.getQuery();
             assertTrue(clauseQuery instanceof DependentTermQuery);
-            sumBq2 += ((DependentTermQuery) clauseQuery).getBoostFactor();
+            sumBq2 += ((BoostQuery) clauseQuery.rewrite(indexReader)).getBoost();
         }
         
         assertEquals(2f, sumBq1 / sumBq2, 0.00001);

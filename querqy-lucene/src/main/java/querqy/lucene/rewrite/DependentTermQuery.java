@@ -6,19 +6,8 @@ package querqy.lucene.rewrite;
 import java.io.IOException;
 import java.util.Set;
 
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.LeafReaderContext;
-import org.apache.lucene.index.PostingsEnum;
-import org.apache.lucene.index.ReaderUtil;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermContext;
-import org.apache.lucene.index.TermState;
-import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.Weight;
+import org.apache.lucene.index.*;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.Similarity.SimScorer;
 
@@ -36,22 +25,25 @@ public class DependentTermQuery extends TermQuery {
     final int tqIndex;
     final DocumentFrequencyAndTermContextProvider dftcp;
     final FieldBoost fieldBoost;
-    final Term term;
-    Float boostFactor = null;
-    
+
     public DependentTermQuery(Term term, DocumentFrequencyAndTermContextProvider dftcp, FieldBoost fieldBoost) {
+        this(term, dftcp, dftcp.termIndex(), fieldBoost);
+    }
+
+    protected DependentTermQuery(Term term, DocumentFrequencyAndTermContextProvider dftcp, int tqIndex, FieldBoost fieldBoost) {
 
         super(term);
 
         if (fieldBoost == null) {
             throw new IllegalArgumentException("FieldBoost must not be null");
         }
+
         if (dftcp == null) {
             throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
         }
 
-        this.term = term;
-        tqIndex  = dftcp.registerTermQuery(this);
+        // this.term = term;
+        this.tqIndex  = tqIndex;
         this.dftcp = dftcp;
         this.fieldBoost = fieldBoost;
     }
@@ -62,7 +54,6 @@ public class DependentTermQuery extends TermQuery {
         if (dftc.df < 1) {
             return new NeverMatchWeight();
         }
-        boostFactor = fieldBoost.getBoost(term.field(), searcher);
         return new TermWeight(searcher, needsScores, dftc.termContext);
         
     }
@@ -73,7 +64,7 @@ public class DependentTermQuery extends TermQuery {
         final int prime = 31;
         int result = prime  + dftcp.hashCode();
         result = prime * result + fieldBoost.hashCode();
-        result = prime * result + term.hashCode();
+        result = prime * result + getTerm().hashCode();
         return result;
     }
 
@@ -88,11 +79,12 @@ public class DependentTermQuery extends TermQuery {
             return false;
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        return term.equals(other.term);
+        return getTerm().equals(other.getTerm());
     }
     
     @Override
     public String toString(String field) {
+        Term term = getTerm();
         StringBuilder buffer = new StringBuilder();
         if (!term.field().equals(field)) {
           buffer.append(term.field());
@@ -108,10 +100,15 @@ public class DependentTermQuery extends TermQuery {
         return fieldBoost;
     }
     
-    public Float getBoostFactor() {
-        return boostFactor;
+    @Override
+    public Query rewrite(IndexReader reader) throws IOException {
+        float boost = fieldBoost.getBoost(getTerm().field(), reader);
+        if (boost != 1f) {
+            DependentTermQuery clone = new DependentTermQuery(getTerm(), dftcp, tqIndex, ConstantFieldBoost.NORM_BOOST);
+            return new BoostQuery(clone, boost);
+        }
+        return this;
     }
-
 
     /**
      * Copied from inner class in {@link TermQuery}
@@ -126,12 +123,12 @@ public class DependentTermQuery extends TermQuery {
         public TermWeight(IndexSearcher searcher, boolean needsScores, TermContext termStates)
           throws IOException {
             super(DependentTermQuery.this);
+            Term term = getTerm();
             this.needsScores = needsScores;
             assert termStates != null : "TermContext must not be null";
             this.termStates = termStates;
             this.similarity = searcher.getSimilarity(needsScores);
             this.stats = similarity.computeWeight(
-                    boostFactor, 
               searcher.collectionStatistics(term.field()), 
               searcher.termStatistics(term, termStates));
         }
@@ -169,6 +166,7 @@ public class DependentTermQuery extends TermQuery {
          * the term does not exist in the given context
          */
         private TermsEnum getTermsEnum(LeafReaderContext context) throws IOException {
+            Term term = getTerm();
           final TermState state = termStates.get(context.ord);
           if (state == null) { // term is not present in that reader
             assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;

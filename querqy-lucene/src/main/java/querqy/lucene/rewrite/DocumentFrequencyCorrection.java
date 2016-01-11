@@ -16,7 +16,6 @@ import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.TermQuery;
 
 /**
  * @author René Kriegler, @renekrie
@@ -24,10 +23,11 @@ import org.apache.lucene.search.TermQuery;
  */
 public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermContextProvider {
     
-    final List<DependentTermQuery> termQueries = new ArrayList<>(16);
+    final List<Term> terms = new ArrayList<>(16);
     final List<Integer> clauseOffsets = new ArrayList<>();
     int endUserQuery = -1;
     TermStats termStats = null;
+    int termIndex = -1;
 
     enum Status {
         USER_QUERY, OTHER_QUERY
@@ -43,18 +43,27 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
     }
    
    /* (non-Javadoc)
-    * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#registerTermQuery(querqy.lucene.rewrite.DependentTermQuery)
+    * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#prepareTerm(org.apache.lucene.index.Term)
     */
    @Override
-   public int registerTermQuery(DependentTermQuery tq) {
-       int idx = termQueries.size();
-       termQueries.add(tq);
-       return idx;
+   public void prepareTerm(Term term) {
+       terms.add(term);
    }
-   
-   /* (non-Javadoc)
-    * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#getDocumentFrequencyAndTermContext(int, org.apache.lucene.search.IndexSearcher)
-    */
+
+    @Override
+    public int termIndex() {
+        if (termIndex < terms.size() - 1) {
+            termIndex++;
+            return termIndex;
+        } else {
+            throw new IllegalStateException("termIndex already at last position: " + termIndex);
+
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#getDocumentFrequencyAndTermContext(int, org.apache.lucene.search.IndexSearcher)
+     */
    @Override
    public DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(int tqIndex, IndexSearcher searcher) throws IOException {
 
@@ -69,12 +78,12 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
    private TermStats calculateTermContexts(IndexSearcher searcher) throws IOException {
        IndexReaderContext topReaderContext = searcher.getTopReaderContext();
        
-       int[] dfs = new int[termQueries.size()];
+       int[] dfs = new int[terms.size()];
        TermContext[] contexts = new TermContext[dfs.length];
        
        for (int i = 0; i < dfs.length; i++) {
            
-           Term term = termQueries.get(i).getTerm();
+           Term term = terms.get(i);
            
            contexts[i] = new TermContext(topReaderContext);
            
@@ -97,7 +106,7 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
        
        for (int i = 0, last = clauseOffsets.size() - 1; i <= last; i++) {
            int start = clauseOffsets.get(i);
-           int end = (i == last) ? termQueries.size() : clauseOffsets.get(i + 1);
+           int end = (i == last) ? terms.size() : clauseOffsets.get(i + 1);
            int pos = start;
            if (pos < end) {
                int max = dfs[pos++];
@@ -140,14 +149,14 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
          maxInUserQuery = Math.max(maxInClause, maxInUserQuery);
       }
       maxInClause = -1;
-      clauseOffsets.add(termQueries.size());
+      clauseOffsets.add(terms.size());
    }
 
    public void finishedUserQuery() {
       status = Status.OTHER_QUERY;
       maxInUserQuery = Math.max(maxInClause, maxInUserQuery);
       
-      endUserQuery = termQueries.size();
+      endUserQuery = terms.size();
    }
 
    public static class TermStats {
@@ -181,9 +190,9 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
        int result = 1;
        result = prime * result
                + ((clauseOffsets == null) ? 0 : clauseOffsets.hashCode());
-       
-       for (TermQuery termQuery: termQueries) {
-           result = prime * result + termQuery.getTerm().hashCode();
+
+       for (Term term: terms) {
+           result = prime * result + term.hashCode();
        }
 
        return result;
@@ -203,13 +212,13 @@ public class DocumentFrequencyCorrection implements DocumentFrequencyAndTermCont
                return false;
        } else if (!clauseOffsets.equals(other.clauseOffsets))
            return false;
-       if (termQueries == null) {
-           if (other.termQueries != null)
+       if (terms == null) {
+           if (other.terms != null)
                return false;
-       } else if (termQueries.size() != other.termQueries.size())
+       } else if (terms.size() != other.terms.size())
            return false;
-       for (int i = 0, len = termQueries.size(); i < len; i++) {
-           if (!termQueries.get(i).getTerm().equals(other.termQueries.get(i).getTerm())) {
+       for (int i = 0, len = terms.size(); i < len; i++) {
+           if (!terms.get(i).equals(other.terms.get(i))) {
                return false;
            }
        }

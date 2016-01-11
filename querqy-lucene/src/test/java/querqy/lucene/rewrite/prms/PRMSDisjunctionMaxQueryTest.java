@@ -14,6 +14,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.DisjunctionMaxQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -27,6 +28,7 @@ import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
+
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
@@ -120,21 +122,29 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         Float bf1 = null;
         for (Query disjunct: dmq1.getDisjuncts()) {
+
             assertTrue(disjunct instanceof DependentTermQuery);
+
+            BoostQuery rewritten = (BoostQuery) disjunct.rewrite(indexReader);
+
             if (bf1 == null) {
-                bf1 = ((DependentTermQuery) disjunct).getBoostFactor();
+                bf1 = rewritten.getBoost();
             } else {
-                assertEquals(bf1,  ((DependentTermQuery) disjunct).getBoostFactor());
+                assertEquals(bf1,  rewritten.getBoost(), 0.00001f);
             }
         }
         
         Float bf2 = null;
         for (Query disjunct: dmq2.getDisjuncts()) {
+
             assertTrue(disjunct instanceof DependentTermQuery);
+
+            BoostQuery rewritten = (BoostQuery) disjunct.rewrite(indexReader);
+
             if (bf2 == null) {
-                bf2 = ((DependentTermQuery) disjunct).getBoostFactor();
+                bf2 = rewritten.getBoost();
             } else {
-                assertEquals(bf2,  ((DependentTermQuery) disjunct).getBoostFactor());
+                assertEquals(bf2,  rewritten.getBoost(), 0.00001f);
             }
         }
         

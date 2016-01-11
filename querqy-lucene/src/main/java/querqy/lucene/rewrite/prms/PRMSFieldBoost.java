@@ -27,23 +27,22 @@ public class PRMSFieldBoost implements FieldBoost {
      * @see querqy.lucene.rewrite.TermQueryBoost#getBoost()
      */
     @Override
-    public float getBoost(String fieldname, IndexSearcher searcher) throws IOException {
+    public float getBoost(String fieldname, IndexReader indexReader) throws IOException {
         if (probabilities == null) {
-            calculateProbabilities(searcher);
+            calculateProbabilities(indexReader);
         }
         Float p = probabilities.get(fieldname);
         return p == null ? 0f : p;
     }
     
-    protected void calculateProbabilities(IndexSearcher searcher) throws IOException {
-        IndexReader reader = searcher.getTopReaderContext().reader();
+    protected void calculateProbabilities(IndexReader indexReader) throws IOException {
         Map<String, Float> probs = new HashMap<>();
         switch (fieldPRMSQueries.size()) {
         case 0 : break;
         case 1 : 
             {
                 Map.Entry<String, PRMSQuery> entry = fieldPRMSQueries.entrySet().iterator().next();
-                double l = entry.getValue().calculateLikelihood(reader);
+                double l = entry.getValue().calculateLikelihood(indexReader);
                 probs.put(entry.getKey(), l == 0.0 ? 0f : 1f);  
             }
             break;
@@ -51,7 +50,7 @@ public class PRMSFieldBoost implements FieldBoost {
             double sum = 0.0;
             Map<String, Double> likelihoods = new HashMap<String, Double>();
             for (Map.Entry<String, PRMSQuery> entry: fieldPRMSQueries.entrySet()) {
-                double l = entry.getValue().calculateLikelihood(reader);
+                double l = entry.getValue().calculateLikelihood(indexReader);
                 sum += l;
                 likelihoods.put(entry.getKey(), l);
             }

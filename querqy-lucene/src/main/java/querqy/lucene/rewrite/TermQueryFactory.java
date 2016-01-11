@@ -20,15 +20,21 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
        this.term = term;
    }
 
-   @Override
+    @Override
+    public void prepareDocumentFrequencyCorrection(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) {
+
+        if (!isBelowDMQ) {
+            // a TQ might end up directly under a BQ as an optimisation
+            // make sure, we start a new clause in df correction
+            dfc.newClause();
+        }
+
+        dfc.prepareTerm(term);
+
+    }
+
+    @Override
    public TermQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
-
-       if (!isBelowDMQ) {
-           // a TQ might end up directly under a BQ as an optimisation
-           // make sure, we start a new clause in df correction
-           dfc.newClause();
-       }
-
        return new DependentTermQuery(term, dfc, boost);
 
    }

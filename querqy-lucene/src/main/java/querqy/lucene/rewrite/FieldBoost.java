@@ -5,6 +5,7 @@ package querqy.lucene.rewrite;
 
 import java.io.IOException;
 
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
 
 import querqy.model.Term;
@@ -18,7 +19,7 @@ import querqy.model.Term;
  */
 public interface FieldBoost {
     
-    float getBoost(String fieldname, IndexSearcher searcher) throws IOException;
+    float getBoost(String fieldname, IndexReader indexReader) throws IOException;
     
     void registerTermSubQuery(String fieldname, TermSubQueryFactory termSubQueryFactory, Term sourceTerm);
     

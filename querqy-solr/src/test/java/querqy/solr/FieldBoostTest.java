@@ -60,7 +60,9 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q, DisMaxParams.QF, "f1 f2",
                 QuerqyDismaxQParser.FBM, QuerqyDismaxQParser.FBM_PRMS,
-                "defType", "querqy");
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
 
         assertQ("FieldBoost=PRMS should sort doc with greatest length-normalized tf to the last position",
                 req, "//result/doc[4]/str[@name='id'][text()='4']");
