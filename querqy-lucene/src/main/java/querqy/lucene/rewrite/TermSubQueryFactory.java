@@ -38,13 +38,13 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
     }
 
     @Override
-    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc,
-            boolean isBelowDMQ) throws IOException {
+    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
+            throws IOException {
         
         return root.createQuery(
                 this.boost, 
                 dmqTieBreakerMultiplier,         
-                dfc, isBelowDMQ);
+                dfc);
     }
     
     public boolean isNeverMatchQuery() {

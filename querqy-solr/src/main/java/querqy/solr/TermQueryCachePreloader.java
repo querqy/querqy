@@ -171,7 +171,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
             
             // no need to re-test for hits if we've seen this term before
             if (testForHits && (termSubQueryFactory != null) && (!termSubQueryFactory.isNeverMatchQuery())) {
-                Query query = termSubQueryFactory.createQuery(DUMMY_FIELD_BOOST, 0.01f, null, false);
+                Query query = termSubQueryFactory.createQuery(DUMMY_FIELD_BOOST, 0.01f, null);
                 TopDocs topDocs = searcher.search(query, 1);
                 if (topDocs.totalHits < 1) {
                     cache.put(new CacheKey(field, term), new TermQueryCacheValue(NeverMatchQueryFactory.FACTORY, PRMSQuery.NEVER_MATCH_PRMS_QUERY));
@@ -204,8 +204,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         
         @Override
         public TermQuery createQuery(FieldBoost boost,
-                float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc,
-                boolean isBelowDMQ) throws IOException {
+                float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc) throws IOException {
             return new TermQuery(term);
         }
         

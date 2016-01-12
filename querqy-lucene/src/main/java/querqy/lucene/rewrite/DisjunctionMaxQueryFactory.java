@@ -5,8 +5,10 @@ package querqy.lucene.rewrite;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.lucene.search.DisjunctionMaxQuery;
+import org.apache.lucene.search.Query;
 
 
 /**
@@ -35,26 +37,29 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
 
     @Override
     public void prepareDocumentFrequencyCorrection(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) {
+
         if ((!isBelowDMQ) && (dfc != null)) {
             dfc.newClause();
         }
+
         for (LuceneQueryFactory<?> disjunct : disjuncts) {
             disjunct.prepareDocumentFrequencyCorrection(dfc, true);
         }
+
     }
 
     @Override
-    public DisjunctionMaxQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
-       
+    public DisjunctionMaxQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
+            throws IOException {
 
-        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(dmqTieBreakerMultiplier);
-      
+        List<Query> disjunctList = new LinkedList<>();
 
         for (LuceneQueryFactory<?> disjunct : disjuncts) {
-            dmq.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, dfc, true));
+            disjunctList.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, dfc));
         }
 
-        return dmq;
+        return new DisjunctionMaxQuery(disjunctList, dmqTieBreakerMultiplier);
+      
     }
 
 

@@ -8,12 +8,14 @@ import java.util.LinkedList;
 
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BoostQuery;
+import org.apache.lucene.search.Query;
 
 /**
  * @author rene
  *
  */
-public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
+public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
 
     protected final boolean disableCoord;
     protected final LinkedList<Clause> clauses;
@@ -43,28 +45,25 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
     }
 
     @Override
-    public BooleanQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
+            throws IOException {
 
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         builder.setDisableCoord(disableCoord);
       
         for (Clause clause : clauses) {
-            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dfc, isBelowDMQ), clause.occur);
+            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dfc), clause.occur);
         }
 
-        BooleanQuery bq = builder.build();
+        Query bq = builder.build();
 
         if (normalizeBoost) {
             int size = getNumberOfClauses();
             if (size > 0) {
-                bq.setBoost(1f / (float) size);
-            } else {
-                bq.setBoost(1f);
-            }
-        } else {
-            bq.setBoost(1f);
-        }
+                bq = new BoostQuery(bq, 1f / (float) size);
 
+            }
+        }
 
         return bq;
     }

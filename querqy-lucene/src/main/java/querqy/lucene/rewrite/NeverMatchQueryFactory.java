@@ -22,7 +22,7 @@ public class NeverMatchQueryFactory implements LuceneQueryFactory<Query> {
     }
 
     @Override
-    public Query createQuery(FieldBoost boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ)
+    public Query createQuery(FieldBoost boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
             throws IOException {
         return new MatchNoDocsQuery();
     }

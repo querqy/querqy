@@ -4,13 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.DisjunctionMaxQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 
@@ -137,56 +132,79 @@ public class AbstractLuceneQueryTest {
 
    }
 
-   class DMQMatcher extends TypeSafeMatcher<Query> {
-      float boost;
-      float tieBreaker;
-      TypeSafeMatcher<? extends Query>[] disjuncts;
+    class DMQMatcher extends TypeSafeMatcher<Query> {
+        float boost;
+        float tieBreaker;
+        TypeSafeMatcher<? extends Query>[] disjuncts;
 
-      @SafeVarargs
-      public DMQMatcher(float boost, float tieBreaker, TypeSafeMatcher<? extends Query>... disjuncts) {
-         super(DisjunctionMaxQuery.class);
-         this.boost = boost;
-         this.tieBreaker = tieBreaker;
-         this.disjuncts = disjuncts;
-      }
+        @SafeVarargs
+        public DMQMatcher(float boost, float tieBreaker, TypeSafeMatcher<? extends Query>... disjuncts) {
+            super((boost == 1f) ? DisjunctionMaxQuery.class : BoostQuery.class);
+            this.boost = boost;
+            this.tieBreaker = tieBreaker;
+            this.disjuncts = disjuncts;
+        }
 
-      @Override
-      public void describeTo(Description description) {
-         description.appendText("DMQ: tie=" + tieBreaker + ", boost=" + boost + ", ");
-         description.appendList("disjuncts:[", ",\n", "]", Arrays.asList(disjuncts));
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("DMQ: tie=" + tieBreaker + ", boost=" + boost + ", ");
+            description.appendList("disjuncts:[", ",\n", "]", Arrays.asList(disjuncts));
+        }
 
-      }
+        @Override
+        protected boolean matchesSafely(Query query) {
 
-      @Override
-      protected boolean matchesSafely(Query query) {
+            DisjunctionMaxQuery dmq;
 
-         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
+            if (boost == 1f) {
 
-         if (boost != dmq.getBoost() || tieBreaker != dmq.getTieBreakerMultiplier()) {
-            return false;
-         }
+                dmq = (DisjunctionMaxQuery) query;
+                if (dmq.getBoost() != 1f) {
+                    return false;
+                }
 
-         List<Query> dmqDisjuncts = dmq.getDisjuncts();
-         if (dmqDisjuncts == null || dmqDisjuncts.size() != disjuncts.length) {
-            return false;
-         }
-         for (TypeSafeMatcher<? extends Query> disjunct : disjuncts) {
-            boolean found = false;
-            for (Query q : dmqDisjuncts) {
-               found = disjunct.matches(q);
-               if (found) {
-                  break;
-               }
-            }
-            if (!found) {
-               return false;
+            } else {
+
+                BoostQuery boostQuery = (BoostQuery) query;
+                if (boostQuery.getBoost() != boost) {
+                    return false;
+                }
+
+                dmq = (DisjunctionMaxQuery) boostQuery.getQuery();
             }
 
-         }
-         return true;
-      }
 
-   }
+            return matchDisjunctionMaxQuery(dmq);
+
+        }
+
+        protected boolean matchDisjunctionMaxQuery(DisjunctionMaxQuery dmq) {
+
+            if (tieBreaker != dmq.getTieBreakerMultiplier()) {
+                return false;
+            }
+
+            List<Query> dmqDisjuncts = dmq.getDisjuncts();
+            if (dmqDisjuncts == null || dmqDisjuncts.size() != disjuncts.length) {
+                return false;
+            }
+
+            for (TypeSafeMatcher<? extends Query> disjunct : disjuncts) {
+                boolean found = false;
+                for (Query q : dmqDisjuncts) {
+                    found = disjunct.matches(q);
+                    if (found) {
+                        break;
+                    }
+                }
+                if (!found) {
+                    return false;
+                }
+
+            }
+            return true;
+        }
+    }
    
     class AllDocsQueryMatcher extends TypeSafeMatcher<Query> {
 
@@ -202,56 +220,78 @@ public class AbstractLuceneQueryTest {
        
     }
 
-   class BQMatcher extends TypeSafeMatcher<Query> {
+    class BQMatcher extends TypeSafeMatcher<Query> {
 
-      ClauseMatcher[] clauses;
-      int mm;
-      float boost;
+        ClauseMatcher[] clauses;
+        int mm;
+        float boost;
 
-      public BQMatcher(float boost, int mm, ClauseMatcher... clauses) {
-         super(BooleanQuery.class);
-         this.clauses = clauses;
-         this.boost = boost;
-         this.mm = mm;
-      }
+        public BQMatcher(float boost, int mm, ClauseMatcher... clauses) {
+            super((boost == 1f) ? BooleanQuery.class : BoostQuery.class);
+            this.clauses = clauses;
+            this.boost = boost;
+            this.mm = mm;
+        }
 
-      @Override
-      public void describeTo(Description description) {
-         description.appendText("BQ: mm=" + mm + ", boost=" + boost + ", ");
-         description.appendList("clauses:[", ",\n", "]", Arrays.asList(clauses));
-      }
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("BQ: mm=" + mm + ", boost=" + boost + ", ");
+            description.appendList("clauses:[", ",\n", "]", Arrays.asList(clauses));
+        }
 
-      @Override
-      protected boolean matchesSafely(Query query) {
+        @Override
+        protected boolean matchesSafely(Query query) {
 
-         BooleanQuery bq = (BooleanQuery) query;
-
-         if (boost != bq.getBoost() || mm != bq.getMinimumNumberShouldMatch()) {
-            return false;
-         }
-
-         List<BooleanClause> bqClauses = bq.clauses();
-         if (bqClauses == null || bqClauses.size() != clauses.length) {
-            return false;
-         }
-         for (int i = 0; i < clauses.length; i++) {
-
-            boolean found = false;
-            for (BooleanClause clause : bqClauses) {
-               found = clauses[i].matches(clause);
-               if (found) {
-                  break;
-               }
-            }
-            if (!found) {
-               return false;
+            BooleanQuery bq;
+            if (boost == 1f) {
+                bq = (BooleanQuery) query;
+                if (bq.getBoost() != 1f) {
+                    return false;
+                }
+            } else {
+                BoostQuery boostQuery = (BoostQuery) query;
+                if (boost != boostQuery.getBoost()) {
+                    return false;
+                }
+                bq = (BooleanQuery) boostQuery.getQuery();
             }
 
-         }
-         return true;
-      }
+            return matchBooleanQuery(bq);
 
-   }
+        }
+
+        protected boolean matchBooleanQuery(BooleanQuery bq) {
+
+            if (mm != bq.getMinimumNumberShouldMatch()) {
+                return false;
+            }
+
+            List<BooleanClause> bqClauses = bq.clauses();
+            if (bqClauses == null || bqClauses.size() != clauses.length) {
+                return false;
+            }
+
+            for (int i = 0; i < clauses.length; i++) {
+
+                boolean found = false;
+                for (BooleanClause clause : bqClauses) {
+                    found = clauses[i].matches(clause);
+                    if (found) {
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    return false;
+                }
+
+            }
+            return true;
+        }
+
+    }
+
+
    
    class DependentTQMatcher extends TypeSafeMatcher<Query> {
 

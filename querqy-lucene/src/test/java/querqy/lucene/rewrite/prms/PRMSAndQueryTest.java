@@ -94,6 +94,9 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);
+        if (disjunct1 instanceof BoostQuery) {
+            disjunct1 = ((BoostQuery) disjunct1).getQuery();
+        }
         assertTrue(disjunct1 instanceof BooleanQuery);
         
         BooleanQuery bq1 = (BooleanQuery) disjunct1;
@@ -108,6 +111,9 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         
         
         Query disjunct2 = disjuncts.get(1);
+        if (disjunct2 instanceof BoostQuery) {
+            disjunct2 = ((BoostQuery) disjunct2).getQuery();
+        }
         assertTrue(disjunct2 instanceof BooleanQuery);
         
         BooleanQuery bq2 = (BooleanQuery) disjunct2;

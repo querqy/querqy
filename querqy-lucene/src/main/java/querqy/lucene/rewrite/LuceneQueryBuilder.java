@@ -102,7 +102,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
        factory.prepareDocumentFrequencyCorrection(dfc, false);
 
-       return factory.createQuery(null, dmqTieBreakerMultiplier, dfc, false);
+       return factory.createQuery(null, dmqTieBreakerMultiplier, dfc);
    }
 
    @Override

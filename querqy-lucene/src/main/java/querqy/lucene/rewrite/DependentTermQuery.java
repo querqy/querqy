@@ -42,7 +42,6 @@ public class DependentTermQuery extends TermQuery {
             throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
         }
 
-        // this.term = term;
         this.tqIndex  = tqIndex;
         this.dftcp = dftcp;
         this.fieldBoost = fieldBoost;

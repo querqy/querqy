@@ -14,9 +14,9 @@ import org.apache.lucene.search.TermQuery;
  */
 public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
 
-   protected final Term term;
+    protected final Term term;
    
-   public TermQueryFactory(Term term) {
+    public TermQueryFactory(Term term) {
        this.term = term;
    }
 
@@ -34,10 +34,12 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
     }
 
     @Override
-   public TermQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
-       return new DependentTermQuery(term, dfc, boost);
+    public TermQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
+            throws IOException {
 
-   }
+        return new DependentTermQuery(term, dfc, boost);
+
+    }
 
 
 
