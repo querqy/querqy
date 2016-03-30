@@ -10,7 +10,8 @@ Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x  requir
 
   - Querqy 2.0.x to 2.5.x - Solr 5.0
   - Querqy 2.6.x to 2.7.x - Solr 5.1
-  - Querqy 2.8.0 to ...   - Solr 5.3  
+  - Querqy 2.8.x          - Solr 5.3.x
+  - Querqy 2.9.x          - Solr 5.4.x 
 
 You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
