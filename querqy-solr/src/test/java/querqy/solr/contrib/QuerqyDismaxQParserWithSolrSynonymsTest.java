@@ -12,6 +12,7 @@ import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.solr.QuerqyDismaxQParser;
 
+@SolrTestCaseJ4.SuppressSSL
 public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
 
@@ -31,9 +32,6 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
       index();
    }
 
-
-
-
    @Test
    public void testThatPFWorksWithSynonymRewriting() throws Exception {
 
@@ -45,7 +43,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
       assertQ("ps with synonyms not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
 
       req.close();
 
@@ -63,11 +61,11 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
       assertQ("ps2/3 with synonyms not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f2:\"a b c\"~3^3.9')]",
-            "//str[@name='parsedquery'][contains(.,'f2:\"b c d\"~3^3.9')]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f2:\"a b c\"~3)^3.9')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f2:\"b c d\"~3)^3.9')]");
 
       req.close();
 
@@ -85,7 +83,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
       assertQ(QuerqyDismaxQParser.GFB + " not working",
             req,
             "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
 
       req.close();
    }

@@ -92,13 +92,15 @@ public class IndependentFieldBoost implements FieldBoost {
 
     @Override
     public String toString(String fieldname) {
-        return ToStringUtils.boost(getBoost(fieldname));
+
+        final float boost = getBoost(fieldname);
+
+        if (boost != 1f) {
+            return "^" + boost;
+        } else {
+            return "";
+        }
+
     }
 
-   
-
-
-
-   
-    
 }

@@ -6,6 +6,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+@SolrTestCaseJ4.SuppressSSL
 public class FieldBoostTest extends SolrTestCaseJ4 {
 
     public static void index() throws Exception {

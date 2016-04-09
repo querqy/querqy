@@ -1,7 +1,7 @@
 package querqy.lucene.rewrite.prms;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -109,7 +109,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
-        ArrayList<Query> disjuncts = dmq.getDisjuncts();
+        List<Query> disjuncts = dmq.getDisjuncts();
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);

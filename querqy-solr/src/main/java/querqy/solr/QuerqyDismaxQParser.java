@@ -42,6 +42,7 @@ import org.apache.solr.search.WrappedQuery;
 
 import org.apache.solr.util.SolrPluginUtils;
 
+import querqy.lucene.LuceneQueryUtil;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
@@ -323,8 +324,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                 }
 
                 if (luceneQuery != null) {
-                    luceneQuery.setBoost(bq.getBoost() * factor);
-                    result.add(luceneQuery);
+                    float boost = bq.getBoost() * factor;
+                    if (boost == 1f) {
+                        result.add(luceneQuery);
+                    } else {
+                        result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, boost));
+                    }
                 }
 
             }
@@ -398,10 +403,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                                             new BytesRef(term))
                                 );
                             }
-                            PhraseQuery pq = builder.build();
-                            pq.setBoost(fieldParams.getBoost());
-
-                            result.add(pq);
+                            result.add(LuceneQueryUtil.boost(builder.build(), fieldParams.getBoost()));
 
                         } else {
 
@@ -417,9 +419,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                                                    new BytesRef(sequence.get(j)))
                                    );
                                }
-                               PhraseQuery pq = builder.build();
-                               pq.setBoost(fieldParams.getBoost());
-                               result.add(pq);
+                               result.add(LuceneQueryUtil.boost(builder.build(), fieldParams.getBoost()));
                            }
                         }
 

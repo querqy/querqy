@@ -156,23 +156,20 @@ public class AbstractLuceneQueryTest {
 
             DisjunctionMaxQuery dmq;
 
-            if (boost == 1f) {
-
-                dmq = (DisjunctionMaxQuery) query;
-                if (dmq.getBoost() != 1f) {
-                    return false;
-                }
-
-            } else {
-
+            if (query instanceof BoostQuery) {
                 BoostQuery boostQuery = (BoostQuery) query;
                 if (boostQuery.getBoost() != boost) {
                     return false;
+                } else {
+                    dmq = (DisjunctionMaxQuery) boostQuery.getQuery();
                 }
-
-                dmq = (DisjunctionMaxQuery) boostQuery.getQuery();
+            } else {
+                if (boost != 1f) {
+                    return false;
+                } else {
+                    dmq = (DisjunctionMaxQuery) query;
+                }
             }
-
 
             return matchDisjunctionMaxQuery(dmq);
 
@@ -242,18 +239,28 @@ public class AbstractLuceneQueryTest {
         @Override
         protected boolean matchesSafely(Query query) {
 
-            BooleanQuery bq;
-            if (boost == 1f) {
-                bq = (BooleanQuery) query;
-                if (bq.getBoost() != 1f) {
+            BooleanQuery bq = null;
+
+            if (query instanceof BoostQuery) {
+
+                Query boostedQuery = ((BoostQuery) query).getQuery();
+                if (!(boostedQuery instanceof BooleanQuery)) {
                     return false;
                 }
+
+                if (((BoostQuery) query).getBoost() != boost) {
+                    return false;
+                }
+
+                bq = (BooleanQuery) boostedQuery;
+
+            } else if (!(query instanceof BooleanQuery)) {
+                return false;
             } else {
-                BoostQuery boostQuery = (BoostQuery) query;
-                if (boost != boostQuery.getBoost()) {
+                if (boost != 1f) {
                     return false;
                 }
-                bq = (BooleanQuery) boostQuery.getQuery();
+                bq = (BooleanQuery) query;
             }
 
             return matchBooleanQuery(bq);
@@ -325,7 +332,7 @@ public class AbstractLuceneQueryTest {
           if (fieldBoost != null && fieldBoost instanceof IndependentFieldBoost) {
               return boost == ((IndependentFieldBoost) fieldBoost).getBoost(term.field());
           } else {
-              return boost == termQuery.getBoost();
+              throw new RuntimeException("Cannot test FieldBoosts other than IndependentFieldBoost");
           }
                 
        }
@@ -353,11 +360,30 @@ public class AbstractLuceneQueryTest {
       }
 
       @Override
-      protected boolean matchesSafely(Query termQuery) {
-         Term term = ((TermQuery) termQuery).getTerm();
-         return field.equals(term.field())
-               && text.equals(term.text())
-               && boost == termQuery.getBoost();
+      protected boolean matchesSafely(Query query) {
+
+          if (query instanceof BoostQuery) {
+
+              BoostQuery boostQuery = (BoostQuery) query;
+
+              Query boostedQuery = boostQuery.getQuery();
+              if (boostedQuery instanceof TermQuery) {
+                  Term term = ((TermQuery) query).getTerm();
+                  return field.equals(term.field())
+                          && text.equals(term.text())
+                          && boostQuery.getBoost() == boost;
+              } else {
+                  return false;
+              }
+          } else if (query instanceof TermQuery) {
+              Term term = ((TermQuery) query).getTerm();
+              return field.equals(term.field())
+                      && text.equals(term.text())
+                      && boost == 1f;
+          } else {
+              return false;
+          }
+
       }
 
    }

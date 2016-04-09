@@ -13,6 +13,7 @@ import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 
+@SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
    public static void index() throws Exception {
@@ -159,8 +160,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
         // f4 doesn't exist
         assertQ("wrong ps",
             req,
-            "//str[@name='parsedquery'][contains(.,'f3:\"a b c d\"^2.0')]",
-            "//str[@name='parsedquery'][not(contains(.,'f40:\"a b c d\"^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f3:\"a b c d\")^2.0')]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"a b c d\")^0.5'))]");
 
         req.close();
 
@@ -205,10 +206,10 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       // f_no_tfp / f_no_tp don't have term positions
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b c d\"^1.2')]",
-            "//str[@name='parsedquery'][not(contains(.,'str:\"a b c d\"^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b c d\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"a b c d\"^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b c d\")^1.2')]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"a b c d\")^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"a b c d\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tp:\"a b c d\")^0.5'))]");
 
       req.close();
 
@@ -229,12 +230,12 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       // f40 does not exists
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^2.0')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"^2.0')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"^2.0')]",
-            "//str[@name='parsedquery'][not(contains(.,'f40:\"a b\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f40:\"b c\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f40:\"c d\"^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^2.0')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\")^2.0')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\")^2.0')]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"a b\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"b c\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"c d\")^0.5'))]");
 
       req.close();
 
@@ -256,15 +257,15 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       // f_no_tfp doesn't have term positions
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^1.2')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"^1.2')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"^1.2')]",
-            "//str[@name='parsedquery'][not(contains(.,'str:\"a b\"^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'str:\"b c\"^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'str:\"c d\"^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"b c\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"c d\"^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^1.2')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\")^1.2')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\")^1.2')]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"a b\")^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"b c\")^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"c d\")^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"a b\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"b c\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"c d\")^0.5'))]");
 
       req.close();
 
@@ -286,14 +287,14 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       // f_no_tfp / f_no_tp don't have term positions
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b c\"^1.2')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"b c d\"^1.2')]",
-            "//str[@name='parsedquery'][not(contains(.,'str:\"a b c\"^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'str:\"b c d\"^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b c\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"b c d\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"a b c\"^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"b c d\"^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b c\")^1.2')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c d\")^1.2')]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"a b c\")^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"b c d\")^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"a b c\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"b c d\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tp:\"a b c\")^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tp:\"b c d\")^0.5'))]");
 
       req.close();
 
@@ -310,8 +311,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.PF3, "f2^2.5 f3^1.5"
             );
       verifyQueryString(req, q,
-            "f2:\"a b c\"^2.5", "f2:\"b c d\"^2.5",
-            "f3:\"a b c\"^1.5", "f3:\"b c d\"^1.5"
+            "(f2:\"a b c\")^2.5", "(f2:\"b c d\")^2.5",
+            "(f3:\"a b c\")^1.5", "(f3:\"b c d\")^1.5"
 
       );
 
@@ -332,11 +333,11 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             );
 
       verifyQueryString(req, q,
-            "f2:\"a b d e f\"^1.5", "f3:\"a b d e f\"^1.5",
-            "f1:\"a b\"^2.1", "f1:\"b d\"^2.1", "f1:\"d e\"^2.1", "f1:\"e f\"^2.1",
-            "f2:\"a b\"^2.1", "f2:\"b d\"^2.1", "f2:\"d e\"^2.1", "f2:\"e f\"^2.1",
-            "f3:\"a b d\"^3.9", "f3:\"b d e\"^3.9", "f3:\"d e f\"^3.9",
-            "f1:\"a b d\"^3.9", "f1:\"b d e\"^3.9", "f1:\"d e f\"^3.9"
+            "(f2:\"a b d e f\")^1.5", "(f3:\"a b d e f\")^1.5",
+            "(f1:\"a b\")^2.1", "(f1:\"b d\")^2.1", "(f1:\"d e\")^2.1", "(f1:\"e f\")^2.1",
+            "(f2:\"a b\")^2.1", "(f2:\"b d\")^2.1", "(f2:\"d e\")^2.1", "(f2:\"e f\")^2.1",
+            "(f3:\"a b d\")^3.9", "(f3:\"b d e\")^3.9", "(f3:\"d e f\")^3.9",
+            "(f1:\"a b d\")^3.9", "(f1:\"b d e\")^3.9", "(f1:\"d e f\")^3.9"
 
       );
 
@@ -353,7 +354,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
       assertQ("ps with synonyms not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
 
       req.close();
 
@@ -371,11 +372,11 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
       assertQ("ps2/3 with synonyms not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f2:\"a b c\"~3^3.9')]",
-            "//str[@name='parsedquery'][contains(.,'f2:\"b c d\"~3^3.9')]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f2:\"a b c\"~3)^3.9')]",
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f2:\"b c d\"~3)^3.9')]");
 
       req.close();
 
@@ -393,7 +394,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertQ(QuerqyDismaxQParser.GFB + " not working",
             req,
             "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"^0.5')]");
+            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
 
       req.close();
    }

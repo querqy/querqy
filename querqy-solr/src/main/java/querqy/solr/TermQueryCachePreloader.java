@@ -63,7 +63,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         }
         @Override
         public String toString(String fieldname) {
-            return ToStringUtils.boost(1f);
+            return "";
         }
     };
 
