@@ -117,6 +117,8 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/
 
 ~~~
 
+Also see [Advanced configuration: caching](#advanced-configuration-caching).
+
 ### Making requests to Solr using Querqy
 You can activate the Querqy query parser in Solr by setting the defType request parameter - in other words, just like you would enable any other query parser in a Solr search request:
 
@@ -504,6 +506,92 @@ For example, it is often handy to first apply delete rules before applying furth
 
 </queryParser>
 
+~~~
+
+### Advanced configuration: Caching
+When you configure rewrite rules for Querqy, in most cases you will not specify field names. For example, you would use a synonym rule to say that if the user enters a query 'personal computer', Solr should also search for 'pc' and Querqy would automatically create field-specific queries like 'name:pc', 'description:pc', 'color:pc' etc. for the right-hand side of the synonym rule. The fields for which Solr creates queries depend on the gqf or qf parameters. On the other hand, it is very unlikely that an input term would have matches in all fields that are given in 'gqf'/'qf'. In the example, it is very unlikely that there would be a document having the term 'pc' in the 'color' field.
+
+You can configure Querqy to check on startup/core reloading/when opening a searcher whether the terms on the right-hand side of the rules have matches in the query fields and cache this information. If there is no document matching the right-hand side term in a given field, the field-specific query will not be executed again until Solr opens a new searcher. Caching this information can speed up Querqy considerably, expecially if there are many query fields.
+
+Cache configuration (solrconfig.xml):
+
+~~~
+<query>
+   <!-- Place a custom cache in the <query> section: -->
+	<cache name="querqyTermQueryCache"
+              class="solr.LFUCache"
+              size="1024"
+              initialSize="1024"
+              autowarmCount="0"
+              regenerator="solr.NoOpRegenerator"
+    />
+    
+    <!-- 
+    	A preloader for the cache, called when Solr is started up or when
+    	the core is reloaded.
+    -->
+    <listener event="firstSearcher" class="querqy.solr.TermQueryCachePreloader">
+    		<!-- 
+    			The fields for which Querqy pre-checks and caches whether the 
+    			right-hand side terms match. Normally the same set of fields like
+    			in qf/gqf but you could omit fields that are very quick to query.
+    		-->
+      		<str name="fields">f1 f2</str>
+      		
+      		<!-- The name of the configered Querqy QParserPlugin -->
+      		<str name="qParserPlugin">querqy</str>
+      		
+      		<!-- The name of the custom cache -->
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		
+      		<!-- 
+      			If false, the preloader would not test for matches of the right-hand side
+      			terms but only cache the rewritten (text-analysed) query. This can already
+      			save query time if there are many query fields and if the rewritten query 
+      			is very complex. You would normally set this to 'true' to completely avoid 
+      			executing non-matching term queries later.
+      		-->
+      		<bool name="testForHits">true</bool>
+    </listener>
+    	
+    <!-- 
+    	Same preloader as above but listening to 'newSearcher' events (for example,
+    	commits with openSearcher=true)
+    -->
+    <listener event="newSearcher" class="querqy.solr.TermQueryCachePreloader">
+      		<str name="fields">f1 f2</str>
+      		<str name="qParserPlugin">querqy</str>
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
+    </listener>
+    	
+    	
+</query> 
+
+
+<!-- Tell the Querqy query parser to use the custom cache: -->
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	    
+	    <!-- 
+	          A reference to the custom cache. It must match the 
+	          cache name that you have used in the cache definition.
+	    --> 
+	    <str name="termQueryCache.name">querqyTermQueryCache</str>
+	    
+	    
+	    <!--
+	    		If true, the cache will be updated after preloading for terms 
+	    		from all user queries, including those that were not rewritten. 
+	    		In most cases this should be set to 'false' in order to make sure 
+	    		that the information for the right-hand side terms of your rewrite rules 
+	    		is never evicted from the cache.
+	    -->
+	    <bool name="termQueryCache.update">false</bool>
+	    
+		<lst name="rewriteChain">
+           ...
+       </lst>    
+</queryParser>          
 ~~~
 
 
