@@ -12,7 +12,7 @@ Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x  requir
   - Querqy 2.6.x to 2.7.x - Solr 5.1
   - Querqy 2.8.x          - Solr 5.3.x
   - Querqy 2.9.x          - Solr 5.4.x 
-
+  - Querqy 2.10.x         - Solr 5.5.x  
 You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
@@ -38,7 +38,7 @@ Alternatively, if you already have a Maven build for your Solr plugins, you can 
 ~~~
 
 ### Configuring Solr for Querqy
-Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
+Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
 
 ~~~xml
 <!-- 
