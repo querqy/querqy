@@ -60,7 +60,7 @@
         			<version>2.19</version>
         			<configuration>
           				<systemPropertyVariables>
-            					<tests.codec>Lucene53</tests.codec>
+            					<tests.codec>Lucene54</tests.codec>
           				</systemPropertyVariables>
         			</configuration>
 			</plugin>
