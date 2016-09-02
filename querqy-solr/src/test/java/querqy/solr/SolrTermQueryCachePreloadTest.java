@@ -56,7 +56,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         }
         
         assertU(adoc("id", "1", "f1", "a"));
-        assertU(commit());
+        assertU(commit("waitSearcher", "true"));
          
         // newSearcher
         SolrQueryRequest req2 = req(
@@ -65,7 +65,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  "stats", "true"
                  );
          
-        // one generated term in two field is preloaded for newSearcher:
+        // one generated term in two fields is preloaded for newSearcher:
         assertQ("Querqy cache not prefilled",
                  req2,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
