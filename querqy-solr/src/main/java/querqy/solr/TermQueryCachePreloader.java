@@ -20,6 +20,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import querqy.lucene.rewrite.DependentTermQuery;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.FieldBoost;
 import querqy.lucene.rewrite.NeverMatchQueryFactory;
@@ -53,7 +54,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
     static final FieldBoost DUMMY_FIELD_BOOST = new FieldBoost() {
         @Override
         public void registerTermSubQuery(String fieldname,
-                TermSubQueryFactory termSubQueryFactory, Term sourceTerm) {
+                                         TermSubQueryFactory termSubQueryFactory, Term sourceTerm) {
         }
         @Override
         public float getBoost(String fieldname, IndexSearcher searcher)
@@ -205,7 +206,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         public TermQuery createQuery(FieldBoost boost,
                 float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc,
                 boolean isBelowDMQ) throws IOException {
-            return new TermQuery(term);
+            return dfc == null ? new TermQuery(term) : new DependentTermQuery(term, dfc, boost);
         }
         
     }

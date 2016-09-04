@@ -1,0 +1,8 @@
+a =>
+	SYNONYM: b
+	UP(100): c
+
+y =>
+    SYNONYM: z
+
+

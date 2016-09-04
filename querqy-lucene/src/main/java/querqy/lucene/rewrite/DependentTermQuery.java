@@ -72,9 +72,9 @@ public class DependentTermQuery extends TermQuery {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = prime  + dftcp.hashCode();
+        int result = prime  + tqIndex;
         result = prime * result + fieldBoost.hashCode();
-        result = prime * result + term.hashCode();
+        result = prime * result + getTerm().hashCode();
         return result;
     }
 
@@ -85,11 +85,11 @@ public class DependentTermQuery extends TermQuery {
         if (getClass() != obj.getClass())
             return false;
         DependentTermQuery other = (DependentTermQuery) obj;
-        if (!dftcp.equals(other.dftcp))
+        if (tqIndex != other.tqIndex)
             return false;
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        return term.equals(other.term);
+        return getTerm().equals(other.getTerm());
     }
     
     @Override
