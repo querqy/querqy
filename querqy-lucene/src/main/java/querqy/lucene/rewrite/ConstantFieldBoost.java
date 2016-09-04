@@ -32,4 +32,20 @@ public class ConstantFieldBoost implements FieldBoost {
         return "ConstantFieldBoost(" + fieldname + "^" + boost + ")";
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConstantFieldBoost that = (ConstantFieldBoost) o;
+
+        return Float.compare(that.boost, boost) == 0;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return (boost != +0.0f ? Float.floatToIntBits(boost) : 0);
+    }
 }
