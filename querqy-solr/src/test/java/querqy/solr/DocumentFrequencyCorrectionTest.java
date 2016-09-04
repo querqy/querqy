@@ -50,7 +50,6 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
             "//str[@name='2'][contains(.,'docFreq=7')]",
             "//str[@name='2'][not(contains(.,'docFreq=1'))]",
             "//str[@name='7'][contains(.,'docFreq=10')]",
-            "//str[@name='7'][contains(.,'docFreq=10')]",
             "//str[@name='7'][not(contains(.,'docFreq=4'))]");
 
       req.close();

@@ -14,7 +14,7 @@
   <field name="f2"        type="text"   indexed="true"  stored="true"  multiValued="false" /> 
   <field name="f3"        type="text"   indexed="true"  stored="true"  multiValued="false" /> 
   <field name="f4"        type="text"   indexed="true"  stored="true"  multiValued="false" /> 
-  <field name="f_no_tfp"  type="text"   indexed="true"  stored="true"  multiValued="false" omitTermFreqAndPositions="true" /> 
+  <field name="f_no_tfp"  type="text"   indexed="true"  stored="true"  multiValued="false" omitTermFreqAndPositions="true" />
   <field name="f_no_tp"   type="text"   indexed="true"  stored="true"  multiValued="false" omitPositions="true" /> 
   <field name="str"       type="string" indexed="true"  stored="true"  multiValued="false" /> 
 
