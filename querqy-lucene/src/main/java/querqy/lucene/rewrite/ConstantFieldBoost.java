@@ -29,7 +29,7 @@ public class ConstantFieldBoost implements FieldBoost {
 
     @Override
     public String toString(String fieldname) {
-        return "ConstantFieldBoost(" + fieldname + "^" + boost + ")";
+        return "^ConstantFieldBoost(" + fieldname + "^" + boost + ")";
     }
 
 

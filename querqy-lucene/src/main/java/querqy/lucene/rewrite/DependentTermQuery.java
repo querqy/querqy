@@ -99,16 +99,6 @@ public class DependentTermQuery extends TermQuery {
         return fieldBoost;
     }
     
-    @Override
-    public Query rewrite(IndexReader reader) throws IOException {
-        float boost = fieldBoost.getBoost(getTerm().field(), reader);
-        if (boost != 1f) {
-            DependentTermQuery clone = new DependentTermQuery(getTerm(), dftcp, tqIndex, ConstantFieldBoost.NORM_BOOST);
-            return new BoostQuery(clone, boost);
-        }
-        return this;
-    }
-
     /**
      * Copied from inner class in {@link TermQuery}
      *
@@ -118,6 +108,7 @@ public class DependentTermQuery extends TermQuery {
         private final Similarity.SimWeight stats;
         private final TermContext termStates;
         private final boolean needsScores;
+        private final float fieldBoostFactor;
         
         public TermWeight(IndexSearcher searcher, boolean needsScores, TermContext termStates)
           throws IOException {
@@ -130,6 +121,8 @@ public class DependentTermQuery extends TermQuery {
             this.stats = similarity.computeWeight(
               searcher.collectionStatistics(term.field()), 
               searcher.termStatistics(term, termStates));
+            fieldBoostFactor = fieldBoost.getBoost(getTerm().field(), searcher.getIndexReader());
+            stats.normalize(1f, fieldBoostFactor);
         }
 
         @Override
@@ -142,8 +135,8 @@ public class DependentTermQuery extends TermQuery {
         }
 
         @Override
-        public void normalize(float queryNorm, float topLevelBoost) {
-          stats.normalize(queryNorm, topLevelBoost);
+        public void normalize(float norm, float boost) {
+          stats.normalize(norm, boost * fieldBoostFactor);
         }
 
         @Override
@@ -196,8 +189,8 @@ public class DependentTermQuery extends TermQuery {
                 return Explanation.match(
                     scoreExplanation.getValue(),
                     "weight(" + getQuery() + " in " + doc + ") ["
-                        + similarity.getClass().getSimpleName() + "], result of:",
-                    scoreExplanation);
+                        + similarity.getClass().getSimpleName() + ", " + fieldBoost.getClass().getSimpleName() + "], result of:",
+                    scoreExplanation );
               }
             }
             return Explanation.noMatch("no matching term");

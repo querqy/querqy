@@ -2,6 +2,7 @@ package querqy.lucene.rewrite.prms;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -14,15 +15,17 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.BoostQuery;
-import org.apache.lucene.search.DisjunctionMaxQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.LuceneTestCase;
+import org.junit.Before;
 import org.junit.Test;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import querqy.lucene.rewrite.DependentTermQuery;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
@@ -31,10 +34,29 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 
 import querqy.parser.WhiteSpaceQuerqyParser;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+
 public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
+
+    Similarity similarity;
+
+    Similarity.SimWeight simWeight;
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        similarity = Mockito.mock(Similarity.class);
+        simWeight = Mockito.mock(Similarity.SimWeight.class);
+        Mockito.when(similarity.computeWeight(any(CollectionStatistics.class),  Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+    }
 
     @Test
     public void testGetThatFieldProbabilityRatioIsReflectedInBoost() throws Exception {
+
+        ArgumentCaptor<Float> normalizeCaptor = ArgumentCaptor.forClass(Float.class);
         
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
@@ -92,6 +114,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         IndexReader indexReader = DirectoryReader.open(directory); 
         IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(similarity);
         
         Map<String, Float> fields = new HashMap<>();
         fields.put("f1", 1f);
@@ -114,41 +137,33 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         Query disjunct1 = disjuncts.get(0);
         assertTrue(disjunct1 instanceof DisjunctionMaxQuery);
-        DisjunctionMaxQuery dmq1 = (DisjunctionMaxQuery) disjunct1;
-        
+        Query dmq1 = disjunct1.rewrite(indexReader);
+        if (dmq1 instanceof BoostQuery) {
+            dmq1 = ((BoostQuery) dmq1).getQuery();
+        }
+
+
         Query disjunct2 = disjuncts.get(1);
         assertTrue(disjunct2 instanceof DisjunctionMaxQuery);
-        DisjunctionMaxQuery dmq2 = (DisjunctionMaxQuery) disjunct2;
-        
-        Float bf1 = null;
-        for (Query disjunct: dmq1.getDisjuncts()) {
-
-            assertTrue(disjunct instanceof DependentTermQuery);
-
-            BoostQuery rewritten = (BoostQuery) disjunct.rewrite(indexReader);
-
-            if (bf1 == null) {
-                bf1 = rewritten.getBoost();
-            } else {
-                assertEquals(bf1,  rewritten.getBoost(), 0.00001f);
-            }
+        Query dmq2 = disjunct2.rewrite(indexReader);
+        if (dmq2 instanceof BoostQuery) {
+            dmq2 = ((BoostQuery) dmq2).getQuery();
         }
+
+
+        final Weight weight1 = dmq1.createWeight(indexSearcher, true);
+        weight1.normalize(0.1f, 4f);
+
+        final Weight weight2 = dmq2.createWeight(indexSearcher, true);
+        weight2.normalize(0.1f, 4f);
         
-        Float bf2 = null;
-        for (Query disjunct: dmq2.getDisjuncts()) {
+        Mockito.verify(simWeight, times(4)).normalize(eq(0.1f), normalizeCaptor.capture());
+        final List<Float> capturedBoosts = normalizeCaptor.getAllValues();
 
-            assertTrue(disjunct instanceof DependentTermQuery);
-
-            BoostQuery rewritten = (BoostQuery) disjunct.rewrite(indexReader);
-
-            if (bf2 == null) {
-                bf2 = rewritten.getBoost();
-            } else {
-                assertEquals(bf2,  rewritten.getBoost(), 0.00001f);
-            }
-        }
-        
-        assertEquals(0.8/0.6f, bf1 / bf2, 0.00001);
+        // capturedBoosts = boosts of [dmq1.term1, dmq1.term2, dmq2.term1, dmq2.term2 ]
+        assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);
+        assertEquals(capturedBoosts.get(2), capturedBoosts.get(3), 0.00001);
+        assertEquals(0.8f / 0.6f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
         
         indexReader.close();
         directory.close();
