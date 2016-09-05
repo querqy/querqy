@@ -63,85 +63,151 @@ import querqy.rewrite.RewriteChain;
  */
 public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
-   public static final String GFB             = "gfb";   // generated field boost
-   public static final String GQF             = "gqf";   // generated query fields (query generated terms only in these fields)
-   public static final String FBM             = "fbm";   // field boost model
-   public static final String FBM_FIXED       = "fixed"; // query-independent field boost model, reading boost factors from request params  
-   public static final String FBM_PRMS        = "prms";  // query-dependent field boost model ('Probabilistic Retrieval Model for Semi-structured Data')
-   public static final String FBM_DEFAULT     = FBM_FIXED;
-   
-   public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
-   
-   static final String MATCH_ALL = "*:*";
+    /**
+     * generated field boost
+     */
+    public static final String GFB                      = "gfb";
 
-   // the QF parsing code is copied from org.apache.solr.util.SolrPluginUtils
-   // and
-   // org.apache.solr.search.DisMaxQParser, replacing the default boost factor
-   // null with 1f
-   private static final Pattern whitespacePattern = Pattern.compile("\\s+");
-   private static final Pattern caratPattern = Pattern.compile("\\^");
+    /**
+     * generated query fields (query generated terms only in these fields)
+     */
+    public static final String GQF                      = "gqf";
 
-   final Analyzer queryAnalyzer;
-   final RewriteChain rewriteChain;
-   final QuerqyParser querqyParser;
-   final Map<String, Float> userQueryFields;
-   final Map<String, Float> generatedQueryFields;
-   final LuceneQueryBuilder builder;
-   final DocumentFrequencyCorrection dfc;
-   
-   protected List<Query> filterQueries = null;
-   protected Map<String, Object> context = null;
-   
-   protected PublicExtendedDismaxConfiguration config = null;
-   protected List<Query> boostQueries = null;
+    /**
+     * field boost model
+     */
+    public static final String FBM                      = "fbm";
 
-   public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
+    /**
+     * Query-independent field boost model, reading field boost factors from request params
+     */
+    public static final String FBM_FIXED                = "fixed";
+
+    /**
+     * Query-dependent field boost model ('Probabilistic Retrieval Model for Semi-structured Data')
+     */
+    public static final String FBM_PRMS                 = "prms";
+
+    /**
+     * The default field boost model (= {@link #FBM_FIXED})
+     */
+    public static final String FBM_DEFAULT              = FBM_FIXED;
+
+    /**
+     * boost method - the method to integrate Querqy boost queries with the main query
+     */
+    public static final String BM                       = "bm";
+
+    /**
+     *  Integrate Querqy boost queries with the main query as a re-rank query
+     */
+    public static final String BM_RERANK                = "rerank";
+
+    /**
+     * The number of docs in the main query result to use for re-ranking when bm=rerank
+     */
+    public static final String BM_RERANK_NUMDOCS        = "bm.rerank.numDocs";
+
+    /**
+     * The default value for {@link #BM_RERANK_NUMDOCS}
+     */
+    public static final int DEFAULT_RERANK_NUMDOCS      = 500;
+
+    /**
+     * add Querqy boost queries to the main query as an optional boolean clause
+     */
+    public static final String BM_OPT                   = "opt";
+
+    /**
+     * The default boost method (= {@link #BM})
+     */
+    public static final String BM_DEFAULT              = BM_OPT;
+
+
+
+    public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
+
+    static final String MATCH_ALL = "*:*";
+
+    // the QF parsing code is copied from org.apache.solr.util.SolrPluginUtils
+    // and
+    // org.apache.solr.search.DisMaxQParser, replacing the default boost factor
+    // null with 1f
+    private static final Pattern whitespacePattern = Pattern.compile("\\s+");
+    private static final Pattern caratPattern = Pattern.compile("\\^");
+
+    final Analyzer queryAnalyzer;
+    final RewriteChain rewriteChain;
+    final QuerqyParser querqyParser;
+    final Map<String, Float> userQueryFields;
+    final Map<String, Float> generatedQueryFields;
+    final LuceneQueryBuilder builder;
+    final DocumentFrequencyCorrection dfc;
+
+    protected List<Query> filterQueries = null;
+    protected Map<String, Object> context = null;
+
+    protected PublicExtendedDismaxConfiguration config = null;
+    protected List<Query> boostQueries = null;
+
+    protected final boolean useReRankForBoostQueries;
+    protected final int reRankNumDocs;
+
+    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
          SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
          throws SyntaxError {
 
-      super(qstr, localParams, params, req);
+        super(qstr, localParams, params, req);
 
-      this.querqyParser = querqyParser;
+        this.querqyParser = querqyParser;
 
-      if (config == null) {
-         // this is a hack that works around ExtendedDismaxQParser keeping the
-         // config member var private
-         // and avoids calling createConfiguration() twice
-         config = createConfiguration(qstr, localParams, params, req);
-      }
-      IndexSchema schema = req.getSchema();
-      queryAnalyzer = schema.getQueryAnalyzer();
-      this.rewriteChain = rewriteChain;
+        if (config == null) {
+            // this is a hack that works around ExtendedDismaxQParser keeping the
+            // config member var private
+            // and avoids calling createConfiguration() twice
+            config = createConfiguration(qstr, localParams, params, req);
+        }
+        IndexSchema schema = req.getSchema();
+        queryAnalyzer = schema.getQueryAnalyzer();
+        this.rewriteChain = rewriteChain;
       
-      SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
+        SolrParams solrParams = SolrParams.wrapDefaults(localParams, params);
       
-      userQueryFields = parseQueryFields(req.getSchema(), solrParams, DisMaxParams.QF, 1f, true);
-      generatedQueryFields = parseQueryFields(req.getSchema(), solrParams, GQF, null, false);
-      if (generatedQueryFields.isEmpty()) {
-          for (Map.Entry<String, Float> entry: userQueryFields.entrySet()) {
-              generatedQueryFields.put(entry.getKey(), entry.getValue() * config.generatedFieldBoostFactor);
-          }
-      } else {
-          for (Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
-              if (entry.getValue() == null) {
-                  String name = entry.getKey();
-                  Float nonGeneratedBoostFactor = userQueryFields.get(name);
-                  if (nonGeneratedBoostFactor == null) {
-                      nonGeneratedBoostFactor = 1f;
-                  }
-                  entry.setValue(nonGeneratedBoostFactor * config.generatedFieldBoostFactor);
-              }
-          }
-      }
-      dfc = new DocumentFrequencyCorrection();
+        userQueryFields = parseQueryFields(req.getSchema(), solrParams, DisMaxParams.QF, 1f, true);
+        generatedQueryFields = parseQueryFields(req.getSchema(), solrParams, GQF, null, false);
+        if (generatedQueryFields.isEmpty()) {
+            for (Map.Entry<String, Float> entry: userQueryFields.entrySet()) {
+                generatedQueryFields.put(entry.getKey(), entry.getValue() * config.generatedFieldBoostFactor);
+            }
+        } else {
+            for (Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
+                if (entry.getValue() == null) {
+                    String name = entry.getKey();
+                    Float nonGeneratedBoostFactor = userQueryFields.get(name);
+                    if (nonGeneratedBoostFactor == null) {
+                        nonGeneratedBoostFactor = 1f;
+                    }
+                    entry.setValue(nonGeneratedBoostFactor * config.generatedFieldBoostFactor);
+                }
+            }
+        }
+        dfc = new DocumentFrequencyCorrection();
+
+        useReRankForBoostQueries = BM_RERANK.equals(solrParams.get(BM, BM_DEFAULT));
+        if (useReRankForBoostQueries) {
+            reRankNumDocs = solrParams.getInt(BM_RERANK_NUMDOCS, DEFAULT_RERANK_NUMDOCS);
+        } else {
+            reRankNumDocs = 0;
+        }
+
      
-      SearchFieldsAndBoosting searchFieldsAndBoosting = 
+        SearchFieldsAndBoosting searchFieldsAndBoosting =
               new SearchFieldsAndBoosting(getFieldBoostModelFromParam(solrParams), 
                       userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor);
       
-      builder = new LuceneQueryBuilder(dfc, queryAnalyzer, searchFieldsAndBoosting, config.getTieBreaker(), termQueryCache);
+        builder = new LuceneQueryBuilder(dfc, queryAnalyzer, searchFieldsAndBoosting, config.getTieBreaker(), termQueryCache);
       
-   }
+    }
    
    protected FieldBoostModel getFieldBoostModelFromParam(SolrParams solrParams) {
        String fbm = solrParams.get(FBM, FBM_DEFAULT);
@@ -215,13 +281,14 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       boolean hasMultiplicativeBoosts = multiplicativeBoosts != null && !multiplicativeBoosts.isEmpty();
       boolean hasQuerqyBoostQueries = querqyBoostQueries != null && !querqyBoostQueries.isEmpty();
 
-      boolean hasBoost = (boostQueries != null && !boostQueries.isEmpty())
+       // do we have to add a boost query as an optional clause to the main query?
+      boolean hasOptBoost = (boostQueries != null && !boostQueries.isEmpty())
             || (boostFunctions != null && !boostFunctions.isEmpty())
             || !phraseFieldQueries.isEmpty()
             || hasMultiplicativeBoosts
-            || hasQuerqyBoostQueries;
+            || (hasQuerqyBoostQueries && !useReRankForBoostQueries);
 
-      if (hasBoost) {
+      if (hasOptBoost) {
 
          BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
@@ -247,7 +314,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
             }
          }
 
-         if (hasQuerqyBoostQueries) {
+         if (hasQuerqyBoostQueries && !useReRankForBoostQueries) {
             for (Query q : querqyBoostQueries) {
                 builder.add(q, BooleanClause.Occur.SHOULD);
             }
@@ -266,6 +333,18 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          } else {
             mainQuery = bq;
          }
+      }
+
+      if (useReRankForBoostQueries && hasQuerqyBoostQueries) {
+
+          final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+
+          builder.setDisableCoord(true);
+          for (final Query q : querqyBoostQueries) {
+              builder.add(q, BooleanClause.Occur.SHOULD);
+          }
+
+          mainQuery = new QuerqyReRankQuery(mainQuery, builder.build(), reRankNumDocs, 1.0);
       }
 
       return mainQuery;
