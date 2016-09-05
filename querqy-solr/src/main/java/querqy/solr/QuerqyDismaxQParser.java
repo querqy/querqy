@@ -344,9 +344,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
               builder.add(q, BooleanClause.Occur.SHOULD);
           }
 
-          final int start = params.getInt(CommonParams.START,CommonParams.START_DEFAULT);
-          final int rows = params.getInt(CommonParams.ROWS,CommonParams.ROWS_DEFAULT);
-
           mainQuery = new QuerqyReRankQuery(mainQuery, builder.build(), reRankNumDocs, 1.0);
       }
 

@@ -16,6 +16,9 @@ qnegraw2 =>
 m => 
 	DOWN(20): d
 
+qup =>
+	UP(100): u100
+
 t1 t2 =>
 	DELETE: t2
 	

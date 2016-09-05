@@ -42,9 +42,10 @@ public class QuerqyReRankQuery extends RankQuery {
 
     @Override
     public RankQuery wrap(Query mainQuery) {
-        if (mainQuery != null) {
-            this.mainQuery = mainQuery;
+        if (mainQuery == null) {
+            throw new IllegalArgumentException("Cannot wrap null");
         }
+        this.mainQuery = mainQuery;
         return this;
     }
 
@@ -93,13 +94,13 @@ public class QuerqyReRankQuery extends RankQuery {
 
     @Override
     public int hashCode() {
+        int prime = 31;
         int result = super.hashCode();
-        long temp;
-        result = 31 * result + mainQuery.hashCode();
-        result = 31 * result + reRankQuery.hashCode();
-        result = 31 * result + reRankNumDocs;
-        temp = Double.doubleToLongBits(reRankWeight);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + mainQuery.hashCode();
+        result = prime * result + reRankQuery.hashCode();
+        result = prime * result + reRankNumDocs;
+        final long temp = Double.doubleToLongBits(reRankWeight);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
 
