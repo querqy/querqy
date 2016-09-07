@@ -79,7 +79,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
    }
 
-   public void reset() {
+    public void reset() {
       clauseStack.clear();
       dmqStack.clear();
       useBooleanQueryForDMQ = false;
@@ -295,6 +295,16 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             target.add(queryFactory);
             boost.registerTermSubQuery(fieldname, queryFactory, sourceTerm);
         }
-   }
+    }
+
+    public DocumentFrequencyCorrection getDfc() {
+        return dfc;
+    }
+
+    public SearchFieldsAndBoosting getSearchFieldsAndBoosting() {
+        return searchFieldsAndBoosting;
+    }
+
+
 
 }
