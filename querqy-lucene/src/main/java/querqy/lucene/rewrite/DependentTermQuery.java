@@ -87,9 +87,13 @@ public class DependentTermQuery extends TermQuery {
         DependentTermQuery other = (DependentTermQuery) obj;
         if (tqIndex != other.tqIndex)
             return false;
+        if (!getTerm().equals(other.getTerm())) {
+            return false;
+        }
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        return getTerm().equals(other.getTerm());
+        
+        return true;
     }
     
     @Override
