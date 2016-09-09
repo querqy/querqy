@@ -42,6 +42,8 @@ import org.apache.solr.search.WrappedQuery;
 
 import org.apache.solr.util.SolrPluginUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
@@ -62,6 +64,8 @@ import querqy.rewrite.RewriteChain;
  *
  */
 public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuerqyDismaxQParser.class);
 
     /**
      * generated field boost
@@ -152,6 +156,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     protected final boolean useReRankForBoostQueries;
     protected final int reRankNumDocs;
+    protected final TermQueryCache termQueryCache;
 
     public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
          SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
@@ -160,6 +165,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         super(qstr, localParams, params, req);
 
         this.querqyParser = querqyParser;
+        this.termQueryCache = termQueryCache;
 
         if (config == null) {
             // this is a hack that works around ExtendedDismaxQParser keeping the
@@ -367,6 +373,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
         if (boostQueries != null && !boostQueries.isEmpty()) {
 
+
+
             result = new LinkedList<>();
 
             for (BoostQuery bq : boostQueries) {
@@ -378,13 +386,18 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
                     QParser bqp = QParser.getParser(((RawQuery) boostQuery).getQueryString(), null, req);
                     luceneQuery = bqp.getQuery();
+                    luceneQuery.setBoost(bq.getBoost() * factor);
 
                 } else if (boostQuery instanceof querqy.model.Query) {
 
-                    builder.reset();
+                    LuceneQueryBuilder luceneQueryBuilder =
+                            new LuceneQueryBuilder(dfc, queryAnalyzer,
+                                    builder.getSearchFieldsAndBoosting().multiply(factor * bq.getBoost()),
+                                    config.getTieBreaker(), termQueryCache);
+
                     try {
 
-                        luceneQuery = builder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
+                        luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
                         if (luceneQuery != null) {
                             luceneQuery = wrapQuery(luceneQuery);
                         }
@@ -396,7 +409,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                 }
 
                 if (luceneQuery != null) {
-                    luceneQuery.setBoost(bq.getBoost() * factor);
                     result.add(luceneQuery);
                 }
 
@@ -734,5 +746,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       }
 
    }
+
 
 }
