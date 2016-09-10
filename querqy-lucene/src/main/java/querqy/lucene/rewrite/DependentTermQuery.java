@@ -38,7 +38,7 @@ public class DependentTermQuery extends TermQuery {
     final DocumentFrequencyAndTermContextProvider dftcp;
     final FieldBoost fieldBoost;
     final Term term;
-    Float boostFactor = null;
+    Float fieldBoostFactor = null;
     
     public DependentTermQuery(Term term, DocumentFrequencyAndTermContextProvider dftcp, FieldBoost fieldBoost) {
         super(term);
@@ -63,7 +63,7 @@ public class DependentTermQuery extends TermQuery {
         if (dftc.df < 1) {
             return new NeverMatchWeight();
         }
-        boostFactor = fieldBoost.getBoost(term.field(), searcher);
+        fieldBoostFactor = fieldBoost.getBoost(term.field(), searcher);
         return new TermWeight(searcher, needsScores, dftc.termContext);
         
     }
@@ -113,8 +113,8 @@ public class DependentTermQuery extends TermQuery {
         return fieldBoost;
     }
     
-    public Float getBoostFactor() {
-        return boostFactor;
+    public Float getFieldBoostFactor() {
+        return fieldBoostFactor;
     }
 
 
@@ -136,7 +136,7 @@ public class DependentTermQuery extends TermQuery {
             this.termStates = termStates;
             this.similarity = searcher.getSimilarity();
             this.stats = similarity.computeWeight(
-                    boostFactor, 
+                    fieldBoostFactor * getBoost(),
               searcher.collectionStatistics(term.field()), 
               searcher.termStatistics(term, termStates));
         }
@@ -200,7 +200,7 @@ public class DependentTermQuery extends TermQuery {
               float freq = scorer.freq();
               SimScorer docScorer = similarity.simScorer(stats, context);
               ComplexExplanation result = new ComplexExplanation();
-              result.setDescription("weight("+getQuery()+" in "+doc+") [" + similarity.getClass().getSimpleName() + "], result of:");
+              result.setDescription("weight("+getQuery()+" in "+doc+") [" + similarity.getClass().getSimpleName() + "," + fieldBoost.getClass().getSimpleName() + "], result of:");
               Explanation scoreExplanation = docScorer.explain(doc, new Explanation(freq, "termFreq=" + freq));
               result.addDetail(scoreExplanation);
               result.setValue(scoreExplanation.getValue());

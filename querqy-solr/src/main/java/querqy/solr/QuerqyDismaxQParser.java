@@ -392,12 +392,13 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
                     LuceneQueryBuilder luceneQueryBuilder =
                             new LuceneQueryBuilder(dfc, queryAnalyzer,
-                                    builder.getSearchFieldsAndBoosting().multiply(factor * bq.getBoost()),
+                                    builder.getSearchFieldsAndBoosting(),
                                     config.getTieBreaker(), termQueryCache);
 
                     try {
 
                         luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
+                        luceneQuery.setBoost(bq.getBoost() * factor);
                         if (luceneQuery != null) {
                             luceneQuery = wrapQuery(luceneQuery);
                         }
