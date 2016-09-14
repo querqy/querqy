@@ -1,38 +1,38 @@
 package querqy.lucene.rewrite;
 
-
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Created by rene on 04/09/2016.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DependentTermQueryTest {
+public class DependentTermQueryTest extends LuceneTestCase {
 
     FieldBoost fieldBoost1 = new ConstantFieldBoost(1f);
 
 
     FieldBoost fieldBoost2  = new ConstantFieldBoost(2f);
 
-    @Mock
-    DocumentFrequencyAndTermContextProvider dfc1;
+    DocumentFrequencyAndTermContextProvider dfc1 = mock(DocumentFrequencyAndTermContextProvider.class);
 
-    @Mock
-    DocumentFrequencyAndTermContextProvider dfc2;
+    DocumentFrequencyAndTermContextProvider dfc2 = mock(DocumentFrequencyAndTermContextProvider.class);
 
-    @Mock
-    DocumentFrequencyAndTermContextProvider dfc3;
+    DocumentFrequencyAndTermContextProvider dfc3 = mock(DocumentFrequencyAndTermContextProvider.class);
 
     Term term1 = new Term("f1", "t1");
     Term term2 = new Term("f1", "t2");
@@ -43,6 +43,7 @@ public class DependentTermQueryTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
         when(dfc1.registerTermQuery(any(DependentTermQuery.class))).thenReturn(tqIndex1);
         when(dfc2.registerTermQuery(any(DependentTermQuery.class))).thenReturn(tqIndex1);
         when(dfc3.registerTermQuery(any(DependentTermQuery.class))).thenReturn(tqIndex3);
@@ -93,6 +94,37 @@ public class DependentTermQueryTest {
 
     }
 
+    @Test
+    public void testThatResultsAreFound() throws Exception {
+        ConstantFieldBoost fieldBoost = new ConstantFieldBoost(1f);
+
+        Analyzer analyzer = new KeywordAnalyzer();
+
+        Directory directory = newDirectory();
+        RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        TestUtil.addNumDocs("f1", "v1", indexWriter, 1);
+        TestUtil.addNumDocs("f1", "v2", indexWriter, 1);
+
+        indexWriter.close();
+
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher = newSearcher(indexReader);
+
+        DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
+
+        DependentTermQuery query = new DependentTermQuery(new Term("f1", "v1"), dfc, fieldBoost);
+
+        TopDocs topDocs = indexSearcher.search(query, 10);
+
+        assertEquals(1, topDocs.totalHits);
+        Document resultDoc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
+        assertEquals("v1", resultDoc.get("f1"));
+
+        indexReader.close();
+        directory.close();
+        analyzer.close();
+
+    }
 
 }
-

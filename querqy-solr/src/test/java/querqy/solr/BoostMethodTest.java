@@ -53,7 +53,7 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.BM, QuerqyDismaxQParser.BM_OPT,
+                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_OPT,
                 "defType", "querqy",
                 "debugQuery", "true"
 
@@ -76,7 +76,7 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.BM, QuerqyDismaxQParser.BM_RERANK,
+                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_RERANK,
                 "defType", "querqy",
                 "debugQuery", "true"
 

@@ -17,7 +17,7 @@ public class NeverMatchQueryFactory implements LuceneQueryFactory<Query> {
     public static final NeverMatchQueryFactory FACTORY = new NeverMatchQueryFactory();
 
     @Override
-    public Query createQuery(FieldBoost boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ)
+    public Query createQuery(FieldBoost boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ)
             throws IOException {
         return new MatchNoDocsQuery();
     }

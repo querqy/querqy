@@ -107,7 +107,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
             assertEquals(Occur.MUST, bc.getOccur());
             Query clauseQuery = bc.getQuery();
             assertTrue(clauseQuery instanceof DependentTermQuery);
-            sumBq1 += ((DependentTermQuery) clauseQuery).getBoostFactor();
+            sumBq1 += ((DependentTermQuery) clauseQuery).getFieldBoostFactor();
         }
         
         
@@ -121,7 +121,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
             assertEquals(Occur.MUST, bc.getOccur());
             Query clauseQuery = bc.getQuery();
             assertTrue(clauseQuery instanceof DependentTermQuery);
-            sumBq2 += ((DependentTermQuery) clauseQuery).getBoostFactor();
+            sumBq2 += ((DependentTermQuery) clauseQuery).getFieldBoostFactor();
         }
         
         assertEquals(2f, sumBq1 / sumBq2, 0.00001);

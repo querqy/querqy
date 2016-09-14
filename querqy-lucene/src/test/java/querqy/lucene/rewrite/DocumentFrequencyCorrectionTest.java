@@ -1,11 +1,7 @@
 package querqy.lucene.rewrite;
 
-import java.io.IOException;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.MockAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.RandomIndexWriter;
@@ -15,33 +11,13 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
+import querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext;
+
+import static querqy.lucene.rewrite.TestUtil.addNumDocs;
 
 public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
     
-    static final FieldBoost DUMMY_FIELD_BOOST = new ConstantFieldBoost();
-    
-    static class ConstantFieldBoost implements FieldBoost {
-
-        @Override
-        public float getBoost(String fieldname, IndexSearcher searcher)
-                throws IOException {
-            return 1f;
-        }
-
-        @Override
-        public void registerTermSubQuery(String fieldname,
-                TermSubQueryFactory termSubQueryFactory,
-                querqy.model.Term sourceTerm) {
-        }
-
-        @Override
-        public String toString(String fieldname) {
-            return "ConstantFieldBoost(" + fieldname + ")";
-        }
-        
-    }
-    
+    static final FieldBoost DUMMY_FIELD_BOOST = new ConstantFieldBoost(1f);
     
 
     @Test
@@ -65,7 +41,8 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         // the term query registers itself with the dfc
         DependentTermQuery tq = new DependentTermQuery(new Term("f1", "a"), dfc, DUMMY_FIELD_BOOST);
         dfc.finishedUserQuery();
-        DocumentFrequencyAndTermContext documentFrequencyAndTermContext = dfc.getDocumentFrequencyAndTermContext(tq.tqIndex, indexSearcher);
+        DocumentFrequencyAndTermContext documentFrequencyAndTermContext
+                = dfc.getDocumentFrequencyAndTermContext(tq.tqIndex, indexSearcher);
         
         assertEquals(df, documentFrequencyAndTermContext.termContext.docFreq());
         
@@ -132,14 +109,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         
     }
     
-    void addNumDocs(String fieldname, String value, RandomIndexWriter indexWriter, int num) throws IOException {
-        for (int i = 0; i < num; i++) {
-            Document doc = new Document();
-            doc.add(newStringField(fieldname, value, Store.YES));
-            indexWriter.addDocument(doc);
-        }
-    }
-    
+
     int getRandomDf() {
         return 1 + new Long(Math.round(50.0 * Math.random())).intValue();
     }

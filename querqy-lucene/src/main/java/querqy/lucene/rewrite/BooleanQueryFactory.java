@@ -34,13 +34,13 @@ public class BooleanQueryFactory implements LuceneQueryFactory<BooleanQuery> {
     }
 
     @Override
-    public BooleanQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException {
+    public BooleanQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) throws IOException {
 
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         builder.setDisableCoord(disableCoord);
       
         for (Clause clause : clauses) {
-            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dfc, isBelowDMQ), clause.occur);
+            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dftcp, isBelowDMQ), clause.occur);
         }
 
         BooleanQuery bq = builder.build();

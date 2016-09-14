@@ -239,10 +239,10 @@ public class TermSubQueryBuilderTest {
             
             DisjunctionMaxQueryFactory dmqf = (DisjunctionMaxQueryFactory) factory;
             
-            for (TypeSafeMatcher<LuceneQueryFactory<?>> disjunct : disjuncts) {
+            for (int i = 0; i < disjuncts.length; i++) {
                 boolean found = false;
                 for (LuceneQueryFactory<?> qf : dmqf.disjuncts) {
-                    found = disjunct.matches(qf);
+                    found = disjuncts[i].matches(qf);
                     if (found) {
                         break;
                     }
@@ -280,13 +280,13 @@ public class TermSubQueryBuilderTest {
             
             BooleanQueryFactory bqf = (BooleanQueryFactory) factory;
             
-            for (TypeSafeMatcher<LuceneQueryFactory<?>> clauseMatcher :  clauses) {
+            for (int i = 0; i < clauses.length; i++) {
                 boolean found = false;
                 for (Clause clause : bqf.getClauses()) {
                     if (clause.occur != BooleanClause.Occur.MUST) {
                         return false;
                     }
-                    found = clauseMatcher.matches(clause.queryFactory);
+                    found = clauses[i].matches(clause.queryFactory);
                     if (found) {
                         break;
                     }
@@ -372,10 +372,10 @@ public class TermSubQueryBuilderTest {
         protected boolean matchesSafely(PRMSQuery query) {
             PRMSDisjunctionMaxQuery prmsDmq = ((PRMSDisjunctionMaxQuery) query);
             
-            for (TypeSafeMatcher<PRMSQuery> disjunct : disjuncts) {
+            for (int i = 0; i < disjuncts.length; i++) {
                 boolean found = false;
                 for (PRMSQuery q : prmsDmq.getDisjuncts()) {
-                    found = disjunct.matches(q);
+                    found = disjuncts[i].matches(q);
                     if (found) {
                         break;
                     }

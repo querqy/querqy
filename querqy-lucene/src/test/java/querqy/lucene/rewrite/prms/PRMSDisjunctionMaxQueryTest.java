@@ -122,9 +122,9 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         for (Query disjunct: dmq1.getDisjuncts()) {
             assertTrue(disjunct instanceof DependentTermQuery);
             if (bf1 == null) {
-                bf1 = ((DependentTermQuery) disjunct).getBoostFactor();
+                bf1 = ((DependentTermQuery) disjunct).getFieldBoostFactor();
             } else {
-                assertEquals(bf1,  ((DependentTermQuery) disjunct).getBoostFactor());
+                assertEquals(bf1,  ((DependentTermQuery) disjunct).getFieldBoostFactor());
             }
         }
         
@@ -132,9 +132,9 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         for (Query disjunct: dmq2.getDisjuncts()) {
             assertTrue(disjunct instanceof DependentTermQuery);
             if (bf2 == null) {
-                bf2 = ((DependentTermQuery) disjunct).getBoostFactor();
+                bf2 = ((DependentTermQuery) disjunct).getFieldBoostFactor();
             } else {
-                assertEquals(bf2,  ((DependentTermQuery) disjunct).getBoostFactor());
+                assertEquals(bf2,  ((DependentTermQuery) disjunct).getFieldBoostFactor());
             }
         }
         

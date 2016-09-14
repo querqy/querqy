@@ -1,6 +1,7 @@
 package querqy.lucene.rewrite;
 
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.util.ToStringUtils;
 
 import java.io.IOException;
 
@@ -16,7 +17,7 @@ public class ConstantFieldBoost implements FieldBoost {
     public ConstantFieldBoost(float boost) { this.boost = boost; }
 
     @Override
-    public float getBoost(String fieldname, IndexSearcher searcher)
+    public float getBoost(String fieldname, IndexSearcher indexSearcher)
             throws IOException {
         return boost;
     }
@@ -29,7 +30,7 @@ public class ConstantFieldBoost implements FieldBoost {
 
     @Override
     public String toString(String fieldname) {
-        return "ConstantFieldBoost(" + fieldname + "^" + boost + ")";
+        return ToStringUtils.boost(boost);
     }
 
 

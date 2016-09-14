@@ -13,6 +13,6 @@ import org.apache.lucene.search.Query;
  */
 public interface LuceneQueryFactory<T extends Query> {
 
-   T createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc, boolean isBelowDMQ) throws IOException;
+   T createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) throws IOException;
 
 }
