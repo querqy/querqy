@@ -23,11 +23,11 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.Similarity.SimScorer;
 import org.apache.lucene.util.Bits;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
+import querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext;
 
 /**
  * A TermQuery that depends on other term queries for the calculation of the document frequency
- * and/or the boost factor (field weight). 
+ * and/or the FieldBoost.
  * 
  * @author René Kriegler, @renekrie
  *
@@ -75,6 +75,7 @@ public class DependentTermQuery extends TermQuery {
         int result = prime  + tqIndex;
         result = prime * result + fieldBoost.hashCode();
         result = prime * result + getTerm().hashCode();
+        result = prime * result + Float.floatToIntBits(getBoost());
         return result;
     }
 
@@ -82,6 +83,9 @@ public class DependentTermQuery extends TermQuery {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
+        if (obj == null) {
+            return false;
+        }
         if (getClass() != obj.getClass())
             return false;
         DependentTermQuery other = (DependentTermQuery) obj;
@@ -90,10 +94,14 @@ public class DependentTermQuery extends TermQuery {
         if (!getTerm().equals(other.getTerm())) {
             return false;
         }
+        if (Float.compare(getBoost(), other.getBoost()) != 0) {
+            return false;
+        }
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        
+
         return true;
+
     }
     
     @Override

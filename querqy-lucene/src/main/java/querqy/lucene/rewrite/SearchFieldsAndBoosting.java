@@ -18,14 +18,18 @@ import querqy.model.Term;
  */
 public class SearchFieldsAndBoosting {
     
-    public enum FieldBoostModel {FIXED, PRMS}
+    public enum FieldBoostModel {FIXED, PRMS, NONE}
     
     final float defaultGeneratedFieldBoostFactor;
     final Map<String, Float> queryFieldsAndBoostings;
     final Map<String, Float> generatedQueryFieldsAndBoostings;
     final FieldBoostModel fieldBoostModel;
     
-    public SearchFieldsAndBoosting(FieldBoostModel fieldBoostModel, Map<String, Float> queryFieldsAndBoostings, Map<String, Float> generatedQueryFieldsAndBoostings, float defaultGeneratedFieldBoostFactor) {
+    public SearchFieldsAndBoosting(final FieldBoostModel fieldBoostModel,
+                                   final Map<String, Float> queryFieldsAndBoostings,
+                                   final Map<String, Float> generatedQueryFieldsAndBoostings,
+                                   final float defaultGeneratedFieldBoostFactor) {
+
         if (fieldBoostModel == null) {
             throw new IllegalArgumentException("FieldBoostModel must not be null");
         }
@@ -33,6 +37,11 @@ public class SearchFieldsAndBoosting {
         this.queryFieldsAndBoostings = queryFieldsAndBoostings;
         this.generatedQueryFieldsAndBoostings = generatedQueryFieldsAndBoostings;
         this.defaultGeneratedFieldBoostFactor = defaultGeneratedFieldBoostFactor;
+    }
+
+    public SearchFieldsAndBoosting withFieldBoostModel(final FieldBoostModel newModel) {
+        return new SearchFieldsAndBoosting(newModel, queryFieldsAndBoostings, generatedQueryFieldsAndBoostings,
+                defaultGeneratedFieldBoostFactor);
     }
     
     public boolean hasSearchField(String searchField, Term term) {
@@ -48,7 +57,7 @@ public class SearchFieldsAndBoosting {
         String fieldname = term.getField();
         if (fieldname != null) {
             if (term.isGenerated() || queryFieldsAndBoostings.containsKey(fieldname)) {
-                return new HashSet<String>(Arrays.asList(fieldname));
+                return new HashSet<>(Arrays.asList(fieldname));
             } else {
                 return Collections.emptySet();
             }
@@ -68,11 +77,16 @@ public class SearchFieldsAndBoosting {
             }
         } else {
             switch (fieldBoostModel) {
-            case PRMS: return new PRMSFieldBoost();
-            case FIXED:
-                return (term.isGenerated())
-                     ? new IndependentFieldBoost(generatedQueryFieldsAndBoostings, defaultGeneratedFieldBoostFactor)
-                     : new IndependentFieldBoost(queryFieldsAndBoostings, defaultGeneratedFieldBoostFactor);
+
+                case FIXED:
+                    return (term.isGenerated())
+                         ? new IndependentFieldBoost(generatedQueryFieldsAndBoostings, defaultGeneratedFieldBoostFactor)
+                         : new IndependentFieldBoost(queryFieldsAndBoostings, defaultGeneratedFieldBoostFactor);
+
+                case NONE: return ConstantFieldBoost.NORM_BOOST;
+
+                case PRMS: return new PRMSFieldBoost();
+
             }
         }
         
