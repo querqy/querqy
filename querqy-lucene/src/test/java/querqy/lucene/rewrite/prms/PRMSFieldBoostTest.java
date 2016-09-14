@@ -81,8 +81,8 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         assertNotEquals(dtq1.getTerm().field(), dtq2.getTerm().field());
         
-        float bf1 = ("f1".equals(dtq1.getTerm().field())) ? dtq1.getBoostFactor() : dtq2.getBoostFactor();
-        float bf2 = ("f2".equals(dtq2.getTerm().field())) ? dtq2.getBoostFactor() : dtq1.getBoostFactor();
+        float bf1 = ("f1".equals(dtq1.getTerm().field())) ? dtq1.getFieldBoostFactor() : dtq2.getFieldBoostFactor();
+        float bf2 = ("f2".equals(dtq2.getTerm().field())) ? dtq2.getFieldBoostFactor() : dtq1.getFieldBoostFactor();
         
         assertEquals(2f, bf2 / bf1, 0.00001);
         

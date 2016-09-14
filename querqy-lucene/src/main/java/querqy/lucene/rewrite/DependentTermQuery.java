@@ -23,11 +23,11 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.Similarity.SimScorer;
 import org.apache.lucene.util.Bits;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
+import querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext;
 
 /**
  * A TermQuery that depends on other term queries for the calculation of the document frequency
- * and/or the boost factor (field weight). 
+ * and/or the FieldBoost.
  * 
  * @author René Kriegler, @renekrie
  *
@@ -38,7 +38,7 @@ public class DependentTermQuery extends TermQuery {
     final DocumentFrequencyAndTermContextProvider dftcp;
     final FieldBoost fieldBoost;
     final Term term;
-    Float boostFactor = null;
+    Float fieldBoostFactor = null;
     
     public DependentTermQuery(Term term, DocumentFrequencyAndTermContextProvider dftcp, FieldBoost fieldBoost) {
         super(term);
@@ -63,7 +63,7 @@ public class DependentTermQuery extends TermQuery {
         if (dftc.df < 1) {
             return new NeverMatchWeight();
         }
-        boostFactor = fieldBoost.getBoost(term.field(), searcher);
+        fieldBoostFactor = fieldBoost.getBoost(term.field(), searcher);
         return new TermWeight(searcher, needsScores, dftc.termContext);
         
     }
@@ -75,6 +75,7 @@ public class DependentTermQuery extends TermQuery {
         int result = prime  + tqIndex;
         result = prime * result + fieldBoost.hashCode();
         result = prime * result + getTerm().hashCode();
+        result = prime * result + Float.floatToIntBits(getBoost());
         return result;
     }
 
@@ -82,6 +83,9 @@ public class DependentTermQuery extends TermQuery {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
+        if (obj == null) {
+            return false;
+        }
         if (getClass() != obj.getClass())
             return false;
         DependentTermQuery other = (DependentTermQuery) obj;
@@ -90,10 +94,14 @@ public class DependentTermQuery extends TermQuery {
         if (!getTerm().equals(other.getTerm())) {
             return false;
         }
+        if (Float.compare(getBoost(), other.getBoost()) != 0) {
+            return false;
+        }
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        
+
         return true;
+
     }
     
     @Override
@@ -113,8 +121,8 @@ public class DependentTermQuery extends TermQuery {
         return fieldBoost;
     }
     
-    public Float getBoostFactor() {
-        return boostFactor;
+    public Float getFieldBoostFactor() {
+        return fieldBoostFactor;
     }
 
 
@@ -136,7 +144,7 @@ public class DependentTermQuery extends TermQuery {
             this.termStates = termStates;
             this.similarity = searcher.getSimilarity();
             this.stats = similarity.computeWeight(
-                    boostFactor, 
+                    fieldBoostFactor * getBoost(),
               searcher.collectionStatistics(term.field()), 
               searcher.termStatistics(term, termStates));
         }
@@ -200,7 +208,7 @@ public class DependentTermQuery extends TermQuery {
               float freq = scorer.freq();
               SimScorer docScorer = similarity.simScorer(stats, context);
               ComplexExplanation result = new ComplexExplanation();
-              result.setDescription("weight("+getQuery()+" in "+doc+") [" + similarity.getClass().getSimpleName() + "], result of:");
+              result.setDescription("weight("+getQuery()+" in "+doc+") [" + similarity.getClass().getSimpleName() + "," + fieldBoost.getClass().getSimpleName() + "], result of:");
               Explanation scoreExplanation = docScorer.explain(doc, new Explanation(freq, "termFreq=" + freq));
               result.addDetail(scoreExplanation);
               result.setValue(scoreExplanation.getValue());
