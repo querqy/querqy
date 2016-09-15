@@ -56,7 +56,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         }
         
         assertU(adoc("id", "1", "f1", "a"));
-        assertU(commit("waitSearcher", "true"));
+        assertU(commit());
          
         // newSearcher
         SolrQueryRequest req2 = req(
@@ -78,7 +78,6 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  
                  CommonParams.Q, q,
                  DisMaxParams.QF, "f1 f2",
-                 DisMaxParams.MM, "100%",
                  QueryParsing.OP, "AND",
                  "defType", "querqy",
                  "debugQuery", "true"

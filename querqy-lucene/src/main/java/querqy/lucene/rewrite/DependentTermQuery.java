@@ -11,8 +11,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.Similarity.SimScorer;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
-
 /**
  * A TermQuery that depends on other term queries for the calculation of the document frequency
  * and/or the boost factor (field weight). 
@@ -42,6 +40,10 @@ public class DependentTermQuery extends TermQuery {
             throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
         }
 
+        if (term == null) {
+            throw new IllegalArgumentException("Term must not be null");
+        }
+
         this.tqIndex  = tqIndex;
         this.dftcp = dftcp;
         this.fieldBoost = fieldBoost;
@@ -49,7 +51,7 @@ public class DependentTermQuery extends TermQuery {
     
     @Override
     public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
-        DocumentFrequencyAndTermContext dftc = dftcp.getDocumentFrequencyAndTermContext(tqIndex, searcher);
+        DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext dftc = dftcp.getDocumentFrequencyAndTermContext(tqIndex, searcher);
         if (dftc.df < 1) {
             return new NeverMatchWeight();
         }
@@ -63,22 +65,25 @@ public class DependentTermQuery extends TermQuery {
         final int prime = 31;
         int result = prime  + tqIndex;
         result = prime * result + fieldBoost.hashCode();
-        result = prime * result + getTerm().hashCode();
-        return result;
+       // result = prime * result + getTerm().hashCode(); handled in super class
+        return super.hashCode() ^ result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (getClass() != obj.getClass())
+
+        if (!super.equals(obj)) {
             return false;
+        }
+
         DependentTermQuery other = (DependentTermQuery) obj;
         if (tqIndex != other.tqIndex)
             return false;
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        return getTerm().equals(other.getTerm());
+
+        return true; // getTerm().equals(other.getTerm());  already assured in super class
+
     }
     
     @Override
