@@ -402,8 +402,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                 }
 
                 if (luceneQuery != null) {
-                    luceneQuery.setBoost(bq.getBoost() * factor);
-                    result.add(luceneQuery);
+                    result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, bq.getBoost() * factor));
                 }
 
             }
