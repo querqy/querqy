@@ -46,8 +46,10 @@ public class TermBoostQuery extends TermQuery {
     class TermBoostWeight extends Weight {
         private final TermContext termStates;
         private float unnormalizedScore;
-        private float norm = 1f;
         private float score;
+        private float queryNorm;
+        private float queryWeight;
+        private float boost;
 
 
         public TermBoostWeight(TermContext termStates, float unnormalizedScore)
@@ -56,6 +58,8 @@ public class TermBoostQuery extends TermQuery {
             assert termStates != null : "TermContext must not be null";
             this.termStates = termStates;
             this.unnormalizedScore = unnormalizedScore;
+            this.score = unnormalizedScore;
+            normalize(1f, 1f);
         }
 
         @Override
@@ -65,13 +69,15 @@ public class TermBoostQuery extends TermQuery {
 
         @Override
         public float getValueForNormalization() {
-            return unnormalizedScore * unnormalizedScore;
+            return queryWeight * queryWeight;
         }
 
         @Override
-        public void normalize(float queryNorm, float topLevelBoost) {
-            this.norm = queryNorm * topLevelBoost;
-            score = unnormalizedScore * this.norm;
+        public void normalize(float queryNorm, float boost) {
+            this.boost = boost;
+            this.queryNorm = queryNorm;
+            queryWeight = queryNorm * boost * unnormalizedScore;
+            score = queryWeight;
         }
 
         @Override
@@ -121,8 +127,9 @@ public class TermBoostQuery extends TermQuery {
                 if (newDoc == doc) {
 
                     Explanation scoreExplanation = Explanation.match(score, "product of:",
-                            Explanation.match(norm, "norm"),
-                            Explanation.match(unnormalizedScore, "boost")
+                            Explanation.match(queryNorm, "queryNorm"),
+                            Explanation.match(boost, "boost"),
+                            Explanation.match(unnormalizedScore, "unnormalizedScore")
                     );
 
                     Explanation result = Explanation.match(scorer.score(),
