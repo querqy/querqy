@@ -7,6 +7,7 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.WrappedQuery;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,7 +17,7 @@ import querqy.rewrite.RewriteChain;
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
-   public static void index() throws Exception {
+   public void index() throws Exception {
 
       assertU(adoc("id", "1", "f1", "a"));
       assertU(adoc("id", "2", "f1", "a"));
@@ -32,6 +33,13 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
+    }
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        clearIndex();
         index();
     }
    

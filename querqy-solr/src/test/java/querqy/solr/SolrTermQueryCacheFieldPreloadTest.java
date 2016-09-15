@@ -5,21 +5,32 @@ import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SolrTermQueryCacheFieldPreloadTest extends SolrTestCaseJ4 {
 
-    @BeforeClass
-    public static void beforeTest() throws Exception{
-        initCore("solrconfig-cache-field-preload.xml", "schema.xml");
+    public void index() {
         assertU(adoc("id", "1", "f1", "a"));
         assertU(adoc("id", "2", "f1", "c", "f3", "x"));
         assertU(adoc("id", "3", "f4", "y"));
         assertU(adoc("id", "4", "f4", "y"));
         assertU(adoc("id", "5", "f4", "z"));
         assertU(commit());
+    }
 
+    @BeforeClass
+    public static void beforeTest() throws Exception{
+        initCore("solrconfig-cache-field-preload.xml", "schema.xml");
+    }
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        clearIndex();
+        index();
     }
 
     // Issue #18

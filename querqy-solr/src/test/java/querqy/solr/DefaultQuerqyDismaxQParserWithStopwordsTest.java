@@ -4,13 +4,14 @@ import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserWithStopwordsTest extends SolrTestCaseJ4 {
 
-    public static void index() throws Exception {
+    public void index() throws Exception {
 
         assertU(adoc("id", "1", "f1_stopwords", "a", "f2_stopwords", "c"));
 
@@ -19,17 +20,23 @@ public class DefaultQuerqyDismaxQParserWithStopwordsTest extends SolrTestCaseJ4 
         assertU(adoc("id", "3", "f1_stopwords", "a", "f3", "c"));
         
         assertU(adoc("id", "4", "f3", "stopA"));
-        
-
 
         assertU(commit());
+
      }
 
-     @BeforeClass
-     public static void beforeTests() throws Exception {
+    @BeforeClass
+    public static void beforeTests() throws Exception {
         initCore("solrconfig-commonrules-empty.xml", "schema-stopwords.xml");
+    }
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        clearIndex();
         index();
-     }
+    }
      
      @Test
      public void testThatStopwordOnlyQueryReturnsNoResult() throws Exception {

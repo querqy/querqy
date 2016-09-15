@@ -3,13 +3,14 @@ package querqy.solr;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 @SolrTestCaseJ4.SuppressSSL
 public class FieldBoostTest extends SolrTestCaseJ4 {
 
-    public static void index() throws Exception {
+    public void index() throws Exception {
 
         assertU(adoc("id", "1", "f1", "m", "f2", "o x", "f3", "h"));
 
@@ -25,6 +26,13 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-boost.xml", "schema.xml");
+    }
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        clearIndex();
         index();
     }
 

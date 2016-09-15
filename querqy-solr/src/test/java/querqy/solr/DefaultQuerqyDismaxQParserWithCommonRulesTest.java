@@ -4,13 +4,14 @@ import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ4 {
 
-    public static void index() throws Exception {
+    public void index() throws Exception {
 
         assertU(adoc("id", "1", "f1", "a", "f2", "c"));
 
@@ -42,9 +43,15 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-commonrules.xml", "schema.xml");
-        index();
     }
 
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        clearIndex();
+        index();
+    }
 
     @Test
     public void testSolrFilterQuery() {

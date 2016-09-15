@@ -5,13 +5,14 @@ import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 @SolrTestCaseJ4.SuppressSSL
 public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
 
-    public static void index() throws Exception {
+    public void index() throws Exception {
 
         assertU(adoc("id", "1", "f1", "a"));
         assertU(adoc("id", "2", "f1", "a", "f2", "b"));
@@ -22,6 +23,13 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-cache.xml", "schema.xml");
+    }
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        clearIndex();
         index();
     }
     
