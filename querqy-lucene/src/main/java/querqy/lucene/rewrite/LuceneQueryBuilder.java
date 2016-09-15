@@ -30,7 +30,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    final boolean normalizeBooleanQueryBoost;
    final float dmqTieBreakerMultiplier;
-   final DocumentFrequencyCorrection dfc;
+   final DocumentFrequencyAndTermContextProvider dftcp;
    final SearchFieldsAndBoosting searchFieldsAndBoosting;
    final TermSubQueryBuilder termSubQueryBuilder;
 
@@ -40,11 +40,11 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    protected ParentType parentType = ParentType.BQ;
 
-   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer, 
+   public LuceneQueryBuilder(DocumentFrequencyAndTermContextProvider dftcp, Analyzer analyzer,
            SearchFieldsAndBoosting searchFieldsAndBoosting,
            float dmqTieBreakerMultiplier, TermQueryCache termQueryCache) {
       this(   
-              dfc, 
+              dftcp,
               analyzer,
               searchFieldsAndBoosting,
               dmqTieBreakerMultiplier, 
@@ -62,21 +62,21 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * use the defaultGeneratedFieldBoostFactor for generated terms. If the term is not generated, treat the field name as
     * part of the term text (= "fieldname:value").</p>
     * 
-    * @param dfc
+    * @param dftcp
     * @param analyzer
     * @param searchFieldsAndBoosting
     * @param dmqTieBreakerMultiplier
     * @param normalizeBooleanQueryBoost
     * @param termQueryCache The term query cache or null
     */
-   public LuceneQueryBuilder(DocumentFrequencyCorrection dfc, Analyzer analyzer,
+   public LuceneQueryBuilder(DocumentFrequencyAndTermContextProvider dftcp, Analyzer analyzer,
            SearchFieldsAndBoosting searchFieldsAndBoosting,
          float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost, TermQueryCache termQueryCache) {
        
       this.searchFieldsAndBoosting = searchFieldsAndBoosting;
       this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
       this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
-      this.dfc = dfc;
+      this.dftcp = dftcp;
       termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
    }
 
@@ -100,9 +100,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
        LuceneQueryFactory<?> factory = visit(query);
 
-       factory.prepareDocumentFrequencyCorrection(dfc, false);
+       factory.prepareDocumentFrequencyCorrection(dftcp, false);
 
-       return factory.createQuery(null, dmqTieBreakerMultiplier, dfc);
+       return factory.createQuery(null, dmqTieBreakerMultiplier, dftcp);
    }
 
    @Override

@@ -33,18 +33,18 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
     }
 
     @Override
-    public void prepareDocumentFrequencyCorrection(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) {
-        root.prepareDocumentFrequencyCorrection(dfc, isBelowDMQ);
+    public void prepareDocumentFrequencyCorrection(DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) {
+        root.prepareDocumentFrequencyCorrection(dftcp, isBelowDMQ);
     }
 
     @Override
-    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
+    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp)
             throws IOException {
         
         return root.createQuery(
                 this.boost, 
                 dmqTieBreakerMultiplier,         
-                dfc);
+                dftcp);
     }
     
     public boolean isNeverMatchQuery() {

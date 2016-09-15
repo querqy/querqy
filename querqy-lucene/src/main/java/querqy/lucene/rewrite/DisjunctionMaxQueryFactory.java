@@ -36,26 +36,26 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
    }
 
     @Override
-    public void prepareDocumentFrequencyCorrection(DocumentFrequencyCorrection dfc, boolean isBelowDMQ) {
+    public void prepareDocumentFrequencyCorrection(DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) {
 
-        if ((!isBelowDMQ) && (dfc != null)) {
-            dfc.newClause();
+        if ((!isBelowDMQ) && (dftcp != null)) {
+            dftcp.newClause();
         }
 
         for (LuceneQueryFactory<?> disjunct : disjuncts) {
-            disjunct.prepareDocumentFrequencyCorrection(dfc, true);
+            disjunct.prepareDocumentFrequencyCorrection(dftcp, true);
         }
 
     }
 
     @Override
-    public DisjunctionMaxQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc)
+    public DisjunctionMaxQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp)
             throws IOException {
 
         List<Query> disjunctList = new LinkedList<>();
 
         for (LuceneQueryFactory<?> disjunct : disjuncts) {
-            disjunctList.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, dfc));
+            disjunctList.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, dftcp));
         }
 
         return new DisjunctionMaxQuery(disjunctList, dmqTieBreakerMultiplier);

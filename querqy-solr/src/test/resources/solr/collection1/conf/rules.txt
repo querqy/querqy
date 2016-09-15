@@ -14,7 +14,7 @@ qnegraw2 =>
     FILTER: * -f1:k f2:qnegraw
 
 m => 
-	DOWN(20): d
+	DOWN(200000): d
 
 qup =>
 	UP(100): u100

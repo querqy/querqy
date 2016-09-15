@@ -42,9 +42,7 @@ import org.apache.solr.search.WrappedQuery;
 
 import org.apache.solr.util.SolrPluginUtils;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection;
-import querqy.lucene.rewrite.LuceneQueryBuilder;
-import querqy.lucene.rewrite.SearchFieldsAndBoosting;
+import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.BoostQuery;
@@ -96,34 +94,79 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     /**
      * boost method - the method to integrate Querqy boost queries with the main query
      */
-    public static final String BM                       = "bm";
-
+    public static final String QBOOST_METHOD = "qboost.method";
     /**
      *  Integrate Querqy boost queries with the main query as a re-rank query
      */
-    public static final String BM_RERANK                = "rerank";
+    public static final String QBOOST_METHOD_RERANK = "rerank";
 
     /**
-     * The number of docs in the main query result to use for re-ranking when bm=rerank
+     * The number of docs in the main query result to use for re-ranking when qboost.method=rerank
      */
-    public static final String BM_RERANK_NUMDOCS        = "bm.rerank.numDocs";
+    public static final String QBOOST_RERANK_NUMDOCS = "qboost.rerank.numDocs";
 
     /**
-     * The default value for {@link #BM_RERANK_NUMDOCS}
+     * The default value for {@link #QBOOST_RERANK_NUMDOCS}
      */
     public static final int DEFAULT_RERANK_NUMDOCS      = 500;
 
     /**
-     * add Querqy boost queries to the main query as an optional boolean clause
+     * Add Querqy boost queries to the main query as optional boolean clauses
      */
-    public static final String BM_OPT                   = "opt";
+    public static final String QBOOST_METHOD_OPT = "opt";
 
     /**
-     * The default boost method (= {@link #BM})
+     * The default boost method (= {@link #QBOOST_METHOD})
      */
-    public static final String BM_DEFAULT              = BM_OPT;
+    public static final String QBOOST_METHOD_DEFAULT = QBOOST_METHOD_OPT;
 
+    /**
+     * Control how the score resulting from the {@link org.apache.lucene.search.similarities.Similarity}
+     * implementation is integrated into the score of a Querqy boost query
+     */
+    public static final String QBOOST_SIMILARITY_SCORE = "qboost.similarityScore";
 
+    /**
+     * A possible value of QBOOST_SIMILARITY_SCORE: Do not calculate the similarity score for Querqy boost queries.
+     * As a result the boost queries are only scored by query boost and field boost but not by any function of DF or TF.
+     * Setting qboost.similarityScore=off yields a small performance gain as TF and DF need not be provided.
+     */
+    public static final String QBOOST_SIMILARITY_SCORE_OFF = "off";
+
+    /**
+     * A possible value of QBOOST_SIMILARITY_SCORE: Just use the similarity as set in Solr when scoring Querqy boost queries.
+     */
+    public static final String QBOOST_SIMILARITY_SCORE_ON = "on";
+
+    /**
+     * A possible value of QBOOST_SIMILARITY_SCORE: "document frequency correction" - use the similarity as set in Solr
+     * when scoring Querqy boost queries but fake the document frequency so that all term queries under a given
+     * {@link org.apache.lucene.search.DisjunctionMaxQuery} us the same document frequency. This avoids situations
+     * in which the rarer of two synonymous terms would get a higher score than the more common term. It also fixes
+     * the IDF problem for the same term value occurring in two or more different fields with different frequencies.
+     *
+     */
+    public static final String QBOOST_SIMILARITY_SCORE_DFC = "dfc";
+
+    public static final String QBOOST_SIMILARITY_SCORE_DEFAULT = QBOOST_SIMILARITY_SCORE_DFC;
+
+    /**
+     * This parameter controls whether field boosting should be applied to Querqy boost queries.
+     */
+    public static final String QBOOST_FIELD_BOOST = "qboost.fieldBoost";
+
+    /**
+     * A possible value of QBOOST_FIELD_BOOST: Do not apply any field boosting to Querqy boost queries.
+     */
+    public static final String QBOOST_FIELD_BOOST_OFF = "off";
+
+    /**
+     * A possible value of QBOOST_FIELD_BOOST: Use the field boosting as set by parameter {@link #FBM} for Querqy boost
+     * queries.
+     */
+    public static final String QBOOST_FIELD_BOOST_ON = "on";
+
+    public static final String QBOOST_FIELD_BOOST_DEFAULT = QBOOST_FIELD_BOOST_ON;
 
     public static final float DEFAULT_GQF_VALUE = Float.MIN_VALUE;
 
@@ -143,6 +186,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     final Map<String, Float> generatedQueryFields;
     final LuceneQueryBuilder builder;
     final DocumentFrequencyCorrection dfc;
+    final DocumentFrequencyAndTermContextProvider boostDftcp;
+    final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
+
 
     protected List<Query> filterQueries = null;
     protected Map<String, Object> context = null;
@@ -152,6 +198,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     protected final boolean useReRankForBoostQueries;
     protected final int reRankNumDocs;
+    protected final TermQueryCache termQueryCache;
 
     public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
          SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
@@ -160,6 +207,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         super(qstr, localParams, params, req);
 
         this.querqyParser = querqyParser;
+        this.termQueryCache = termQueryCache;
+
 
         if (config == null) {
             // this is a hack that works around ExtendedDismaxQParser keeping the
@@ -193,20 +242,43 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         }
         dfc = new DocumentFrequencyCorrection();
 
-        useReRankForBoostQueries = BM_RERANK.equals(solrParams.get(BM, BM_DEFAULT));
+        useReRankForBoostQueries = QBOOST_METHOD_RERANK.equals(solrParams.get(QBOOST_METHOD, QBOOST_METHOD_DEFAULT));
         if (useReRankForBoostQueries) {
-            reRankNumDocs = solrParams.getInt(BM_RERANK_NUMDOCS, DEFAULT_RERANK_NUMDOCS);
+            reRankNumDocs = solrParams.getInt(QBOOST_RERANK_NUMDOCS, DEFAULT_RERANK_NUMDOCS);
         } else {
             reRankNumDocs = 0;
         }
 
-     
-        SearchFieldsAndBoosting searchFieldsAndBoosting =
+
+        final SearchFieldsAndBoosting searchFieldsAndBoosting =
               new SearchFieldsAndBoosting(getFieldBoostModelFromParam(solrParams), 
                       userQueryFields, generatedQueryFields, config.generatedFieldBoostFactor);
       
         builder = new LuceneQueryBuilder(dfc, queryAnalyzer, searchFieldsAndBoosting, config.getTieBreaker(), termQueryCache);
-      
+
+
+        final String boostSimScore = solrParams.get(QBOOST_SIMILARITY_SCORE, QBOOST_SIMILARITY_SCORE_DEFAULT);
+        if (QBOOST_SIMILARITY_SCORE_DFC.equals(boostSimScore)) {
+            boostDftcp = dfc;
+        } else if (QBOOST_SIMILARITY_SCORE_ON.equals(boostSimScore)) {
+            boostDftcp = new StandardDocumentFrequencyAndTermContextProvider();
+        } else if (QBOOST_SIMILARITY_SCORE_OFF.equals(boostSimScore)) {
+            boostDftcp = null;
+        } else {
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
+                    "Unknown similarity score handling for Querqy boost queries: " + boostSimScore);
+        }
+
+        final String boostFieldBoost = solrParams.get(QBOOST_FIELD_BOOST, QBOOST_FIELD_BOOST_DEFAULT);
+        if (boostFieldBoost.equals(QBOOST_FIELD_BOOST_ON)) {
+            boostSearchFieldsAndBoostings = searchFieldsAndBoosting;
+        } else if (boostFieldBoost.equals(QBOOST_FIELD_BOOST_OFF)) {
+            boostSearchFieldsAndBoostings = searchFieldsAndBoosting.withFieldBoostModel(FieldBoostModel.NONE);
+        } else {
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
+                    "Unknown field boost model for Querqy boost queries: " + boostFieldBoost);
+        }
+
     }
    
    protected FieldBoostModel getFieldBoostModelFromParam(SolrParams solrParams) {
@@ -367,7 +439,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       return result;
    }
 
-    public List<Query> transformBoostQueries(Collection<BoostQuery> boostQueries, float factor) throws SyntaxError {
+    public List<Query> transformBoostQueries(Collection<BoostQuery> boostQueries, float factor)
+            throws SyntaxError {
 
         List<Query> result = null;
 
@@ -387,10 +460,13 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
                 } else if (boostQuery instanceof querqy.model.Query) {
 
-                    builder.reset();
+                    LuceneQueryBuilder luceneQueryBuilder =
+                            new LuceneQueryBuilder(boostDftcp, queryAnalyzer,
+                                    boostSearchFieldsAndBoostings,
+                                    config.getTieBreaker(), termQueryCache);
                     try {
 
-                        luceneQuery = builder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
+                        luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
                         if (luceneQuery != null) {
                             luceneQuery = wrapQuery(luceneQuery);
                         }
@@ -402,7 +478,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                 }
 
                 if (luceneQuery != null) {
-                    result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, bq.getBoost() * factor));
+                    final float boost = bq.getBoost() * factor;
+                    if (boost != 1f) {
+                        result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, boost));
+                    } else {
+                        result.add(luceneQuery);
+                    }
                 }
 
             }
@@ -737,10 +818,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
       public String getMinShouldMatch() {
          return minShouldMatch;
-      }
-
-      public float getGeneratedFieldBoostFactor() {
-         return generatedFieldBoostFactor;
       }
 
    }
