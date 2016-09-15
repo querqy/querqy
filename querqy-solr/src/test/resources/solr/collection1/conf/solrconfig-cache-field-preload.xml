@@ -6,15 +6,41 @@
 	<directoryFactory name="DirectoryFactory" class="solr.RAMDirectoryFactory" />
 
 	<dataDir>${solr.core0.data.dir:}</dataDir>
-	
+
 	<schemaFactory class="ClassicIndexSchemaFactory" />
 	
-    <indexConfig>
+	<indexConfig>
         <!-- Needed for RAMDirectoryFactory -->
         <lockType>single</lockType>
     </indexConfig>
 
 	<updateHandler class="solr.DirectUpdateHandler2" />
+	
+	<query>
+	
+		<cache name="querqyTermQueryCache"
+              class="solr.LFUCache"
+              size="1024"
+              initialSize="1024"
+              autowarmCount="0"
+              regenerator="solr.NoOpRegenerator"
+        />
+        
+      	
+    	<listener event="firstSearcher" class="querqy.solr.TermQueryCachePreloader">
+      		<str name="fields">f1 f4</str>
+      		<str name="qParserPlugin">querqy</str>
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
+    	</listener>
+    	
+    	<listener event="newSearcher" class="querqy.solr.TermQueryCachePreloader">
+      		<str name="fields">f1 f4</str>
+      		<str name="qParserPlugin">querqy</str>
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
+    	</listener>
+	</query>
 
 	<requestDispatcher handleSelect="false">
 		<requestParsers enableRemoteStreaming="false"
@@ -27,53 +53,34 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
-		<arr name="last-components">
-      		<str>spellcheck</str>
-    	</arr>	
     </requestHandler>
 
-	<!-- <requestHandler name="standard" class="solr.StandardRequestHandler"
-		default="false" /> -->
-		
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 	<requestHandler name="/update" class="solr.UpdateRequestHandler" />
 
-	<searchComponent name="spellcheck" class="solr.SpellCheckComponent">
-      <str name="queryAnalyzerFieldType">text</str>
-      <lst name="spellchecker">
-        <str name="name">default</str>
-        <str name="field">f1</str>
-        <str name="classname">solr.DirectSolrSpellChecker</str>
-        <str name="distanceMeasure">internal</str>
-        <float name="accuracy">0.5</float>
-        <int name="minPrefix">1</int>
-      </lst>
-    </searchComponent>
-    
-
 	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 	
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	    
+	    <str name="termQueryCache.name">querqyTermQueryCache</str>
+	    <bool name="termQueryCache.update">false</bool>
+	    
 		<lst name="rewriteChain">
-		<lst name="rewriter">
+           <lst name="rewriter">
                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-               <str name="rules">rules-DefaultQuerqyDismaxQParserTest.txt</str>
+               <str name="rules">rules-cache-field-preload.txt</str>
                <bool name="ignoreCase">true</bool>
                <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
            </lst>
-		<!-- 	<lst name="rewriter">
-				<str name="class">querqy.solr.SolrSynonymsRewriterFactory</str>
-				<str name="synonyms">synonyms.txt</str>
-				<bool name="expand">true</bool>
-			</lst> -->
-		</lst>
-		<lst name="parser">
-         <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-         <str name="class">querqy.antlr.ANTLRQueryParser</str>
-      </lst>
+     	 </lst>
+     	 
+		 <lst name="parser">
+         	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+         	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+     	 </lst>
+     	 
 	</queryParser>
-	
 	
 	<admin>
 		<defaultQuery>solr</defaultQuery>

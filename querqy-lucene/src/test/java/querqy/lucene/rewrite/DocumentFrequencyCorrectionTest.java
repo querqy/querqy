@@ -1,11 +1,7 @@
 package querqy.lucene.rewrite;
 
-import java.io.IOException;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.MockAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.RandomIndexWriter;
@@ -14,8 +10,10 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
+import querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
+import static querqy.lucene.rewrite.TestUtil.addNumDocs;
+import static querqy.lucene.rewrite.TestUtil.newTerm;
 
 public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
     
@@ -68,7 +66,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         
         int df2 = df1 + 5;
         addNumDocs("f1", "b", indexWriter, df2);
-        
+
         indexWriter.close();
         
         
@@ -106,7 +104,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         DocumentFrequencyAndTermContext dftc2 = dfc.getDocumentFrequencyAndTermContext(tq2.tqIndex, indexSearcher);
         DocumentFrequencyAndTermContext dftc1a = dfc.getDocumentFrequencyAndTermContext(tq1a.tqIndex, indexSearcher);
         DocumentFrequencyAndTermContext dftc2a = dfc.getDocumentFrequencyAndTermContext(tq2a.tqIndex, indexSearcher);
-        
+
         assertEquals(df1, dftc1.termContext.docFreq());
         assertEquals(df2, dftc2.termContext.docFreq());
         assertEquals(df2 * 2 - 1, dftc1a.termContext.docFreq()); // df = max in clause + max in user query - 1
@@ -120,20 +118,6 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         
     }
 
-    Term newTerm(String field, String value, DocumentFrequencyCorrection dfc) {
-        Term term = new Term(field, value);
-        dfc.prepareTerm(term);
-        return term;
-    }
-    
-    void addNumDocs(String fieldname, String value, RandomIndexWriter indexWriter, int num) throws IOException {
-        for (int i = 0; i < num; i++) {
-            Document doc = new Document();
-            doc.add(newStringField(fieldname, value, Store.YES));
-            indexWriter.addDocument(doc);
-        }
-    }
-    
     int getRandomDf() {
         return 1 + new Long(Math.round(50.0 * Math.random())).intValue();
     }

@@ -66,7 +66,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  "stats", "true"
                  );
          
-        // one generated term in two field is preloaded for newSearcher:
+        // one generated term in two fields is preloaded for newSearcher:
         assertQ("Querqy cache not prefilled",
                  req2,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
@@ -79,7 +79,6 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  
                  CommonParams.Q, q,
                  DisMaxParams.QF, "f1 f2",
-                 DisMaxParams.MM, "100%",
                  QueryParsing.OP, "AND",
                  "defType", "querqy",
                  "debugQuery", "true"

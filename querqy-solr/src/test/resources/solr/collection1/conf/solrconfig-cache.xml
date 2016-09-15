@@ -44,15 +44,6 @@
 		class="solr.FieldAnalysisRequestHandler" />
 	<requestHandler name="/update" class="solr.UpdateRequestHandler" />
 
-	<requestHandler name="/admin/ping" class="solr.PingRequestHandler">
-		<lst name="invariants">
-			<str name="q">*:*</str>
-		</lst>
-		<lst name="defaults">
-			<str name="echoParams">all</str>
-		</lst>
-	</requestHandler>
-
 	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 	
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">

@@ -15,14 +15,16 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.BoostQuery;
-import org.apache.lucene.search.DisjunctionMaxQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
+import org.junit.Before;
 import org.junit.Test;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import querqy.lucene.rewrite.DependentTermQuery;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
@@ -30,10 +32,29 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+
 public class PRMSFieldBoostTest extends LuceneTestCase {
+
+    Similarity similarity;
+
+    Similarity.SimWeight simWeight;
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        similarity = Mockito.mock(Similarity.class);
+        simWeight = Mockito.mock(Similarity.SimWeight.class);
+        Mockito.when(similarity.computeWeight(any(CollectionStatistics.class),  Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+    }
 
     @Test
     public void testGetThatFieldProbabilityRatioIsReflectedInBoost() throws Exception {
+
+        ArgumentCaptor<Float> normalizeCaptor = ArgumentCaptor.forClass(Float.class);
         
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
@@ -42,7 +63,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         Analyzer analyzer = new StandardAnalyzer();
 
         IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-        conf.setCodec(Codec.forName("Lucene53"));
+        conf.setCodec(Codec.forName("Lucene60"));
         IndexWriter indexWriter = new IndexWriter(directory, conf);
        
         addNumDocs("f1", "abc", indexWriter, 2);
@@ -53,6 +74,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         IndexReader indexReader = DirectoryReader.open(directory); 
         IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(similarity);
         
         Map<String, Float> fields = new HashMap<>();
         fields.put("f1", 1f);
@@ -65,7 +87,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         Query query = queryBuilder.createQuery(parser.parse("abc"));
         dfc.finishedUserQuery();
-        query.createWeight(indexSearcher, true);
+        //query.createWeight(indexSearcher, true);
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
@@ -81,13 +103,19 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         DependentTermQuery dtq2 = (DependentTermQuery) disjunct2;
         
         assertNotEquals(dtq1.getTerm().field(), dtq2.getTerm().field());
-        
-        float bf1 = ("f1".equals(dtq1.getTerm().field())) ? ((BoostQuery) dtq1.rewrite(indexReader)).getBoost() : ((BoostQuery) dtq2.rewrite(indexReader)).getBoost();
-        float bf2 = ("f2".equals(dtq2.getTerm().field())) ? ((BoostQuery) dtq2.rewrite(indexReader)).getBoost() : ((BoostQuery) dtq1.rewrite(indexReader)).getBoost();
-        
+
+        final Weight weight1 = dtq1.createWeight(indexSearcher, true);
+        final Weight weight2 = dtq2.createWeight(indexSearcher, true);
+        weight1.normalize(0.1f, 5f);
+        weight2.normalize(0.1f, 5f);
+
+        Mockito.verify(simWeight, times(2)).normalize(eq(0.1f), normalizeCaptor.capture());
+        final List<Float> capturedBoosts = normalizeCaptor.getAllValues();
+        float bf1 = capturedBoosts.get(0);
+        float bf2 = capturedBoosts.get(1);
+
         assertEquals(2f, bf2 / bf1, 0.00001);
-        
-        
+
         indexReader.close();
         directory.close();
         analyzer.close();

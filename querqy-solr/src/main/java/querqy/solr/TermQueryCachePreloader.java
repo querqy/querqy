@@ -7,13 +7,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.util.ToStringUtils;
 import org.apache.solr.core.AbstractSolrEventListener;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.search.SolrCache;
@@ -21,12 +17,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection;
-import querqy.lucene.rewrite.FieldBoost;
-import querqy.lucene.rewrite.NeverMatchQueryFactory;
-import querqy.lucene.rewrite.TermQueryFactory;
-import querqy.lucene.rewrite.TermSubQueryBuilder;
-import querqy.lucene.rewrite.TermSubQueryFactory;
+import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.lucene.rewrite.cache.TermQueryCacheValue;
@@ -51,28 +42,12 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
     
     public static final String CONF_TEST_FOR_HITS = "testForHits";
     
-    static final FieldBoost DUMMY_FIELD_BOOST = new FieldBoost() {
-        @Override
-        public void registerTermSubQuery(String fieldname,
-                TermSubQueryFactory termSubQueryFactory, Term sourceTerm) {
-        }
-        @Override
-        public float getBoost(String fieldname, IndexReader indexReader)
-                throws IOException {
-            return 1f;
-        }
-        @Override
-        public String toString(String fieldname) {
-            return "";
-        }
-    };
-
     public TermQueryCachePreloader(SolrCore core) {
         super(core);
     }
     
     protected Map<String, Float> getPreloadFields() {
-        // REVISIT: we don't need the boost factors as could will be overridden per request
+        // REVISIT: we don't need the boost factors as they could be overridden per request
        String fieldConf = (String) getArgs().get(CONF_PRELOAD_FIELDS); 
        return QuerqyDismaxQParser.parseFieldBoosts(fieldConf, 1f);
     }
@@ -131,7 +106,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
             List<RewriterFactory> factories = rewriteChain.getRewriterFactories();
             if (!factories.isEmpty()) {
             
-                TermSubQueryBuilder termSubQueryBuilder = new PrelaodTermSubQueryBuilder(newSearcher.getSchema().getQueryAnalyzer(), cache);
+                TermSubQueryBuilder termSubQueryBuilder = new TermSubQueryBuilder(newSearcher.getSchema().getQueryAnalyzer(), cache);
                 for (RewriterFactory factory : factories) {
                     for (Term term: factory.getGenerableTerms()) {
                         String field = term.getField();
@@ -164,14 +139,14 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         try {
             
             // luceneQueryBuilder.termToFactory creates the query and caches it (without the boost)
-            TermSubQueryFactory termSubQueryFactory = termSubQueryBuilder.termToFactory(field, term, DUMMY_FIELD_BOOST);
+            TermSubQueryFactory termSubQueryFactory = termSubQueryBuilder.termToFactory(field, term, ConstantFieldBoost.NORM_BOOST);
             
             // test the query for hits and override the cache value with a factory that creates a query that never matches
             // --> this query will never be executed against the index again
             
             // no need to re-test for hits if we've seen this term before
             if (testForHits && (termSubQueryFactory != null) && (!termSubQueryFactory.isNeverMatchQuery())) {
-                Query query = termSubQueryFactory.createQuery(DUMMY_FIELD_BOOST, 0.01f, null);
+                Query query = termSubQueryFactory.createQuery(ConstantFieldBoost.NORM_BOOST, 0.01f, null);
                 TopDocs topDocs = searcher.search(query, 1);
                 if (topDocs.totalHits < 1) {
                     cache.put(new CacheKey(field, term), new TermQueryCacheValue(NeverMatchQueryFactory.FACTORY, PRMSQuery.NEVER_MATCH_PRMS_QUERY));
@@ -183,31 +158,6 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         }
     }
     
-    class PrelaodTermSubQueryBuilder extends TermSubQueryBuilder {
-        public PrelaodTermSubQueryBuilder(Analyzer analyzer,
-                TermQueryCache termQueryCache) {
-            super(analyzer, termQueryCache);
-        }
 
-        @Override
-        protected TermQueryFactory createTermQueryFactory(
-                org.apache.lucene.index.Term term) {
-            return new PreloadTermQueryFactory(term);
-        }
-    }
-    
-    class PreloadTermQueryFactory extends TermQueryFactory {
-
-        public PreloadTermQueryFactory(org.apache.lucene.index.Term term) {
-            super(term);
-        }
-        
-        @Override
-        public TermQuery createQuery(FieldBoost boost,
-                float dmqTieBreakerMultiplier, DocumentFrequencyCorrection dfc) throws IOException {
-            return new TermQuery(term);
-        }
-        
-    }
 
 }

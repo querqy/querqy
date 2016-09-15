@@ -11,8 +11,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.Similarity.SimScorer;
 
-import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
-
 /**
  * A TermQuery that depends on other term queries for the calculation of the document frequency
  * and/or the boost factor (field weight). 
@@ -42,6 +40,10 @@ public class DependentTermQuery extends TermQuery {
             throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
         }
 
+        if (term == null) {
+            throw new IllegalArgumentException("Term must not be null");
+        }
+
         this.tqIndex  = tqIndex;
         this.dftcp = dftcp;
         this.fieldBoost = fieldBoost;
@@ -49,7 +51,7 @@ public class DependentTermQuery extends TermQuery {
     
     @Override
     public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
-        DocumentFrequencyAndTermContext dftc = dftcp.getDocumentFrequencyAndTermContext(tqIndex, searcher);
+        DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext dftc = dftcp.getDocumentFrequencyAndTermContext(tqIndex, searcher);
         if (dftc.df < 1) {
             return new NeverMatchWeight();
         }
@@ -61,24 +63,27 @@ public class DependentTermQuery extends TermQuery {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = prime  + dftcp.hashCode();
+        int result = prime  + tqIndex;
         result = prime * result + fieldBoost.hashCode();
-        result = prime * result + getTerm().hashCode();
-        return result;
+       // result = prime * result + getTerm().hashCode(); handled in super class
+        return super.hashCode() ^ result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (getClass() != obj.getClass())
+
+        if (!super.equals(obj)) {
             return false;
+        }
+
         DependentTermQuery other = (DependentTermQuery) obj;
-        if (!dftcp.equals(other.dftcp))
+        if (tqIndex != other.tqIndex)
             return false;
         if (!fieldBoost.equals(other.fieldBoost))
             return false;
-        return getTerm().equals(other.getTerm());
+
+        return true; // getTerm().equals(other.getTerm());  already assured in super class
+
     }
     
     @Override
@@ -99,16 +104,6 @@ public class DependentTermQuery extends TermQuery {
         return fieldBoost;
     }
     
-    @Override
-    public Query rewrite(IndexReader reader) throws IOException {
-        float boost = fieldBoost.getBoost(getTerm().field(), reader);
-        if (boost != 1f) {
-            DependentTermQuery clone = new DependentTermQuery(getTerm(), dftcp, tqIndex, ConstantFieldBoost.NORM_BOOST);
-            return new BoostQuery(clone, boost);
-        }
-        return this;
-    }
-
     /**
      * Copied from inner class in {@link TermQuery}
      *
@@ -118,6 +113,7 @@ public class DependentTermQuery extends TermQuery {
         private final Similarity.SimWeight stats;
         private final TermContext termStates;
         private final boolean needsScores;
+        private final float fieldBoostFactor;
         
         public TermWeight(IndexSearcher searcher, boolean needsScores, TermContext termStates)
           throws IOException {
@@ -130,6 +126,8 @@ public class DependentTermQuery extends TermQuery {
             this.stats = similarity.computeWeight(
               searcher.collectionStatistics(term.field()), 
               searcher.termStatistics(term, termStates));
+            fieldBoostFactor = fieldBoost.getBoost(getTerm().field(), searcher.getIndexReader());
+            stats.normalize(1f, fieldBoostFactor);
         }
 
         @Override
@@ -142,8 +140,8 @@ public class DependentTermQuery extends TermQuery {
         }
 
         @Override
-        public void normalize(float queryNorm, float topLevelBoost) {
-          stats.normalize(queryNorm, topLevelBoost);
+        public void normalize(float norm, float boost) {
+          stats.normalize(norm, boost * fieldBoostFactor);
         }
 
         @Override
@@ -196,8 +194,8 @@ public class DependentTermQuery extends TermQuery {
                 return Explanation.match(
                     scoreExplanation.getValue(),
                     "weight(" + getQuery() + " in " + doc + ") ["
-                        + similarity.getClass().getSimpleName() + "], result of:",
-                    scoreExplanation);
+                        + similarity.getClass().getSimpleName() + ", " + fieldBoost.getClass().getSimpleName() + "], result of:",
+                    scoreExplanation );
               }
             }
             return Explanation.noMatch("no matching term");

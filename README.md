@@ -6,13 +6,15 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
-Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x  require the following Solr 5 versions:
+Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x maps to Solr 6. Detailed Solr version mapping:
 
   - Querqy 2.0.x to 2.5.x - Solr 5.0
   - Querqy 2.6.x to 2.7.x - Solr 5.1
   - Querqy 2.8.x          - Solr 5.3.x
   - Querqy 2.9.x          - Solr 5.4.x 
-
+  - Querqy 2.10.x         - Solr 5.5.x  
+  - Querqy 3.0.x          - Solr 6.0.x
+  
 You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
@@ -38,7 +40,7 @@ Alternatively, if you already have a Maven build for your Solr plugins, you can 
 ~~~
 
 ### Configuring Solr for Querqy
-Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
+Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
 
 ~~~xml
 <!-- 
@@ -116,6 +118,8 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_0_0/solr-core/
 <searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 
 ~~~
+
+Also see [Advanced configuration: caching](#advanced-configuration-caching).
 
 ### Making requests to Solr using Querqy
 You can activate the Querqy query parser in Solr by setting the defType request parameter - in other words, just like you would enable any other query parser in a Solr search request:
@@ -506,6 +510,92 @@ For example, it is often handy to first apply delete rules before applying furth
 
 ~~~
 
+### Advanced configuration: Caching
+When you configure rewrite rules for Querqy, in most cases you will not specify field names. For example, you would use a synonym rule to say that if the user enters a query 'personal computer', Solr should also search for 'pc' and Querqy would automatically create field-specific queries like 'name:pc', 'description:pc', 'color:pc' etc. for the right-hand side of the synonym rule. The fields for which Solr creates queries depend on the gqf or qf parameters. On the other hand, it is very unlikely that an input term would have matches in all fields that are given in 'gqf'/'qf'. In the example, it is very unlikely that there would be a document having the term 'pc' in the 'color' field.
+
+You can configure Querqy to check on startup/core reloading/when opening a searcher whether the terms on the right-hand side of the rules have matches in the query fields and cache this information. If there is no document matching the right-hand side term in a given field, the field-specific query will not be executed again until Solr opens a new searcher. Caching this information can speed up Querqy considerably, expecially if there are many query fields.
+
+Cache configuration (solrconfig.xml):
+
+~~~
+<query>
+   <!-- Place a custom cache in the <query> section: -->
+	<cache name="querqyTermQueryCache"
+              class="solr.LFUCache"
+              size="1024"
+              initialSize="1024"
+              autowarmCount="0"
+              regenerator="solr.NoOpRegenerator"
+    />
+    
+    <!-- 
+    	A preloader for the cache, called when Solr is started up or when
+    	the core is reloaded.
+    -->
+    <listener event="firstSearcher" class="querqy.solr.TermQueryCachePreloader">
+    		<!-- 
+    			The fields for which Querqy pre-checks and caches whether the 
+    			right-hand side terms match. Normally the same set of fields like
+    			in qf/gqf but you could omit fields that are very quick to query.
+    		-->
+      		<str name="fields">f1 f2</str>
+      		
+      		<!-- The name of the configered Querqy QParserPlugin -->
+      		<str name="qParserPlugin">querqy</str>
+      		
+      		<!-- The name of the custom cache -->
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		
+      		<!-- 
+      			If false, the preloader would not test for matches of the right-hand side
+      			terms but only cache the rewritten (text-analysed) query. This can already
+      			save query time if there are many query fields and if the rewritten query 
+      			is very complex. You would normally set this to 'true' to completely avoid 
+      			executing non-matching term queries later.
+      		-->
+      		<bool name="testForHits">true</bool>
+    </listener>
+    	
+    <!-- 
+    	Same preloader as above but listening to 'newSearcher' events (for example,
+    	commits with openSearcher=true)
+    -->
+    <listener event="newSearcher" class="querqy.solr.TermQueryCachePreloader">
+      		<str name="fields">f1 f2</str>
+      		<str name="qParserPlugin">querqy</str>
+      		<str name="cacheName">querqyTermQueryCache</str>
+      		<bool name="testForHits">true</bool>
+    </listener>
+    	
+    	
+</query> 
+
+
+<!-- Tell the Querqy query parser to use the custom cache: -->
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	    
+	    <!-- 
+	          A reference to the custom cache. It must match the 
+	          cache name that you have used in the cache definition.
+	    --> 
+	    <str name="termQueryCache.name">querqyTermQueryCache</str>
+	    
+	    
+	    <!--
+	    		If true, the cache will be updated after preloading for terms 
+	    		from all user queries, including those that were not rewritten. 
+	    		In most cases this should be set to 'false' in order to make sure 
+	    		that the information for the right-hand side terms of your rewrite rules 
+	    		is never evicted from the cache.
+	    -->
+	    <bool name="termQueryCache.update">false</bool>
+	    
+		<lst name="rewriteChain">
+           ...
+       </lst>    
+</queryParser>          
+~~~
+
 
 
 ## License
@@ -514,7 +604,7 @@ Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/l
 ## Development
 
 ### Branches
-Please base development for Lucene/Solr 5.x and Lucene/Solr-independent features (querqy-core) on branch master and for Lucene/Solr 4.x on branch solr4. Note that before Querqy 2.9.0 development for Solr 5.x was carried out in branch solr5, while branch master contained Lucene/Solr 4.x and Lucene/Solr-independent code.
+Please base development on the branch for the corresponding Solr version.
 
 ### Modules
   
