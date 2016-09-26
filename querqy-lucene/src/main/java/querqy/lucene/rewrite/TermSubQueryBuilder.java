@@ -89,14 +89,19 @@ public class TermSubQueryBuilder {
                }
            }
         }
-        
-        if (cacheKey != null) {
-            termQueryCache.put(cacheKey, new TermQueryCacheValue(root));
-        }
-        
+
+        putQueryFactoryAndPRMSQueryIntoCache(cacheKey, root);
+
         return root == null ? null : new TermSubQueryFactory(root, boost);
     }
-    
+
+    protected void putQueryFactoryAndPRMSQueryIntoCache(final CacheKey cacheKey, final LuceneQueryFactoryAndPRMSQuery value) {
+        if (value != null && cacheKey != null && termQueryCache != null) {
+            termQueryCache.put(cacheKey, new TermQueryCacheValue(value));
+        }
+    }
+
+
     public LuceneQueryFactoryAndPRMSQuery positionSequenceToQueryFactoryAndPRMS(PositionSequence<org.apache.lucene.index.Term> sequence) {
         switch (sequence.size()) {
         case 0: return null;

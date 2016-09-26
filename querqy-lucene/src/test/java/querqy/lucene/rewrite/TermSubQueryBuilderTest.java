@@ -1,6 +1,10 @@
 package querqy.lucene.rewrite;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -8,22 +12,36 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
 import org.junit.Test;
 
+import org.mockito.Mockito;
 import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
+import querqy.lucene.rewrite.cache.CacheKey;
+import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.cache.TermQueryCacheValue;
 import querqy.lucene.rewrite.prms.PRMSAndQuery;
 import querqy.lucene.rewrite.prms.PRMSDisjunctionMaxQuery;
 import querqy.lucene.rewrite.prms.PRMSQuery;
 import querqy.lucene.rewrite.prms.PRMSTermQuery;
 import querqy.rewrite.commonrules.model.PositionSequence;
 
+import java.util.Arrays;
+
 public class TermSubQueryBuilderTest {
 
     static final Analyzer ANALYZER = new StandardAnalyzer();
-    
+
+    TermQueryCache cache = Mockito.mock(TermQueryCache.class);
+
+    @Before
+    public void setUp() throws Exception {
+        when(cache.get(any(CacheKey.class))).thenReturn(null);
+    }
+
     @Test
     public void testNoTerm() throws Exception {
-        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
+        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, cache);
         
         PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
         assertNull(builder.positionSequenceToQueryFactoryAndPRMS(sequence));
@@ -35,7 +53,7 @@ public class TermSubQueryBuilderTest {
     @Test
     public void testSingleTerm() {
         
-        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
+        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, cache);
         
         PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
@@ -51,11 +69,11 @@ public class TermSubQueryBuilderTest {
                 );
         
     }
-    
+
     @Test
     public void testTwoTermsAtSinglePosition() throws Exception {
         
-        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
+        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, cache);
         
         PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
@@ -85,7 +103,7 @@ public class TermSubQueryBuilderTest {
     @Test
     public void testTwoTermsAtTwoPositions() throws Exception {
         
-        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
+        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, cache);
         
         PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
@@ -117,7 +135,7 @@ public class TermSubQueryBuilderTest {
     @Test
     public void testTwoTermsAtFirstAndOneTermAtSecondPosition() throws Exception {
         
-        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
+        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, cache);
         
         PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
         sequence.nextPosition();
@@ -154,7 +172,20 @@ public class TermSubQueryBuilderTest {
                 );        
         
     }
-    
+
+    @Test
+    public void testThatDeletingAllTermsInLuceneAnalysisDoesNotCauseException() throws Exception {
+        TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, cache);
+
+        PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
+        sequence.nextPosition();
+        querqy.model.Term term = new querqy.model.Term(null, "f", ".", false);
+
+        builder.termToFactory("f", term, ConstantFieldBoost.NORM_BOOST);
+
+        verify(cache, never()).put(any(CacheKey.class), any(TermQueryCacheValue.class));
+
+    }
     
     
     public TQFMatcher tqf(Term term) {
