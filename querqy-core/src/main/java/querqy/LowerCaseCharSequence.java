@@ -28,7 +28,7 @@ public class LowerCaseCharSequence implements ComparableCharSequence {
     
     @Override
     public String toString() {
-        return super.toString().toLowerCase();
+        return delegate.toString().toLowerCase();
     }
 
     @Override
