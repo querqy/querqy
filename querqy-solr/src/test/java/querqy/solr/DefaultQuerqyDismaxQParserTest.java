@@ -25,7 +25,6 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertU(adoc("id", "4", "f1", "b"));
       assertU(adoc("id", "5", "f1", "spellcheck", "f2", "test"));
       assertU(adoc("id", "6", "f1", "spellcheck filtered", "f2", "test"));
-      
 
       assertU(commit());
    }
@@ -59,7 +58,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
         SolrQueryRequest req0 = req("q", "spellcheck test",
                 DisMaxParams.QF, "f1 f2",
                 DisMaxParams.MM, "2",
-                
+
                 "defType", "querqy",
                 "debugQuery", "true"
                 );
@@ -97,7 +96,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", "a b c",
             DisMaxParams.QF, "f1 f2",
-            DisMaxParams.MM, "2");
+            DisMaxParams.MM, "2"
+        );
 
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(),
             new WhiteSpaceQuerqyParser(), null);
@@ -223,6 +223,78 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
    }
 
+    @Test
+    public void testThatAnalysisIsRunForPf() throws Exception {
+
+        String q = "K L M";
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "3",
+                QueryParsing.OP, "OR",
+                "defType", "querqy",
+                "debugQuery", "true",
+                DisMaxParams.PF, "f1_lc f2_lc");
+
+
+        assertQ("Analysis not applied for pf",
+                req,
+                // Query terms should be lower-cased in analysis for pf fields
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f1_lc:\"k l m\" | f2_lc:\"k l m\"))')]",
+                // but not for query fields
+                "//str[@name='parsedquery'][contains(.,'(f1:K f1:L f1:M)')]");
+
+        req.close();
+
+    }
+
+    @Test
+    public void testThatAnalysisIsRunForPf2() throws Exception {
+
+        String q = "K L M";
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "3",
+                QueryParsing.OP, "OR",
+                "defType", "querqy",
+                "debugQuery", "true",
+                DisMaxParams.PF2, "f1_lc f2_lc");
+
+
+        assertQ("Analysis not applied for pf2",
+                req,
+                // Query terms should be lower-cased in analysis for pf2 fields
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery(((f1_lc:\"k l\" f1_lc:\"l m\") | (f2_lc:\"k l\" f2_lc:\"l m\")))')]",
+                // but not for query fields
+                "//str[@name='parsedquery'][contains(.,'(f1:K f1:L f1:M)')]");
+
+        req.close();
+
+    }
+
+    @Test
+    public void testThatAnalysisIsRunForPf3() throws Exception {
+
+        String q = "K L M";
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "3",
+                QueryParsing.OP, "OR",
+                "defType", "querqy",
+                "debugQuery", "true",
+                DisMaxParams.PF3, "f1_lc f2_lc");
+
+
+        assertQ("Analysis not applied for pf",
+                req,
+                // Query terms should be lower-cased in analysis for pf fields
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f1_lc:\"k l m\" | f2_lc:\"k l m\"))')]",
+                // but not for query fields
+                "//str[@name='parsedquery'][contains(.,'(f1:K f1:L f1:M)')]");
+
+        req.close();
+
+    }
+
    @Test
    public void testThatPf2IsAppliedOnlyToExistingField() throws Exception {
 
@@ -238,12 +310,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       // f40 does not exists
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^2.0')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\")^2.0')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\")^2.0')]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"a b\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"b c\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f40:\"c d\")^0.5'))]");
+            "//str[@name='parsedquery_toString'][contains(.,'(f1:\"a b\" f1:\"b c\" f1:\"c d\")^2.0')]",
+            "//str[@name='parsedquery_toString'][not(contains(.,'(f40:\"a b\" f1:\"b c\" f1:\"c d\")^0.5'))]");
 
       req.close();
 
@@ -259,21 +327,21 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             QueryParsing.OP, "OR",
             "defType", "querqy",
             "debugQuery", "true",
-            DisMaxParams.PF2, "f1^1.2 str^2 f_no_tfp^0.5");
+            DisMaxParams.PF2, "f1 str f_no_tfp");
 
       // str is a string field
       // f_no_tfp doesn't have term positions
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^1.2')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\")^1.2')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\")^1.2')]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"a b\")^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"b c\")^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"c d\")^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"a b\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"b c\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"c d\")^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"')]",
+            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"')]",
+            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"')]",
+            "//str[@name='parsedquery'][not(contains(.,'str:\"a b\"'))]",
+            "//str[@name='parsedquery'][not(contains(.,'str:\"b c\"'))]",
+            "//str[@name='parsedquery'][not(contains(.,'str:\"c d\"'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b\"'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"b c\"'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"c d\"'))]");
 
       req.close();
 
@@ -295,14 +363,13 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       // f_no_tfp / f_no_tp don't have term positions
       assertQ("wrong ps2",
             req,
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b c\")^1.2')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c d\")^1.2')]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"a b c\")^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(str:\"b c d\")^2.0'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"a b c\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tfp:\"b c d\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tp:\"a b c\")^0.5'))]",
-            "//str[@name='parsedquery'][not(contains(.,'PhraseQuery(f_no_tp:\"b c d\")^0.5'))]");
+            "//str[@name='parsedquery'][contains(.,'(f1:\"a b c\" f1:\"b c d\")^1.2')]",
+            "//str[@name='parsedquery'][not(contains(.,'str:\"a b c\"^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'str:\"b c d\"^2.0'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"a b c\"^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tfp:\"b c d\"^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"a b c\"^0.5'))]",
+            "//str[@name='parsedquery'][not(contains(.,'f_no_tp:\"b c d\"^0.5'))]");
 
       req.close();
 
@@ -319,8 +386,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.PF3, "f2^2.5 f3^1.5"
             );
       verifyQueryString(req, q,
-            "(f2:\"a b c\")^2.5", "(f2:\"b c d\")^2.5",
-            "(f3:\"a b c\")^1.5", "(f3:\"b c d\")^1.5"
+            "(f2:\"a b c\" f2:\"b c d\")^2.5",
+            "(f3:\"a b c\" f3:\"b c d\")^1.5"
 
       );
 
@@ -342,10 +409,10 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
       verifyQueryString(req, q,
             "(f2:\"a b d e f\")^1.5", "(f3:\"a b d e f\")^1.5",
-            "(f1:\"a b\")^2.1", "(f1:\"b d\")^2.1", "(f1:\"d e\")^2.1", "(f1:\"e f\")^2.1",
-            "(f2:\"a b\")^2.1", "(f2:\"b d\")^2.1", "(f2:\"d e\")^2.1", "(f2:\"e f\")^2.1",
-            "(f3:\"a b d\")^3.9", "(f3:\"b d e\")^3.9", "(f3:\"d e f\")^3.9",
-            "(f1:\"a b d\")^3.9", "(f1:\"b d e\")^3.9", "(f1:\"d e f\")^3.9"
+            "(f1:\"a b\" f1:\"b d\" f1:\"d e\" f1:\"e f\")^2.1",
+            "(f2:\"a b\" f2:\"b d\" f2:\"d e\" f2:\"e f\")^2.1",
+            "(f3:\"a b d\" f3:\"b d e\" f3:\"d e f\")^3.9",
+            "(f1:\"a b d\" f1:\"b d e\" f1:\"d e f\")^3.9"
 
       );
 
@@ -380,11 +447,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
       assertQ("ps2/3 with synonyms not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\"~2)^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"b c\"~2)^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"c d\"~2)^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f2:\"a b c\"~3)^3.9')]",
-            "//str[@name='parsedquery'][contains(.,'PhraseQuery(f2:\"b c d\"~3)^3.9')]");
+            "//str[@name='parsedquery'][contains(.,'(f1:\"a b\"~2 f1:\"b c\"~2 f1:\"c d\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'(f2:\"a b c\"~3 f2:\"b c d\"~3)^3.9')]");
 
       req.close();
 
@@ -450,7 +514,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       BooleanQuery bq = (BooleanQuery) query;
       String qStr = bq.toString();
       for (String exp : expectedSubstrings) {
-         assertTrue("Missing: " + exp, qStr.contains(exp));
+         assertTrue("Missing: " + exp + " in " + bq, qStr.indexOf(exp) > -1);
       }
 
    }
