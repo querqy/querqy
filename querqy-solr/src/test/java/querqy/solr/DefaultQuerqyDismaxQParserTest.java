@@ -13,6 +13,7 @@ import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 
+@SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
    public static void index() throws Exception {

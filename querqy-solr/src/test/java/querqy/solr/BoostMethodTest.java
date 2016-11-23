@@ -10,6 +10,7 @@ import org.junit.Test;
 /**
  * Created by rene on 01/09/2016.
  */
+@SolrTestCaseJ4.SuppressSSL
 public class BoostMethodTest extends SolrTestCaseJ4 {
 
     public static void index() throws Exception {
