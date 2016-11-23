@@ -63,11 +63,8 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
       assertQ("ps2/3 with synonyms not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:\"a b\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"b c\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f1:\"c d\"~2^2.1')]",
-            "//str[@name='parsedquery'][contains(.,'f2:\"a b c\"~3^3.9')]",
-            "//str[@name='parsedquery'][contains(.,'f2:\"b c d\"~3^3.9')]");
+            "//str[@name='parsedquery'][contains(.,'(f1:\"a b\"~2 f1:\"b c\"~2 f1:\"c d\"~2)^2.1')]",
+            "//str[@name='parsedquery'][contains(.,'f2:\"a b c\"~3 f2:\"b c d\"~3)^3.9')]");
 
       req.close();
 
