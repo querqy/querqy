@@ -13,6 +13,8 @@ import java.io.IOException;
  */
 public class TestUtil {
 
+    public static final String LUCENE_CODEC = System.getProperty("tests.codec");
+
     public static void addNumDocs(String fieldname, String value, RandomIndexWriter indexWriter, int num) throws IOException {
         for (int i = 0; i < num; i++) {
             Document doc = new Document();

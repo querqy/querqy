@@ -25,10 +25,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import querqy.lucene.rewrite.DependentTermQuery;
-import querqy.lucene.rewrite.DocumentFrequencyCorrection;
-import querqy.lucene.rewrite.LuceneQueryBuilder;
-import querqy.lucene.rewrite.SearchFieldsAndBoosting;
+import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
@@ -63,7 +60,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         Analyzer analyzer = new StandardAnalyzer();
 
         IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-        conf.setCodec(Codec.forName("Lucene60"));
+        conf.setCodec(Codec.forName(TestUtil.LUCENE_CODEC));
         IndexWriter indexWriter = new IndexWriter(directory, conf);
        
         addNumDocs("f1", "abc", indexWriter, 2);
