@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>querqy</groupId>
-		<artifactId>querqy-parent</artifactId>
-		<version>2.9.5-SNAPSHOT</version>
-	</parent>
-	<artifactId>querqy-lucene</artifactId>
+    <parent>
+        <groupId>querqy</groupId>
+        <artifactId>querqy-for-lucene</artifactId>
+        <version>2.9.5-SNAPSHOT</version>
+    </parent>
+    <artifactId>querqy-lucene</artifactId>
 
-	<dependencies>
-	    <!-- 
+    <dependencies>
+        <!--
             The Solr test framework needs to be loaded before Lucene core,
             otherwise we run into trouble loading the codec for testing
         -->
@@ -19,47 +19,47 @@
             <version>${lucene.version}</version>
             <scope>test</scope>
         </dependency>
-        
-	
-		<dependency>
-  			<groupId>commons-io</groupId>
-  			<artifactId>commons-io</artifactId>
-  			<version>${commons.io.version}</version>
-  		</dependency>
 
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>querqy-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>querqy-core</artifactId>
-			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>querqy-antlr</artifactId>
-			<version>${project.version}</version>
-			<optional>true</optional>
-		</dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>querqy-core</artifactId>
+            <version>${querqy.core.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-analyzers-common</artifactId>
-			<version>${lucene.version}</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>querqy-core</artifactId>
+            <version>${querqy.core.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
 
-	</dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>querqy-antlr</artifactId>
+            <version>${querqy.antlr.version}</version>
+            <optional>true</optional>
+        </dependency>
 
-	<build>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-common</artifactId>
+            <version>${lucene.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
-		<plugins>
+    </dependencies>
+
+    <build>
+
+        <plugins>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -100,7 +100,7 @@
                 </configuration>
             </plugin>
 
-		</plugins>
+        </plugins>
 
-	</build>
+    </build>
 </project>

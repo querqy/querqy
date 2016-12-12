@@ -11,9 +11,9 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
 
    final char[] value;
    final int start;
-   int length;
+   final int length;
 
-   public SimpleComparableCharSequence(char[] value, int start, int length) {
+   public SimpleComparableCharSequence(final char[] value, final int start, final int length) {
       if ((start + length) > value.length) {
          throw new ArrayIndexOutOfBoundsException(start + length);
       }
@@ -38,7 +38,7 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
     * @see java.lang.CharSequence#charAt(int)
     */
    @Override
-   public char charAt(int index) {
+   public char charAt(final int index) {
       if (index >= length) {
          throw new ArrayIndexOutOfBoundsException(index);
       }
@@ -51,7 +51,7 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
     * @see java.lang.CharSequence#subSequence(int, int)
     */
    @Override
-   public ComparableCharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(final int start, final int end) {
 
       if (end > length) {
          throw new ArrayIndexOutOfBoundsException(end);
@@ -64,7 +64,7 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
    }
 
    @Override
-   public int compareTo(CharSequence other) {
+   public int compareTo(final CharSequence other) {
        return CharSequenceUtil.compare(this, other);
    }
 
@@ -75,7 +75,7 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
    }
 
    @Override
-   public boolean equals(Object obj) {
+   public boolean equals(final Object obj) {
        return CharSequenceUtil.equals(this, obj);
    }
 

@@ -11,8 +11,7 @@ public class RawQuery extends Clause<BooleanParent> implements QuerqyQuery<Boole
 
    final String queryString;
 
-   public RawQuery(BooleanParent parent, String queryString, Occur occur,
-         boolean isGenerated) {
+   public RawQuery(final BooleanParent parent, final String queryString, final Occur occur, final boolean isGenerated) {
 
       super(parent, occur, isGenerated);
 
@@ -21,17 +20,17 @@ public class RawQuery extends Clause<BooleanParent> implements QuerqyQuery<Boole
    }
 
    @Override
-   public <T> T accept(NodeVisitor<T> visitor) {
+   public <T> T accept(final NodeVisitor<T> visitor) {
       return visitor.visit(this);
    }
 
    @Override
-   public RawQuery clone(BooleanParent newParent) {
+   public RawQuery clone(final BooleanParent newParent) {
       return clone(newParent, this.generated);
    }
    
    @Override
-   public RawQuery clone(BooleanParent newParent, boolean generated) {
+   public RawQuery clone(final BooleanParent newParent, final boolean generated) {
        return new RawQuery(newParent, queryString, occur, generated);
    }
 
@@ -47,7 +46,7 @@ public class RawQuery extends Clause<BooleanParent> implements QuerqyQuery<Boole
    }
 
    @Override
-   public boolean equals(Object obj) {
+   public boolean equals(final Object obj) {
       if (this == obj)
          return true;
       if (obj == null)
