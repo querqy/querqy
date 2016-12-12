@@ -27,23 +27,23 @@ public class TermMatches extends LinkedList<TermMatch> {
         super();
     }
     
-    public TermMatches(Collection<? extends TermMatch> c) {
+    public TermMatches(final Collection<? extends TermMatch> c) {
         super();
-        for (TermMatch match: c) {
+        for (final TermMatch match: c) {
             add(match);
         }
     }
     
-    public TermMatches(TermMatch match) {
+    public TermMatches(final TermMatch match) {
         super();
         add(match);
     }
     
-    public ComparableCharSequence getReplacement(int position) {
+    public ComparableCharSequence getReplacement(final int position) {
         if (replacements == null) {
             throw new IndexOutOfBoundsException(Integer.toString(position));
         }
-        ComparableCharSequence replacement = replacements.get(position);
+        final ComparableCharSequence replacement = replacements.get(position);
         if (replacement == null) {
             throw new IndexOutOfBoundsException(Integer.toString(position));
         }
@@ -52,7 +52,7 @@ public class TermMatches extends LinkedList<TermMatch> {
     }
     
     @Override
-    public boolean add(TermMatch match) {
+    public boolean add(final TermMatch match) {
         if (match.isPrefix) {
             updateReplacements(match);
         }
@@ -60,31 +60,31 @@ public class TermMatches extends LinkedList<TermMatch> {
     }
     
     @Override
-    public void add(int index, TermMatch match) {
+    public void add(final int index, final TermMatch match) {
         throw new UnsupportedOperationException();
     }
     
     @Override
-    public void addFirst(TermMatch match) {
-        Map<Integer, ComparableCharSequence> newReplacements = new HashMap<>();
+    public void addFirst(final TermMatch match) {
+        final Map<Integer, ComparableCharSequence> newReplacements = new HashMap<>();
         newReplacements.put(1, match.getWildcardMatch());
-        for (Map.Entry<Integer, ComparableCharSequence> entry : replacements.entrySet()) {
+        for (final Map.Entry<Integer, ComparableCharSequence> entry : replacements.entrySet()) {
             newReplacements.put(entry.getKey() + 1, entry.getValue());
         }
         replacements = newReplacements;
     }
     
     @Override
-    public boolean addAll(Collection<? extends TermMatch> c) {
-        for (TermMatch match: c) {
+    public boolean addAll(final Collection<? extends TermMatch> c) {
+        for (final TermMatch match: c) {
             updateReplacements(match);
         }
         return super.addAll(c);
     }
     
-    protected void updateReplacements(TermMatch match) {
+    protected void updateReplacements(final TermMatch match) {
         if (replacements == null) {
-            replacements = new HashMap<Integer, ComparableCharSequence>();
+            replacements = new HashMap<>();
         }
         replacements.put(replacements.size() + 1, match.getWildcardMatch());
     }

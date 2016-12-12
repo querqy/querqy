@@ -20,7 +20,7 @@ public class FilterInstruction implements Instruction {
 
    final QuerqyQuery<?> filterQuery;
 
-   public FilterInstruction(QuerqyQuery<?> filterQuery) {
+   public FilterInstruction(final QuerqyQuery<?> filterQuery) {
       if (filterQuery == null) {
          throw new IllegalArgumentException("filterQuery must not be null");
       }
@@ -31,16 +31,17 @@ public class FilterInstruction implements Instruction {
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
    @Override
-   public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
-           int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
-      expandedQuery.addFilterQuery((QuerqyQuery<?>) filterQuery.clone(null, true));
+   public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
+                     final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+                     final Map<String, Object> context) {
+      expandedQuery.addFilterQuery(filterQuery.clone(null, true));
 
    }
    
     @Override
     public Set<Term> getGenerableTerms() {
         return (filterQuery instanceof Query) 
-            ?  TermsCollector.collect((Query) filterQuery)
+            ?  TermsCollector.collectGenerableTerms((Query) filterQuery)
             : QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
 
@@ -54,14 +55,14 @@ public class FilterInstruction implements Instruction {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
-        FilterInstruction other = (FilterInstruction) obj;
+        final FilterInstruction other = (FilterInstruction) obj;
         if (filterQuery == null) {
             if (other.filterQuery != null)
                 return false;

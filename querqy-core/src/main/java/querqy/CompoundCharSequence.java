@@ -14,11 +14,11 @@ public class CompoundCharSequence implements ComparableCharSequence {
     
    final CharSequence[] parts;
    
-   public CompoundCharSequence(List<? extends CharSequence> parts) {
+   public CompoundCharSequence(final List<? extends CharSequence> parts) {
        this(null, parts);
    }
 
-   public CompoundCharSequence(CharSequence separator, List<? extends CharSequence> parts) {
+   public CompoundCharSequence(final CharSequence separator, final List<? extends CharSequence> parts) {
       this(separator, parts.toArray(new CharSequence[parts.size()]));
    }
 
@@ -28,7 +28,7 @@ public class CompoundCharSequence implements ComparableCharSequence {
     * @param parts
     *           The parts to combine.
     */
-   public CompoundCharSequence(CharSequence separator, CharSequence... parts) {
+   public CompoundCharSequence(final CharSequence separator, final CharSequence... parts) {
       if (parts == null || parts.length == 0) {
          throw new IllegalArgumentException("Excpectinig one or more parts");
       }
@@ -37,10 +37,10 @@ public class CompoundCharSequence implements ComparableCharSequence {
       } else {
          this.parts = new CharSequence[parts.length * 2 - 1];
 
-         for (int i = 0, len = parts.length; i < len; i++) {
+         for (int i = 0; i < parts.length; i++) {
             int pos = i * 2;
             this.parts[pos] = parts[i];
-            if (i < len - 1) {
+            if (i < parts.length - 1) {
                this.parts[pos + 1] = separator;
             }
          }
@@ -76,18 +76,18 @@ public class CompoundCharSequence implements ComparableCharSequence {
     * @see java.lang.CharSequence#charAt(int)
     */
    @Override
-   public char charAt(int index) {
+   public char charAt(final int index) {
 
       if (parts.length == 1) {
          return parts[0].charAt(index);
       }
 
-      PartInfo partInfo = getPartInfoForCharIndex(index);
+      final PartInfo partInfo = getPartInfoForCharIndex(index);
       return parts[partInfo.partIndex].charAt(index - partInfo.globalStart);
 
    }
 
-   PartInfo getPartInfoForCharIndex(int index) {
+   PartInfo getPartInfoForCharIndex(final int index) {
       int globalEnd = 0;
       for (int i = 0, last = parts.length - 1; i <= last; i++) {
 
@@ -107,7 +107,7 @@ public class CompoundCharSequence implements ComparableCharSequence {
     * @see java.lang.CharSequence#subSequence(int, int)
     */
    @Override
-   public ComparableCharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(final int start, final int end) {
 
       if (parts.length == 1) {
           // TODO: do subsequence as view in wrapper
@@ -121,19 +121,21 @@ public class CompoundCharSequence implements ComparableCharSequence {
               throw new ArrayIndexOutOfBoundsException(start);
           }
       }
-      
-      PartInfo partInfoStart = getPartInfoForCharIndex(start);
-      PartInfo partInfoEnd = getPartInfoForCharIndex(end - 1); // end is
-                                                               // exclusive
+
+      final PartInfo partInfoStart = getPartInfoForCharIndex(start);
+      final PartInfo partInfoEnd = getPartInfoForCharIndex(end - 1); // end is exclusive
+
       if (partInfoStart.partIndex == partInfoEnd.partIndex) {
        // TODO: do subsequence as view in wrapper
-         return new ComparableCharSequenceWrapper(parts[partInfoStart.partIndex].subSequence(start - partInfoStart.globalStart, end
-               - partInfoStart.globalStart));
+         return new ComparableCharSequenceWrapper(
+                 parts[partInfoStart.partIndex]
+                         .subSequence(start - partInfoStart.globalStart, end - partInfoStart.globalStart));
       }
 
-      CharSequence[] resParts = new CharSequence[partInfoEnd.partIndex - partInfoStart.partIndex + 1];
-      resParts[0] = parts[partInfoStart.partIndex].subSequence(start - partInfoStart.globalStart,
-            parts[partInfoStart.partIndex].length());
+      final CharSequence[] resParts = new CharSequence[partInfoEnd.partIndex - partInfoStart.partIndex + 1];
+      resParts[0] = parts[partInfoStart.partIndex]
+              .subSequence(start - partInfoStart.globalStart, parts[partInfoStart.partIndex].length());
+
       for (int i = partInfoStart.partIndex + 1, j = 1; i < partInfoEnd.partIndex; i++) {
          resParts[j++] = parts[i];
       }
@@ -143,31 +145,31 @@ public class CompoundCharSequence implements ComparableCharSequence {
    }
 
    class PartInfo {
-      int partIndex;
-      int globalStart;
+       final int partIndex;
+       final int globalStart;
 
-      public PartInfo(int partIndex, int globalStart) {
-         this.partIndex = partIndex;
-         this.globalStart = globalStart;
-      }
+       public PartInfo(final int partIndex, final int globalStart) {
+           this.partIndex = partIndex;
+           this.globalStart = globalStart;
+       }
    }
 
-   @Override
-   public int compareTo(CharSequence other) {
+    @Override
+    public int compareTo(final CharSequence other) {
 
-      // TODO: avoid calls to this.charAt(i) to make comparison faster
-      int length = length();
-      for (int i = 0, len = Math.min(length, other.length()); i < len; i++) {
-         char ch1 = charAt(i);
-         char ch2 = other.charAt(i);
-         if (ch1 != ch2) {
-            return ch1 - ch2;
-         }
-      }
+        // TODO: avoid calls to this.charAt(i) to make comparison faster
+        final int length = length();
+        for (int i = 0, len = Math.min(length, other.length()); i < len; i++) {
+            final char ch1 = charAt(i);
+            final char ch2 = other.charAt(i);
+            if (ch1 != ch2) {
+                return ch1 - ch2;
+            }
+        }
 
-      return length - other.length();
+        return length - other.length();
 
-   }
+    }
 
    @Override
    public int hashCode() {
@@ -175,18 +177,18 @@ public class CompoundCharSequence implements ComparableCharSequence {
    }
 
    @Override
-   public boolean equals(Object obj) {
+   public boolean equals(final Object obj) {
        return CharSequenceUtil.equals(this, obj);
    }
 
    @Override
    public String toString() {
-      StringBuilder buf = new StringBuilder();
-      for (int i = 0; i < parts.length; i++) {
-         buf.append(parts[i].toString());
+       final StringBuilder buf = new StringBuilder();
+       for (int i = 0; i < parts.length; i++) {
+           buf.append(parts[i].toString());
 
-      }
-      return buf.toString();
+       }
+       return buf.toString();
    }
 
 }
