@@ -13,7 +13,7 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
 
     final CharSequence sequence;
 
-    public ComparableCharSequenceWrapper(CharSequence sequence) {
+    public ComparableCharSequenceWrapper(final CharSequence sequence) {
         this.sequence = sequence;
     }
 
@@ -33,7 +33,7 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
     * @see java.lang.CharSequence#charAt(int)
     */
    @Override
-   public char charAt(int index) {
+   public char charAt(final int index) {
       return sequence.charAt(index);
    }
 
@@ -43,7 +43,7 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
     * @see java.lang.CharSequence#subSequence(int, int)
     */
    @Override
-   public ComparableCharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(final int start, final int end) {
        // TODO: do subSequence as view in new wrapper
        return new ComparableCharSequenceWrapper(sequence.subSequence(start, end));
    }
@@ -54,7 +54,7 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
     * @see java.lang.Comparable#compareTo(java.lang.Object)
     */
    @Override
-   public int compareTo(CharSequence other) {
+   public int compareTo(final CharSequence other) {
        return CharSequenceUtil.compare(this, other);
    }
 
@@ -64,7 +64,7 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
    }
 
    @Override
-   public boolean equals(Object obj) {
+   public boolean equals(final Object obj) {
        return CharSequenceUtil.equals(this, obj);
    }
 

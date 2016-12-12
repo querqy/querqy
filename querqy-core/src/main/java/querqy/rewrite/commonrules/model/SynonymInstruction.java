@@ -26,7 +26,7 @@ public class SynonymInstruction implements Instruction {
     /**
      * 
      */
-    public SynonymInstruction(List<querqy.rewrite.commonrules.model.Term> synonym) {
+    public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym) {
         if (synonym == null || synonym.isEmpty()) {
             throw new IllegalArgumentException("Synonym expansion required");
         }
@@ -38,25 +38,26 @@ public class SynonymInstruction implements Instruction {
      * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
      */
     @Override
-    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
-            int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
+    public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
+                      final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+                      final Map<String, Object> context) {
         
         switch (termMatches.size()) {
             
         case 0: throw new IllegalArgumentException("termMatches must not be empty");
         case 1: {
-            Term match = termMatches.get(0).getQueryTerm();
-            DisjunctionMaxQuery parent = match.getParent();
+            final Term match = termMatches.get(0).getQueryTerm();
+            final DisjunctionMaxQuery parent = match.getParent();
             
             if (synonym.size() == 1) {
                 addSynonymTermToDisjunctionMaxQuery(parent, synonym.get(0), termMatches);
                 
             } else {
-                
-                BooleanQuery bq = new BooleanQuery(match.getParent(), Occur.SHOULD, true);
+
+                final BooleanQuery bq = new BooleanQuery(match.getParent(), Occur.SHOULD, true);
                 match.getParent().addClause(bq);
-                for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
-                    DisjunctionMaxQuery dmq = new  DisjunctionMaxQuery(bq, Occur.MUST, true);
+                for (final querqy.rewrite.commonrules.model.Term synTerm: synonym) {
+                    final DisjunctionMaxQuery dmq = new  DisjunctionMaxQuery(bq, Occur.MUST, true);
                     bq.addClause(dmq);
                     addSynonymTermToDisjunctionMaxQuery(dmq, synTerm, termMatches);
                 }
@@ -65,18 +66,18 @@ public class SynonymInstruction implements Instruction {
         }
         break;
         default:
-            for (TermMatch match: termMatches) {
-                
-                DisjunctionMaxQuery clauseDmq = match.getQueryTerm().getParent();
+            for (final TermMatch match: termMatches) {
+
+                final DisjunctionMaxQuery clauseDmq = match.getQueryTerm().getParent();
                 
                 if (synonym.size() == 1) {
                     addSynonymTermToDisjunctionMaxQuery(clauseDmq, synonym.get(0), termMatches);
                 } else {
-                    BooleanQuery bq = new BooleanQuery(clauseDmq, Occur.SHOULD, true);
+                    final BooleanQuery bq = new BooleanQuery(clauseDmq, Occur.SHOULD, true);
                     clauseDmq.addClause(bq);
                     
-                    for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
-                        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Occur.MUST, true);
+                    for (final querqy.rewrite.commonrules.model.Term synTerm: synonym) {
+                        final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Occur.MUST, true);
                         bq.addClause(dmq);
                         addSynonymTermToDisjunctionMaxQuery(dmq, synTerm, termMatches);
                     }
@@ -89,13 +90,15 @@ public class SynonymInstruction implements Instruction {
 
     }
     
-    protected void addSynonymTermToDisjunctionMaxQuery(DisjunctionMaxQuery dmq, querqy.rewrite.commonrules.model.Term synTerm, TermMatches termMatches) {
-        List<String> fieldNames = synTerm.getFieldNames();
-        ComparableCharSequence charSequence = synTerm.fillPlaceholders(termMatches);
+    protected void addSynonymTermToDisjunctionMaxQuery(final DisjunctionMaxQuery dmq,
+                                                       final querqy.rewrite.commonrules.model.Term synTerm,
+                                                       final TermMatches termMatches) {
+        final List<String> fieldNames = synTerm.getFieldNames();
+        final ComparableCharSequence charSequence = synTerm.fillPlaceholders(termMatches);
         if (fieldNames == null || fieldNames.isEmpty()) {
             dmq.addClause(new Term(dmq, charSequence, true));
         } else {
-            for (String fieldName: fieldNames) {
+            for (final String fieldName: fieldNames) {
                 dmq.addClause(new Term(dmq, fieldName, charSequence, true));
             }
         }
@@ -103,14 +106,14 @@ public class SynonymInstruction implements Instruction {
 
     @Override
     public Set<Term> getGenerableTerms() {
-        Set<Term> result = new HashSet<Term>();
+        final Set<Term> result = new HashSet<>();
         for (querqy.rewrite.commonrules.model.Term synTerm: synonym) {
             if (!synTerm.hasPlaceHolder()) {
-                List<String> fieldNames = synTerm.getFieldNames();
+                final List<String> fieldNames = synTerm.getFieldNames();
                 if (fieldNames == null || fieldNames.isEmpty()) {
                     result.add(new Term(null, synTerm, true));
                 } else {
-                    for (String fieldName: fieldNames) {
+                    for (final String fieldName: fieldNames) {
                         result.add(new Term(null, fieldName, synTerm, true));
                     }
                 }
@@ -128,14 +131,14 @@ public class SynonymInstruction implements Instruction {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SynonymInstruction other = (SynonymInstruction) obj;
+        final SynonymInstruction other = (SynonymInstruction) obj;
         if (synonym == null) {
             if (other.synonym != null)
                 return false;
