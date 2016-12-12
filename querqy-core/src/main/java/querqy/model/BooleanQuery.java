@@ -10,12 +10,12 @@ package querqy.model;
 public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> implements DisjunctionMaxClause,
       BooleanClause, BooleanParent, QuerqyQuery<BooleanParent> {
 
-   public BooleanQuery(BooleanParent parentQuery, Occur occur, boolean generated) {
+   public BooleanQuery(final BooleanParent parentQuery, final Occur occur, final boolean generated) {
       super(parentQuery, occur, generated);
    }
 
    @Override
-   public <T> T accept(NodeVisitor<T> visitor) {
+   public <T> T accept(final NodeVisitor<T> visitor) {
       return visitor.visit(this);
    }
 
@@ -26,26 +26,26 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
    }
 
    @Override
-   public BooleanQuery clone(BooleanParent newParent) {
-      BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
-      for (BooleanClause clause : clauses) {
+   public BooleanQuery clone(final BooleanParent newParent) {
+      final BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
+      for (final BooleanClause clause : clauses) {
          bq.addClause(clause.clone(bq));
       }
       return bq;
    }
 
    @Override
-   public BooleanQuery clone(DisjunctionMaxQuery newParent, boolean generated) {
+   public BooleanQuery clone(final DisjunctionMaxQuery newParent, boolean generated) {
       return clone((BooleanParent) newParent, generated);
    }
 
    @Override
-   public BooleanClause clone(BooleanQuery newParent) {
+   public BooleanClause clone(final BooleanQuery newParent) {
       return clone((BooleanParent) newParent);
    }
 
    @Override
-   public BooleanQuery clone(BooleanParent newParent, boolean generated) {
+   public BooleanQuery clone(final BooleanParent newParent, final boolean generated) {
        BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
        for (BooleanClause clause : clauses) {
           bq.addClause(clause.clone(bq, generated));
@@ -54,7 +54,7 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
    }
 
    @Override
-   public BooleanClause clone(BooleanQuery newParent, boolean generated) {
+   public BooleanClause clone(final BooleanQuery newParent, final boolean generated) {
        return clone((BooleanParent) newParent, generated);
    }
 

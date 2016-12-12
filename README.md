@@ -6,13 +6,15 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
-Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x  require the following Solr 5 versions:
+Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x maps to Solr 6. Detailed Solr version mapping:
 
   - Querqy 2.0.x to 2.5.x - Solr 5.0
   - Querqy 2.6.x to 2.7.x - Solr 5.1
   - Querqy 2.8.x          - Solr 5.3.x
   - Querqy 2.9.x          - Solr 5.4.x 
   - Querqy 2.10.x         - Solr 5.5.x  
+  - Querqy 3.0.x          - Solr 6.0.x
+  
 You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
@@ -261,9 +263,9 @@ kinder* =>
 
 Wildcard matching can be used for all rule types. There are some restrictions in the current wildcard implementation, which might be removed in the future: 
 
-  - Synonyms are the only rules type that can pick up the '$1' placeholder. 
+  - Synonyms and boostings (UP/DOWN) are the only rule types that can pick up the '$1' placeholder.
   - The wildcard can only occur at the very end of the input matching.
-  -  It cannot be combined with the right-hand input boundary marker (...").
+  - It cannot be combined with the right-hand input boundary marker (...").
    
 
 #### SYNONYM rules
@@ -602,7 +604,7 @@ Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/l
 ## Development
 
 ### Branches
-Please base development for Lucene/Solr 5.x and Lucene/Solr-independent features (querqy-core) on branch master and for Lucene/Solr 4.x on branch solr4. Note that before Querqy 2.9.0 development for Solr 5.x was carried out in branch solr5, while branch master contained Lucene/Solr 4.x and Lucene/Solr-independent code.
+Please base development on the branch for the corresponding Solr version.
 
 ### Modules
   
