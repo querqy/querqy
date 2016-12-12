@@ -263,9 +263,9 @@ kinder* =>
 
 Wildcard matching can be used for all rule types. There are some restrictions in the current wildcard implementation, which might be removed in the future: 
 
-  - Synonyms are the only rules type that can pick up the '$1' placeholder. 
+  - Synonyms and boostings (UP/DOWN) are the only rule types that can pick up the '$1' placeholder.
   - The wildcard can only occur at the very end of the input matching.
-  -  It cannot be combined with the right-hand input boundary marker (...").
+  - It cannot be combined with the right-hand input boundary marker (...").
    
 
 #### SYNONYM rules
