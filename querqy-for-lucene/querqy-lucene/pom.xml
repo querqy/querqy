@@ -3,7 +3,7 @@
 
 	<parent>
 		<groupId>querqy</groupId>
-		<artifactId>querqy-parent</artifactId>
+		<artifactId>querqy-for-lucene</artifactId>
 		<version>3.0.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>querqy-lucene</artifactId>
@@ -30,13 +30,13 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-core</artifactId>
-			<version>${project.version}</version>
+			<version>${querqy.core.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-core</artifactId>
-			<version>${project.version}</version>
+			<version>${querqy.core.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-antlr</artifactId>
-			<version>${project.version}</version>
+			<version>${querqy.antlr.version}</version>
 			<optional>true</optional>
 		</dependency>
 

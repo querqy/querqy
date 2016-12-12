@@ -1,30 +1,47 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
-    <modelVersion>4.0.0</modelVersion>
-    
-    <artifactId>querqy-core</artifactId>		
-    <groupId>querqy</groupId>
-    <version>3.0.3-SNAPSHOT</version>
+	<modelVersion>4.0.0</modelVersion>
 
-    <scm>
+	<groupId>querqy</groupId>
+	<artifactId>querqy-for-lucene</artifactId>
+	<version>3.0.3-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<scm>
         <url>git@github.com:renekrie/querqy.git</url>
         <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:renekrie/querqy.git</developerConnection>
   	  <tag>HEAD</tag>
-    </scm>
+  </scm>
 
-    <prerequisites>
-        <maven>3.2.0</maven>
-    </prerequisites>
+	<prerequisites>
+		<maven>3.2.0</maven>
+	</prerequisites>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                <querqy.core.version>3.0.2</querqy.core.version>
+                <querqy.antlr.version>3.0.2</querqy.antlr.version>
+		<lucene.version>6.0.0</lucene.version>
+        <commons.io.version>2.1</commons.io.version>
         <junit.version>4.11</junit.version>
         <hamcrest.version>1.3</hamcrest.version>
         <mockito.version>1.10.19</mockito.version>
-    </properties>
+	</properties>
 
-    <dependencies>
+	<modules>
+		<module>querqy-lucene</module>
+		<module>querqy-solr</module>
+	</modules>
+
+        <repositories>
+            <repository>
+                <id>querqy-repo</id>
+                <name>Querqy repo</name>
+                <url>http://dl.bintray.com/renekrie/maven</url>
+           </repository>
+        </repositories>
+
+	<dependencies>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-library</artifactId>
@@ -49,12 +66,21 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
-    </dependencies>
+	</dependencies>
 
 
-
-    <build>
-          <plugins>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+        			<version>2.19</version>
+        			<configuration>
+          				<systemPropertyVariables>
+            					<tests.codec>Lucene60</tests.codec>
+          				</systemPropertyVariables>
+        			</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -67,20 +93,8 @@
 					</execution>
 				</executions>
 			</plugin>
-	    <plugin>
-	        <groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-
-<pluginManagement>
+		</plugins>
+		<pluginManagement>
 			<plugins>			
 				<plugin>
 					<artifactId>maven-release-plugin</artifactId>
@@ -120,9 +134,8 @@
                       </plugin>
 			</plugins>
 		</pluginManagement>
-
-    </build>
-<reporting>
+	</build>
+    <reporting>
         	<plugins>
           		<plugin>
             		<groupId>org.codehaus.mojo</groupId>
@@ -132,14 +145,11 @@
         	</plugins>
     </reporting>
 
-<distributionManagement>
+	<distributionManagement>
 		<repository>
 			<id>bintray-rene-maven</id>
-			<name>renekrie-maven-querqy</name>
-			<url>https://api.bintray.com/maven/renekrie/maven/querqy</url>
+			<name>renekrie-maven-querqy-for-lucene</name>
+			<url>https://api.bintray.com/maven/renekrie/maven/querqy-for-lucene</url>
 		</repository>
 	</distributionManagement>
-
-
-
 </project>

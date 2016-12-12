@@ -3,7 +3,7 @@
 
 	<parent>
 		<groupId>querqy</groupId>
-		<artifactId>querqy-parent</artifactId>
+		<artifactId>querqy-for-lucene</artifactId>
 		<version>3.0.3-SNAPSHOT</version>
 	</parent>
 
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>querqy-antlr</artifactId>
-			<version>${project.version}</version>
+			<version>${querqy.antlr.version}</version>
 		</dependency>
 
 		<dependency>
