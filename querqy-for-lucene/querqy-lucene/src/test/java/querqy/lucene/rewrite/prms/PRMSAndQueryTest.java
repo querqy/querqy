@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
 import org.apache.lucene.codecs.Codec;
@@ -16,7 +16,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.*;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
@@ -26,10 +25,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import querqy.lucene.rewrite.DependentTermQuery;
-import querqy.lucene.rewrite.DocumentFrequencyCorrection;
-import querqy.lucene.rewrite.LuceneQueryBuilder;
-import querqy.lucene.rewrite.SearchFieldsAndBoosting;
+import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
@@ -75,7 +71,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         };
 
         IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-        conf.setCodec(Codec.forName("Lucene60"));
+        conf.setCodec(Codec.forName(TestUtil.LUCENE_CODEC));
         IndexWriter indexWriter = new IndexWriter(directory, conf);
        
         
