@@ -73,8 +73,7 @@ public class QuerqyReRankQuery extends RankQuery {
     public boolean equals(Object o) {
 
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (!sameClassAs(o)) return false;
 
         QuerqyReRankQuery that = (QuerqyReRankQuery) o;
 
@@ -91,7 +90,7 @@ public class QuerqyReRankQuery extends RankQuery {
     @Override
     public int hashCode() {
         int prime = 31;
-        int result = super.hashCode();
+        int result = classHash();
         result = prime * result + mainQuery.hashCode();
         result = prime * result + reRankQuery.hashCode();
         result = prime * result + reRankNumDocs;
