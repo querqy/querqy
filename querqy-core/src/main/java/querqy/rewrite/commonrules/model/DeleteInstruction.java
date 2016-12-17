@@ -3,11 +3,7 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import querqy.ComparableCharSequence;
 import querqy.model.BooleanQuery;
@@ -23,16 +19,23 @@ public class DeleteInstruction implements Instruction {
     
     protected final List<? extends Term> termsToDelete;
     protected final Set<CharSequence> charSequencesToDelete;
+    protected final List<PrefixTerm> prefixesToDeleted;
 
     /**
       * 
       */
-    public DeleteInstruction(List<? extends Term> termsToDelete) {
+    public DeleteInstruction(final List<? extends Term> termsToDelete) {
         this.termsToDelete = termsToDelete;
         charSequencesToDelete = new HashSet<>();
+        final List<PrefixTerm> prefixes = new ArrayList<>();
         for (Term term : termsToDelete) {
-            charSequencesToDelete.addAll(term.getCharSequences(true));
+            if (term instanceof PrefixTerm) {
+                prefixes.add((PrefixTerm) term);
+            } else {
+                charSequencesToDelete.addAll(term.getCharSequences(true));
+            }
         }
+        prefixesToDeleted = prefixes.isEmpty() ? null : prefixes;
     }
 
     public List<? extends Term> getTermsToDelete() {
@@ -59,10 +62,7 @@ public class DeleteInstruction implements Instruction {
           
          for (querqy.model.Term term : position) {
 
-             ComparableCharSequence seq = term.toCharSequenceWithField(true);
-           
-
-            if (pos >= startPosition && pos < endPosition && charSequencesToDelete.contains(seq)) {
+            if (pos >= startPosition && pos < endPosition && isToBeDeleted(term)) {
                // TODO: check whether it would be faster to use a LinkedHashMap
                // for toBeDeleted and then check whether .add(term) returns true
                if (hasRemaining) {
@@ -113,6 +113,17 @@ public class DeleteInstruction implements Instruction {
          }
       }
 
+   }
+
+   public boolean isToBeDeleted(final querqy.model.Term term) {
+       if (prefixesToDeleted != null) {
+           for (final PrefixTerm prefixTerm: prefixesToDeleted) {
+               if (prefixTerm.isPrefixOf(term)) {
+                   return true;
+               }
+           }
+       }
+       return charSequencesToDelete.contains(term.toCharSequenceWithField(true));
    }
 
    @Override

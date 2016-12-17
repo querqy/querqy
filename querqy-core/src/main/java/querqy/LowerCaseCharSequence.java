@@ -11,18 +11,18 @@ public class LowerCaseCharSequence implements ComparableCharSequence {
 
     final CharSequence delegate;
     
-    public LowerCaseCharSequence(CharSequence delegate) {
+    public LowerCaseCharSequence(final CharSequence delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public char charAt(int index) {
-        char ch = delegate.charAt(index);
+    public char charAt(final int index) {
+        final char ch = delegate.charAt(index);
         return Character.isLowerCase(ch) ? ch : Character.toLowerCase(ch);
     }
     
     @Override
-    public ComparableCharSequence subSequence(int start, int end) {
+    public ComparableCharSequence subSequence(final int start, final int end) {
         return new LowerCaseCharSequence(delegate.subSequence(start, end));
     }
     
@@ -37,12 +37,12 @@ public class LowerCaseCharSequence implements ComparableCharSequence {
     }
 
     @Override
-    public int compareTo(CharSequence other) {
+    public int compareTo(final CharSequence other) {
         return CharSequenceUtil.compare(this, other);
     }
     
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         return CharSequenceUtil.equals(this, obj);
     }
     

@@ -12,10 +12,9 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
-import querqy.rewrite.commonrules.model.DecorateInstruction;
-import querqy.rewrite.commonrules.model.Input;
-import querqy.rewrite.commonrules.model.PrefixTerm;
-import querqy.rewrite.commonrules.model.Term;
+import querqy.parser.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.model.*;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
 public class LineParserTest {
 
@@ -156,8 +155,35 @@ public class LineParserTest {
         assertTrue(input.requiresLeftBoundary());
         assertTrue(input.requiresRightBoundary());   
     }
-    
-    
+
+    @Test
+    public void testThatBoostInstructionWithSingleLetterTermIsAccepted() throws Exception {
+        String line = "UP: x";
+        String lcLine = line.toLowerCase();
+        final Object instruction = LineParser
+                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof BoostInstruction);
+    }
+
+    @Test
+    public void testThatBoostInstructionWithSingleLetterTermAndBoostFactorIsAccepted() throws Exception {
+        String line = "UP(5): x";
+        String lcLine = line.toLowerCase();
+        final Object instruction = LineParser
+                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof BoostInstruction);
+    }
+
+    @Test
+    public void testThatPlayholdersAreParsedForBoostInstruction() throws Exception {
+        String line = "UP(500): 3$1";
+        String lcLine = line.toLowerCase();
+        final Object instruction = LineParser
+                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof BoostInstruction);
+        assertTrue(((BoostInstruction) instruction).hasPlaceHolderInBoostQuery());
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void testParseTermExpressionSingleTerm() {
