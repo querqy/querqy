@@ -30,3 +30,8 @@ j =>
 	
 spellcheck =>
 	FILTER: * f1:filtered
+
+w* =>
+   UP(5000): w$1
+   DELETE
+

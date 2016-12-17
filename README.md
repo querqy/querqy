@@ -1,4 +1,5 @@
-![travis ci build status](https://travis-ci.org/renekrie/querqy.png)  [ ![Download](https://api.bintray.com/packages/renekrie/maven/querqy/images/download.svg) ](https://bintray.com/renekrie/maven/querqy/_latestVersion) 
+![travis ci build status](https://travis-ci.org/renekrie/querqy.png) 
+[ ![Download Querqy for Lucene/Solr](https://api.bintray.com/packages/renekrie/maven/querqy-for-lucene/images/download.svg) ](https://bintray.com/renekrie/maven/querqy-for-lucene/_latestVersion)
 # Querqy
 
 Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
@@ -6,7 +7,7 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
-Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x maps to Solr 6. Detailed Solr version mapping:
+Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x map to Solr 6. Detailed Solr version mapping:
 
   - Querqy 2.0.x to 2.5.x - Solr 5.0
   - Querqy 2.6.x to 2.7.x - Solr 5.1
@@ -15,7 +16,8 @@ Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require
   - Querqy 2.10.x         - Solr 5.5.x  
   - Querqy 3.0.x          - Solr 6.0.x
   
-You can download a .jar file that includes Querqy and all required dependencies from [Bintray] (https://bintray.com/renekrie/maven/querqy) (querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+Please check the Bintray package [https://bintray.com/renekrie/maven/querqy](https://bintray.com/renekrie/maven/querqy) for Querqy core artifacts and Querqy versions prior to 2.7.4 (Solr 5.1), 2.8.4 (Solr 5.3), 2.9.5 (Solr 5.4), 2.10.4 (Solr 5.5), 3.0.3 (Solr 6.0).
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
 
@@ -603,15 +605,18 @@ Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/l
 
 ## Development
 
-### Branches
-Please base development on the branch for the corresponding Solr version.
-
 ### Modules
-  
+
  - `querqy-antlr` - An [ANTLR-based](http://www.antlr.org/) Querqy query parser (incomplete, do not use)
  - `querqy-core` - The core component. Search-engine independent, Querqy's query object model, Common Rules Rewriter
- - `querqy-lucene` - Lucene-specific components. Builder for creating a Lucene query from Querqy's query object model
- - `querqy-solr` - Solr-specific components. QParserPlugin, SearchComponent. 
+ - `querqy-for-lucene/querqy-lucene` - Lucene-specific components. Builder for creating a Lucene query from Querqy's query object model
+ - `querqy-for-lucene/querqy-solr` - Solr-specific components. QParserPlugin, SearchComponent.
+
+ querqy-core and querqy-for-lucene are released separately and version numbers will diverge.
+
+### Branches
+Please base development on the branch for the corresponding Solr version. querqy-core development should be based on the branch for the latest Solr version.
+
 
 ### Contributors
 
