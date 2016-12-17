@@ -196,15 +196,25 @@ public class LineParser {
         
 	    String boostLine = line.substring(lengthPredicate).trim();
         char ch = boostLine.charAt(0);
-        if ((ch != '(' && ch != ':')) {
-            return new ValidationError("Cannot parse line, '(' or ':' expected: " + line);
+        switch (ch) {
+
+            case '(': if (line.length() < 5) {
+                return new ValidationError("Cannot parse line, expecting boost factor and ':' after '(' in " + line);
+            }
+            break;
+
+            case ':': if (line.length() == 1) {
+                return new ValidationError("Query expected: " + line);
+            }
+            break;
+
+            default:
+                return new ValidationError("Cannot parse line, '(' or ':' expected: " + line);
         }
+
         
         boostLine = boostLine.substring(1).trim();
-        if (boostLine.length() == 1) {
-            return new ValidationError("Query expected: " + line);
-        }
-        
+
         float boost = 1f;
         if (ch == '(') {
             int pos = boostLine.indexOf(')');

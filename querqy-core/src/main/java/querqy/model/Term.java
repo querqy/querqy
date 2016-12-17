@@ -19,7 +19,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
    protected final String field;
    protected final ComparableCharSequence value;
 
-   public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value, boolean generated) {
+   public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value, final boolean generated) {
       super(parentQuery, generated);
       this.field = field;
       this.value = ComparableCharSequence.class.isAssignableFrom(value.getClass()) 
@@ -27,33 +27,34 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
               : new ComparableCharSequenceWrapper(value);
    }
 
-   public Term(DisjunctionMaxQuery parentQuery, String field, CharSequence value) {
+   public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value) {
       this(parentQuery, field, value, false);
    }
 
-   public Term(DisjunctionMaxQuery parentQuery, CharSequence value) {
+   public Term(final DisjunctionMaxQuery parentQuery, final CharSequence value) {
       this(parentQuery, null, value);
    }
 
-   public Term(DisjunctionMaxQuery parentQuery, CharSequence value, boolean generated) {
+   public Term(final DisjunctionMaxQuery parentQuery, final CharSequence value, final boolean generated) {
       this(parentQuery, null, value, generated);
    }
 
-   public Term(DisjunctionMaxQuery parentQuery, String field, char[] value, int start, int length, boolean generated) {
+   public Term(final DisjunctionMaxQuery parentQuery, final String field, final char[] value,
+               final int start, final int length, final boolean generated) {
       this(parentQuery, field, new SimpleComparableCharSequence(value, start, length), generated);
    }
 
    @Override
-   public Term clone(DisjunctionMaxQuery newParent) {
+   public Term clone(final DisjunctionMaxQuery newParent) {
       return clone(newParent, isGenerated());
    }
    
-   public Term clone(DisjunctionMaxQuery newParent, boolean isGenerated) {
+   public Term clone(final DisjunctionMaxQuery newParent, final boolean isGenerated) {
        return new Term(newParent, field, value, isGenerated);
    }
 
    @Override
-   public <T> T accept(NodeVisitor<T> visitor) {
+   public <T> T accept(final NodeVisitor<T> visitor) {
       return visitor.visit(this);
    }
 
@@ -62,7 +63,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
    }
 
    @Override
-   public char charAt(int index) {
+   public char charAt(final int index) {
       return value.charAt(index);
    }
 
@@ -81,11 +82,11 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
    }
 
    @Override
-   public ComparableCharSequence subSequence(int start, int end) {
+   public ComparableCharSequence subSequence(final int start, final int end) {
       return value.subSequence(start, end);
    }
 
-   public ComparableCharSequence toCharSequenceWithField(boolean lowerCaseValue) {
+   public ComparableCharSequence toCharSequenceWithField(final boolean lowerCaseValue) {
        ComparableCharSequence valueToUse = lowerCaseValue ? new LowerCaseCharSequence(this) : value;
        return (field == null) ? valueToUse : new CompoundCharSequence(":", field, valueToUse);
    }
@@ -100,7 +101,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
    }
 
    @Override
-   public boolean equals(Object obj) {
+   public boolean equals(final Object obj) {
       if (this == obj) {
          return true;
       }

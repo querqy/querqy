@@ -7,10 +7,10 @@ target/*
 .DS_Store
 
 # modules
-*/.classpath
-*/.project
-*/.settings
-*/target
+**/.classpath
+**/.project
+**/.settings
+**/target
 
 #files
 *.iml
