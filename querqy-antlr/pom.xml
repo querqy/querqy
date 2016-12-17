@@ -4,7 +4,7 @@
 
     <groupId>querqy</groupId>
     <artifactId>querqy-antlr</artifactId>
-    <version>3.1.0-SNAPSHOT</version>
+    <version>3.0.3-SNAPSHOT</version>
     <scm>
         <url>git@github.com:renekrie/querqy.git</url>
         <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
