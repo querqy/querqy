@@ -25,8 +25,6 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
 public class BoostInstructionTest extends AbstractCommonRulesTest {
     
-    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
-
     @Test
     public void testThatBoostQueriesAreMarkedAsGenerated() {
         

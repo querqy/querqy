@@ -3,6 +3,7 @@
  */
 package querqy.rewrite.commonrules;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,9 @@ import querqy.rewrite.commonrules.model.InputBoundary.Type;
  *
  */
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements ContextAwareQueryRewriter {
-    
+
+    public static final String CONTEXT_KEY_RULESDEBUG = "querqy_rulesrewriter_actions";
+
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
 
@@ -67,7 +70,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
          sequencesStack.add(new PositionSequence<Term>());
         
          super.visit((BooleanQuery) query.getUserQuery());
-        
+
          applySequence(sequencesStack.removeLast(), true);
          
       }
@@ -89,8 +92,15 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
    protected void applySequence(PositionSequence<Term> sequence, boolean addBoundaries) {
        
        PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
-       
+
+       List<String> actionsDebugInfo = (List<String>) context.get(CONTEXT_KEY_RULESDEBUG);
+       if (actionsDebugInfo == null) {
+           actionsDebugInfo = new ArrayList<>();
+           context.put(CONTEXT_KEY_RULESDEBUG, actionsDebugInfo);
+       }
+
        for (Action action : rules.getRewriteActions(sequenceForLookUp)) {
+           actionsDebugInfo.add(action.toString());
            for (Instructions instructions : action.getInstructions()) {
               for (Instruction instruction : instructions) {
                  instruction.apply(sequence, action.getTermMatches(), action.getStartPosition(),

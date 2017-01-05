@@ -26,8 +26,6 @@ import querqy.rewrite.commonrules.model.Instructions;
 
 public class DeleteInstructionTest extends AbstractCommonRulesTest {
     
-    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
-
    @Test
    public void testThatNothingIsDeletedIfWeWouldEndUpWithAnEmptyQuery() {
 

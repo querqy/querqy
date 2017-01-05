@@ -13,6 +13,7 @@ import org.apache.solr.handler.component.QueryComponent;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.search.QParser;
 
+import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 
 /**
@@ -60,7 +61,15 @@ public class QuerqyQueryComponent extends QueryComponent {
             
             Map<String, Object> context = ((QuerqyDismaxQParser) parser).getContext();
             if (context != null) {
-                
+
+                if (rb.isDebugQuery()) {
+                    @SuppressWarnings("unchecked")
+                    List<String> rulesDebugInfo = (List<String>) context.get(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG);
+                    if (rulesDebugInfo != null) {
+                        rb.addDebugInfo(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG, rulesDebugInfo);
+                    }
+                }
+
                 @SuppressWarnings("unchecked")
                 Set<Object> decorations = (Set<Object>) context.get(DecorateInstruction.CONTEXT_KEY);
                 if (decorations != null) {

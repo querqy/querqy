@@ -1,7 +1,7 @@
 package querqy.rewrite.commonrules;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import querqy.model.ExpandedQuery;
@@ -10,7 +10,7 @@ import querqy.rewrite.commonrules.model.Term;
 
 public abstract class AbstractCommonRulesTest {
     
-   public final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
+   public final static Map<String, Object> EMPTY_CONTEXT = new HashMap<>();
 
    protected ExpandedQuery makeQuery(String input) {
       return new ExpandedQuery(new WhiteSpaceQuerqyParser().parse(input));
