@@ -33,7 +33,7 @@ import querqy.rewrite.commonrules.model.InputBoundary.Type;
  */
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements ContextAwareQueryRewriter {
 
-    public static final String CONTEXT_KEY_RULESDEBUG = "querqy_rulesrewriter_actions";
+    public static final String CONTEXT_KEY_ACTIONSDEBUG = "querqy.commonrules.actionsdebug";
 
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
@@ -93,14 +93,18 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        
        PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
 
-       List<String> actionsDebugInfo = (List<String>) context.get(CONTEXT_KEY_RULESDEBUG);
-       if (actionsDebugInfo == null) {
+       boolean isDebug = Boolean.TRUE.equals(context.get(CONTEXT_KEY_ISDEBUG));
+       List<String> actionsDebugInfo = (List<String>) context.get(CONTEXT_KEY_ACTIONSDEBUG);
+       // prepare debug info context object if requested
+       if (isDebug && actionsDebugInfo == null) {
            actionsDebugInfo = new ArrayList<>();
-           context.put(CONTEXT_KEY_RULESDEBUG, actionsDebugInfo);
+           context.put(CONTEXT_KEY_ACTIONSDEBUG, actionsDebugInfo);
        }
 
        for (Action action : rules.getRewriteActions(sequenceForLookUp)) {
-           actionsDebugInfo.add(action.toString());
+           if (isDebug) {
+               actionsDebugInfo.add(action.toString());
+           }
            for (Instructions instructions : action.getInstructions()) {
               for (Instruction instruction : instructions) {
                  instruction.apply(sequence, action.getTermMatches(), action.getStartPosition(),

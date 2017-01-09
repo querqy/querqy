@@ -341,4 +341,25 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         req.close();
     }
 
+    @Test
+    public void testSolrResponseContainsDebugInformationOfRulesRewriter() throws Exception {
+        String q = "a b";
+
+        String debugQueryRuleForA = "Action [instructions=[[FilterInstruction [filterQuery=RawQuery [queryString=f2:c]]]], " +
+                "terms=[TermMatch{queryTerm=*:a, isPrefix=false, wildcardMatch=null}], startPosition=0, endPosition=1]";
+
+        SolrQueryRequest requestWithDebugQueryEnabled = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Rules debug information not included in debug field of Solr response",
+                requestWithDebugQueryEnabled,
+                "//lst[@name='debug']/arr[@name='querqy.commonrules.actionsdebug']/str[text() = '" + debugQueryRuleForA + "']"
+        );
+
+        requestWithDebugQueryEnabled.close();
+    }
+
 }

@@ -3,13 +3,13 @@ package querqy.rewrite.commonrules.model;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -272,8 +272,14 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
                         )
                 ));
 
-        assertThat(context.containsKey(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG), is(true));
-        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG).toString(), containsString(synInstructionA.toString()));
-        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG).toString(), not(containsString(synInstructionB.toString())));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG), is(nullValue()));
+
+        context.put(CommonRulesRewriter.CONTEXT_KEY_ISDEBUG, true);
+        rewriter.rewrite(query, context).getUserQuery();
+
+        assertThat(context.containsKey(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG), is(true));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG).toString(), containsString(synInstructionA.toString()));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG).toString(), not(containsString(synInstructionB.toString())));
     }
+
 }

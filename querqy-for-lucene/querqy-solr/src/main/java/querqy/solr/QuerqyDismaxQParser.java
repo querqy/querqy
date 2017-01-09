@@ -44,6 +44,7 @@ import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
+import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.RewriteChain;
 
 /**
@@ -199,6 +200,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     protected final float qpfTie;
 
+    protected final boolean debugQuery;
+
     public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
          SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
          throws SyntaxError {
@@ -278,6 +281,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
         qpfTie = solrParams.getFloat(QPF_TIE, config.getTieBreaker());
 
+        debugQuery = req.getParams().getBool(CommonParams.DEBUG_QUERY, false);
+
     }
    
    protected FieldBoostModel getFieldBoostModelFromParam(SolrParams solrParams) {
@@ -335,6 +340,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           expandedQuery = makeExpandedQuery();
           phraseFieldQuery = makePhraseFieldQueries(expandedQuery.getUserQuery());
           context = new HashMap<>();
+          if (debugQuery) {
+              context.put(ContextAwareQueryRewriter.CONTEXT_KEY_ISDEBUG, true);
+          }
           expandedQuery = rewriteChain.rewrite(expandedQuery, context);
          
           mainQuery = makeMainQuery(expandedQuery);

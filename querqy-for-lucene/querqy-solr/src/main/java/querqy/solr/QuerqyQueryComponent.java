@@ -64,9 +64,9 @@ public class QuerqyQueryComponent extends QueryComponent {
 
                 if (rb.isDebugQuery()) {
                     @SuppressWarnings("unchecked")
-                    List<String> rulesDebugInfo = (List<String>) context.get(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG);
+                    List<String> rulesDebugInfo = (List<String>) context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG);
                     if (rulesDebugInfo != null) {
-                        rb.addDebugInfo(CommonRulesRewriter.CONTEXT_KEY_RULESDEBUG, rulesDebugInfo);
+                        rb.addDebugInfo(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG, rulesDebugInfo);
                     }
                 }
 
