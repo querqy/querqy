@@ -13,6 +13,7 @@ import org.apache.solr.handler.component.QueryComponent;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.search.QParser;
 
+import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 
@@ -64,9 +65,10 @@ public class QuerqyQueryComponent extends QueryComponent {
 
                 if (rb.isDebugQuery()) {
                     @SuppressWarnings("unchecked")
-                    List<String> rulesDebugInfo = (List<String>) context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG);
+                    List<String> rulesDebugInfo
+                            = (List<String>) context.get(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_DATA);
                     if (rulesDebugInfo != null) {
-                        rb.addDebugInfo(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG, rulesDebugInfo);
+                        rb.addDebugInfo("querqy.rewrite", rulesDebugInfo);
                     }
                 }
 

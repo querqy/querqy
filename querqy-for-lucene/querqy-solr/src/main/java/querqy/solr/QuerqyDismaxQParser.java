@@ -341,7 +341,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           phraseFieldQuery = makePhraseFieldQueries(expandedQuery.getUserQuery());
           context = new HashMap<>();
           if (debugQuery) {
-              context.put(ContextAwareQueryRewriter.CONTEXT_KEY_ISDEBUG, true);
+              context.put(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
           }
           expandedQuery = rewriteChain.rewrite(expandedQuery, context);
          

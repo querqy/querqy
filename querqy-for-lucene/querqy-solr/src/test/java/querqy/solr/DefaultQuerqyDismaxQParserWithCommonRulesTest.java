@@ -356,7 +356,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
         assertQ("Rules debug information not included in debug field of Solr response",
                 requestWithDebugQueryEnabled,
-                "//lst[@name='debug']/arr[@name='querqy.commonrules.actionsdebug']/str[text() = '" + debugQueryRuleForA + "']"
+                "//lst[@name='debug']/arr[@name='querqy.rewrite']/str[text() = '" + debugQueryRuleForA + "']"
         );
 
         requestWithDebugQueryEnabled.close();

@@ -272,14 +272,14 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
                         )
                 ));
 
-        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG), is(nullValue()));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA), is(nullValue()));
 
-        context.put(CommonRulesRewriter.CONTEXT_KEY_ISDEBUG, true);
+        context.put(CommonRulesRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
         rewriter.rewrite(query, context).getUserQuery();
 
-        assertThat(context.containsKey(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG), is(true));
-        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG).toString(), containsString(synInstructionA.toString()));
-        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_ACTIONSDEBUG).toString(), not(containsString(synInstructionB.toString())));
+        assertThat(context.containsKey(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA), is(true));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(), containsString(synInstructionA.toString()));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(), not(containsString(synInstructionB.toString())));
     }
 
 }

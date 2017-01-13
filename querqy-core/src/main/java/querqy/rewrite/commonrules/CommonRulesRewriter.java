@@ -3,7 +3,6 @@
  */
 package querqy.rewrite.commonrules;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,8 +31,6 @@ import querqy.rewrite.commonrules.model.InputBoundary.Type;
  *
  */
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements ContextAwareQueryRewriter {
-
-    public static final String CONTEXT_KEY_ACTIONSDEBUG = "querqy.commonrules.actionsdebug";
 
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
@@ -93,12 +90,12 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        
        PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
 
-       boolean isDebug = Boolean.TRUE.equals(context.get(CONTEXT_KEY_ISDEBUG));
-       List<String> actionsDebugInfo = (List<String>) context.get(CONTEXT_KEY_ACTIONSDEBUG);
+       boolean isDebug = Boolean.TRUE.equals(context.get(CONTEXT_KEY_DEBUG_ENABLED));
+       List<String> actionsDebugInfo = (List<String>) context.get(CONTEXT_KEY_DEBUG_DATA);
        // prepare debug info context object if requested
        if (isDebug && actionsDebugInfo == null) {
-           actionsDebugInfo = new ArrayList<>();
-           context.put(CONTEXT_KEY_ACTIONSDEBUG, actionsDebugInfo);
+           actionsDebugInfo = new LinkedList<>();
+           context.put(CONTEXT_KEY_DEBUG_DATA, actionsDebugInfo);
        }
 
        for (Action action : rules.getRewriteActions(sequenceForLookUp)) {
