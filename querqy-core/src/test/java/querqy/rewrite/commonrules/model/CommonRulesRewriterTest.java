@@ -1,12 +1,16 @@
 package querqy.rewrite.commonrules.model;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -18,8 +22,6 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 
 public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 
-    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
-    
     @Test
     public void testInputBoundaryOnBothSides() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
@@ -243,4 +245,41 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
                      
           ));    
     }
+
+    @Test
+    public void testActionsAreLoggedInContext() {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        SynonymInstruction synInstructionA = new SynonymInstruction(Arrays.asList(mkTerm("aSynonym")));
+        SynonymInstruction synInstructionB = new SynonymInstruction(Arrays.asList(mkTerm("bSynonym")));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, false), new Instructions(Arrays.asList((Instruction) synInstructionA)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("b")), true, false), new Instructions(Arrays.asList((Instruction) synInstructionB)));
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("a b");
+        Map<String, Object> context = new HashMap<>();
+        Query rewritten = rewriter.rewrite(query, context).getUserQuery();
+
+        assertThat(rewritten,
+                bq(
+                        dmq(
+                                term("a", false),
+                                term("aSynonym", true)
+                        ),
+                        dmq(
+                                term("b", false)
+
+                        )
+                ));
+
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA), is(nullValue()));
+
+        context.put(CommonRulesRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
+        rewriter.rewrite(query, context).getUserQuery();
+
+        assertThat(context.containsKey(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA), is(true));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(), containsString(synInstructionA.toString()));
+        assertThat(context.get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(), not(containsString(synInstructionB.toString())));
+    }
+
 }

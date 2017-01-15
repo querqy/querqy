@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <querqy.core.version>3.0.5</querqy.core.version>
+        <querqy.core.version>3.0.6</querqy.core.version>
         <querqy.antlr.version>3.0.2</querqy.antlr.version>
         <lucene.version>6.1.0</lucene.version>
         <commons.io.version>2.1</commons.io.version>
