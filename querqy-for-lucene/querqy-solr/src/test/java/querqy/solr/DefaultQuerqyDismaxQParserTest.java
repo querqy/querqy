@@ -4,6 +4,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.HighlightParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.WrappedQuery;
@@ -23,6 +24,9 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertU(adoc("id", "4", "f1", "b"));
       assertU(adoc("id", "5", "f1", "spellcheck", "f2", "test"));
       assertU(adoc("id", "6", "f1", "spellcheck filtered", "f2", "test"));
+      assertU(adoc("id", "7", "f1", "aaa"));
+      assertU(adoc("id", "8", "f1", "aaa bbb ccc", "f2", "w87"));
+      assertU(adoc("id", "9", "f1", "ignore o u s"));
 
       assertU(commit());
    }
@@ -182,7 +186,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertQ("Matchall fails",
             req,
             "//str[@name='parsedquery'][contains(.,'*:*')]",
-            "//result[@name='response' and @numFound='6']"
+            "//result[@name='response' and @numFound='9']"
 
       );
 
@@ -493,9 +497,96 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       );
       req.close();
    }
-   
 
-   public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
+    @Test
+    public void testThatUpRuleCanPickUpPlaceHolder() throws Exception {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1 f2",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("Default ranking for picking up wildcard not working",
+                req,
+                "//result/doc[1]/str[@name='id'][text()='7']"
+        );
+        req.close();
+
+        SolrQueryRequest req2 = req("q", "aaa w87",
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "100%",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("Ranking for picking up wildcard not working",
+                req2,
+                "//result/doc[1]/str[@name='id'][text()='8']",
+                "//result[@name='response' and @numFound='2']"
+        );
+        req2.close();
+
+
+    }
+
+    @Test
+    public void testThatHighlightingIsApplied() throws Exception {
+        SolrQueryRequest req = req("q", "a",
+                DisMaxParams.QF, "f1",
+                HighlightParams.HIGHLIGHT, "true",
+                HighlightParams.FIELDS, "f1",
+                HighlightParams.SIMPLE_PRE, "PRE",
+                HighlightParams.SIMPLE_POST, "POST",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("Highlighting not working",
+                req,
+                "//lst[@name='highlighting']//arr[@name='f1']/str[text()='PREaPOST']"
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatHighlightingIsNotAppliedToBoostQuery() throws Exception {
+        SolrQueryRequest req = req("q", "o",
+                DisMaxParams.QF, "f1",
+                HighlightParams.HIGHLIGHT, "true",
+                HighlightParams.FIELDS, "f1",
+                HighlightParams.SIMPLE_PRE, "PRE",
+                HighlightParams.SIMPLE_POST, "POST",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("UP token is highlighted",
+                req,
+                "//lst[@name='highlighting']//arr[@name='f1']/str[not(contains(.,'PREuPOST'))]"
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatHighlightingIsAppliedToSynonyms() throws Exception {
+        SolrQueryRequest req = req("q", "o",
+                DisMaxParams.QF, "f1",
+                HighlightParams.HIGHLIGHT, "true",
+                HighlightParams.FIELDS, "f1",
+                HighlightParams.SIMPLE_PRE, "PRE",
+                HighlightParams.SIMPLE_POST, "POST",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("UP token is highlighted",
+                req,
+                "//lst[@name='highlighting']//arr[@name='f1']/str[contains(.,'PREsPOST')]"
+        );
+        req.close();
+
+    }
+
+
+    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
            new WhiteSpaceQuerqyParser(), null);

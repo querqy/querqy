@@ -44,6 +44,15 @@ public class TermMatch {
     }
 
     @Override
+    public String toString() {
+        return "TermMatch{" +
+                "queryTerm=" + queryTerm +
+                ", isPrefix=" + isPrefix +
+                ", wildcardMatch=" + wildcardMatch +
+                '}';
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

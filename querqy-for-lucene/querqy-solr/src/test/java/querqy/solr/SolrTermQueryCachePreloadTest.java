@@ -8,6 +8,7 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+@SolrTestCaseJ4.SuppressSSL
 public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
 
     @BeforeClass
@@ -65,7 +66,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  "stats", "true"
                  );
          
-        // one generated term in two field is preloaded for newSearcher:
+        // one generated term in two fields is preloaded for newSearcher:
         assertQ("Querqy cache not prefilled",
                  req2,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"

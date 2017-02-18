@@ -10,6 +10,7 @@ import org.junit.Test;
 /**
  * Created by rene on 05/09/2016.
  */
+@SolrTestCaseJ4.SuppressSSL
 public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
 
     public static void index() throws Exception {
