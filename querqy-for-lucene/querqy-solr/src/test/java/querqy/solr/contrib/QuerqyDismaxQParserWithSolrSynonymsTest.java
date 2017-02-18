@@ -12,6 +12,7 @@ import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.solr.QuerqyDismaxQParser;
 
+@SolrTestCaseJ4.SuppressSSL
 public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
 

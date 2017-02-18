@@ -17,8 +17,6 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         
         assertU(adoc("id", "3", "f1", "a", "f3", "c", "f4", "e"));
         
-        assertU(adoc("id", "4", "f1", "m", "f2", "c"));
-        
         assertU(adoc("id", "5", "f1", "m", "f2", "b", "f4", "d"));
         
         assertU(adoc("id", "6", "f1", "m", "f2", "c", "f4", "e"));
@@ -81,7 +79,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
         assertQ("Down rule failed",
               req,
-              "//result[@name='response' and @numFound='4']/doc[1]/str[@name='id'][text()='5']"
+              "//result[@name='response' and @numFound='3']/doc[1]/str[@name='id'][text()='5']"
         );
 
         req.close();
@@ -97,7 +95,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
           assertQ("Down rule failed",
                 req,
-                "//result[@name='response' and @numFound='4']/doc[1]/str[@name='id'][not(text()='5')]",
+                "//result[@name='response' and @numFound='3']/doc[1]/str[@name='id'][text()='6']",
                 "//lst[@name='explain']/str[@name='5'][not(contains(., '0.0 = (MATCH) max of'))]"
           );
 
@@ -330,6 +328,27 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
 
         req.close();
+    }
+
+    @Test
+    public void testSolrResponseContainsDebugInformationOfRulesRewriter() throws Exception {
+        String q = "a b";
+
+        String debugQueryRuleForA = "Action [instructions=[[FilterInstruction [filterQuery=RawQuery [queryString=f2:c]]]], " +
+                "terms=[TermMatch{queryTerm=*:a, isPrefix=false, wildcardMatch=null}], startPosition=0, endPosition=1]";
+
+        SolrQueryRequest requestWithDebugQueryEnabled = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Rules debug information not included in debug field of Solr response",
+                requestWithDebugQueryEnabled,
+                "//lst[@name='debug']/arr[@name='querqy.rewrite']/str[text() = '" + debugQueryRuleForA + "']"
+        );
+
+        requestWithDebugQueryEnabled.close();
     }
 
 }

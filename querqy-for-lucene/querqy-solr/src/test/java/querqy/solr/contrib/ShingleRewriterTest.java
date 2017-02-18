@@ -7,6 +7,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+@SolrTestCaseJ4.SuppressSSL
 public class ShingleRewriterTest extends SolrTestCaseJ4 {
 
      @BeforeClass

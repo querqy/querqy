@@ -1,5 +1,7 @@
 ![travis ci build status](https://travis-ci.org/renekrie/querqy.png) 
 [ ![Download Querqy for Lucene/Solr](https://api.bintray.com/packages/renekrie/maven/querqy-for-lucene/images/download.svg) ](https://bintray.com/renekrie/maven/querqy-for-lucene/_latestVersion)
+
+Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/querqy/users)
 # Querqy
 
 Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
@@ -15,7 +17,9 @@ Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require
   - Querqy 2.9.x          - Solr 5.4.x 
   - Querqy 2.10.x         - Solr 5.5.x  
   - Querqy 3.0.x          - Solr 6.0.x
-  
+  - Querqy 3.1.x          - Solr 6.1.x
+  - Querqy 3.2.x          - Solr 6.2.x and Solr 6.3.x
+
 You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 Please check the Bintray package [https://bintray.com/renekrie/maven/querqy](https://bintray.com/renekrie/maven/querqy) for Querqy core artifacts and Querqy versions prior to 2.7.4 (Solr 5.1), 2.8.4 (Solr 5.3), 2.9.5 (Solr 5.4), 2.10.4 (Solr 5.5), 3.0.3 (Solr 6.0).
 
