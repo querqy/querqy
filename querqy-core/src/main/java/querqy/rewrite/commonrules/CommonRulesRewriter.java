@@ -31,7 +31,7 @@ import querqy.rewrite.commonrules.model.InputBoundary.Type;
  *
  */
 public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements ContextAwareQueryRewriter {
-    
+
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
 
@@ -67,7 +67,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
          sequencesStack.add(new PositionSequence<Term>());
         
          super.visit((BooleanQuery) query.getUserQuery());
-        
+
          applySequence(sequencesStack.removeLast(), true);
          
       }
@@ -89,8 +89,19 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
    protected void applySequence(PositionSequence<Term> sequence, boolean addBoundaries) {
        
        PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
-       
+
+       boolean isDebug = Boolean.TRUE.equals(context.get(CONTEXT_KEY_DEBUG_ENABLED));
+       List<String> actionsDebugInfo = (List<String>) context.get(CONTEXT_KEY_DEBUG_DATA);
+       // prepare debug info context object if requested
+       if (isDebug && actionsDebugInfo == null) {
+           actionsDebugInfo = new LinkedList<>();
+           context.put(CONTEXT_KEY_DEBUG_DATA, actionsDebugInfo);
+       }
+
        for (Action action : rules.getRewriteActions(sequenceForLookUp)) {
+           if (isDebug) {
+               actionsDebugInfo.add(action.toString());
+           }
            for (Instructions instructions : action.getInstructions()) {
               for (Instruction instruction : instructions) {
                  instruction.apply(sequence, action.getTermMatches(), action.getStartPosition(),
