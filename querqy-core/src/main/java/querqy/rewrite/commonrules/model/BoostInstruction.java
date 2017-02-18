@@ -125,7 +125,11 @@ public class BoostInstruction implements Instruction {
         }
 
         public QuerqyQuery<?> cloneAndReplace(QuerqyQuery<?> querqyQuery) {
-            return (QuerqyQuery) querqyQuery.accept(this);
+            if (querqyQuery instanceof Query) {
+                return (QuerqyQuery<?>) visit((Query) query);
+            } else {
+                return (QuerqyQuery) querqyQuery.accept(this);
+            }
         }
 
         protected Node getNewParent() {

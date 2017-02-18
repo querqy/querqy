@@ -25,8 +25,6 @@ import static querqy.QuerqyMatchers.term;
  */
 public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
-    final static Map<String, Object> EMPTY_CONTEXT = Collections.emptyMap();
-
     @Test
     public void testPurelyNegativeFilterQuery() {
 

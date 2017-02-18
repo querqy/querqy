@@ -24,7 +24,7 @@ public class PrefixTerm extends Term {
     }
 
     
-    public boolean isPrefixOf(CharSequence other) {
+    public boolean isPrefixOfCharSequence(final CharSequence other) {
         for (int i = 0, pos = start, len = Math.min(length, other.length()); i < len; i++) {
             char ch1 = value[pos++];
             char ch2 = other.charAt(i);
@@ -34,25 +34,50 @@ public class PrefixTerm extends Term {
         }
         return length <= other.length();
     }
+
+    public boolean isPrefixOf(final Term other) {
+
+        if (isPrefixOfCharSequence(other)) {
+
+            if (fieldNames == other.fieldNames) {
+                return true;
+            } else {
+                if (other.fieldNames != null && fieldNames != null) {
+                    for (String name : fieldNames) {
+                        if (other.fieldNames.contains(name)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isPrefixOf(final querqy.model.Term other) {
+
+        if (isPrefixOfCharSequence(other)) {
+
+            final String otherFieldname = other.getField();
+
+            if (fieldNames == null) {
+                return true;
+            } else if (otherFieldname != null && fieldNames.contains(otherFieldname)){
+                return true;
+            }
+        }
+
+        return false;
+    }
     
     @Override
-    public Term findFirstMatch(Collection<? extends Term> haystack) {
+    public Term findFirstMatch(final Collection<? extends Term> haystack) {
 
         for (Term h : haystack) {
 
             if (isPrefixOf(h)) {
-
-                if (fieldNames == h.fieldNames) {
-                    return h;
-                } else {
-                    if (h.fieldNames != null && fieldNames != null) {
-                        for (String name : fieldNames) {
-                            if (h.fieldNames.contains(name)) {
-                                return h;
-                            }
-                        }
-                    }
-                }
+                return h;
             }
 
         }

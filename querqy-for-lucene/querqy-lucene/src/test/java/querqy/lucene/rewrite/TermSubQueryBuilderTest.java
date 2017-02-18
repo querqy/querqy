@@ -36,7 +36,7 @@ public class TermSubQueryBuilderTest {
     public void setUp() throws Exception {
         when(cache.get(any(CacheKey.class))).thenReturn(null);
     }
-
+    
     @Test
     public void testNoTerm() throws Exception {
         TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
