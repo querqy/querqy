@@ -62,11 +62,6 @@
                <bool name="ignoreCase">true</bool>
                <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
            </lst>
-		<!-- 	<lst name="rewriter">
-				<str name="class">querqy.solr.SolrSynonymsRewriterFactory</str>
-				<str name="synonyms">synonyms.txt</str>
-				<bool name="expand">true</bool>
-			</lst> -->
 		</lst>
 		<lst name="parser">
          <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>

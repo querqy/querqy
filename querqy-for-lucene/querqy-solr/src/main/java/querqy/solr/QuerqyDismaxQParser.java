@@ -202,6 +202,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     protected final boolean debugQuery;
 
+    protected Query userQuery = null;
+
     public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
          SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
          throws SyntaxError {
@@ -318,12 +320,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    @Override
    public Query parse() throws SyntaxError {
       // TODO q.alt
-      String userQuery = getString();
-      if (userQuery == null) {
+      String userQueryString = getString();
+      if (userQueryString == null) {
          throw new SyntaxError("query string is null");
       }
-      userQuery = userQuery.trim();
-      if (userQuery.length() == 0) {
+      userQueryString = userQueryString.trim();
+      if (userQueryString.length() == 0) {
          throw new SyntaxError("query string is empty");
       }
 
@@ -332,7 +334,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       List<Query> querqyBoostQueries = null;
       final Query phraseFieldQuery;
 
-      if ((userQuery.charAt(0) == '*') && (userQuery.length() == 1 || MATCH_ALL.equals(userQuery))) {
+      if ((userQueryString.charAt(0) == '*') && (userQueryString.length() == 1 || MATCH_ALL.equals(userQueryString))) {
           mainQuery = new MatchAllDocsQuery();
           dfc.finishedUserQuery();
           phraseFieldQuery = null;
@@ -345,7 +347,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           }
           expandedQuery = rewriteChain.rewrite(expandedQuery, context);
          
-          mainQuery = makeMainQuery(expandedQuery);
+          mainQuery = makeUserQuery(expandedQuery);
          
           dfc.finishedUserQuery();
          
@@ -429,7 +431,15 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
    }
 
-   protected List<Query> getQuerqyBoostQueries(ExpandedQuery expandedQuery) throws SyntaxError {
+    @Override
+    public Query getHighlightQuery() throws SyntaxError {
+        if (userQuery == null) {
+            parse();
+        }
+        return userQuery;
+    }
+
+    protected List<Query> getQuerqyBoostQueries(final ExpandedQuery expandedQuery) throws SyntaxError {
 
       List<Query> result = transformBoostQueries(expandedQuery.getBoostUpQueries(), 1f);
       List<Query> down = transformBoostQueries(expandedQuery.getBoostDownQueries(), -1f);
@@ -445,10 +455,10 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       return result;
    }
 
-    public List<Query> transformBoostQueries(Collection<BoostQuery> boostQueries, float factor)
+    public List<Query> transformBoostQueries(final Collection<BoostQuery> boostQueries, final float factor)
             throws SyntaxError {
 
-        List<Query> result = null;
+        final List<Query> result;
 
         if (boostQueries != null && !boostQueries.isEmpty()) {
 
@@ -497,6 +507,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
             }
 
+        } else {
+            result = null;
         }
 
         return result;
@@ -662,9 +674,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     }
 
-    public boolean isFieldPhraseQueryable(SchemaField field) {
+    public boolean isFieldPhraseQueryable(final SchemaField field) {
         if (field != null) {
-            FieldType fieldType = field.getType();
+            final FieldType fieldType = field.getType();
             if ((fieldType instanceof TextField) && !field.omitPositions() && !field.omitTermFreqAndPositions()) {
                 return true;
             }
@@ -676,13 +688,13 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    /**
     * @param query
     */
-   public Query applyMinShouldMatch(Query query) {
+   public Query applyMinShouldMatch(final Query query) {
 
        if (!(query instanceof BooleanQuery)) {
            return query;
        }
 
-       BooleanQuery bq = (BooleanQuery) query;
+       final BooleanQuery bq = (BooleanQuery) query;
        List<BooleanClause> clauses = bq.clauses();
        if (clauses.size() < 2) {
            return bq;
@@ -700,7 +712,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    }
 
 
-    public void applyFilterQueries(ExpandedQuery expandedQuery) throws SyntaxError {
+    public void applyFilterQueries(final ExpandedQuery expandedQuery) throws SyntaxError {
 
       Collection<QuerqyQuery<?>> filterQueries = expandedQuery.getFilterQueries();
 
@@ -733,22 +745,24 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
          
    }
 
-   public Query makeMainQuery(ExpandedQuery expandedQuery) {
+   public Query makeUserQuery(final ExpandedQuery expandedQuery) {
 
       builder.reset();
 
       try {
 
-          return wrapQuery(
+          userQuery = wrapQuery(
                   applyMinShouldMatch(
                           builder.createQuery(expandedQuery.getUserQuery())));
+
+          return userQuery;
 
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
    }
 
-    public Query wrapQuery(Query query) {
+    public Query wrapQuery(final Query query) {
 
         if (query == null || dfc == null) {
 
@@ -756,7 +770,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
         } else {
 
-            WrappedQuery wrappedQuery = new WrappedQuery(query);
+            final WrappedQuery wrappedQuery = new WrappedQuery(query);
             wrappedQuery.setCache(true);
             wrappedQuery.setCacheSep(false);
             return wrappedQuery;
@@ -780,7 +794,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * @return
     * @throws SyntaxError
     */
-   public Query getAlternateUserQuery(SolrParams solrParams) throws SyntaxError {
+   public Query getAlternateUserQuery(final SolrParams solrParams) throws SyntaxError {
       String altQ = solrParams.get(DisMaxParams.ALTQ);
       if (altQ != null) {
          QParser altQParser = subQuery(altQ, null);
@@ -806,7 +820,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * @return Map of fieldOne =&gt; 2.3, fieldTwo =&gt; null, fieldThree =&gt;
     *         -0.4
     */
-   public static Map<String, Float> parseFieldBoosts(String in, Float defaultBoost) {
+   public static Map<String, Float> parseFieldBoosts(final String in, final Float defaultBoost) {
       return parseFieldBoosts(new String[] { in }, defaultBoost);
    }
 
@@ -820,11 +834,11 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * @return Map of fieldOne =&gt; 2.3, fieldTwo =&gt; null, fieldThree =&gt;
     *         -0.4
     */
-   public static Map<String, Float> parseFieldBoosts(String[] fieldLists, Float defaultBoost) {
+   public static Map<String, Float> parseFieldBoosts(final String[] fieldLists, final Float defaultBoost) {
       if (null == fieldLists || 0 == fieldLists.length) {
          return new HashMap<>();
       }
-      Map<String, Float> out = new HashMap<>(7);
+      final Map<String, Float> out = new HashMap<>(7);
       for (String in : fieldLists) {
          if (null == in) {
             continue;
@@ -834,9 +848,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
             continue;
          }
 
-         String[] bb = whitespacePattern.split(in);
-         for (String s : bb) {
-            String[] bbb = caratPattern.split(s);
+         final String[] bb = whitespacePattern.split(in);
+         for (final String s : bb) {
+            final String[] bbb = caratPattern.split(s);
             out.put(bbb[0], 1 == bbb.length ? defaultBoost : Float.valueOf(bbb[1]));
          }
       }
@@ -850,11 +864,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * parameter. Falls back to the 'df' parameter or
     * {@link org.apache.solr.schema.IndexSchema#getDefaultSearchFieldName()}.
     */
-   public static Map<String, Float> parseQueryFields(final IndexSchema indexSchema, final SolrParams solrParams, String fieldName, Float defaultBoost, boolean useDfFallback)
+   public static Map<String, Float> parseQueryFields(final IndexSchema indexSchema, final SolrParams solrParams,
+                                                     final String fieldName, final Float defaultBoost, final boolean useDfFallback)
          throws SyntaxError {
-      Map<String, Float> queryFields = parseFieldBoosts(solrParams.getParams(fieldName), defaultBoost);
+      final Map<String, Float> queryFields = parseFieldBoosts(solrParams.getParams(fieldName), defaultBoost);
       if (queryFields.isEmpty() && useDfFallback) {
-         String df = QueryParsing.getDefaultField(indexSchema, solrParams.get(CommonParams.DF));
+         final String df = QueryParsing.getDefaultField(indexSchema, solrParams.get(CommonParams.DF));
          if (df == null) {
             throw new SyntaxError("Neither " + fieldName + ", " + CommonParams.DF
                   + ", nor the default search field are present.");
@@ -873,8 +888,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
        * @param params
        * @param req
        */
-      public PublicExtendedDismaxConfiguration(SolrParams localParams,
-            SolrParams params, SolrQueryRequest req) {
+      public PublicExtendedDismaxConfiguration(final SolrParams localParams,
+            final SolrParams params, final SolrQueryRequest req) {
          super(localParams, params, req);
          generatedFieldBoostFactor = solrParams.getFloat(GFB, 1f);
       }
