@@ -77,12 +77,12 @@ public class SolrTermQueryCacheFieldPreloadTest extends SolrTestCaseJ4 {
         assertQ("DFC failed for preloaded terms",
                 req,
                 "//result[@name='response'][@numFound='3']",
-                "//str[@name='5'][not(contains(.,'docFreq=1'))]",
-                "//str[@name='5'][contains(.,'docFreq=2')]",
-                "//str[@name='4'][not(contains(.,'docFreq=1'))]",
-                "//str[@name='4'][contains(.,'docFreq=2')]",
-                "//str[@name='3'][not(contains(.,'docFreq=1'))]",
-                "//str[@name='4'][contains(.,'docFreq=2')]"
+                "//str[@name='5'][not(contains(.,'1.0 = docFreq'))]",
+                "//str[@name='5'][contains(.,'2.0 = docFreq')]",
+                "//str[@name='4'][not(contains(.,'1.0 = docFreq'))]",
+                "//str[@name='4'][contains(.,'2.0 = docFreq')]",
+                "//str[@name='3'][not(contains(.,'1.0 = docFreq'))]",
+                "//str[@name='4'][contains(.,'2.0 = docFreq')]"
         );
 
         req.close();

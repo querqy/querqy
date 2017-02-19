@@ -56,10 +56,10 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
             );
       assertQ("wrong df",
             req,
-            "//str[@name='2'][contains(.,'docFreq=7')]",
-            "//str[@name='2'][not(contains(.,'docFreq=1'))]",
-            "//str[@name='7'][contains(.,'docFreq=10')]",
-            "//str[@name='7'][not(contains(.,'docFreq=4'))]");
+            "//str[@name='2'][contains(.,'7.0 = docFreq')]",
+            "//str[@name='2'][not(contains(.,'1.0 = docFreq'))]",
+            "//str[@name='7'][contains(.,'10.0 = docFreq')]",
+            "//str[@name='7'][not(contains(.,'4.0 = docFreq'))]");
 
       req.close();
    }
