@@ -22,6 +22,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
@@ -787,7 +788,27 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
        return context;
    }
 
-   /**
+    @Override
+    public void addDebugInfo(final NamedList<Object> debugInfo) {
+
+        super.addDebugInfo(debugInfo);
+
+        debugInfo.add("querqy.parser", querqyParser.getClass().getName());
+
+        if (context != null) {
+
+            @SuppressWarnings("unchecked") final List<String> rulesDebugInfo =
+                    (List<String>) context.get(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_DATA);
+
+            if (rulesDebugInfo != null) {
+                debugInfo.add("querqy.rewrite", rulesDebugInfo);
+            }
+
+        }
+
+    }
+
+    /**
     * Copied from DisMaxQParser
     * 
     * @param solrParams

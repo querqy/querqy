@@ -19,6 +19,7 @@ import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.lucene.rewrite.cache.TermQueryCacheValue;
 import querqy.parser.QuerqyParser;
+import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
@@ -47,20 +48,7 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
     }
 
     @Override
-    public void inform(ResourceLoader loader) throws IOException {
-
-        NamedList<?> parserConfig = (NamedList<?>) initArgs.get("parser");
-        if (parserConfig == null) {
-            throw new IOException("Missing querqy parser configuration");
-        }
-
-        String className = (String) parserConfig.get("factory");
-        if (className == null) {
-            throw new IOException("Missing attribute 'factory' in querqy parser configuration");
-        }
-
-        SolrQuerqyParserFactory factory = loader.newInstance(className, SolrQuerqyParserFactory.class);
-        factory.init(parserConfig, loader);
+    public void inform(final ResourceLoader loader) throws IOException {
 
         rewriteChain = loadRewriteChain(loader);
       
@@ -73,7 +61,44 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
 
         ignoreTermQueryCacheUpdates = (updateCache != null) && !updateCache;
         
-        this.querqyParserFactory = factory;
+        this.querqyParserFactory = loadSolrQuerqyParserFactory(loader, initArgs);
+    }
+
+    protected SolrQuerqyParserFactory loadSolrQuerqyParserFactory(final ResourceLoader loader,
+                                                                  final NamedList<?> args) throws IOException {
+
+        final Object parserConfig = args.get("parser");
+        if (parserConfig == null) {
+
+            final SimpleQuerqyQParserFactory factory = new SimpleQuerqyQParserFactory();
+            factory.setQuerqyParserClass(WhiteSpaceQuerqyParser.class);
+            return factory;
+
+        } else if (parserConfig instanceof String) {
+
+            final SimpleQuerqyQParserFactory factory = new SimpleQuerqyQParserFactory();
+
+            factory.init((String) parserConfig, loader);
+
+            return factory;
+
+        } else {
+
+            NamedList<?> parserConfigMap = (NamedList<?>) parserConfig;
+            if (parserConfig == null) {
+                throw new IOException("Missing querqy parser configuration");
+            }
+
+            final String className = (String) parserConfigMap.get("factory");
+
+            final SolrQuerqyParserFactory factory = className == null
+                    ? new SimpleQuerqyQParserFactory()
+                    : loader.newInstance(className, SolrQuerqyParserFactory.class);
+            factory.init(parserConfigMap, loader);
+
+            return factory;
+
+        }
     }
 
    /**
