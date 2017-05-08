@@ -107,7 +107,8 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/
             <bool name="ignoreCase">true</bool>
             <!-- 
                 Some rules in the rules file declare boost queries,
-                synonym queries or filter queries that need to be added 				   to the user query. This query parser parses the 
+                synonym queries or filter queries that need to be added
+                to the user query. This query parser parses the
                 additional queries from the rules file:
             -->
             <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
@@ -117,7 +118,10 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/
             You can add further rewriters to the chain. For example, 
             you could add a second SimpleCommonRulesRewriter for
             a different group of rules, which would consume the 
-            output of the first rewriter. Or you might add a completely 			  different rewriter imlementation, like the ShingleRewriter, 			  that would combine pairs of tokens of the query input and 			  add the concatenated forms as synonyms.
+            output of the first rewriter. Or you might add a completely
+            different rewriter imlementation, like the ShingleRewriter,
+            that would combine pairs of tokens of the query input and
+            add the concatenated forms as synonyms.
         -->
         <!--
         <lst name="rewriter">
@@ -638,6 +642,7 @@ Please base development on the branch for the corresponding Solr version. querqy
  - [Markus Heiden](https://github.com/markus-s24)
  - [Markus Müllenborn](https://github.com/muellenborn)
  - [Martin Grotzke](https://github.com/magro)
+ - [Matthias Krüger](https://github.com/mkr)
  - [René Kriegler](https://github.com/renekrie), Committer/Maintainer
  - [Robert Giacinto](https://github.com/lichtsprung)
  - [Tobias Kässmann](https://github.com/tkaessmann)
