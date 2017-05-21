@@ -2,17 +2,18 @@ package querqy.lucene.rewrite;
 
 import java.io.IOException;
 
+import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
-import org.apache.lucene.search.IndexSearcher;
 
 public interface DocumentFrequencyAndTermContextProvider {
 
     void prepareTerm(Term term);
     int termIndex();
 
-    DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(
-            int tqIndex, IndexSearcher searcher) throws IOException;
+    DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(final int tqIndex,
+                                                                       final IndexReaderContext indexReaderContext)
+            throws IOException;
 
     void newClause();
 

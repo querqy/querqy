@@ -121,7 +121,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
-        Query query = queryBuilder.createQuery(parser.parse("abc"));
+        Query query = queryBuilder.createQuery(parser.parse("abc")).rewrite(indexReader);
         dfc.finishedUserQuery();
         query.createWeight(indexSearcher, true);
         

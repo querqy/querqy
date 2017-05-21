@@ -42,7 +42,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
 
         DependentTermQuery tq = new DependentTermQuery(term, dfc, ConstantFieldBoost.NORM_BOOST);
         dfc.finishedUserQuery();
-        DocumentFrequencyAndTermContext documentFrequencyAndTermContext = dfc.getDocumentFrequencyAndTermContext(tq.tqIndex, indexSearcher);
+        DocumentFrequencyAndTermContext documentFrequencyAndTermContext = dfc.getDocumentFrequencyAndTermContext(tq.tqIndex, indexSearcher.getTopReaderContext());
         
         assertEquals(df, documentFrequencyAndTermContext.termContext.docFreq());
         
@@ -100,10 +100,14 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         DependentTermQuery tq2a = new DependentTermQuery(t2a, dfc, ConstantFieldBoost.NORM_BOOST);
 
         
-        DocumentFrequencyAndTermContext dftc1 = dfc.getDocumentFrequencyAndTermContext(tq1.tqIndex, indexSearcher);
-        DocumentFrequencyAndTermContext dftc2 = dfc.getDocumentFrequencyAndTermContext(tq2.tqIndex, indexSearcher);
-        DocumentFrequencyAndTermContext dftc1a = dfc.getDocumentFrequencyAndTermContext(tq1a.tqIndex, indexSearcher);
-        DocumentFrequencyAndTermContext dftc2a = dfc.getDocumentFrequencyAndTermContext(tq2a.tqIndex, indexSearcher);
+        DocumentFrequencyAndTermContext dftc1 = dfc.getDocumentFrequencyAndTermContext(tq1.tqIndex,
+                indexSearcher.getTopReaderContext());
+        DocumentFrequencyAndTermContext dftc2 = dfc.getDocumentFrequencyAndTermContext(tq2.tqIndex,
+                indexSearcher.getTopReaderContext());
+        DocumentFrequencyAndTermContext dftc1a = dfc.getDocumentFrequencyAndTermContext(tq1a.tqIndex,
+                indexSearcher.getTopReaderContext());
+        DocumentFrequencyAndTermContext dftc2a = dfc.getDocumentFrequencyAndTermContext(tq2a.tqIndex,
+                indexSearcher.getTopReaderContext());
 
         assertEquals(df1, dftc1.termContext.docFreq());
         assertEquals(df2, dftc2.termContext.docFreq());
