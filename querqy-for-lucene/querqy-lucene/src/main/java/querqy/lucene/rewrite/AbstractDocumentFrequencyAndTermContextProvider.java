@@ -27,7 +27,7 @@ public abstract class AbstractDocumentFrequencyAndTermContextProvider implements
     int termIndex = -1;
 
 
-    protected abstract TermStats doCalculateTermContexts(IndexSearcher searcher) throws IOException;
+    protected abstract TermStats doCalculateTermContexts(IndexReaderContext indexReaderContext) throws IOException;
 
     /* (non-Javadoc)
      * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#prepareTerm(org.apache.lucene.index.Term)
@@ -50,22 +50,26 @@ public abstract class AbstractDocumentFrequencyAndTermContextProvider implements
 
 
     /* (non-Javadoc)
-         * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#getDocumentFrequencyAndTermContext(int, org.apache.lucene.search.IndexSearcher)
+         * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#getDocumentFrequencyAndTermContext(int,
+         * org.apache.lucene.search.IndexReaderContext)
          */
     @Override
-    public DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(int tqIndex, IndexSearcher searcher) throws IOException {
+    public DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(final int tqIndex,
+                                                                              final IndexReaderContext indexReaderContext)
+            throws IOException {
 
         TermStats ts = termStats;
-        if (ts == null || ts.topReaderContext != searcher.getTopReaderContext()) {
-            ts = calculateTermContexts(searcher);
+        if (ts == null || ts.topReaderContext != indexReaderContext) {
+            ts = calculateTermContexts(indexReaderContext);
         }
 
         return new DocumentFrequencyAndTermContext(ts.documentFrequencies[tqIndex], ts.termContexts[tqIndex]);
     }
 
-    protected TermStats calculateTermContexts(IndexSearcher searcher) throws IOException {
+    protected TermStats calculateTermContexts(final IndexReaderContext indexReaderContext)
+            throws IOException {
 
-        return setTermStats(doCalculateTermContexts(searcher));
+        return setTermStats(doCalculateTermContexts(indexReaderContext));
 
     }
 
@@ -107,14 +111,15 @@ public abstract class AbstractDocumentFrequencyAndTermContextProvider implements
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
-        AbstractDocumentFrequencyAndTermContextProvider other = (AbstractDocumentFrequencyAndTermContextProvider) obj;
+        final AbstractDocumentFrequencyAndTermContextProvider other =
+                (AbstractDocumentFrequencyAndTermContextProvider) obj;
         if (clauseOffsets == null) {
             if (other.clauseOffsets != null)
                 return false;
@@ -138,7 +143,8 @@ public abstract class AbstractDocumentFrequencyAndTermContextProvider implements
         final TermContext[] termContexts;
         final IndexReaderContext topReaderContext;
 
-        public TermStats(int[] documentFrequencies, TermContext[] termContexts, IndexReaderContext topReaderContext) {
+        public TermStats(final int[] documentFrequencies, final TermContext[] termContexts,
+                         final IndexReaderContext topReaderContext) {
             this.documentFrequencies = documentFrequencies;
             this.termContexts = termContexts;
             this.topReaderContext = topReaderContext;

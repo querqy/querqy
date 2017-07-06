@@ -98,13 +98,14 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         Map<String, Float> fields = new HashMap<>();
         fields.put("f1", 1f);
         fields.put("f2", 1f);
-        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.PRMS, fields, fields, 0.8f);
+        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.PRMS, fields,
+                fields, 0.8f);
         
         LuceneQueryBuilder queryBuilder = new LuceneQueryBuilder(dfc, analyzer, searchFieldsAndBoosting, 0.01f, null);
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
-        Query query = queryBuilder.createQuery(parser.parse("AbcDef"));
+        Query query = queryBuilder.createQuery(parser.parse("AbcDef")).rewrite(indexReader);
         dfc.finishedUserQuery();
 
         assertTrue(query instanceof DisjunctionMaxQuery);

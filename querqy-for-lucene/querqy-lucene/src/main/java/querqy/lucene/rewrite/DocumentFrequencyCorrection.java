@@ -23,19 +23,19 @@ import org.apache.lucene.search.IndexSearcher;
  */
 public class DocumentFrequencyCorrection extends AbstractDocumentFrequencyAndTermContextProvider {
     
-    protected TermStats doCalculateTermContexts(IndexSearcher searcher) throws IOException {
-       IndexReaderContext topReaderContext = searcher.getTopReaderContext();
-       
-       int[] dfs = new int[terms.size()];
-       TermContext[] contexts = new TermContext[dfs.length];
+    protected TermStats doCalculateTermContexts(final IndexReaderContext indexReaderContext)
+            throws IOException {
+
+       final int[] dfs = new int[terms.size()];
+       final TermContext[] contexts = new TermContext[dfs.length];
        
        for (int i = 0; i < dfs.length; i++) {
            
-           Term term = terms.get(i);
+           final Term term = terms.get(i);
            
-           contexts[i] = new TermContext(topReaderContext);
+           contexts[i] = new TermContext(indexReaderContext);
            
-           for (final LeafReaderContext ctx : topReaderContext.leaves()) {
+           for (final LeafReaderContext ctx : indexReaderContext.leaves()) {
                final Fields fields = ctx.reader().fields();
                if (fields != null) {
                  final Terms terms = fields.terms(term.field());
@@ -43,7 +43,7 @@ public class DocumentFrequencyCorrection extends AbstractDocumentFrequencyAndTer
                    final TermsEnum termsEnum = terms.iterator();
                    if (termsEnum.seekExact(term.bytes())) { 
                      final TermState termState = termsEnum.termState();
-                     int df = termsEnum.docFreq();
+                     final int df = termsEnum.docFreq();
                      dfs[i] = dfs[i] + df;
                      contexts[i].register(termState, ctx.ord, df, -1);
                    }
@@ -53,8 +53,8 @@ public class DocumentFrequencyCorrection extends AbstractDocumentFrequencyAndTer
        }
        
        for (int i = 0, last = clauseOffsets.size() - 1; i <= last; i++) {
-           int start = clauseOffsets.get(i);
-           int end = (i == last) ? terms.size() : clauseOffsets.get(i + 1);
+           final int start = clauseOffsets.get(i);
+           final int end = (i == last) ? terms.size() : clauseOffsets.get(i + 1);
            int pos = start;
            if (pos < end) {
                int max = dfs[pos++];
@@ -82,7 +82,7 @@ public class DocumentFrequencyCorrection extends AbstractDocumentFrequencyAndTer
            }
        }
 
-        return new TermStats(dfs, contexts, topReaderContext);
+        return new TermStats(dfs, contexts, indexReaderContext);
        
    }
 
