@@ -42,7 +42,7 @@
 		   		<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
                	<str name="rules">contrib/rules-before-shingles.txt</str>
                	<bool name="ignoreCase">true</bool>
-               	<str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+               	<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
 		   </lst>
 		   <lst name="rewriter">
 		   		<str name="class">querqy.solr.contrib.ShingleRewriterFactory</str>
@@ -52,7 +52,7 @@
                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
                <str name="rules">contrib/rules-shingles.txt</str>
                <bool name="ignoreCase">true</bool>
-               <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+               <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
            </lst>
      	 </lst>
      	 

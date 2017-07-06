@@ -80,9 +80,10 @@ public class TermBoostQuery extends TermQuery {
 
         @Override
         public Scorer scorer(LeafReaderContext context) throws IOException {
-            assert termStates.topReaderContext
-                    == ReaderUtil.getTopLevelContext(context)
+
+            assert termStates.topReaderContext == ReaderUtil.getTopLevelContext(context)
                     : "The top-reader used to create Weight (" + termStates.topReaderContext + ") is not the same as the current reader's top-reader (" + ReaderUtil.getTopLevelContext(context);
+
             final TermsEnum termsEnum = getTermsEnum(context);
             if (termsEnum == null) {
                 return null;
@@ -105,7 +106,7 @@ public class TermBoostQuery extends TermQuery {
             // System.out.println("LD=" + reader.getLiveDocs() + " set?=" +
             // (reader.getLiveDocs() != null ? reader.getLiveDocs().get(0) : "null"));
             final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
-            termsEnum.seekExact(term.bytes(), state);
+            termsEnum.seekExact(term.bytes());
             return termsEnum;
         }
 

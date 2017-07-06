@@ -12,7 +12,6 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
-import querqy.parser.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 

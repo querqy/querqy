@@ -11,7 +11,6 @@ import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
-import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.model.Instruction;

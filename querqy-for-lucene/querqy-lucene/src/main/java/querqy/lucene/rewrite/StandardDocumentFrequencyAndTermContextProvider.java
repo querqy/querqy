@@ -11,20 +11,18 @@ import java.io.IOException;
 public class StandardDocumentFrequencyAndTermContextProvider extends AbstractDocumentFrequencyAndTermContextProvider {
 
     @Override
-    protected TermStats doCalculateTermContexts(IndexSearcher searcher) throws IOException {
+    protected TermStats doCalculateTermContexts(final IndexReaderContext indexReaderContext) throws IOException {
 
-        IndexReaderContext topReaderContext = searcher.getTopReaderContext();
-
-        int[] dfs = new int[terms.size()];
-        TermContext[] contexts = new TermContext[dfs.length];
+        final int[] dfs = new int[terms.size()];
+        final TermContext[] contexts = new TermContext[dfs.length];
 
         for (int i = 0; i < dfs.length; i++) {
 
-            Term term = terms.get(i);
+            final Term term = terms.get(i);
 
-            contexts[i] = new TermContext(topReaderContext);
+            contexts[i] = new TermContext(indexReaderContext);
 
-            for (final LeafReaderContext ctx : topReaderContext.leaves()) {
+            for (final LeafReaderContext ctx : indexReaderContext.leaves()) {
                 final Fields fields = ctx.reader().fields();
                 if (fields != null) {
                     final Terms terms = fields.terms(term.field());
@@ -32,7 +30,7 @@ public class StandardDocumentFrequencyAndTermContextProvider extends AbstractDoc
                         final TermsEnum termsEnum = terms.iterator();
                         if (termsEnum.seekExact(term.bytes())) {
                             final TermState termState = termsEnum.termState();
-                            int df = termsEnum.docFreq();
+                            final int df = termsEnum.docFreq();
                             dfs[i] = dfs[i] + df;
                             contexts[i].register(termState, ctx.ord, df, -1);
                         }
@@ -41,6 +39,6 @@ public class StandardDocumentFrequencyAndTermContextProvider extends AbstractDoc
             }
         }
 
-        return new TermStats(dfs, contexts, topReaderContext);
+        return new TermStats(dfs, contexts, indexReaderContext);
     }
 }
