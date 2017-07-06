@@ -92,17 +92,12 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);
-        assertTrue(disjunct1 instanceof BoostQuery);
-
-        Query boostedQuery1 = ((BoostQuery) disjunct1).getQuery();
-        assertTrue(boostedQuery1 instanceof TermQuery);
-        TermQuery tq1 = (TermQuery) boostedQuery1;
+        assertTrue(disjunct1 instanceof DependentTermQuery);
+        DependentTermQuery tq1 = (DependentTermQuery) disjunct1;
         
         Query disjunct2 = disjuncts.get(1);
-        assertTrue(disjunct2 instanceof BoostQuery);
-        Query boostedQuery2 = ((BoostQuery) disjunct2).getQuery();
-        assertTrue(boostedQuery2 instanceof TermQuery);
-        TermQuery tq2 = (TermQuery) boostedQuery2;
+        assertTrue(disjunct2 instanceof DependentTermQuery);
+        DependentTermQuery tq2 = (DependentTermQuery) disjunct2;
 
         assertNotEquals(tq1.getTerm().field(), tq2.getTerm().field());
 
