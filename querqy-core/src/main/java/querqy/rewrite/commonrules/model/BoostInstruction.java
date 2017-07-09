@@ -3,6 +3,8 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import static querqy.model.Clause.Occur.*;
+
 import java.util.*;
 
 import querqy.ComparableCharSequence;
@@ -33,11 +35,15 @@ public class BoostInstruction implements Instruction {
             throw new IllegalArgumentException("direction must not be null");
         }
 
-        hasPlaceHolder = (query instanceof Query)
-                ? new ToPlaceHolderTermRewriter().rewritePlaceHolders((Query) query)
-                : false;
+        if (query instanceof BooleanQuery) {
+            hasPlaceHolder = (query instanceof Query)
+                    && new ToPlaceHolderTermRewriter().rewritePlaceHolders((Query) query);
+            this.query = InstructionHelper.applyMinShouldMatchAndGeneratedToBooleanQuery((BooleanQuery) query);
+        } else {
+            hasPlaceHolder = false;
+            this.query = query;
+        }
 
-        this.query = query;
         this.direction = direction;
         this.boost = boost;
     }
@@ -52,6 +58,7 @@ public class BoostInstruction implements Instruction {
                       final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
                       final Map<String, Object> context) {
 
+        // TODO: we might not need to clone here, if we already cloned all queries in the constructor
         final QuerqyQuery<?> q = (hasPlaceHolder)
                 ? new CloneAndReplacePlaceHolderRewriter(termMatches).cloneAndReplace(query)
                 : query.clone(null, true);

@@ -27,11 +27,7 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
 
    @Override
    public BooleanQuery clone(final BooleanParent newParent) {
-      final BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
-      for (final BooleanClause clause : clauses) {
-         bq.addClause(clause.clone(bq));
-      }
-      return bq;
+       return clone(newParent, this.occur, this.generated);
    }
 
    @Override
@@ -46,11 +42,7 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
 
    @Override
    public BooleanQuery clone(final BooleanParent newParent, final boolean generated) {
-       BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
-       for (BooleanClause clause : clauses) {
-          bq.addClause(clause.clone(bq, generated));
-       }
-       return bq;
+       return clone(newParent, this.occur, generated);
    }
 
    @Override
@@ -58,4 +50,21 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
        return clone((BooleanParent) newParent, generated);
    }
 
+    @Override
+    public BooleanClause clone(final BooleanQuery newParent, final Occur occur) {
+        return clone((BooleanParent) newParent, occur, this.generated);
+    }
+
+    @Override
+    public BooleanClause clone(final BooleanQuery newParent, final Occur occur, final boolean generated) {
+        return clone((BooleanParent) newParent, occur, generated);
+    }
+
+    public BooleanQuery clone(final BooleanParent newParent, final Occur occur, final boolean generated) {
+        final BooleanQuery bq = new BooleanQuery(newParent, occur, generated);
+        for (final BooleanClause clause : clauses) {
+            bq.addClause(clause.clone(bq, generated));
+        }
+        return bq;
+    }
 }
