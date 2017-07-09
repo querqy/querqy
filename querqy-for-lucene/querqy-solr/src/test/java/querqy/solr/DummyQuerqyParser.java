@@ -1,7 +1,5 @@
 package querqy.solr;
 
-import querqy.model.Query;
-import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 /**

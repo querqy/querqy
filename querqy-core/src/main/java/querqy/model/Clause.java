@@ -29,7 +29,7 @@ public abstract class Clause<P extends Node> extends AbstractNode<P> {
 	public final Occur occur;
 	
 	
-	public Clause(P parent, Occur occur, boolean isGenerated) {
+	public Clause(final P parent, final Occur occur, final boolean isGenerated) {
 		super(parent, isGenerated);
 		this.occur = occur;
 	}
@@ -47,14 +47,14 @@ public abstract class Clause<P extends Node> extends AbstractNode<P> {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj)
             return true;
         if (!super.equals(obj))
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Clause<?> other = (Clause<?>) obj;
+        final Clause<?> other = (Clause<?>) obj;
         if (occur != other.occur)
             return false;
         return true;

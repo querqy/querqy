@@ -23,7 +23,7 @@ public interface Instruction {
    /**
     * 
     * @param sequence
-    * @param matchedTerms
+    * @param termMatches
     * @param startPosition
     * @param endPosition
     * @param expandedQuery
@@ -33,5 +33,7 @@ public interface Instruction {
          ExpandedQuery expandedQuery,  Map<String, Object> context);
    
    Set<Term> getGenerableTerms();
+
+
 
 }
