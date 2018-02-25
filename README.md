@@ -163,7 +163,7 @@ Example:
 q=personal computer&defType=querqy&qf=name^2.0 description^0.5&pf=name
 ~~~
 
-With the exception of the defType paramter this query looks like a standard ExtendedDisMax query, and if you haven't configured any rules for the query 'personal computer', the results and their order would be the same like for ExtendedDisMax. If, on the other hand, you have configured a rule
+With the exception of the defType parameter this query looks like a standard ExtendedDisMax query, and if you haven't configured any rules for the query 'personal computer', the results and their order would be the same like for ExtendedDisMax. If, on the other hand, you have configured a rule
 
 ~~~
 personal computer =>
