@@ -14,19 +14,19 @@ public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P>
 
 	protected final List<C> clauses = new LinkedList<>();
 	
-	public SubQuery(P parentQuery, boolean generated) {
+	public SubQuery(final P parentQuery, final boolean generated) {
 		this(parentQuery, Occur.SHOULD, generated);
 	}
 	
-	public SubQuery(P parentQuery, Occur occur, boolean generated) {
+	public SubQuery(final P parentQuery, final Occur occur, final boolean generated) {
 		super(parentQuery, occur, generated);
 	}
 	
 	
 	@SuppressWarnings("unchecked")
-	public <T extends C> List<T> getClauses(Class<T> type) {
-		List<T> result = new LinkedList<>();
-		for (C clause: clauses) {
+	public <T extends C> List<T> getClauses(final Class<T> type) {
+		final List<T> result = new LinkedList<>();
+		for (final C clause: clauses) {
 			if (type.equals(clause.getClass())) {
 				result.add((T) clause);
 			}
@@ -34,14 +34,14 @@ public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P>
 		return result;
 	}
 	
-	public void addClause(C clause) {
+	public void addClause(final C clause) {
 		if (clause.getParent() != this) {
 			throw new IllegalArgumentException("This query is not a parent of " + clause);
 		}
 		clauses.add(clause);
 	}
 	
-	public void removeClause(C clause) {
+	public void removeClause(final C clause) {
 	    if (clause.getParent() != this) {
             throw new IllegalArgumentException("This query is not a parent of " + clause);
         }
@@ -61,14 +61,14 @@ public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P>
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SubQuery<?,?> other = (SubQuery<?,?>) obj;
+        final SubQuery<?,?> other = (SubQuery<?,?>) obj;
         if (clauses == null) {
             if (other.clauses != null)
                 return false;

@@ -10,7 +10,6 @@ import java.util.List;
 import querqy.model.Clause.Occur;
 import querqy.model.RawQuery;
 import querqy.parser.QuerqyParser;
-import querqy.parser.QuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
