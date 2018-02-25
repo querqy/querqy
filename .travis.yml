@@ -18,3 +18,5 @@ branches:
     - solr6_0
     - solr6_1
     - solr6_2
+    - solr6_4
+    - solr6_4_1

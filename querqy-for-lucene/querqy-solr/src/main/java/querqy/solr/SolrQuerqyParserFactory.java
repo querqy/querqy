@@ -12,12 +12,10 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 
 import querqy.parser.QuerqyParser;
-import querqy.parser.QuerqyParserFactory;
 
 /**
- * A factory for a {@link QuerqyParser}. Unlike the Solr-independent {@link QuerqyParserFactory} the arguments of the
- * {@link #init(NamedList, ResourceLoader)} and {@link #createParser(String, SolrParams, SolrParams, SolrQueryRequest)}
- * methods are part of the Solr object model.
+ * A factory that creates a {@link QuerqyParser} per Solr query request. The QuerqyParser turns the query string
+ * into Querqy's internal query object model.
  * 
  * @author René Kriegler, @renekrie
  *

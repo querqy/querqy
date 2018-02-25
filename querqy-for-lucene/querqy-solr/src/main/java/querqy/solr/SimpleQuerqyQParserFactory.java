@@ -41,8 +41,16 @@ public class SimpleQuerqyQParserFactory implements SolrQuerqyParserFactory {
          throw new IOException("Missing attribute 'class' in querqy parser configuration");
       }
 
-      querqyParserClass = loader.findClass(className, QuerqyParser.class);
+      init(className, loader);
 
+   }
+
+   public void init(final String querqyParserClass, final ResourceLoader loader) {
+       setQuerqyParserClass(loader.findClass(querqyParserClass, QuerqyParser.class));
+   }
+
+   public void setQuerqyParserClass(final Class<? extends QuerqyParser> querqyParserClass) {
+       this.querqyParserClass = querqyParserClass;
    }
 
    /*

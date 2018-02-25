@@ -14,22 +14,18 @@ public class Query extends BooleanQuery {
         super(null, Occur.SHOULD, false);
     }
 
-    @Override
-    public Query clone(BooleanParent newParent) {
-        Query q = new Query();
-        for (BooleanClause clause : clauses) {
-            q.addClause(clause.clone(q));
-        }
-        return q;
+    public Query(final boolean generated) {
+        super(null, Occur.SHOULD, generated);
     }
 
     @Override
-    public Query clone(BooleanParent newParent, boolean generated) {
-        Query q = new Query();
-        for (BooleanClause clause : clauses) {
+    public Query clone(final BooleanParent newParent, final Occur occur, final boolean generated) {
+        final Query q = new Query(generated);
+        for (final BooleanClause clause : clauses) {
             q.addClause(clause.clone(q, generated));
         }
         return q;
+
     }
 
 }

@@ -60,7 +60,7 @@
                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
                <str name="rules">rules-DefaultQuerqyDismaxQParserTest.txt</str>
                <bool name="ignoreCase">true</bool>
-               <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+               <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
            </lst>
 		</lst>
 		<lst name="parser">

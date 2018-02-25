@@ -12,7 +12,7 @@ import java.util.List;
 public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxClause> implements BooleanClause,
       BooleanParent {
 
-   public DisjunctionMaxQuery(BooleanQuery parentQuery, Occur occur, boolean generated) {
+   public DisjunctionMaxQuery(final BooleanQuery parentQuery, final Occur occur, final boolean generated) {
       super(parentQuery, occur, generated);
    }
 
@@ -21,7 +21,7 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
    }
 
    @Override
-   public <T> T accept(NodeVisitor<T> visitor) {
+   public <T> T accept(final NodeVisitor<T> visitor) {
       return visitor.visit(this);
    }
 
@@ -32,17 +32,29 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
    }
 
    @Override
-   public BooleanClause clone(BooleanQuery newParent) {
+   public BooleanClause clone(final BooleanQuery newParent) {
+       return clone(newParent, this.occur, this.generated);
+   }
+
+   @Override
+   public BooleanClause clone(final BooleanQuery newParent, final boolean generated) {
+       return clone(newParent, this.occur, generated);
+   }
+
+   @Override
+   public BooleanClause clone(final BooleanQuery newParent, final Occur occur) {
        return clone(newParent, this.generated);
    }
 
    @Override
-   public BooleanClause clone(BooleanQuery newParent, boolean generated) {
-       DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
-       for (DisjunctionMaxClause clause : clauses) {
-          dmq.addClause(clause.clone(dmq, generated));
+   public BooleanClause clone(final BooleanQuery newParent, final Occur occur, final boolean generated) {
+       final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
+       for (final DisjunctionMaxClause clause : clauses) {
+           dmq.addClause(clause.clone(dmq, generated));
        }
        return dmq;
    }
+
+
 
 }

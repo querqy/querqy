@@ -2,9 +2,12 @@ package querqy.rewrite.commonrules.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertFalse;
 import static querqy.QuerqyMatchers.boostQ;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
+import static querqy.QuerqyMatchers.must;
+import static querqy.QuerqyMatchers.mustNot;
 import static querqy.QuerqyMatchers.term;
 
 import java.util.Arrays;
@@ -30,7 +33,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         
-        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -43,8 +46,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
               contains( 
                       boostQ(
                               bq(
-                                      dmq(term("a", true)),
-                                      dmq( term("b", true))
+                                      dmq(must(), term("a", true))
                               ),
                               0.5f
                               
@@ -52,6 +54,110 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         
         
+    }
+
+    @Test
+    public void testThatBoostQueriesUseMM100ByDefault() {
+
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("x");
+        Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
+
+        assertThat(upQueries,
+                contains(
+                        boostQ(
+                                bq(
+                                        dmq(must(), term("a", true)),
+                                        dmq(must(), term("b", true))
+                                ),
+                                0.5f
+
+                        )));
+
+
+
+    }
+
+    @Test
+    public void testThatBoostQueriesWithMustClauseUseMM100ByDefault() {
+
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a +b").getUserQuery(), BoostDirection.UP, 0.5f);
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("x");
+        Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
+
+        assertThat(upQueries,
+                contains(
+                        boostQ(
+                                bq(
+                                        dmq(must(), term("a", true)),
+                                        dmq(must(), term("b", true))
+                                ),
+                                0.5f
+
+                        )));
+
+
+
+    }
+
+    @Test
+    public void testThatBoostQueriesWithMustNotClauseUseMM100ByDefault() {
+
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("x");
+        Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
+
+        assertThat(upQueries,
+                contains(
+                        boostQ(
+                                bq(
+                                        dmq(mustNot(), term("a", true)),
+                                        dmq(must(), term("b", true))
+                                ),
+                                0.5f
+
+                        )));
+
+
+
+    }
+
+    public void testThatMainQueryIsNotMarkedAsGenerated() {
+
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+
+        ExpandedQuery query = makeQuery("x");
+        Query mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+
+        assertFalse(mainQuery.isGenerated());
+
     }
 
     @Test
@@ -120,8 +226,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
                 contains(
                         boostQ(
                                 bq(
-                                        dmq( term("a", true)),
-                                        dmq( term("blm", true))
+                                        dmq(must(), term("a", true)),
+                                        dmq(must(), term("blm", true))
                                 ),
                                 0.2f
 
@@ -159,8 +265,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
                 contains(
                         boostQ(
                                 bq(
-                                        dmq( term("a", true)),
-                                        dmq( term("lm", true))
+                                        dmq(must(), term("a", true)),
+                                        dmq(must(), term("lm", true))
                                 ),
                                 0.3f
 
@@ -197,8 +303,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
                 contains(
                         boostQ(
                                 bq(
-                                        dmq( term("a", true)),
-                                        dmq( term("clmd", true))
+                                        dmq(must(), term("a", true)),
+                                        dmq(must(), term("clmd", true))
                                 ),
                                 0.3f
 

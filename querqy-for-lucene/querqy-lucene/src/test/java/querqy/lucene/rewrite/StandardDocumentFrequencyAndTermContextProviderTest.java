@@ -38,14 +38,13 @@ public class StandardDocumentFrequencyAndTermContextProviderTest extends LuceneT
         IndexSearcher indexSearcher = newSearcher(indexReader);
 
         StandardDocumentFrequencyAndTermContextProvider provider = new StandardDocumentFrequencyAndTermContextProvider();
-        ;
 
         int idx1 = new DependentTermQuery(newTerm("f1", "v5", provider), provider, fieldBoost).tqIndex;
         int idx2 = new DependentTermQuery(newTerm("f1", "v1", provider), provider, fieldBoost).tqIndex;
         DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext context1
-                = provider.getDocumentFrequencyAndTermContext(idx1, indexSearcher);
+                = provider.getDocumentFrequencyAndTermContext(idx1, indexSearcher.getTopReaderContext());
         DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext context2
-                = provider.getDocumentFrequencyAndTermContext(idx2, indexSearcher);
+                = provider.getDocumentFrequencyAndTermContext(idx2, indexSearcher.getTopReaderContext());
 
         assertEquals(5, context1.df);
         assertEquals(1, context2.df);

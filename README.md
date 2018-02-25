@@ -9,16 +9,26 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
-Querqy versions 1.x.x work with Solr 4.10.x, while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x map to Solr 6. Detailed Solr version mapping:
+Querqy versions 1.x.x work with Solr 4.10.x (no longer maintained), while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x map to Solr 6.
 
-  - Querqy 2.0.x to 2.5.x - Solr 5.0
-  - Querqy 2.6.x to 2.7.x - Solr 5.1
-  - Querqy 2.8.x          - Solr 5.3.x
-  - Querqy 2.9.x          - Solr 5.4.x 
-  - Querqy 2.10.x         - Solr 5.5.x  
-  - Querqy 3.0.x          - Solr 6.0.x
-  - Querqy 3.1.x          - Solr 6.1.x
-  - Querqy 3.2.x          - Solr 6.2.x and Solr 6.3.x
+Detailed Solr version mapping:
+
+
+|Solr version|Querqy version    |  |
+|----|-----------|-------------|
+|5.0.0| 2.0.x to 2.5.x|no longer maintained|
+|5.1.0| 2.6.x to 2.7.x||
+|5.2.x| - |no release version, but see version branch solr_5_2_1 |
+|5.3.x| 2.8.x||
+|5.4.x| 2.9.x||
+|5.5.x| 2.10.x||
+|6.0.x| 3.0.x||
+|6.1.x| 3.1.x||
+|6.2.x| 3.2.x||
+|6.3.x| 3.2.x||
+|6.4.0| 3.3.x||
+|6.4.1, 6.4.2| 3.4.x||
+|6.5.x| 3.4.x||
 
 You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 Please check the Bintray package [https://bintray.com/renekrie/maven/querqy](https://bintray.com/renekrie/maven/querqy) for Querqy core artifacts and Querqy versions prior to 2.7.4 (Solr 5.1), 2.8.4 (Solr 5.3), 2.9.5 (Solr 5.4), 2.10.4 (Solr 5.5), 3.0.3 (Solr 6.0).
@@ -97,7 +107,8 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/
             <bool name="ignoreCase">true</bool>
             <!-- 
                 Some rules in the rules file declare boost queries,
-                synonym queries or filter queries that need to be added 				   to the user query. This query parser parses the 
+                synonym queries or filter queries that need to be added
+                to the user query. This query parser parses the
                 additional queries from the rules file:
             -->
             <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
@@ -107,7 +118,10 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/
             You can add further rewriters to the chain. For example, 
             you could add a second SimpleCommonRulesRewriter for
             a different group of rules, which would consume the 
-            output of the first rewriter. Or you might add a completely 			  different rewriter imlementation, like the ShingleRewriter, 			  that would combine pairs of tokens of the query input and 			  add the concatenated forms as synonyms.
+            output of the first rewriter. Or you might add a completely
+            different rewriter imlementation, like the ShingleRewriter,
+            that would combine pairs of tokens of the query input and
+            add the concatenated forms as synonyms.
         -->
         <!--
         <lst name="rewriter">
@@ -149,7 +163,7 @@ Example:
 q=personal computer&defType=querqy&qf=name^2.0 description^0.5&pf=name
 ~~~
 
-With the exception of the defType paramter this query looks like a standard ExtendedDisMax query, and if you haven't configured any rules for the query 'personal computer', the results and their order would be the same like for ExtendedDisMax. If, on the other hand, you have configured a rule
+With the exception of the defType parameter this query looks like a standard ExtendedDisMax query, and if you haven't configured any rules for the query 'personal computer', the results and their order would be the same like for ExtendedDisMax. If, on the other hand, you have configured a rule
 
 ~~~
 personal computer =>
@@ -628,6 +642,7 @@ Please base development on the branch for the corresponding Solr version. querqy
  - [Markus Heiden](https://github.com/markus-s24)
  - [Markus Müllenborn](https://github.com/muellenborn)
  - [Martin Grotzke](https://github.com/magro)
+ - [Matthias Krüger](https://github.com/mkr)
  - [René Kriegler](https://github.com/renekrie), Committer/Maintainer
  - [Robert Giacinto](https://github.com/lichtsprung)
  - [Tobias Kässmann](https://github.com/tkaessmann)

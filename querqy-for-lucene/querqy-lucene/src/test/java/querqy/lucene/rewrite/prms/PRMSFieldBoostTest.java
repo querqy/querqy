@@ -85,7 +85,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
-        Query query = queryBuilder.createQuery(parser.parse("abc"));
+        Query query = queryBuilder.createQuery(parser.parse("abc")).rewrite(indexReader);
         dfc.finishedUserQuery();
         //query.createWeight(indexSearcher, true);
         assertTrue(query instanceof DisjunctionMaxQuery);
@@ -96,16 +96,16 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         Query disjunct1 = disjuncts.get(0);
         assertTrue(disjunct1 instanceof DependentTermQuery);
-        DependentTermQuery dtq1 = (DependentTermQuery) disjunct1;
+        DependentTermQuery tq1 = (DependentTermQuery) disjunct1;
         
         Query disjunct2 = disjuncts.get(1);
         assertTrue(disjunct2 instanceof DependentTermQuery);
-        DependentTermQuery dtq2 = (DependentTermQuery) disjunct2;
-        
-        assertNotEquals(dtq1.getTerm().field(), dtq2.getTerm().field());
+        DependentTermQuery tq2 = (DependentTermQuery) disjunct2;
 
-        final Weight weight1 = dtq1.createWeight(indexSearcher, true);
-        final Weight weight2 = dtq2.createWeight(indexSearcher, true);
+        assertNotEquals(tq1.getTerm().field(), tq2.getTerm().field());
+
+        final Weight weight1 = disjunct1.createWeight(indexSearcher, true);
+        final Weight weight2 = disjunct2.createWeight(indexSearcher, true);
         weight1.normalize(0.1f, 5f);
         weight2.normalize(0.1f, 5f);
 

@@ -6,6 +6,7 @@ package querqy.rewrite.commonrules.model;
 import java.util.Map;
 import java.util.Set;
 
+import querqy.model.BooleanQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
@@ -24,7 +25,9 @@ public class FilterInstruction implements Instruction {
       if (filterQuery == null) {
          throw new IllegalArgumentException("filterQuery must not be null");
       }
-      this.filterQuery = filterQuery;
+      this.filterQuery = filterQuery instanceof BooleanQuery
+              ? InstructionHelper.applyMinShouldMatchAndGeneratedToBooleanQuery((BooleanQuery) filterQuery)
+              : filterQuery;
    }
 
    /* (non-Javadoc)
@@ -34,7 +37,8 @@ public class FilterInstruction implements Instruction {
    public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
                      final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
                      final Map<String, Object> context) {
-      expandedQuery.addFilterQuery(filterQuery.clone(null, true));
+       // TODO: we might not need to clone here, if we already cloned all queries in the constructor
+       expandedQuery.addFilterQuery(filterQuery.clone(null, true));
 
    }
    
