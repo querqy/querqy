@@ -29,6 +29,7 @@ Detailed Solr version mapping:
 |6.4.0| 3.3.x||
 |6.4.1, 6.4.2| 3.4.x||
 |6.5.x| 3.4.x||
+|6.6.x| 3.5.x||
 
 You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 Please check the Bintray package [https://bintray.com/renekrie/maven/querqy](https://bintray.com/renekrie/maven/querqy) for Querqy core artifacts and Querqy versions prior to 2.7.4 (Solr 5.1), 2.8.4 (Solr 5.3), 2.9.5 (Solr 5.4), 2.10.4 (Solr 5.5), 3.0.3 (Solr 6.0).
