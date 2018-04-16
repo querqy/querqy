@@ -82,12 +82,4 @@ public class QuerqyQueryComponent extends QueryComponent {
         return "Querqy search component";
     }
 
-    /* (non-Javadoc)
-     * @see org.apache.solr.handler.component.SearchComponent#getSource()
-     */
-    @Override
-    public String getSource() {
-        return null;
-    }
-
 }

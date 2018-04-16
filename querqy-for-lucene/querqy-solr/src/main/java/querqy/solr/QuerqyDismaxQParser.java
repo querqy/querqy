@@ -436,8 +436,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
           final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-          builder.setDisableCoord(true);
-
           builder.add(LuceneQueryUtil.boost(mainQuery, userQueryWeight), Occur.MUST);
 
           if (boostQueries != null) {
@@ -481,7 +479,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
           final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-          builder.setDisableCoord(true);
           for (final Query q : querqyBoostQueries) {
               builder.add(q, BooleanClause.Occur.SHOULD);
           }
@@ -708,7 +705,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                                     default:
 
                                         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-                                        builder.setDisableCoord(true);
 
                                         for (final Query nGramQuery : nGramQueries) {
                                             builder.add(nGramQuery, Occur.SHOULD);
@@ -945,15 +941,14 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     * Copied from DisMxQParser (as we don't handle user fields/aliases yet)
     * 
     * Uses {@link SolrPluginUtils#parseFieldBoosts(String)} with the 'qf'
-    * parameter. Falls back to the 'df' parameter or
-    * {@link org.apache.solr.schema.IndexSchema#getDefaultSearchFieldName()}.
+    * parameter. Falls back to the 'df' parameter.
     */
    public static Map<String, Float> parseQueryFields(final IndexSchema indexSchema, final SolrParams solrParams,
                                                      final String fieldName, final Float defaultBoost, final boolean useDfFallback)
          throws SyntaxError {
       final Map<String, Float> queryFields = parseFieldBoosts(solrParams.getParams(fieldName), defaultBoost);
       if (queryFields.isEmpty() && useDfFallback) {
-         final String df = QueryParsing.getDefaultField(indexSchema, solrParams.get(CommonParams.DF));
+         final String df = solrParams.get(CommonParams.DF);
          if (df == null) {
             throw new SyntaxError("Neither " + fieldName + ", " + CommonParams.DF
                   + ", nor the default search field are present.");

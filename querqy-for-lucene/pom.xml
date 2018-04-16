@@ -3,7 +3,7 @@
 
     <groupId>querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>3.5.0-SNAPSHOT</version>
+    <version>4.0.lucene700.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
@@ -21,7 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <querqy.core.version>3.0.7</querqy.core.version>
         <querqy.antlr.version>3.0.2</querqy.antlr.version>
-        <lucene.version>6.6.0</lucene.version>
+        <lucene.version>7.0.0</lucene.version>
         <commons.io.version>2.1</commons.io.version>
         <junit.version>4.11</junit.version>
         <hamcrest.version>1.3</hamcrest.version>
@@ -77,7 +77,7 @@
                 <version>2.19</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene62</tests.codec>
+                        <tests.codec>Lucene70</tests.codec>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

@@ -89,9 +89,14 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='1'][not(contains(.,'idf'))]",
-                "//str[@name='1'][contains(.,'60.0 = boost')]",
-                "//str[@name='2'][contains(.,'idf')]",
-                "//str[@name='2'][contains(.,'60.0 = boost')]");
+                "//str[@name='1'][contains(.,'600.0 = product of:')]",
+                "//str[@name='1'][contains(.,'60.0 = queryBoost')]",
+                "//str[@name='1'][contains(.,'10.0 = fieldBoost')]",
+                "//str[@name='2'][contains(.,'600.0 = product of:')]",
+                "//str[@name='2'][contains(.,'60.0 = queryBoost')]",
+                "//str[@name='2'][contains(.,'10.0 = fieldBoost')]",
+                "//str[@name='2'][contains(.,'idf')]", // due to the u100 boost up rule
+                "//str[@name='2'][contains(.,'200.0 = boost')]"); // UP(100) * 2 (field weight)
         req.close();
     }
 
@@ -162,9 +167,13 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='1'][not(contains(.,'idf'))]", // similarity is off for user query
-                "//str[@name='1'][contains(.,'80.0 = boost')]", // uq.boost=80
+                "//str[@name='1'][contains(.,'800.0 = product of')]",
+                "//str[@name='1'][contains(.,'80.0 = queryBoost')]", // uq.boost=80
+                "//str[@name='1'][contains(.,'10.0 = fieldBoost')]", // f1^10
                 "//str[@name='2'][contains(.,'idf')]", // similarity is on for boost
-                "//str[@name='2'][contains(.,'80.0 = boost')]", // uq.boost=80
+                "//str[@name='2'][contains(.,'800.0 = product of')]",
+                "//str[@name='2'][contains(.,'80.0 = queryBoost')]", // uq.boost=80
+                "//str[@name='2'][contains(.,'10.0 = fieldBoost')]", // f1^10
                 "//str[@name='2'][contains(.,'600.0 = boost')]"); // UP(100)* f2^2 * qboost.weight=3
         req.close();
     }

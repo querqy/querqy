@@ -26,7 +26,8 @@ public class QuerqyReRankQuery extends RankQuery {
     protected final int reRankNumDocs;
     protected final double reRankWeight;
 
-    public QuerqyReRankQuery(final Query mainQuery, final Query reRankQuery, final int reRankNumDocs, final double reRankWeight) {
+    public QuerqyReRankQuery(final Query mainQuery, final Query reRankQuery, final int reRankNumDocs,
+                             final double reRankWeight) {
         super();
         this.reRankQuery = reRankQuery;
         this.reRankNumDocs = reRankNumDocs;
@@ -35,12 +36,13 @@ public class QuerqyReRankQuery extends RankQuery {
     }
 
     @Override
-    public TopDocsCollector getTopDocsCollector(int len, QueryCommand cmd, IndexSearcher searcher) throws IOException {
+    public TopDocsCollector getTopDocsCollector(final int len, final QueryCommand cmd, final IndexSearcher searcher)
+            throws IOException {
         return new ReRankCollector(reRankNumDocs, len, reRankQuery, reRankWeight, cmd, searcher);
     }
 
     @Override
-    public RankQuery wrap(Query mainQuery) {
+    public RankQuery wrap(final Query mainQuery) {
         if (mainQuery == null) {
             throw new IllegalArgumentException("Cannot wrap null");
         }
@@ -54,7 +56,7 @@ public class QuerqyReRankQuery extends RankQuery {
     }
 
     @Override
-    public Query rewrite(IndexReader reader) throws IOException {
+    public Query rewrite(final IndexReader reader) throws IOException {
         Query m = mainQuery.rewrite(reader);
         Query r = reRankQuery.rewrite(reader);
 
@@ -65,12 +67,13 @@ public class QuerqyReRankQuery extends RankQuery {
     }
 
     @Override
-    public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
-        return new ReRankWeight(mainQuery, reRankQuery, reRankWeight, searcher, needsScores);
+    public Weight createWeight(final IndexSearcher searcher, final boolean needsScores, final float boost)
+            throws IOException {
+        return new ReRankWeight(mainQuery, reRankQuery, reRankWeight, searcher, needsScores, boost);
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
 
         if (this == o) return true;
         if (!sameClassAs(o)) return false;
@@ -106,38 +109,33 @@ public class QuerqyReRankQuery extends RankQuery {
         private Weight rankWeight;
         private double reRankWeight;
 
-        public ReRankWeight(Query mainQuery, Query reRankQuery, double reRankWeight, IndexSearcher searcher, boolean needsScores) throws IOException {
+        public ReRankWeight(final Query mainQuery, final Query reRankQuery, final double reRankWeight,
+                            final IndexSearcher searcher, final boolean needsScores, final float boost)
+                throws IOException {
             super(mainQuery);
             this.reRankQuery = reRankQuery;
             this.searcher = searcher;
             this.reRankWeight = reRankWeight;
-            this.mainWeight = mainQuery.createWeight(searcher, needsScores);
-            this.rankWeight = reRankQuery.createWeight(searcher, true);
+            this.mainWeight = mainQuery.createWeight(searcher, needsScores, boost);
+            this.rankWeight = reRankQuery.createWeight(searcher, needsScores, boost);
         }
 
         @Override
-        public void extractTerms(Set<Term> terms) {
+        public void extractTerms(final Set<Term> terms) {
             this.mainWeight.extractTerms(terms);
             this.rankWeight.extractTerms(terms);
         }
 
-        public float getValueForNormalization() throws IOException {
-            return mainWeight.getValueForNormalization() + rankWeight.getValueForNormalization();
-        }
-
-        public Scorer scorer(LeafReaderContext context) throws IOException {
+        public Scorer scorer(final LeafReaderContext context) throws IOException {
             return mainWeight.scorer(context);
         }
 
-        public void normalize(float norm, float topLevelBoost) {
-            mainWeight.normalize(norm, topLevelBoost);
-        }
-
         public Explanation explain(LeafReaderContext context, int doc) throws IOException {
-            Explanation mainExplain = mainWeight.explain(context, doc);
+            final Explanation mainExplain = mainWeight.explain(context, doc);
             return new QueryRescorer(reRankQuery) {
                 @Override
-                protected float combine(float firstPassScore, boolean secondPassMatches, float secondPassScore) {
+                protected float combine(final float firstPassScore, final boolean secondPassMatches,
+                                        final float secondPassScore) {
                     float score = firstPassScore;
                     if (secondPassMatches) {
                         score += reRankWeight * secondPassScore;
@@ -158,12 +156,12 @@ public class QuerqyReRankQuery extends RankQuery {
         private double reRankWeight;
 
 
-        public ReRankCollector(int reRankNumDocs,
-                               int length,
-                               Query reRankQuery,
-                               double reRankWeight,
-                               QueryCommand cmd,
-                               IndexSearcher searcher) throws IOException {
+        public ReRankCollector(final int reRankNumDocs,
+                               final int length,
+                               final Query reRankQuery,
+                               final double reRankWeight,
+                               final QueryCommand cmd,
+                               final IndexSearcher searcher) throws IOException {
 
             super(null);
 
@@ -187,7 +185,7 @@ public class QuerqyReRankQuery extends RankQuery {
         }
 
         @Override
-        public LeafCollector getLeafCollector(LeafReaderContext context) throws IOException {
+        public LeafCollector getLeafCollector(final LeafReaderContext context) throws IOException {
             return mainCollector.getLeafCollector(context);
         }
 
@@ -196,23 +194,23 @@ public class QuerqyReRankQuery extends RankQuery {
             return true;
         }
 
-        public TopDocs topDocs(int start, int howMany) {
+        public TopDocs topDocs(final int start, int howMany) {
 
             try {
 
-                TopDocs mainDocs = mainCollector.topDocs(0, Math.max(reRankNumDocs, length));
+                final TopDocs mainDocs = mainCollector.topDocs(0, Math.max(reRankNumDocs, length));
 
                 if (mainDocs.totalHits == 0 || mainDocs.scoreDocs.length == 0) {
                     return mainDocs;
                 }
 
 
-                ScoreDoc[] mainScoreDocs = mainDocs.scoreDocs;
+                final ScoreDoc[] mainScoreDocs = mainDocs.scoreDocs;
 
           /*
           *  Create the array for the reRankScoreDocs.
           */
-                ScoreDoc[] reRankScoreDocs = new ScoreDoc[Math.min(mainScoreDocs.length, reRankNumDocs)];
+                final ScoreDoc[] reRankScoreDocs = new ScoreDoc[Math.min(mainScoreDocs.length, reRankNumDocs)];
 
           /*
           *  Copy the initial results into the reRankScoreDocs array.
@@ -240,7 +238,7 @@ public class QuerqyReRankQuery extends RankQuery {
                 } else if (howMany > rescoredDocs.scoreDocs.length) {
 
                     //We need to return more then we've reRanked, so create the combined page.
-                    ScoreDoc[] scoreDocs = new ScoreDoc[howMany];
+                    final ScoreDoc[] scoreDocs = new ScoreDoc[howMany];
                     //lay down the initial docs
                     System.arraycopy(mainScoreDocs, 0, scoreDocs, 0, scoreDocs.length);
                     //overlay the rescoreds docs
@@ -249,7 +247,7 @@ public class QuerqyReRankQuery extends RankQuery {
                     return rescoredDocs;
                 } else {
                     //We've rescored more then we need to return.
-                    ScoreDoc[] scoreDocs = new ScoreDoc[howMany];
+                    final ScoreDoc[] scoreDocs = new ScoreDoc[howMany];
                     System.arraycopy(rescoredDocs.scoreDocs, 0, scoreDocs, 0, howMany);
                     rescoredDocs.scoreDocs = scoreDocs;
                     return rescoredDocs;

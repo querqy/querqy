@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReaderContext;
+import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
@@ -26,29 +28,28 @@ public class DocumentFrequencyCorrection extends AbstractDocumentFrequencyAndTer
     protected TermStats doCalculateTermContexts(final IndexReaderContext indexReaderContext)
             throws IOException {
 
-       final int[] dfs = new int[terms.size()];
-       final TermContext[] contexts = new TermContext[dfs.length];
+        final int[] dfs = new int[terms.size()];
+        final TermContext[] contexts = new TermContext[dfs.length];
        
-       for (int i = 0; i < dfs.length; i++) {
+        for (int i = 0; i < dfs.length; i++) {
            
-           final Term term = terms.get(i);
+            final Term term = terms.get(i);
            
-           contexts[i] = new TermContext(indexReaderContext);
+            contexts[i] = new TermContext(indexReaderContext);
            
-           for (final LeafReaderContext ctx : indexReaderContext.leaves()) {
-               final Fields fields = ctx.reader().fields();
-               if (fields != null) {
-                 final Terms terms = fields.terms(term.field());
-                 if (terms != null) {
-                   final TermsEnum termsEnum = terms.iterator();
-                   if (termsEnum.seekExact(term.bytes())) { 
-                     final TermState termState = termsEnum.termState();
-                     final int df = termsEnum.docFreq();
-                     dfs[i] = dfs[i] + df;
-                     contexts[i].register(termState, ctx.ord, df, -1);
+            for (final LeafReaderContext ctx : indexReaderContext.leaves()) {
+
+                final Terms terms = ctx.reader().terms(term.field());
+                if (terms != null) {
+                    final TermsEnum termsEnum = terms.iterator();
+                    if (termsEnum.seekExact(term.bytes())) {
+                        final TermState termState = termsEnum.termState();
+                        final int df = termsEnum.docFreq();
+                        dfs[i] = dfs[i] + df;
+                        contexts[i].register(termState, ctx.ord, df, -1);
                    }
                  }
-               }
+
              }
        }
        

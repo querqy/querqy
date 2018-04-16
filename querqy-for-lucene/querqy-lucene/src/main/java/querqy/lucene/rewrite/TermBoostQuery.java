@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * A term query that scores by query boost and FieldBoost but not by similarity.
+ * A term query that scores by query queryBoost and FieldBoost but not by similarity.
  *
  * Created by rene on 11/09/2016.
  */
@@ -16,7 +16,7 @@ public class TermBoostQuery extends TermQuery {
     protected final Term term;
     protected final FieldBoost fieldBoost;
 
-    public TermBoostQuery(Term term, FieldBoost fieldBoost) {
+    public TermBoostQuery(final Term term, final FieldBoost fieldBoost) {
 
         super(term);
 
@@ -33,31 +33,34 @@ public class TermBoostQuery extends TermQuery {
     }
 
     @Override
-    public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
+    public Weight createWeight(final IndexSearcher searcher, final boolean needsScores, final float boost)
+            throws IOException {
         final IndexReaderContext context = searcher.getTopReaderContext();
         final TermContext termState = TermContext.build(context, term);
-        return new TermBoostWeight(termState, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
+        return new TermBoostWeight(termState, boost, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
     }
 
 
 
     class TermBoostWeight extends Weight {
         private final TermContext termStates;
-        private float unnormalizedScore;
         private float score;
-        private float queryNorm;
-        private float queryWeight;
-        private float boost;
+        private float queryBoost;
+        private final float fieldBoost;
 
 
-        public TermBoostWeight(TermContext termStates, float unnormalizedScore)
-                throws IOException {
+        public TermBoostWeight(final TermContext termStates, final float queryBoost, final float fieldBoost) {
             super(TermBoostQuery.this);
             assert termStates != null : "TermContext must not be null";
             this.termStates = termStates;
-            this.unnormalizedScore = unnormalizedScore;
-            this.score = unnormalizedScore;
-            normalize(1f, 1f);
+
+            this.queryBoost = queryBoost;
+            this.fieldBoost = fieldBoost;
+            this.score = queryBoost * fieldBoost;
+        }
+
+        float getScore() {
+            return score;
         }
 
         @Override
@@ -65,21 +68,10 @@ public class TermBoostQuery extends TermQuery {
             return "weight(" + TermBoostQuery.this + ")";
         }
 
-        @Override
-        public float getValueForNormalization() {
-            return queryWeight * queryWeight;
-        }
+
 
         @Override
-        public void normalize(float queryNorm, float boost) {
-            this.boost = boost;
-            this.queryNorm = queryNorm;
-            queryWeight = queryNorm * boost * unnormalizedScore;
-            score = queryWeight;
-        }
-
-        @Override
-        public Scorer scorer(LeafReaderContext context) throws IOException {
+        public Scorer scorer(final LeafReaderContext context) throws IOException {
             assert termStates != null && termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
                     : "The top-reader used to create Weight is not the same as the current reader's top-reader: " + ReaderUtil.getTopLevelContext(context);
             final TermsEnum termsEnum = getTermsEnum(context);
@@ -95,7 +87,7 @@ public class TermBoostQuery extends TermQuery {
          * Returns a {@link TermsEnum} positioned at this weights Term or null if
          * the term does not exist in the given context
          */
-        private TermsEnum getTermsEnum(LeafReaderContext context) throws IOException {
+        private TermsEnum getTermsEnum(final LeafReaderContext context) throws IOException {
             final TermState state = termStates.get(context.ord);
             if (state == null) { // term is not present in that reader
                 assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;
@@ -108,7 +100,7 @@ public class TermBoostQuery extends TermQuery {
             return termsEnum;
         }
 
-        private boolean termNotInReader(LeafReader reader, Term term) throws IOException {
+        private boolean termNotInReader(final LeafReader reader, final Term term) throws IOException {
             // only called from assert
             // System.out.println("TQ.termNotInReader reader=" + reader + " term=" +
             // field + ":" + bytes.utf8ToString());
@@ -116,7 +108,7 @@ public class TermBoostQuery extends TermQuery {
         }
 
         @Override
-        public Explanation explain(LeafReaderContext context, int doc) throws IOException {
+        public Explanation explain(final LeafReaderContext context, final int doc) throws IOException {
 
             Scorer scorer = scorer(context);
             if (scorer != null) {
@@ -124,14 +116,13 @@ public class TermBoostQuery extends TermQuery {
                 if (newDoc == doc) {
 
                     Explanation scoreExplanation = Explanation.match(score, "product of:",
-                            Explanation.match(queryNorm, "queryNorm"),
-                            Explanation.match(boost, "boost"),
-                            Explanation.match(unnormalizedScore, "unnormalizedScore")
+                            Explanation.match(queryBoost, "queryBoost"),
+                            Explanation.match(fieldBoost, "fieldBoost")
                     );
 
                     Explanation result = Explanation.match(scorer.score(),
                             "weight(" + getQuery() + " in " + doc + ") ["
-                                    + fieldBoost.getClass().getSimpleName() + "], result of:",
+                                    + TermBoostQuery.this.fieldBoost.getClass().getSimpleName() + "], result of:",
                             scoreExplanation
 
                     );
@@ -144,12 +135,12 @@ public class TermBoostQuery extends TermQuery {
             return Explanation.noMatch("no matching term");
         }
 
-        public float getUnnormalizedScore() {
-            return unnormalizedScore;
+        public float getFieldBoost() {
+            return fieldBoost;
         }
 
         @Override
-        public void extractTerms(Set<Term> terms) {
+        public void extractTerms(final Set<Term> terms) {
             terms.add(getTerm());
         }
 
@@ -204,7 +195,7 @@ public class TermBoostQuery extends TermQuery {
 
 
     @Override
-    public String toString(String field) {
+    public String toString(final String field) {
         StringBuilder buffer = new StringBuilder();
         if (!term.field().equals(field)) {
             buffer.append(term.field());
@@ -216,7 +207,7 @@ public class TermBoostQuery extends TermQuery {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;

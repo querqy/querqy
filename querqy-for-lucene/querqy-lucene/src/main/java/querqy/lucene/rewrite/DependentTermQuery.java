@@ -68,7 +68,8 @@ public class DependentTermQuery extends TermQuery {
         this.fieldBoost = fieldBoost;
     }
 
-    public Weight createWeight(final IndexSearcher searcher, final boolean needsScores) throws IOException {
+    @Override
+    public Weight createWeight(final IndexSearcher searcher, final boolean needsScores, final float boost) throws IOException {
 
         final DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext dftc
                 = dftcp.getDocumentFrequencyAndTermContext(tqIndex, searcher.getTopReaderContext());
@@ -77,7 +78,7 @@ public class DependentTermQuery extends TermQuery {
             return new NeverMatchWeight();
         }
 
-        return new TermWeight(searcher, needsScores, dftc.termContext);
+        return new TermWeight(searcher, needsScores, boost, dftc.termContext);
 
     }
 
@@ -137,8 +138,8 @@ public class DependentTermQuery extends TermQuery {
         private final boolean needsScores;
         private final float fieldBoostFactor;
 
-        public TermWeight(final IndexSearcher searcher, final boolean needsScores, final TermContext termStates)
-                throws IOException {
+        public TermWeight(final IndexSearcher searcher, final boolean needsScores, final float boost,
+                          final TermContext termStates) throws IOException {
 
             super(DependentTermQuery.this);
 
@@ -162,24 +163,14 @@ public class DependentTermQuery extends TermQuery {
                 termStats = new TermStatistics(term.bytes(), maxDoc, -1);
             }
 
-            this.stats = similarity.computeWeight(collectionStats, termStats);
             fieldBoostFactor = fieldBoost.getBoost(getTerm().field(), searcher.getIndexReader());
-            stats.normalize(1f, fieldBoostFactor);
+            this.stats = similarity.computeWeight(boost * fieldBoostFactor, collectionStats, termStats);
+
         }
 
         @Override
         public String toString() { return "weight(" + DependentTermQuery.this + ")"; }
 
-
-        @Override
-        public float getValueForNormalization() {
-            return stats.getValueForNormalization();
-        }
-
-        @Override
-        public void normalize(float norm, float boost) {
-            stats.normalize(norm, boost * fieldBoostFactor);
-        }
 
         @Override
         public Scorer scorer(LeafReaderContext context) throws IOException {
@@ -256,15 +247,6 @@ public class DependentTermQuery extends TermQuery {
         public Explanation explain(LeafReaderContext context, int doc)
                 throws IOException {
             return Explanation.noMatch("no matching term");
-        }
-
-        @Override
-        public float getValueForNormalization() throws IOException {
-            return 1f;
-        }
-
-        @Override
-        public void normalize(float norm, float topLevelBoost) {
         }
 
         @Override

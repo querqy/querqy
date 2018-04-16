@@ -50,8 +50,8 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
              // only one generated term in one field is preloaded for firstSearcher:
             assertQ("Querqy cache not prefilled",
                      req,
-                   "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                           + "/lst[@name='stats']/long[@name='size'][text()='1']");
+                    "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
+                            + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
         } finally {
             req.close();
         }
@@ -70,7 +70,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         assertQ("Querqy cache not prefilled",
                  req2,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                         + "/lst[@name='stats']/long[@name='size'][text()='2']");
+                         + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
         req2.close();
          
@@ -106,7 +106,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         assertQ("Querqy cache was updated unexpectedly",
                  reqStats,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                         + "/lst[@name='stats']/long[@name='size'][text()='2']");
+                         + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
         reqStats.close();
          

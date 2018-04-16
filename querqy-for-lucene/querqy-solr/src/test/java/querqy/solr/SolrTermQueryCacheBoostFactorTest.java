@@ -76,7 +76,7 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
         assertQ("Querqy cache not hit",
                  reqStats,
                "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                       + "/lst[@name='stats']/long[@name='hits'][text()='6']");
+                       + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.hits'][text()='6']");
         
          
     }

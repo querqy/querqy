@@ -36,22 +36,22 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
     }
 
     @Override
-    public void prepareDocumentFrequencyCorrection(DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) {
+    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyAndTermContextProvider dftcp,
+                                                   final boolean isBelowDMQ) {
 
-        for (Clause clause : clauses) {
+        for (final Clause clause : clauses) {
             clause.queryFactory.prepareDocumentFrequencyCorrection(dftcp, isBelowDMQ);
         }
 
     }
 
     @Override
-    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp)
-            throws IOException {
+    public Query createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
+                             final DocumentFrequencyAndTermContextProvider dftcp) throws IOException {
 
-        BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        builder.setDisableCoord(disableCoord);
-      
-        for (Clause clause : clauses) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+
+        for (final Clause clause : clauses) {
             builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dftcp), clause.occur);
         }
 
@@ -80,7 +80,7 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
         final Occur occur;
         final LuceneQueryFactory<?> queryFactory;
 
-        public Clause(LuceneQueryFactory<?> queryFactory, Occur occur) {
+        public Clause(final LuceneQueryFactory<?> queryFactory, final Occur occur) {
             if (occur == null) {
                 throw new IllegalArgumentException("Occur must not be null");
             }

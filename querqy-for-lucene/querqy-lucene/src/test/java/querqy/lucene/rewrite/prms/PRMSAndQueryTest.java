@@ -19,7 +19,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
@@ -30,33 +29,15 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
 
 public class PRMSAndQueryTest extends LuceneTestCase {
-
-    Similarity similarity;
-
-    Similarity.SimWeight simWeight;
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        similarity = Mockito.mock(Similarity.class);
-        simWeight = Mockito.mock(Similarity.SimWeight.class);
-        Mockito.when(similarity.computeWeight(any(CollectionStatistics.class),  Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
-    }
 
     @Test
     public void testGetThatFieldProbabilityRatioIsReflectedInBoost() throws Exception {
 
-        ArgumentCaptor<Float> normalizeCaptor = ArgumentCaptor.forClass(Float.class);
-        
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
         Directory directory = newDirectory();
-        
         
         Analyzer analyzer = new Analyzer() {
             protected TokenStreamComponents createComponents(String fieldName) {
@@ -91,10 +72,6 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         
         indexWriter.close();
         
-        IndexReader indexReader = DirectoryReader.open(directory); 
-        IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
-        indexSearcher.setSimilarity(similarity);
-        
         Map<String, Float> fields = new HashMap<>();
         fields.put("f1", 1f);
         fields.put("f2", 1f);
@@ -105,7 +82,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
-        Query query = queryBuilder.createQuery(parser.parse("AbcDef")).rewrite(indexReader);
+        Query query = queryBuilder.createQuery(parser.parse("AbcDef"));
         dfc.finishedUserQuery();
 
         assertTrue(query instanceof DisjunctionMaxQuery);
@@ -130,16 +107,23 @@ public class PRMSAndQueryTest extends LuceneTestCase {
 
         BooleanQuery bq2 = (BooleanQuery) disjunct2;
 
+        Similarity similarity = Mockito.mock(Similarity.class);
+        Similarity.SimWeight simWeight = Mockito.mock(Similarity.SimWeight.class);
 
-        final Weight weight1 = bq1.createWeight(indexSearcher, true);
-        weight1.normalize(0.1f, 4f);
+        ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
-        final Weight weight2 = bq2.createWeight(indexSearcher, true);
-        weight2.normalize(0.1f, 4f);
+        Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
+                Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
 
 
-        Mockito.verify(simWeight, times(4)).normalize(eq(0.1f), normalizeCaptor.capture());
-        final List<Float> capturedBoosts = normalizeCaptor.getAllValues();
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(similarity);
+
+        Weight weight1 = indexSearcher.createWeight(bq1, true, 1.0f);
+        Weight weight2 = indexSearcher.createWeight(bq2, true, 1.0f);
+
+        final List<Float> capturedBoosts = computeWeightBoostCaptor.getAllValues();
 
         // capturedBoosts = boosts of [bq1.term1, bq1.term2, bq2.term1, bq2.term2 ]
         assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);

@@ -19,7 +19,6 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.LuceneTestCase;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
@@ -31,29 +30,20 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
 
 public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
-
-    Similarity similarity;
-
-    Similarity.SimWeight simWeight;
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        similarity = Mockito.mock(Similarity.class);
-        simWeight = Mockito.mock(Similarity.SimWeight.class);
-        Mockito.when(similarity.computeWeight(any(CollectionStatistics.class),  Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
-    }
 
     @Test
     public void testGetThatFieldProbabilityRatioIsReflectedInBoost() throws Exception {
 
-        ArgumentCaptor<Float> normalizeCaptor = ArgumentCaptor.forClass(Float.class);
-        
+        Similarity similarity = Mockito.mock(Similarity.class);
+        Similarity.SimWeight simWeight = Mockito.mock(Similarity.SimWeight.class);
+
+        ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
+
+        Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
+                Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
         Directory directory = newDirectory();
@@ -82,7 +72,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         IndexWriterConfig conf = new IndexWriterConfig(indexAnalyzer);
         conf.setCodec(Codec.forName(TestUtil.LUCENE_CODEC));
         IndexWriter indexWriter = new IndexWriter(directory, conf);
-       
+
         PRMSFieldBoostTest.addNumDocs("f1", "abc", indexWriter, 2);
         PRMSFieldBoostTest.addNumDocs("f1", "def", indexWriter, 8); 
         PRMSFieldBoostTest.addNumDocs("f2", "abc", indexWriter, 6); 
@@ -121,9 +111,9 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
-        Query query = queryBuilder.createQuery(parser.parse("abc")).rewrite(indexReader);
+        Query query = queryBuilder.createQuery(parser.parse("abc"));
         dfc.finishedUserQuery();
-        query.createWeight(indexSearcher, true);
+        query.createWeight(indexSearcher, true, 1f);
         
         assertTrue(query instanceof DisjunctionMaxQuery);
         
@@ -147,24 +137,20 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         }
 
 
-        final Weight weight1 = dmq1.createWeight(indexSearcher, true);
-        weight1.normalize(0.1f, 4f);
+        Weight weight1 = dmq1.createWeight(indexSearcher, true, 1f);
+        Weight weight2 = dmq2.createWeight(indexSearcher, true, 1f);
 
-        final Weight weight2 = dmq2.createWeight(indexSearcher, true);
-        weight2.normalize(0.1f, 4f);
-        
-        Mockito.verify(simWeight, times(4)).normalize(eq(0.1f), normalizeCaptor.capture());
-        final List<Float> capturedBoosts = normalizeCaptor.getAllValues();
+        final List<Float> capturedBoosts = computeWeightBoostCaptor.getAllValues();
 
         // capturedBoosts = boosts of [dmq1.term1, dmq1.term2, dmq2.term1, dmq2.term2 ]
         assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);
         assertEquals(capturedBoosts.get(2), capturedBoosts.get(3), 0.00001);
         assertEquals(0.8f / 0.6f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
-        
+
         indexReader.close();
         directory.close();
-        indexAnalyzer.close();    
-        queryAnalyzer.close();    
+        indexAnalyzer.close();
+        queryAnalyzer.close();
         
     }
 

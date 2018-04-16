@@ -19,7 +19,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
@@ -30,29 +29,12 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
 
 public class PRMSFieldBoostTest extends LuceneTestCase {
-
-    Similarity similarity;
-
-    Similarity.SimWeight simWeight;
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        similarity = Mockito.mock(Similarity.class);
-        simWeight = Mockito.mock(Similarity.SimWeight.class);
-        Mockito.when(similarity.computeWeight(any(CollectionStatistics.class),  Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
-    }
 
     @Test
     public void testGetThatFieldProbabilityRatioIsReflectedInBoost() throws Exception {
 
-        ArgumentCaptor<Float> normalizeCaptor = ArgumentCaptor.forClass(Float.class);
-        
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
         Directory directory = newDirectory();
@@ -68,10 +50,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         addNumDocs("f2", "abc", indexWriter, 4);
         addNumDocs("f2", "def", indexWriter, 2);
         indexWriter.close();
-        
-        IndexReader indexReader = DirectoryReader.open(directory); 
-        IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
-        indexSearcher.setSimilarity(similarity);
+
         
         Map<String, Float> fields = new HashMap<>();
         fields.put("f1", 1f);
@@ -82,7 +61,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
-        Query query = queryBuilder.createQuery(parser.parse("abc")).rewrite(indexReader);
+        Query query = queryBuilder.createQuery(parser.parse("abc"));
         dfc.finishedUserQuery();
         //query.createWeight(indexSearcher, true);
         assertTrue(query instanceof DisjunctionMaxQuery);
@@ -93,21 +72,30 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         Query disjunct1 = disjuncts.get(0);
         assertTrue(disjunct1 instanceof DependentTermQuery);
-        DependentTermQuery tq1 = (DependentTermQuery) disjunct1;
+        DependentTermQuery dtq1 = (DependentTermQuery) disjunct1;
         
         Query disjunct2 = disjuncts.get(1);
         assertTrue(disjunct2 instanceof DependentTermQuery);
-        DependentTermQuery tq2 = (DependentTermQuery) disjunct2;
+        DependentTermQuery dtq2 = (DependentTermQuery) disjunct2;
 
-        assertNotEquals(tq1.getTerm().field(), tq2.getTerm().field());
+        assertNotEquals(dtq1.getTerm().field(), dtq2.getTerm().field());
 
-        final Weight weight1 = disjunct1.createWeight(indexSearcher, true);
-        final Weight weight2 = disjunct2.createWeight(indexSearcher, true);
-        weight1.normalize(0.1f, 5f);
-        weight2.normalize(0.1f, 5f);
+        Similarity similarity = Mockito.mock(Similarity.class);
+        Similarity.SimWeight simWeight = Mockito.mock(Similarity.SimWeight.class);
 
-        Mockito.verify(simWeight, times(2)).normalize(eq(0.1f), normalizeCaptor.capture());
-        final List<Float> capturedBoosts = normalizeCaptor.getAllValues();
+        ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
+
+        Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
+        Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(similarity);
+
+        Weight weight1 = indexSearcher.createWeight(dtq1, true, 1.0f);
+        Weight weight2 = indexSearcher.createWeight(dtq2, true, 1.0f);
+
+        final List<Float> capturedBoosts = computeWeightBoostCaptor.getAllValues();
         float bf1 = capturedBoosts.get(0);
         float bf2 = capturedBoosts.get(1);
 
