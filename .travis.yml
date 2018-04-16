@@ -21,3 +21,4 @@ branches:
     - solr6_4
     - solr6_4_1
     - solr6_6
+    - solr7_0
