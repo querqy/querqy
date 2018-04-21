@@ -144,6 +144,11 @@ public class QuerqyReRankQuery extends RankQuery {
                 }
             }.explain(searcher, mainExplain, context.docBase+doc);
         }
+
+        @Override
+        public boolean isCacheable(final LeafReaderContext ctx) {
+            return mainWeight.isCacheable(ctx) && rankWeight.isCacheable(ctx);
+        }
     }
 
     public class ReRankCollector extends TopDocsCollector {

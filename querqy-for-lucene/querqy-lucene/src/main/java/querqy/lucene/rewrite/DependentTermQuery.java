@@ -172,9 +172,13 @@ public class DependentTermQuery extends TermQuery {
         @Override
         public String toString() { return "weight(" + DependentTermQuery.this + ")"; }
 
+        @Override
+        public boolean isCacheable(LeafReaderContext ctx) {
+            return true;
+        }
 
         @Override
-        public Scorer scorer(LeafReaderContext context) throws IOException {
+        public TermScorer scorer(LeafReaderContext context) throws IOException {
 
             assert termStates != null && termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
                     : "The top-reader used to create Weight is not the same as the current reader's top-reader: " + ReaderUtil.getTopLevelContext(context);
@@ -231,7 +235,7 @@ public class DependentTermQuery extends TermQuery {
 
         @Override
         public Explanation explain(LeafReaderContext context, int doc) throws IOException {
-            Scorer scorer = scorer(context);
+            final TermScorer scorer = scorer(context);
             if (scorer != null) {
                 int newDoc = scorer.iterator().advance(doc);
                 if (newDoc == doc) {
@@ -279,6 +283,10 @@ public class DependentTermQuery extends TermQuery {
             terms.add(getTerm());
         }
 
+        @Override
+        public boolean isCacheable(LeafReaderContext ctx) {
+            return true;
+        }
     }
 
 }

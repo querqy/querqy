@@ -43,7 +43,7 @@ final class TermScorer extends Scorer {
     return postingsEnum.docID();
   }
 
-  @Override
+
   public int freq() throws IOException {
     return postingsEnum.freq();
   }

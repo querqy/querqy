@@ -145,6 +145,10 @@ public class TermBoostQuery extends TermQuery {
             terms.add(getTerm());
         }
 
+        @Override
+        public boolean isCacheable(LeafReaderContext ctx) {
+            return true;
+        }
     }
 
     class TermBoostScorer extends Scorer {
@@ -170,11 +174,6 @@ public class TermBoostQuery extends TermQuery {
         @Override
         public int docID() {
             return postingsEnum.docID();
-        }
-
-        @Override
-        public int freq() throws IOException {
-            return 1;
         }
 
         @Override
