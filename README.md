@@ -9,27 +9,30 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
-Querqy versions 1.x.x work with Solr 4.10.x (no longer maintained), while Querqy versions 2.x.x require Solr 5, and Querqy versions 3.x.x map to Solr 6.
+Querqy versions 1.x.x work with Solr 4.10.x (no longer maintained), while Querqy versions 2.x.x (no longer maintained) require Solr 5, and Querqy versions 3.x.x map to Solr 6.
+Starting from Querqy v4 / Solr/Lucene 7 the naming scheme is <Querqy major.minor version>.<Lucene version>.<bugfix version>.
 
 Detailed Solr version mapping:
 
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|5.0.0| 2.0.x to 2.5.x|no longer maintained|
-|5.1.0| 2.6.x to 2.7.x||
-|5.2.x| - |no release version, but see version branch solr_5_2_1 |
-|5.3.x| 2.8.x||
-|5.4.x| 2.9.x||
-|5.5.x| 2.10.x||
-|6.0.x| 3.0.x||
-|6.1.x| 3.1.x||
-|6.2.x| 3.2.x||
-|6.3.x| 3.2.x||
-|6.4.0| 3.3.x||
-|6.4.1, 6.4.2| 3.4.x||
-|6.5.x| 3.4.x||
+|7.1.0| 4.0.lucene700.x||
+|7.0.x| 4.0.lucene700.x||
 |6.6.x| 3.5.x||
+|6.5.x| 3.4.x||
+|6.4.1, 6.4.2| 3.4.x||
+|6.4.0| 3.3.x||
+|6.3.x| 3.2.x||
+|6.2.x| 3.2.x||
+|6.1.x| 3.1.x||
+|6.0.x| 3.0.x||
+|5.5.x| 2.10.x|no longer maintained|
+|5.4.x| 2.9.x|no longer maintained|
+|5.3.x| 2.8.x|no longer maintained|
+|5.2.x| - |no release version, but see version branch solr_5_2_1 |
+|5.1.0| 2.6.x to 2.7.x|no longer maintained|
+|5.0.0| 2.0.x to 2.5.x|no longer maintained|
 
 You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 Please check the Bintray package [https://bintray.com/renekrie/maven/querqy](https://bintray.com/renekrie/maven/querqy) for Querqy core artifacts and Querqy versions prior to 2.7.4 (Solr 5.1), 2.8.4 (Solr 5.3), 2.9.5 (Solr 5.4), 2.10.4 (Solr 5.5), 3.0.3 (Solr 6.0).
