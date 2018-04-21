@@ -10,7 +10,7 @@ Querqy is a framework for query preprocessing in Java-based search engines. It c
 
 ### Getting Querqy and deploying it to Solr
 Querqy versions 1.x.x work with Solr 4.10.x (no longer maintained), while Querqy versions 2.x.x (no longer maintained) require Solr 5, and Querqy versions 3.x.x map to Solr 6.
-Starting from Querqy v4 / Solr/Lucene 7 the naming scheme is <Querqy major.minor version>.<Lucene version>.<bugfix version>.
+Starting from Querqy v4 / Solr/Lucene 7 the naming scheme is ``<Querqy major.minor version>.<Lucene/Solr version>.<bugfix version>``.
 
 Detailed Solr version mapping:
 
