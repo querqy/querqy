@@ -11,6 +11,7 @@ import org.apache.lucene.index.ReaderUtil;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
 import org.apache.lucene.index.TermState;
+import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.CollectionStatistics;
@@ -193,15 +194,33 @@ public class DependentTermQuery extends TermQuery {
          */
         private TermsEnum getTermsEnum(LeafReaderContext context) throws IOException {
             Term term = getTerm();
-            final TermState state = termStates.get(context.ord);
-            if (state == null) { // term is not present in that reader
-                assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;
-                return null;
+            if (termStates != null) {
+                assert termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
+                        : "The top-reader used to create Weight is not the same as the current reader's top-reader (" +
+                        ReaderUtil.getTopLevelContext(context);
+
+                final TermState state = termStates.get(context.ord);
+                if (state == null) { // term is not present in that reader
+                    assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;
+                    return null;
+                }
+                //System.out.println("LD=" + reader.getLiveDocs() + " set?=" + (reader.getLiveDocs() != null ? reader.getLiveDocs().get(0) : "null"));
+                final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
+                termsEnum.seekExact(term.bytes(), state);
+                return termsEnum;
+            } else {
+                // TermQuery used as a filter, so the term states have not been built up front
+                final Terms terms = context.reader().terms(term.field());
+                if (terms == null) {
+                    return null;
+                }
+                final TermsEnum termsEnum = terms.iterator();
+                if (termsEnum.seekExact(term.bytes())) {
+                    return termsEnum;
+                } else {
+                    return null;
+                }
             }
-            //System.out.println("LD=" + reader.getLiveDocs() + " set?=" + (reader.getLiveDocs() != null ? reader.getLiveDocs().get(0) : "null"));
-            final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
-            termsEnum.seekExact(term.bytes(), state);
-            return termsEnum;
         }
 
         private boolean termNotInReader(LeafReader reader, Term term) throws IOException {

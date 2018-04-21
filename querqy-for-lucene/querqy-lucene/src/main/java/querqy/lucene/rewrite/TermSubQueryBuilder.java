@@ -143,7 +143,7 @@ public class TermSubQueryBuilder {
             } else {
                 
                 if (seqIterator.hasNext()) {
-                    BooleanQueryFactory bq = new BooleanQueryFactory(true, true);
+                    BooleanQueryFactory bq = new BooleanQueryFactory(true);
                     List<PRMSQuery> prmsClauses = new LinkedList<>();
                     bq.add(tqf, Occur.MUST);
                     prmsClauses.add(prmsTermQuery);
@@ -182,7 +182,7 @@ public class TermSubQueryBuilder {
                         prmsClauses.add(prmsTermQuery);
                         
                     } else {
-                        BooleanQueryFactory bq = new BooleanQueryFactory(true, true);
+                        BooleanQueryFactory bq = new BooleanQueryFactory(true);
                         List<PRMSQuery> bqPrmsClauses = new LinkedList<>();
                         bq.add(tqf, Occur.MUST);
                         bqPrmsClauses.add(prmsTermQuery);

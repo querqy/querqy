@@ -37,6 +37,7 @@ public class TermBoostQuery extends TermQuery {
             throws IOException {
         final IndexReaderContext context = searcher.getTopReaderContext();
         final TermContext termState = TermContext.build(context, term);
+        // TODO: set boosts to 1f if needsScores is false
         return new TermBoostWeight(termState, boost, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
     }
 

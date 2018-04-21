@@ -115,8 +115,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    public LuceneQueryFactory<?> visit(BooleanQuery booleanQuery) {
 
       BooleanQueryFactory bq = new BooleanQueryFactory(
-              booleanQuery.isGenerated(), 
-              normalizeBooleanQueryBoost && parentType == ParentType.DMQ); 
+              normalizeBooleanQueryBoost && parentType == ParentType.DMQ);
       
       ParentType myParentType = parentType;
       parentType = ParentType.BQ;
@@ -160,7 +159,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
       case DMQ:
          if (result.occur != Occur.SHOULD) {
             // create a wrapper query
-            BooleanQueryFactory wrapper = new BooleanQueryFactory(true, false);
+            BooleanQueryFactory wrapper = new BooleanQueryFactory(false);
             wrapper.add(result);
             bq = wrapper;
          }
@@ -213,7 +212,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
               
          if (useBQ) {
             // FIXME: correct to normalize boost?
-            BooleanQueryFactory bq = new BooleanQueryFactory(true, false);
+            BooleanQueryFactory bq = new BooleanQueryFactory(false);
             for (LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
                bq.add(queryFactory, Occur.SHOULD);
             }
