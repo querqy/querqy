@@ -4,7 +4,7 @@
     <parent>
         <groupId>querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
-        <version>4.0.lucene720.0</version>
+        <version>4.0.lucene720.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>querqy-solr</artifactId>
