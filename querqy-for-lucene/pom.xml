@@ -3,14 +3,14 @@
 
     <groupId>querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>4.1.lucene720.0</version>
+    <version>4.1.lucene720.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
         <url>git@github.com:renekrie/querqy.git</url>
         <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:renekrie/querqy.git</developerConnection>
-        <tag>querqy-for-lucene-4.1.lucene720.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <prerequisites>
