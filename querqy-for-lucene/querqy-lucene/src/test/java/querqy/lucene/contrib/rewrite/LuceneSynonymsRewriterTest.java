@@ -46,7 +46,7 @@ public class LuceneSynonymsRewriterTest {
    public void testSingleClauseExpansion() {
       ExpandedQuery q = makeQuery("a");
 
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
             dmq(
                   term("a"),
@@ -66,7 +66,7 @@ public class LuceneSynonymsRewriterTest {
       Term term = new Term(dmq, "a", true);
       dmq.addClause(term);
 
-      assertThat(rewriter.rewrite(new ExpandedQuery(query)).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(new ExpandedQuery(query)).getUserQuery(),
             bq(
             dmq(
             term("a")
@@ -79,7 +79,7 @@ public class LuceneSynonymsRewriterTest {
    public void testSingleClauseExpansionWithMultiCharWords() {
       ExpandedQuery q = makeQuery("abc");
 
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
             dmq(
                   term("abc"),
@@ -93,7 +93,7 @@ public class LuceneSynonymsRewriterTest {
    public void testSingleClauseInputToMultiClauseOutput() {
       ExpandedQuery q = makeQuery("f");
 
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
             dmq(
                   term("f"),
@@ -112,7 +112,7 @@ public class LuceneSynonymsRewriterTest {
       // is in the synonym dict
       ExpandedQuery q = makeQuery("ab c");
 
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
                   dmq(term("ab")),
                   dmq(term("c"))
@@ -124,7 +124,7 @@ public class LuceneSynonymsRewriterTest {
    public void testSingleClauseInputToMixedOutput() {
 
       ExpandedQuery q = makeQuery("j");
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
             dmq(
                   term("j"),
@@ -141,7 +141,7 @@ public class LuceneSynonymsRewriterTest {
    @Test
    public void testTwoClausesToOne() throws Exception {
       ExpandedQuery q = makeQuery("b c");
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
                   dmq(
                         term("b"),
@@ -173,7 +173,7 @@ public class LuceneSynonymsRewriterTest {
    @Test
    public void testThreeClausesToTwo() throws Exception {
       ExpandedQuery q = makeQuery("bb cc dd");
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
                   dmq(
                         term("bb"),
@@ -246,7 +246,7 @@ public class LuceneSynonymsRewriterTest {
    @Test
    public void test08() throws Exception {
       ExpandedQuery q = makeQuery("b c d");
-      assertThat(rewriter.rewrite(q).getUserQuery(),
+      assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
                   dmq(
                         term("b"),

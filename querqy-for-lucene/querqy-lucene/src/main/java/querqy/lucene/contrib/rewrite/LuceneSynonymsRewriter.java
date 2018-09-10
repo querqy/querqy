@@ -13,6 +13,7 @@ import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Node;
+import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -38,9 +39,9 @@ public class LuceneSynonymsRewriter extends AbstractNodeVisitor<Node> implements
     */
    @Override
    public ExpandedQuery rewrite(ExpandedQuery query) {
-      Query userQuery = query.getUserQuery();
-      if (userQuery != null) {
-         visit(userQuery);
+      QuerqyQuery<?> userQuery = query.getUserQuery();
+      if (userQuery != null && userQuery instanceof Query) {
+         visit((Query) userQuery);
       }
       return query;
    }

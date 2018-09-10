@@ -1,10 +1,12 @@
 package querqy.solr;
 
+import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.WrappedQuery;
@@ -12,8 +14,18 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import querqy.model.ExpandedQuery;
+import querqy.model.MatchAllQuery;
+import querqy.model.Term;
 import querqy.parser.WhiteSpaceQuerqyParser;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
+import querqy.rewrite.RewriterFactory;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
@@ -594,6 +606,25 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
     }
 
+    @Test
+    public void testThatMatchAllWithFilterIsApplied() throws Exception {
+        SolrQueryRequest req = req("q", "this should be ignored",
+                DisMaxParams.QF, "f1",
+                "defType", "querqyMatchAllAndFilter",
+                "debugQuery", "true");
+
+        assertQ("Match all not working",
+                req,
+                "//arr[@name='parsed_filter_queries']/str[text()='f1:a']",
+                "//lst[@name='debug']/str[@name='parsedquery'][text()='MatchAllDocsQuery(*:*)']",
+                "//result/doc/str[@name='id'][text()='1']",
+                "//result/doc/str[@name='id'][text()='2']",
+                "//result[@name='response' and @numFound='2']"
+        );
+        req.close();
+
+    }
+
 
     public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
@@ -625,4 +656,25 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
         return bq;
     }
 
+    public static class MatchAllRewriter implements RewriterFactoryAdapter {
+
+        @Override
+        public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
+            return new RewriterFactory() {
+                @Override
+                public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {
+                    return query -> {
+                        query.setUserQuery(new MatchAllQuery());
+                        query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
+                        return query;
+                    };
+                }
+
+                @Override
+                public Set<Term> getGenerableTerms() {
+                    return Collections.emptySet();
+                }
+            };
+        }
+    }
 }
