@@ -17,7 +17,7 @@ import querqy.model.Term;
  */
 public interface QueryRewriter {
     
-    static final Set<Term> EMPTY_GENERABLE_TERMS = Collections.emptySet();
+    Set<Term> EMPTY_GENERABLE_TERMS = Collections.emptySet();
 
     ExpandedQuery rewrite(ExpandedQuery query);
 

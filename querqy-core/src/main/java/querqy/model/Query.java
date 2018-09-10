@@ -4,14 +4,14 @@
 package querqy.model;
 
 /**
- * The top-level query as entered by the user.
+ * The top-level query as entered by the user or rewritten by the rewrite chain.
  *
  * @author René Kriegler, @renekrie
  */
 public class Query extends BooleanQuery {
 
     public Query() {
-        super(null, Occur.SHOULD, false);
+        this(false);
     }
 
     public Query(final boolean generated) {
