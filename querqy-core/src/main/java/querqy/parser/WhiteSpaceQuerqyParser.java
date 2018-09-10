@@ -28,9 +28,13 @@ public class WhiteSpaceQuerqyParser implements QuerqyParser {
      * @see querqy.parser.QuerqyParser#parse(java.lang.String)
      */
     @Override
-    public Query parse(String input) {
+    public Query parse(final String input) {
+        return parseString(input);
+    }
 
-        Query query = new Query();
+    public static Query parseString(final String input) {
+
+        final Query query = new Query();
 
         if (input.length() > 0) {
 

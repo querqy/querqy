@@ -118,6 +118,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
     }
 
+    @Test
     public void testThatMainQueryIsNotMarkedAsGenerated() {
 
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
@@ -130,7 +131,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Query mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
         assertFalse(mainQuery.isGenerated());
 
     }

@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
+import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
@@ -154,7 +155,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Query mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertFalse(mainQuery.isGenerated());
 

@@ -31,7 +31,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -43,7 +43,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
               ));    
     
         query = makeQuery("a b");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -59,7 +59,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
           ));    
         
         query = makeQuery("b a");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -76,7 +76,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         
         
         query = makeQuery("b a c");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -107,7 +107,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -119,7 +119,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
               ));    
     
         query = makeQuery("a b");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -135,7 +135,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
           ));    
         
         query = makeQuery("b a");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -152,7 +152,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         
         
         query = makeQuery("b a c");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -181,7 +181,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -193,7 +193,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
               ));    
     
         query = makeQuery("a b");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -208,7 +208,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
           ));    
         
         query = makeQuery("b a");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -226,7 +226,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         
         
         query = makeQuery("b a c");
-        rewritten = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
 
         assertThat(rewritten,
         bq(
@@ -258,7 +258,7 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("a b");
         Map<String, Object> context = new HashMap<>();
-        Query rewritten = rewriter.rewrite(query, context).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, context).getUserQuery();
 
         assertThat(rewritten,
                 bq(
