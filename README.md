@@ -20,8 +20,8 @@ Detailed Solr version mapping:
 |7.4.0| 4.1.lucene720.x||
 |7.3.x| 4.1.lucene720.x||
 |7.2.x| 4.1.lucene720.x||
-|7.1.0| 4.0.lucene700.x||
-|7.0.x| 4.0.lucene700.x|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
+|7.1.0| 4.1.lucene700.x||
+|7.0.x| 4.1.lucene700.x|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
 |6.6.x| 3.5.x||
 |6.5.x| 3.4.x||
 |6.4.1, 6.4.2| 3.4.x||
