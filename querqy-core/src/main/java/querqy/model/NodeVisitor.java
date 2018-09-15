@@ -9,6 +9,8 @@ package querqy.model;
  */
 public interface NodeVisitor<T> {
 
+   T visit(MatchAllQuery query);
+
    T visit(Query query);
 
    T visit(DisjunctionMaxQuery disjunctionMaxQuery);

@@ -68,6 +68,18 @@
          <str name="class">querqy.antlr.ANTLRQueryParser</str>
       </lst>
 	</queryParser>
+
+	<queryParser name="querqyMatchAllAndFilter" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+		<lst name="rewriteChain">
+			<lst name="rewriter">
+				<str name="class">querqy.solr.DefaultQuerqyDismaxQParserTest$MatchAllRewriter</str>
+			</lst>
+		</lst>
+		<lst name="parser">
+			<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+			<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+		</lst>
+	</queryParser>
 	
 	
 	<admin>

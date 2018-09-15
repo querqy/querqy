@@ -10,36 +10,41 @@ package querqy.model;
 public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
     
     @Override
-    public T visit(Query query) {
-        for (BooleanClause clause : query.getClauses()) {
+    public T visit(final Query query) {
+        for (final BooleanClause clause : query.getClauses()) {
             clause.accept(this);
         }
         return null;
     }
 
     @Override
-    public T visit(DisjunctionMaxQuery disjunctionMaxQuery) {
-        for (DisjunctionMaxClause clause : disjunctionMaxQuery.getClauses()) {
+    public T visit(final MatchAllQuery query) {
+        return null;
+    }
+
+    @Override
+    public T visit(final DisjunctionMaxQuery disjunctionMaxQuery) {
+        for (final DisjunctionMaxClause clause : disjunctionMaxQuery.getClauses()) {
             clause.accept(this);
         }
         return null;
     }
 
     @Override
-    public T visit(BooleanQuery booleanQuery) {
-        for (BooleanClause clause : booleanQuery.getClauses()) {
+    public T visit(final BooleanQuery booleanQuery) {
+        for (final BooleanClause clause : booleanQuery.getClauses()) {
             clause.accept(this);
         }
         return null;
     }
 
     @Override
-    public T visit(Term term) {
+    public T visit(final Term term) {
         return null;
     }
 
     @Override
-    public T visit(RawQuery rawQuery) {
+    public T visit(final RawQuery rawQuery) {
         return null;
     }
    

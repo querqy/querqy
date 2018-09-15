@@ -4,7 +4,7 @@
 
     <artifactId>querqy-core</artifactId>
     <groupId>querqy</groupId>
-    <version>3.0.8-SNAPSHOT</version>
+    <version>3.1.1-SNAPSHOT</version>
 
     <scm>
         <url>git@github.com:renekrie/querqy.git</url>

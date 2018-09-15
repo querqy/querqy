@@ -28,17 +28,17 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
         this(false);
     }
 
-    public ShingleRewriter(boolean acceptGeneratedTerms) {
+    public ShingleRewriter(final boolean acceptGeneratedTerms) {
         this.acceptGeneratedTerms = acceptGeneratedTerms;
     }
 
     @Override
-    public ExpandedQuery rewrite(ExpandedQuery query) {
-        Query userQuery = query.getUserQuery();
-        if (userQuery != null){
+    public ExpandedQuery rewrite(final ExpandedQuery query) {
+        final QuerqyQuery<?> userQuery = query.getUserQuery();
+        if (userQuery != null && userQuery instanceof Query){
             previousTerm = null;
             termsToAdd = new LinkedList<>();
-            visit(userQuery);
+            visit((Query) userQuery);
             for (Term term : termsToAdd) {
                 term.getParent().addClause(term);
             }
@@ -47,9 +47,9 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
     }
 
     @Override
-    public Node visit(DisjunctionMaxQuery dmq) {
+    public Node visit(final DisjunctionMaxQuery dmq) {
         
-        List<DisjunctionMaxClause> clauses = dmq.getClauses();
+        final List<DisjunctionMaxClause> clauses = dmq.getClauses();
         
         if (clauses != null) {
             
@@ -92,12 +92,12 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
     }
 
     @Override
-    public Node visit(Term term) {
+    public Node visit(final Term term) {
         if (previousTerm != null
                 && eq(previousTerm.getField(), term.getField())
                 && (term.isGenerated() == acceptGeneratedTerms || !term.isGenerated())
                 && (previousTerm.isGenerated() == acceptGeneratedTerms || !previousTerm.isGenerated())) {
-            CharSequence seq = new CompoundCharSequence(null, previousTerm, term);
+            final CharSequence seq = new CompoundCharSequence(null, previousTerm, term);
             termsToAdd.add(buildShingle(previousTerm, seq));
             termsToAdd.add(buildShingle(term, seq));
         }
@@ -105,17 +105,17 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
         return term;
     }
 
-    private static <T> boolean eq(T value1, T value2) {
+    private static <T> boolean eq(final T value1, final T value2) {
         return value1 == null && value2 == null || value1 != null && value1.equals(value2);
     }
 
-    private Term buildShingle(Term term, CharSequence seq) {
+    private Term buildShingle(final Term term, final CharSequence seq) {
 
         return new Term(term.getParent(), term.getField(), seq, true);
     }
 
     @Override
-    public Node visit(BooleanQuery bq) {
+    public Node visit(final BooleanQuery bq) {
         previousTerm = null;
         return super.visit(bq);
     }

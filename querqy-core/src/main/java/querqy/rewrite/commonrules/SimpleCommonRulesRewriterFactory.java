@@ -31,10 +31,11 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
      * @param ignoreCase
      * @throws IOException
      */
-    public SimpleCommonRulesRewriterFactory(Reader reader, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) throws IOException {
+    public SimpleCommonRulesRewriterFactory(final Reader reader, final QuerqyParserFactory querqyParserFactory,
+                                            final boolean ignoreCase) throws IOException {
         try {
             rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
-        } catch (RuleParseException e) {
+        } catch (final RuleParseException e) {
             throw new IOException(e);
         } finally {
             try {
@@ -53,15 +54,15 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
      * java.util.Map)
      */
     @Override
-    public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
+    public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {
         return new CommonRulesRewriter(rules);
     }
 
     @Override
     public Set<Term> getGenerableTerms() {
         // REVISIT: return Iterator? Limit number of results?
-        Set<Term> result = new HashSet<Term>();
-        for (Instruction instruction: rules.getInstructions()) {
+        final Set<Term> result = new HashSet<Term>();
+        for (final Instruction instruction: rules.getInstructions()) {
             result.addAll(instruction.getGenerableTerms());
         }
         return result;

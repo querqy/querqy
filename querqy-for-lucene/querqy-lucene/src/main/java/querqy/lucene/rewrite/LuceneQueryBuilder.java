@@ -8,6 +8,7 @@ import java.util.LinkedList;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 
 import querqy.CompoundCharSequence;
@@ -16,6 +17,8 @@ import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.MatchAllQuery;
+import querqy.model.QuerqyQuery;
 import querqy.model.Term;
 
 /**
@@ -69,206 +72,217 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param normalizeBooleanQueryBoost
     * @param termQueryCache The term query cache or null
     */
-   public LuceneQueryBuilder(DocumentFrequencyAndTermContextProvider dftcp, Analyzer analyzer,
-           SearchFieldsAndBoosting searchFieldsAndBoosting,
-         float dmqTieBreakerMultiplier, boolean normalizeBooleanQueryBoost, TermQueryCache termQueryCache) {
-       
-      this.searchFieldsAndBoosting = searchFieldsAndBoosting;
-      this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
-      this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
-      this.dftcp = dftcp;
-      termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
-   }
+    public LuceneQueryBuilder(final DocumentFrequencyAndTermContextProvider dftcp, final Analyzer analyzer,
+                              final SearchFieldsAndBoosting searchFieldsAndBoosting,
+                              final float dmqTieBreakerMultiplier, final boolean normalizeBooleanQueryBoost,
+                              final TermQueryCache termQueryCache) {
 
-   public void reset() {
-      clauseStack.clear();
-      dmqStack.clear();
-      useBooleanQueryForDMQ = false;
-   }
+        this.searchFieldsAndBoosting = searchFieldsAndBoosting;
+        this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
+        this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
+        this.dftcp = dftcp;
+        termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
+    }
 
-   public Query createQuery(querqy.model.Query query, boolean useBooleanQueryForDMQ) throws IOException {
-       boolean tmp = this.useBooleanQueryForDMQ;
-       try {
-           this.useBooleanQueryForDMQ = useBooleanQueryForDMQ;
-           return createQuery(query);
-       } finally {
-           this.useBooleanQueryForDMQ = tmp;
-       }
-   }
+    public void reset() {
+        clauseStack.clear();
+        dmqStack.clear();
+        useBooleanQueryForDMQ = false;
+        parentType = ParentType.BQ;
+    }
+
+    public Query createQuery(final querqy.model.Query query, final boolean useBooleanQueryForDMQ) throws IOException {
+        boolean tmp = this.useBooleanQueryForDMQ;
+        try {
+            this.useBooleanQueryForDMQ = useBooleanQueryForDMQ;
+            return createQuery(query);
+        } finally {
+            this.useBooleanQueryForDMQ = tmp;
+        }
+    }
    
-   public Query createQuery(querqy.model.Query query) throws IOException {
+    public Query createQuery(final QuerqyQuery<?> query) throws IOException {
+        if (query instanceof querqy.model.BooleanQuery) {
+            parentType = ParentType.BQ;
+            LuceneQueryFactory<?> factory = query.accept(this);
 
-       LuceneQueryFactory<?> factory = visit(query);
+            factory.prepareDocumentFrequencyCorrection(dftcp, false);
 
-       factory.prepareDocumentFrequencyCorrection(dftcp, false);
+            return factory.createQuery(null, dmqTieBreakerMultiplier, dftcp);
 
-       return factory.createQuery(null, dmqTieBreakerMultiplier, dftcp);
-   }
+        } else if (query instanceof MatchAllQuery) {
 
-   @Override
-   public LuceneQueryFactory<?> visit(querqy.model.Query query) {
-      parentType = ParentType.BQ;
-      return visit((BooleanQuery) query);
-   }
+            return new MatchAllDocsQuery();
 
-   @Override
-   public LuceneQueryFactory<?> visit(BooleanQuery booleanQuery) {
+        } else {
 
-      BooleanQueryFactory bq = new BooleanQueryFactory(
-              normalizeBooleanQueryBoost && parentType == ParentType.DMQ);
+            throw new IllegalArgumentException("Cannot handle query of type " + query.getClass().getName());
+
+        }
+    }
+
+    @Override
+    public LuceneQueryFactory<?> visit(final querqy.model.Query query) {
+        return visit((BooleanQuery) query);
+    }
+
+    @Override
+    public LuceneQueryFactory<?> visit(final BooleanQuery booleanQuery) {
+
+        BooleanQueryFactory bq = new BooleanQueryFactory(normalizeBooleanQueryBoost && parentType == ParentType.DMQ);
       
-      ParentType myParentType = parentType;
-      parentType = ParentType.BQ;
+        ParentType myParentType = parentType;
+        parentType = ParentType.BQ;
 
-      clauseStack.add(bq);
-      super.visit(booleanQuery);
-      clauseStack.removeLast();
+        clauseStack.add(bq);
+        super.visit(booleanQuery);
+        clauseStack.removeLast();
 
-      parentType = myParentType;
+        parentType = myParentType;
 
-      Clause result;
+        final Clause result;
 
-      switch (bq.getNumberOfClauses()) {
-      case 0:
-       // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
-          return new NeverMatchQueryFactory();
-      case 1:
-          Clause firstClause = bq.getFirstClause();
-          if (firstClause.occur == Occur.SHOULD) {
-              // optimise and propagate the single clause up one level, but only
-              // if occur equals neither MUST nor MUST_NOT, which would be lost on the
-              // top level query
-              result = bq.getFirstClause();
-          } else {
-              result = new Clause(bq, occur(booleanQuery.occur));
-          }
+        switch (bq.getNumberOfClauses()) {
+            case 0:
+                // no sub-query - this can happen if analysis filters out all tokens (stopwords)
+                return new NeverMatchQueryFactory();
+            case 1:
+                final Clause firstClause = bq.getFirstClause();
+                if (firstClause.occur == Occur.SHOULD) {
+                    // optimise and propagate the single clause up one level, but only
+                    // if occur equals neither MUST nor MUST_NOT, which would be lost on the
+                    // top level query
+                    result = bq.getFirstClause();
+                } else {
+                    result = new Clause(bq, occur(booleanQuery.occur));
+                }
 
-          break;
-      default:
-          result = new Clause(bq, occur(booleanQuery.occur));
-      }
+                break;
+            default:
+                result = new Clause(bq, occur(booleanQuery.occur));
+        }
 
-      switch (parentType) {
-      case BQ:
-         if (!clauseStack.isEmpty()) {
-            clauseStack.getLast().add(result);
-            return bq;
-         } else {// else we are the top BQ
-            return result.queryFactory;
-         }
-      case DMQ:
-         if (result.occur != Occur.SHOULD) {
-            // create a wrapper query
-            BooleanQueryFactory wrapper = new BooleanQueryFactory(false);
-            wrapper.add(result);
-            bq = wrapper;
-         }
-         dmqStack.getLast().add(bq);
-         return bq;
+        switch (parentType) {
+            case BQ:
+                if (!clauseStack.isEmpty()) {
+                    clauseStack.getLast().add(result);
+                    return bq;
+                } else {// else we are the top BQ
+                    return result.queryFactory;
+                }
+            case DMQ:
+                if (result.occur != Occur.SHOULD) {
+                    // create a wrapper query
+                    final BooleanQueryFactory wrapper = new BooleanQueryFactory(false);
+                    wrapper.add(result);
+                    bq = wrapper;
+                }
+                dmqStack.getLast().add(bq);
+                return bq;
 
-      default:
-         throw new RuntimeException("Unknown parentType " + parentType);
-      }
-   }
+            default:
+                throw new RuntimeException("Unknown parentType " + parentType);
+        }
+    }
 
-   protected Occur occur(querqy.model.SubQuery.Occur occur) {
-      switch (occur) {
-      case MUST:
-         return Occur.MUST;
-      case MUST_NOT:
-         return Occur.MUST_NOT;
-      case SHOULD:
-         return Occur.SHOULD;
-      }
-      throw new IllegalArgumentException("Cannot handle occur value: " + occur.name());
-   }
+    protected Occur occur(final querqy.model.SubQuery.Occur occur) {
+        switch (occur) {
+            case MUST:
+                return Occur.MUST;
+            case MUST_NOT:
+                return Occur.MUST_NOT;
+            case SHOULD:
+                return Occur.SHOULD;
+        }
+        throw new IllegalArgumentException("Cannot handle occur value: " + occur.name());
+    }
 
-   @Override
-   public LuceneQueryFactory<?> visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+    @Override
+    public LuceneQueryFactory<?> visit(final DisjunctionMaxQuery disjunctionMaxQuery) {
 
-      ParentType myParentType = parentType;
-      parentType = ParentType.DMQ;
+        final ParentType myParentType = parentType;
+        parentType = ParentType.DMQ;
 
-      DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(); 
+        DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
 
-      dmqStack.add(dmq);
-      super.visit(disjunctionMaxQuery);
-      dmqStack.removeLast();
+        dmqStack.add(dmq);
+        super.visit(disjunctionMaxQuery);
+        dmqStack.removeLast();
 
-      parentType = myParentType;
+        parentType = myParentType;
 
-      switch (dmq.getNumberOfDisjuncts()) {
-      case 0:
-         // no sub-query - this can happen if analysis filters out all tokens (stopwords) 
-         return new NeverMatchQueryFactory();
-      case 1:
-         LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
-         clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
-         return firstDisjunct;
-      default:
-         // FIXME: we can decide this earlier --> avoid creating DMQ in case of
-         // MUST_NOT
-          boolean useBQ = this.useBooleanQueryForDMQ || (disjunctionMaxQuery.occur == querqy.model.SubQuery.Occur.MUST_NOT);
+        switch (dmq.getNumberOfDisjuncts()) {
+            case 0:
+                // no sub-query - this can happen if analysis filters out all tokens (stopwords)
+            return new NeverMatchQueryFactory();
+            case 1:
+                final LuceneQueryFactory<?> firstDisjunct = dmq.getFirstDisjunct();
+                clauseStack.getLast().add(firstDisjunct, occur(disjunctionMaxQuery.occur));
+                return firstDisjunct;
+            default:
+                // FIXME: we can decide this earlier --> avoid creating DMQ in case of
+                // MUST_NOT
+                final boolean useBQ = this.useBooleanQueryForDMQ || (disjunctionMaxQuery.occur == querqy.model.SubQuery.Occur.MUST_NOT);
+
+                if (useBQ) {
+                    // FIXME: correct to normalize boost?
+                    final BooleanQueryFactory bq = new BooleanQueryFactory(false);
+                    for (final LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
+                        bq.add(queryFactory, Occur.SHOULD);
+                    }
+                    clauseStack.getLast().add(bq, occur(disjunctionMaxQuery.occur));
+                    return bq;
+                }
+
+                clauseStack.getLast().add(dmq, occur(disjunctionMaxQuery.occur));
+                return dmq;
+        }
+    }
+
+    @Override
+    public LuceneQueryFactory<?> visit(final Term term) {
+
+        final DisjunctionMaxQueryFactory siblings = dmqStack.getLast();
+      
+        final String fieldname = term.getField();
+
+        Term termToUse = null;
+        try {
+            FieldBoost fieldBoost = searchFieldsAndBoosting.getFieldBoost(term);
+            if (fieldBoost == null) {
               
-         if (useBQ) {
-            // FIXME: correct to normalize boost?
-            BooleanQueryFactory bq = new BooleanQueryFactory(false);
-            for (LuceneQueryFactory<?> queryFactory : dmq.disjuncts) {
-               bq.add(queryFactory, Occur.SHOULD);
+                if (fieldname != null && !term.isGenerated() && !searchFieldsAndBoosting.hasSearchField(fieldname, term)) {
+                    // someone searches in a field that is not set as a search field or didn't intend to search in a field at all
+                    // --> set value to fieldname + ":" + value in search in all fields
+                    final Term termWithFieldInValue = new Term(null, new CompoundCharSequence(":", fieldname, term.getValue()));
+                    fieldBoost = searchFieldsAndBoosting.getFieldBoost(termWithFieldInValue);
+                    if (fieldBoost != null) {
+                        termToUse = termWithFieldInValue;
+                    }
+                }
+              
+            } else {
+                termToUse = term;
             }
-            clauseStack.getLast().add(bq, occur(disjunctionMaxQuery.occur));
-            return bq;
-         }
-
-         clauseStack.getLast().add(dmq, occur(disjunctionMaxQuery.occur));
-         return dmq;
-      }
-   }
-
-   @Override
-   public LuceneQueryFactory<?> visit(final Term term) {
-
-      DisjunctionMaxQueryFactory siblings = dmqStack.getLast();
-      
-      String fieldname = term.getField();
-
-      Term termToUse = null;
-      try {
-          FieldBoost fieldBoost = searchFieldsAndBoosting.getFieldBoost(term);
-          if (fieldBoost == null) {
-              
-              if (fieldname != null && !term.isGenerated() && !searchFieldsAndBoosting.hasSearchField(fieldname, term)) {
-                  // someone searches in a field that is not set as a search field or didn't intend to search in a field at all
-                  // --> set value to fieldname + ":" + value in search in all fields
-                  Term termWithFieldInValue = new Term(null, new CompoundCharSequence(":", fieldname, term.getValue()));
-                  fieldBoost = searchFieldsAndBoosting.getFieldBoost(termWithFieldInValue);
-                  if (fieldBoost != null) {
-                      termToUse = termWithFieldInValue;
-                  }
-              }
-              
-          } else {
-              termToUse = term;
-          }
-          if (fieldBoost == null) {
-              throw new RuntimeException("Could not get FieldBoost for term: " + term);
-          }
+            if (fieldBoost == null) {
+                throw new RuntimeException("Could not get FieldBoost for term: " + term);
+            }
           
-          for (String searchField: searchFieldsAndBoosting.getSearchFields(termToUse)) {
-              addTerm(searchField, fieldBoost, siblings, termToUse);
-          }
+            for (final String searchField: searchFieldsAndBoosting.getSearchFields(termToUse)) {
+                addTerm(searchField, fieldBoost, siblings, termToUse);
+            }
 
 
-      } catch (IOException e) {
+        } catch (final IOException e) {
          // REVISIT: throw more specific exception?
          // - or save exception in Builder and then throw IOException from
          // build()
-         throw new RuntimeException(e);
-      }
+            throw new RuntimeException(e);
+        }
 
-      return null;
+        return null;
 
-   }
+    }
 
    /**
     * 
@@ -294,12 +308,13 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param sourceTerm
     * @throws IOException
     */
-    void addTerm(String fieldname, FieldBoost boost, DisjunctionMaxQueryFactory target, Term sourceTerm) throws IOException {
-        TermSubQueryFactory queryFactory = termSubQueryBuilder.termToFactory(fieldname, sourceTerm, boost);//termToFactory(fieldname, sourceTerm, boost);
+    void addTerm(final String fieldname, final FieldBoost boost, final DisjunctionMaxQueryFactory target,
+                 final Term sourceTerm) throws IOException {
+        final TermSubQueryFactory queryFactory = termSubQueryBuilder.termToFactory(fieldname, sourceTerm, boost);//termToFactory(fieldname, sourceTerm, boost);
         if (queryFactory != null) {
             target.add(queryFactory);
             boost.registerTermSubQuery(fieldname, queryFactory, sourceTerm);
         }
-   }
+    }
 
 }

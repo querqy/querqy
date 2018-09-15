@@ -17,20 +17,20 @@ import java.util.LinkedList;
  */
 public class ExpandedQuery {
 
-   private Query userQuery;
+   private QuerqyQuery<?> userQuery;
    protected Collection<QuerqyQuery<?>> filterQueries;
    protected Collection<BoostQuery> boostUpQueries;
    protected Collection<BoostQuery> boostDownQueries;
 
-   public ExpandedQuery(Query userQuery) {
+   public ExpandedQuery(QuerqyQuery<?> userQuery) {
       setUserQuery(userQuery);
    }
 
-   public Query getUserQuery() {
+   public QuerqyQuery<?> getUserQuery() {
       return userQuery;
    }
 
-   public final void setUserQuery(Query userQuery) {
+   public final void setUserQuery(QuerqyQuery<?> userQuery) {
       if (userQuery == null) {
          throw new IllegalArgumentException("userQuery required");
       }

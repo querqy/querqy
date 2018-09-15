@@ -242,8 +242,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     protected Query userQuery = null;
 
-    public QuerqyDismaxQParser(String qstr, SolrParams localParams, SolrParams params,
-         SolrQueryRequest req, RewriteChain rewriteChain, QuerqyParser querqyParser, TermQueryCache termQueryCache)
+    public QuerqyDismaxQParser(final String qstr, final SolrParams localParams, final SolrParams params,
+                               final SolrQueryRequest req, final RewriteChain rewriteChain,
+                               final QuerqyParser querqyParser, final TermQueryCache termQueryCache)
          throws SyntaxError {
 
         super(qstr, localParams, params, req);
@@ -270,17 +271,14 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
         generatedQueryFields = parseQueryFields(req.getSchema(), solrParams, GQF, null, false);
         if (generatedQueryFields.isEmpty()) {
-            for (Map.Entry<String, Float> entry: userQueryFields.entrySet()) {
+            for (final Map.Entry<String, Float> entry: userQueryFields.entrySet()) {
                 generatedQueryFields.put(entry.getKey(), entry.getValue() * config.generatedFieldBoostFactor);
             }
         } else {
-            for (Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
+            for (final Map.Entry<String, Float> entry: generatedQueryFields.entrySet()) {
                 if (entry.getValue() == null) {
-                    String name = entry.getKey();
-                    Float nonGeneratedBoostFactor = userQueryFields.get(name);
-                    if (nonGeneratedBoostFactor == null) {
-                        nonGeneratedBoostFactor = 1f;
-                    }
+                    final String name = entry.getKey();
+                    final Float nonGeneratedBoostFactor = userQueryFields.getOrDefault(name, 1f);
                     entry.setValue(nonGeneratedBoostFactor * config.generatedFieldBoostFactor);
                 }
             }
@@ -350,7 +348,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     }
    
    protected FieldBoostModel getFieldBoostModelFromParam(final SolrParams solrParams) {
-       String fbm = solrParams.get(FBM, FBM_DEFAULT);
+       final String fbm = solrParams.get(FBM, FBM_DEFAULT);
        if ((!needsScores) || fbm.equals(FBM_FIXED)) {
            return FieldBoostModel.FIXED;
        } else if (fbm.equals(FBM_PRMS)) {
@@ -362,8 +360,9 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
    }
 
    @Override
-   protected PublicExtendedDismaxConfiguration createConfiguration(String qstr,
-         SolrParams localParams, SolrParams params, SolrQueryRequest req) {
+   protected PublicExtendedDismaxConfiguration createConfiguration(final String qstr, final SolrParams localParams,
+                                                                   final SolrParams params,
+                                                                   final SolrQueryRequest req) {
       // this is a hack that works around ExtendedDismaxQParser keeping the
       // config member var private
       // and avoids calling createConfiguration() twice
@@ -436,7 +435,11 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
           final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-          builder.add(LuceneQueryUtil.boost(mainQuery, userQueryWeight), Occur.MUST);
+          if (mainQuery instanceof MatchAllDocsQuery) {
+              builder.add(mainQuery, Occur.FILTER);
+          } else {
+              builder.add(LuceneQueryUtil.boost(mainQuery, userQueryWeight), Occur.MUST);
+          }
 
           if (boostQueries != null) {
               for (final Query f : boostQueries) {
@@ -582,12 +585,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     }
 
 
-    public Query makePhraseFieldQueries(final querqy.model.Query userQuery) {
+    public Query makePhraseFieldQueries(final QuerqyQuery<?> userQuery) {
 
 
-        if (userQuery != null) {
+        if (userQuery instanceof querqy.model.Query) {
 
-            final List<querqy.model.BooleanClause> clauses = userQuery.getClauses();
+            final List<querqy.model.BooleanClause> clauses = ((querqy.model.Query) userQuery).getClauses();
 
             if (clauses.size() > 1) {
 
@@ -602,7 +605,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
 
 
-                if (allPhraseFields != null && !allPhraseFields.isEmpty()) {
+                if (!allPhraseFields.isEmpty()) {
 
                     final List<String> sequence = new LinkedList<>();
 
@@ -755,12 +758,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
        }
 
        final BooleanQuery bq = (BooleanQuery) query;
-       List<BooleanClause> clauses = bq.clauses();
+       final List<BooleanClause> clauses = bq.clauses();
        if (clauses.size() < 2) {
            return bq;
        }
 
-       for (BooleanClause clause : clauses) {
+       for (final BooleanClause clause : clauses) {
            if ((clause.getQuery() instanceof BooleanQuery) && (clause.getOccur() != Occur.MUST)) {
                return bq; // seems to be a complex query with sub queries - do not
                // apply mm
@@ -774,26 +777,26 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     public void applyFilterQueries(final ExpandedQuery expandedQuery) throws SyntaxError {
 
-      Collection<QuerqyQuery<?>> filterQueries = expandedQuery.getFilterQueries();
+      final Collection<QuerqyQuery<?>> filterQueries = expandedQuery.getFilterQueries();
 
       if (filterQueries != null && !filterQueries.isEmpty()) {
           
-          List<Query> fqs = new LinkedList<>();
+          final List<Query> fqs = new LinkedList<>();
           
-          for (QuerqyQuery<?> qfq : filterQueries) {
+          for (final QuerqyQuery<?> qfq : filterQueries) {
           
               if (qfq instanceof RawQuery) {
                   
-                  QParser fqParser = QParser.getParser(((RawQuery) qfq).getQueryString(), null, req);
+                  final QParser fqParser = QParser.getParser(((RawQuery) qfq).getQueryString(), null, req);
                   fqs.add(fqParser.getQuery());
                   
-              } else if (qfq instanceof querqy.model.Query) {
+              } else {
                   
                   builder.reset();
                   
                   try {
-                      fqs.add(builder.createQuery((querqy.model.Query) qfq));
-                  } catch (IOException e) {
+                      fqs.add(builder.createQuery(qfq));
+                  } catch (final IOException e) {
                         throw new RuntimeException(e);
                   }
                   
@@ -813,11 +816,11 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
           final Query query = wrapQuery(applyMinShouldMatch(builder.createQuery(expandedQuery.getUserQuery())));
 
-          userQuery = needsScores ? query : new ConstantScoreQuery(query);
+          userQuery = (needsScores || query instanceof MatchAllDocsQuery) ? query : new ConstantScoreQuery(query);
 
           return userQuery;
 
-      } catch (IOException e) {
+      } catch (final IOException e) {
          throw new RuntimeException(e);
       }
    }

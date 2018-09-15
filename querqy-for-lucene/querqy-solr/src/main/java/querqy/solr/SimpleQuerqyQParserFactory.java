@@ -16,7 +16,7 @@ import querqy.parser.QuerqyParser;
 /**
  * This is a generic {@link SolrQuerqyParserFactory} which creates {@link QuerqyParser} objects for 
  * the configured class name (the fully specified class name is expected as the value of configuration
- * parameter &quot;class&quot;.
+ * parameter &quot;class&quot;).
  * 
  * @author René Kriegler, @renekrie
  *

@@ -15,7 +15,7 @@ public class LuceneQueryUtil {
      * @param boostFactor The boost factor
      * @return A BoostQuery if boostFactor != 1 or the original query in all other cases.
      */
-    public static Query boost(Query query, float boostFactor) {
+    public static Query boost(final Query query, final float boostFactor) {
         return boostFactor == 1f ? query : new BoostQuery(query, boostFactor);
     }
 }
