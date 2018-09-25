@@ -307,7 +307,7 @@ public class AbstractLuceneQueryTest {
        final float boost;
 
        public DependentTQMatcher(float boost, String field, String text) {
-          super(DependentTermQuery.class);
+          super(DependentTermQueryBuilder.DependentTermQuery.class);
           this.field = field;
           this.text = text;
           this.boost = boost;
@@ -321,11 +321,11 @@ public class AbstractLuceneQueryTest {
 
        @Override
        protected boolean matchesSafely(Query termQuery) {
-          Term term = ((DependentTermQuery) termQuery).getTerm();
+          Term term = ((DependentTermQueryBuilder.DependentTermQuery) termQuery).getTerm();
           if (!field.equals(term.field()) || !text.equals(term.text())) {
               return false;
           }
-          FieldBoost fieldBoost = ((DependentTermQuery) termQuery).getFieldBoost();
+          FieldBoost fieldBoost = ((DependentTermQueryBuilder.DependentTermQuery) termQuery).getFieldBoost();
           if (fieldBoost == null) {
               return false;
           }

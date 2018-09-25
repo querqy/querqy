@@ -10,9 +10,10 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
-import querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider.DocumentFrequencyAndTermContext;
+import querqy.lucene.rewrite.DependentTermQueryBuilder.DependentTermQuery;
+import querqy.lucene.rewrite.DocumentFrequencyCorrection.DocumentFrequencyAndTermContext;
 
-import static querqy.lucene.rewrite.TestUtil.addNumDocs;
+import static querqy.lucene.rewrite.TestUtil.addNumDocsWithStringField;
 import static querqy.lucene.rewrite.TestUtil.newTerm;
 
 public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
@@ -26,7 +27,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
        
         int df = getRandomDf();
-        addNumDocs("f1", "a", indexWriter, df);
+        addNumDocsWithStringField("f1", "a", indexWriter, df);
         
         indexWriter.close();
         
@@ -62,10 +63,10 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
        
         int df1 = getRandomDf();
-        addNumDocs("f1", "a", indexWriter, df1);
+        addNumDocsWithStringField("f1", "a", indexWriter, df1);
         
         int df2 = df1 + 5;
-        addNumDocs("f1", "b", indexWriter, df2);
+        addNumDocsWithStringField("f1", "b", indexWriter, df2);
 
         indexWriter.close();
         

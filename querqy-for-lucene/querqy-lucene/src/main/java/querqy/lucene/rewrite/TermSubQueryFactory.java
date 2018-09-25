@@ -22,29 +22,30 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
     final FieldBoost boost;
     public final PRMSQuery prmsQuery;
     
-    public TermSubQueryFactory(LuceneQueryFactoryAndPRMSQuery rootAndPrmsQuery, FieldBoost boost) {
+    public TermSubQueryFactory(final LuceneQueryFactoryAndPRMSQuery rootAndPrmsQuery, final FieldBoost boost) {
         this(rootAndPrmsQuery.queryFactory, rootAndPrmsQuery.prmsQuery, boost);
     }
     
-    public TermSubQueryFactory(LuceneQueryFactory<?> root, PRMSQuery prmsQuery, FieldBoost boost) {
+    public TermSubQueryFactory(final LuceneQueryFactory<?> root, final PRMSQuery prmsQuery, final FieldBoost boost) {
         this.root = root;
         this.boost = boost;
         this.prmsQuery = prmsQuery;
     }
 
     @Override
-    public void prepareDocumentFrequencyCorrection(DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) {
-        root.prepareDocumentFrequencyCorrection(dftcp, isBelowDMQ);
+    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyCorrection dfc, final boolean isBelowDMQ) {
+        root.prepareDocumentFrequencyCorrection(dfc, isBelowDMQ);
     }
 
     @Override
-    public Query createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp)
+    public Query createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
+                             final TermQueryBuilder termQueryBuilder)
             throws IOException {
         
         return root.createQuery(
                 this.boost, 
                 dmqTieBreakerMultiplier,         
-                dftcp);
+                termQueryBuilder);
     }
     
     public boolean isNeverMatchQuery() {

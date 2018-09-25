@@ -57,8 +57,11 @@ final class TermScorer extends Scorer {
     return docScorer.score(postingsEnum.docID(), postingsEnum.freq());
   }
 
+    public Similarity.SimScorer getDocScorer() {
+        return docScorer;
+    }
 
-  /** Returns a string representation of this <code>TermScorer</code>. */
+    /** Returns a string representation of this <code>TermScorer</code>. */
   @Override
   public String toString() { return "scorer(" + weight + ")[" + super.toString() + "]"; }
 }

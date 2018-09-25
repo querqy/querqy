@@ -57,7 +57,8 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         fields.put("f2", 1f);
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.PRMS, fields, fields, 0.8f);
         
-        LuceneQueryBuilder queryBuilder = new LuceneQueryBuilder(dfc, analyzer, searchFieldsAndBoosting, 0.01f, null);
+        LuceneQueryBuilder queryBuilder = new LuceneQueryBuilder(new DependentTermQueryBuilder(dfc), analyzer,
+                searchFieldsAndBoosting, 0.01f, null);
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
@@ -71,12 +72,12 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);
-        assertTrue(disjunct1 instanceof DependentTermQuery);
-        DependentTermQuery dtq1 = (DependentTermQuery) disjunct1;
+        assertTrue(disjunct1 instanceof DependentTermQueryBuilder.DependentTermQuery);
+        DependentTermQueryBuilder.DependentTermQuery dtq1 = (DependentTermQueryBuilder.DependentTermQuery) disjunct1;
         
         Query disjunct2 = disjuncts.get(1);
-        assertTrue(disjunct2 instanceof DependentTermQuery);
-        DependentTermQuery dtq2 = (DependentTermQuery) disjunct2;
+        assertTrue(disjunct2 instanceof DependentTermQueryBuilder.DependentTermQuery);
+        DependentTermQueryBuilder.DependentTermQuery dtq2 = (DependentTermQueryBuilder.DependentTermQuery) disjunct2;
 
         assertNotEquals(dtq1.getTerm().field(), dtq2.getTerm().field());
 

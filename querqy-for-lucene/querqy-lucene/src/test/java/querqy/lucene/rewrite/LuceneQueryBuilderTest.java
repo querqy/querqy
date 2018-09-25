@@ -34,7 +34,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    Set<String> stopWords;
 
    @Before
-   public void setUp() throws Exception {
+   public void setUp() {
       keywordAnalyzer = new KeywordAnalyzer();
       searchFields = new HashMap<>();
       searchFields.put("f1", 1.0f);
@@ -78,7 +78,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
             keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
@@ -91,7 +91,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
             keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
        ANTLRQueryParser parser = new ANTLRQueryParser();
@@ -111,7 +111,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
                new StandardAnalyzer(new CharArraySet(stopWords, true)), searchFieldsAndBoosting, tie, null);
        
        ANTLRQueryParser parser = new ANTLRQueryParser();
@@ -295,7 +295,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
 
 
-        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
                 keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
         Query q = builder.createQuery(new WhiteSpaceQuerqyParser().parse("-ab"));
@@ -322,7 +322,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fieldsQuery, fieldsGenerated, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DocumentFrequencyCorrection(),
+       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
             keywordAnalyzer, searchFieldsAndBoosting, 0.1f, null);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();

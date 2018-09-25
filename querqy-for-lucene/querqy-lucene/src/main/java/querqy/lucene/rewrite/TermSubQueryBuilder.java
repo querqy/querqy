@@ -32,17 +32,18 @@ import querqy.rewrite.commonrules.model.PositionSequence;
  */
 public class TermSubQueryBuilder {
     
-    final TermQueryCache termQueryCache;
-    final Analyzer analyzer;
+    private final TermQueryCache termQueryCache;
+    private final Analyzer analyzer;
     
-    public TermSubQueryBuilder(Analyzer analyzer, TermQueryCache termQueryCache) {
+    public TermSubQueryBuilder(final Analyzer analyzer, final TermQueryCache termQueryCache) {
         this.termQueryCache = termQueryCache;
         this.analyzer = analyzer;
     }
     
-    public TermSubQueryFactory termToFactory(String fieldname, Term sourceTerm, FieldBoost boost) throws IOException {
+    public TermSubQueryFactory termToFactory(final String fieldname, final Term sourceTerm, final FieldBoost boost)
+            throws IOException {
         
-        CacheKey cacheKey = null;
+        final CacheKey cacheKey;
 
         if (termQueryCache != null) {
             
@@ -57,21 +58,23 @@ public class TermSubQueryBuilder {
                 return (cacheValue.hasQuery()) ? new TermSubQueryFactory(cacheValue, boost) : null;
             } 
             
+        } else {
+            cacheKey = null;
         }
         
-        LuceneQueryFactoryAndPRMSQuery root = null;
+        final LuceneQueryFactoryAndPRMSQuery root;
         TokenStream ts = null;
         try {
            
            ts = analyzer.tokenStream(fieldname, new CharSequenceReader(sourceTerm));
-           CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
-           PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
+           final CharTermAttribute termAttr = ts.addAttribute(CharTermAttribute.class);
+           final PositionIncrementAttribute posIncAttr = ts.addAttribute(PositionIncrementAttribute.class);
            ts.reset();
          
-           PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
+           final PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
            while (ts.incrementToken()) {
               
-               int inc = posIncAttr.getPositionIncrement();
+               final int inc = posIncAttr.getPositionIncrement();
                if (inc > 0 || sequence.isEmpty()) {
                    sequence.nextPosition();
                }
@@ -105,7 +108,7 @@ public class TermSubQueryBuilder {
         switch (sequence.size()) {
         case 0: return null;
         case 1: 
-            List<org.apache.lucene.index.Term> first = sequence.getFirst();
+            final List<org.apache.lucene.index.Term> first = sequence.getFirst();
             return first.isEmpty() ? null: newPosition(sequence.iterator(), null, null);
             
         default:
@@ -116,19 +119,19 @@ public class TermSubQueryBuilder {
 
     }
     
-    protected LuceneQueryFactoryAndPRMSQuery newPosition(Iterator<List<org.apache.lucene.index.Term>> seqIterator,
-            BooleanQueryFactory incomingBq, List<PRMSQuery> incomingPrmsClauses) {
+    protected LuceneQueryFactoryAndPRMSQuery newPosition(final Iterator<List<org.apache.lucene.index.Term>> seqIterator,
+            final BooleanQueryFactory incomingBq, final List<PRMSQuery> incomingPrmsClauses) {
         
-        List<org.apache.lucene.index.Term> position = seqIterator.next();
+        final List<org.apache.lucene.index.Term> position = seqIterator.next();
         
         switch (position.size()) {
         case 0: throw new IllegalArgumentException("Sequence must not contain an empty position");
         case 1: {
             
-            org.apache.lucene.index.Term term = position.get(0);
+            final org.apache.lucene.index.Term term = position.get(0);
             
-            TermQueryFactory tqf = createTermQueryFactory(term);
-            PRMSTermQuery prmsTermQuery = new PRMSTermQuery(term);
+            final TermQueryFactory tqf = createTermQueryFactory(term);
+            final PRMSTermQuery prmsTermQuery = new PRMSTermQuery(term);
             
             if (incomingBq != null) {
                 
@@ -143,8 +146,8 @@ public class TermSubQueryBuilder {
             } else {
                 
                 if (seqIterator.hasNext()) {
-                    BooleanQueryFactory bq = new BooleanQueryFactory(true);
-                    List<PRMSQuery> prmsClauses = new LinkedList<>();
+                    final BooleanQueryFactory bq = new BooleanQueryFactory(true);
+                    final List<PRMSQuery> prmsClauses = new LinkedList<>();
                     bq.add(tqf, Occur.MUST);
                     prmsClauses.add(prmsTermQuery);
                     newPosition(seqIterator, bq, prmsClauses);
@@ -156,25 +159,25 @@ public class TermSubQueryBuilder {
             }
         }
         default:
-            boolean hasNextPosition = seqIterator.hasNext();
+            final boolean hasNextPosition = seqIterator.hasNext();
             // the dmq for this position
-            DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
-            List<PRMSQuery> prmsClauses = new LinkedList<>();
+            final DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
+            final List<PRMSQuery> prmsClauses = new LinkedList<>();
             
             if (!hasNextPosition) {
                 
-                for (org.apache.lucene.index.Term term: position) {
+                for (final org.apache.lucene.index.Term term: position) {
                     dmq.add(createTermQueryFactory(term));
                     prmsClauses.add(new PRMSTermQuery(term));
                 }
                 
             } else {
-                Iterator<org.apache.lucene.index.Term> posIterator = position.iterator();
+                final Iterator<org.apache.lucene.index.Term> posIterator = position.iterator();
                 while (posIterator.hasNext()) {
                     
-                    org.apache.lucene.index.Term term = posIterator.next();
-                    TermQueryFactory tqf = createTermQueryFactory(term);
-                    PRMSTermQuery prmsTermQuery = new PRMSTermQuery(term);
+                    final org.apache.lucene.index.Term term = posIterator.next();
+                    final TermQueryFactory tqf = createTermQueryFactory(term);
+                    final PRMSTermQuery prmsTermQuery = new PRMSTermQuery(term);
                     
                     if (posIterator.hasNext()) {
                         
@@ -182,8 +185,8 @@ public class TermSubQueryBuilder {
                         prmsClauses.add(prmsTermQuery);
                         
                     } else {
-                        BooleanQueryFactory bq = new BooleanQueryFactory(true);
-                        List<PRMSQuery> bqPrmsClauses = new LinkedList<>();
+                        final BooleanQueryFactory bq = new BooleanQueryFactory(true);
+                        final List<PRMSQuery> bqPrmsClauses = new LinkedList<>();
                         bq.add(tqf, Occur.MUST);
                         bqPrmsClauses.add(prmsTermQuery);
                         newPosition(seqIterator, bq, bqPrmsClauses);

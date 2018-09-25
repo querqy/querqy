@@ -17,13 +17,13 @@ public class NeverMatchQueryFactory implements LuceneQueryFactory<Query> {
     public static final NeverMatchQueryFactory FACTORY = new NeverMatchQueryFactory();
 
     @Override
-    public void prepareDocumentFrequencyCorrection(DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) {
+    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyCorrection dfc, final boolean isBelowDMQ) {
         // nothing to do
     }
 
     @Override
-    public Query createQuery(FieldBoost boostFactor, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp)
-            throws IOException {
+    public Query createQuery(final FieldBoost boostFactor, final float dmqTieBreakerMultiplier,
+                             final TermQueryBuilder termQueryBuilder) {
         return new MatchNoDocsQuery();
     }
 

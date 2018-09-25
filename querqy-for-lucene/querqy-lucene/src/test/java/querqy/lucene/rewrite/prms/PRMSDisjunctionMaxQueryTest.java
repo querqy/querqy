@@ -107,7 +107,8 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         fields.put("f2", 1f);
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.PRMS, fields, fields, 0.8f);
         
-        LuceneQueryBuilder queryBuilder = new LuceneQueryBuilder(dfc, queryAnalyzer, searchFieldsAndBoosting, 0.01f, null);
+        LuceneQueryBuilder queryBuilder = new LuceneQueryBuilder(new DependentTermQueryBuilder(dfc), queryAnalyzer,
+                searchFieldsAndBoosting, 0.01f, null);
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         

@@ -20,37 +20,37 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
     protected final LinkedList<Clause> clauses;
     protected final boolean normalizeBoost;
 
-    public BooleanQueryFactory(boolean normalizeBoost) {
+    public BooleanQueryFactory(final boolean normalizeBoost) {
         this.normalizeBoost = normalizeBoost;
         clauses = new LinkedList<>();
     }
 
-    public void add(LuceneQueryFactory<?> factory, Occur occur) {
+    public void add(final LuceneQueryFactory<?> factory, Occur occur) {
         clauses.add(new Clause(factory, occur));
     }
 
-    public void add(Clause clause) {
+    public void add(final Clause clause) {
         clauses.add(clause);
     }
 
     @Override
-    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyAndTermContextProvider dftcp,
+    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyCorrection dfc,
                                                    final boolean isBelowDMQ) {
 
         for (final Clause clause : clauses) {
-            clause.queryFactory.prepareDocumentFrequencyCorrection(dftcp, isBelowDMQ);
+            clause.queryFactory.prepareDocumentFrequencyCorrection(dfc, isBelowDMQ);
         }
 
     }
 
     @Override
     public Query createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
-                             final DocumentFrequencyAndTermContextProvider dftcp) throws IOException {
+                             final TermQueryBuilder termQueryBuilder) throws IOException {
 
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
         for (final Clause clause : clauses) {
-            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, dftcp), clause.occur);
+            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, termQueryBuilder), clause.occur);
         }
 
         Query bq = builder.build();

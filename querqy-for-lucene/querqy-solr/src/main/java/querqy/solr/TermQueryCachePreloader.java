@@ -17,6 +17,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import querqy.lucene.rewrite.LuceneTermQueryBuilder;
 import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
@@ -64,14 +65,14 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         return qParserPlugin;
     }
     
-    protected TermQueryCache getCache(SolrIndexSearcher searcher) {
-        String cacheName = (String) getArgs().get(CONF_CACHE_NAME); 
+    protected TermQueryCache getCache(final SolrIndexSearcher searcher) {
+        final String cacheName = (String) getArgs().get(CONF_CACHE_NAME);
         if (cacheName == null) {
             throw new RuntimeException("Missing configuration property: " + CONF_CACHE_NAME);
         }
         
         @SuppressWarnings("unchecked")
-        SolrCache<CacheKey, TermQueryCacheValue> solrCache = searcher.getCache(cacheName);
+        final SolrCache<CacheKey, TermQueryCacheValue> solrCache = searcher.getCache(cacheName);
         if (solrCache == null) {
             throw new RuntimeException("No TermQueryCache for name '" + cacheName + "'");
         }
@@ -80,42 +81,42 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
     }
     
     protected boolean isTestForHits() {
-        Boolean doTest = getArgs().getBooleanArg(CONF_TEST_FOR_HITS);
+        final Boolean doTest = getArgs().getBooleanArg(CONF_TEST_FOR_HITS);
         return doTest != null && doTest;
     }
     
     @Override
-    public void newSearcher(SolrIndexSearcher newSearcher, SolrIndexSearcher currentSearcher) {
+    public void newSearcher(final SolrIndexSearcher newSearcher, final SolrIndexSearcher currentSearcher) {
         
         
-        TermQueryCache cache = getCache(newSearcher);
+        final TermQueryCache cache = getCache(newSearcher);
         
-        Map<String, Float> preloadFields = getPreloadFields();
+        final Map<String, Float> preloadFields = getPreloadFields();
         
-        boolean testForHits = isTestForHits();
+        final boolean testForHits = isTestForHits();
         
         LOG.info("Starting preload for Querqy TermQueryCache. Testing for hits: {}", testForHits);
-        long t1 = System.currentTimeMillis();
+        final long t1 = System.currentTimeMillis();
         
         
-        AbstractQuerqyDismaxQParserPlugin queryPluginPlugin = getQParserPlugin();
-        RewriteChain rewriteChain = queryPluginPlugin.getRewriteChain();
+        final AbstractQuerqyDismaxQParserPlugin queryPluginPlugin = getQParserPlugin();
+        final RewriteChain rewriteChain = queryPluginPlugin.getRewriteChain();
         
         if (rewriteChain != null && !preloadFields.isEmpty()) {
         
-            List<RewriterFactory> factories = rewriteChain.getRewriterFactories();
+            final List<RewriterFactory> factories = rewriteChain.getRewriterFactories();
             if (!factories.isEmpty()) {
             
-                TermSubQueryBuilder termSubQueryBuilder = new TermSubQueryBuilder(newSearcher.getSchema().getQueryAnalyzer(), cache);
-                for (RewriterFactory factory : factories) {
-                    for (Term term: factory.getGenerableTerms()) {
-                        String field = term.getField();
+                final TermSubQueryBuilder termSubQueryBuilder = new TermSubQueryBuilder(newSearcher.getSchema().getQueryAnalyzer(), cache);
+                for (final RewriterFactory factory : factories) {
+                    for (final Term term: factory.getGenerableTerms()) {
+                        final String field = term.getField();
                         if (field != null) {
                             if (preloadFields.containsKey(field)) {
                                 preloadTerm(newSearcher, termSubQueryBuilder, field, term, testForHits, cache);
                             }
                         } else {
-                            for (String fieldname : preloadFields.keySet()) {
+                            for (final String fieldname : preloadFields.keySet()) {
                                 preloadTerm(newSearcher, termSubQueryBuilder, fieldname, term, testForHits, cache);
                             }
                         }
@@ -127,33 +128,38 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
         }
         
         if (LOG.isInfoEnabled()) {
-            long t2 = System.currentTimeMillis();
+            final long t2 = System.currentTimeMillis();
             LOG.info("Finished preload for Querqy TermQueryCache after {}ms", (t2 - t1));
         }
         
     }
     
 
-    protected void preloadTerm(IndexSearcher searcher, TermSubQueryBuilder termSubQueryBuilder, String field, Term term, boolean testForHits, TermQueryCache cache) {
+    protected void preloadTerm(final IndexSearcher searcher, final TermSubQueryBuilder termSubQueryBuilder,
+                               final String field, final Term term, final boolean testForHits,
+                               final TermQueryCache cache) {
         
         try {
             
             // luceneQueryBuilder.termToFactory creates the query and caches it (without the boost)
-            TermSubQueryFactory termSubQueryFactory = termSubQueryBuilder.termToFactory(field, term, ConstantFieldBoost.NORM_BOOST);
+            final TermSubQueryFactory termSubQueryFactory
+                    = termSubQueryBuilder.termToFactory(field, term, ConstantFieldBoost.NORM_BOOST);
             
             // test the query for hits and override the cache value with a factory that creates a query that never matches
             // --> this query will never be executed against the index again
             
             // no need to re-test for hits if we've seen this term before
             if (testForHits && (termSubQueryFactory != null) && (!termSubQueryFactory.isNeverMatchQuery())) {
-                Query query = termSubQueryFactory.createQuery(ConstantFieldBoost.NORM_BOOST, 0.01f, null);
-                TopDocs topDocs = searcher.search(query, 1);
+                final Query query = termSubQueryFactory
+                        .createQuery(ConstantFieldBoost.NORM_BOOST, 0.01f, new LuceneTermQueryBuilder());
+                final TopDocs topDocs = searcher.search(query, 1);
                 if (topDocs.totalHits < 1) {
-                    cache.put(new CacheKey(field, term), new TermQueryCacheValue(NeverMatchQueryFactory.FACTORY, PRMSQuery.NEVER_MATCH_PRMS_QUERY));
+                    cache.put(new CacheKey(field, term),
+                            new TermQueryCacheValue(NeverMatchQueryFactory.FACTORY, PRMSQuery.NEVER_MATCH_PRMS_QUERY));
                 }
             }
         
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOG.error("Error preloading term " + term.toString(), e);
         }
     }

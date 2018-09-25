@@ -35,6 +35,7 @@ import org.apache.solr.util.SolrPluginUtils;
 
 import querqy.lucene.LuceneQueryUtil;
 import querqy.ComparableCharSequence;
+import querqy.lucene.rewrite.LuceneTermQueryBuilder;
 import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.cache.TermQueryCache;
@@ -193,7 +194,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     /**
      * Control how the score resulting from the {@link org.apache.lucene.search.similarities.Similarity}
      * implementation is integrated into the score of the user query (the value of parameter q).
-     * Accepts "off" (use only field weights) and "dfc" (correct document frequency across fields).
+     * Accepts "off" (use only field weights), "on" (use standard Lucene similarity) and
+     * "dfc" (correct document frequency across fields). Default: "dfc"
      */
     public static final String USER_QUERY_SIMILARITY_SCORE = "uq.similarityScore";
 
@@ -216,8 +218,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     final Map<String, Float> userQueryFields;
     final Map<String, Float> generatedQueryFields;
     final LuceneQueryBuilder builder;
-    final DocumentFrequencyCorrection dfc;
-    final DocumentFrequencyAndTermContextProvider boostDftcp;
+    final TermQueryBuilder boostTermQueryBuilder;
     final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
 
     protected List<Query> filterQueries = null;
@@ -241,6 +242,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
     protected final boolean needsScores;
 
     protected Query userQuery = null;
+
+    private DocumentFrequencyCorrection dfc = null;
 
     public QuerqyDismaxQParser(final String qstr, final SolrParams localParams, final SolrParams params,
                                final SolrQueryRequest req, final RewriteChain rewriteChain,
@@ -293,11 +296,12 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
         if (!needsScores) {
             useReRankForBoostQueries = false;
             dfc = null;
-            boostDftcp = null;
+            boostTermQueryBuilder = null;
             boostSearchFieldsAndBoostings = null;
             qpfTie = 1f;
             reRankNumDocs = 0;
-            builder = new LuceneQueryBuilder(null, queryAnalyzer, searchFieldsAndBoosting, 1f, termQueryCache);
+            builder = new LuceneQueryBuilder(new LuceneTermQueryBuilder(), queryAnalyzer, searchFieldsAndBoosting, 1f,
+                    termQueryCache);
 
         } else {
 
@@ -309,21 +313,34 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
             }
 
 
-            dfc = new DocumentFrequencyCorrection();
+            final String boostSimScore = solrParams.get(QBOOST_SIMILARITY_SCORE, QBOOST_SIMILARITY_SCORE_DEFAULT);
+            final String userQuerySimScore = solrParams.get(USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC);
 
-            builder = new LuceneQueryBuilder(
-                    SIMILARITY_SCORE_OFF.equals(solrParams.get(USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC))
-                            ? null : dfc,
+
+            final TermQueryBuilder userTermQueryBuilder;
+            if (SIMILARITY_SCORE_OFF.equals(userQuerySimScore)) {
+                userTermQueryBuilder = new FieldBoostTermQueryBuilder();
+            } else if (SIMILARITY_SCORE_ON.equals(userQuerySimScore)) {
+                userTermQueryBuilder = new SimilarityTermQueryBuilder();
+            } else {
+                dfc = new DocumentFrequencyCorrection();
+                userTermQueryBuilder = new DependentTermQueryBuilder(dfc);
+            }
+
+            builder = new LuceneQueryBuilder(userTermQueryBuilder,
                     queryAnalyzer, searchFieldsAndBoosting, config.getTieBreaker(), termQueryCache);
 
 
-            final String boostSimScore = solrParams.get(QBOOST_SIMILARITY_SCORE, QBOOST_SIMILARITY_SCORE_DEFAULT);
+
             if (SIMILARITY_SCORE_DFC.equals(boostSimScore)) {
-                boostDftcp = dfc;
+                if (dfc == null) {
+                    dfc = new DocumentFrequencyCorrection();
+                }
+                boostTermQueryBuilder = new DependentTermQueryBuilder(dfc);
             } else if (SIMILARITY_SCORE_ON.equals(boostSimScore)) {
-                boostDftcp = new StandardDocumentFrequencyAndTermContextProvider();
+                boostTermQueryBuilder = new SimilarityTermQueryBuilder();
             } else if (SIMILARITY_SCORE_OFF.equals(boostSimScore)) {
-                boostDftcp = null;
+                boostTermQueryBuilder = new FieldBoostTermQueryBuilder();
             } else {
                 throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
                         "Unknown similarity score handling for Querqy boost queries: " + boostSimScore);
@@ -397,7 +414,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
       if ((userQueryString.charAt(0) == '*') && (userQueryString.length() == 1 || MATCH_ALL.equals(userQueryString))) {
           mainQuery = new MatchAllDocsQuery();
-          dfc.finishedUserQuery();
+          if (dfc != null) dfc.finishedUserQuery();
           phraseFieldQuery = null;
       } else {
           expandedQuery = makeExpandedQuery();
@@ -541,7 +558,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
                 } else if (boostQuery instanceof querqy.model.Query) {
 
                     LuceneQueryBuilder luceneQueryBuilder =
-                            new LuceneQueryBuilder(boostDftcp, queryAnalyzer,
+                            new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
                                     boostSearchFieldsAndBoostings,
                                     config.getTieBreaker(), termQueryCache);
                     try {

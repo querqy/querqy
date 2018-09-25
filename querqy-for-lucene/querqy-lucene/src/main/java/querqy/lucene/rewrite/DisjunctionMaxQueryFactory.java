@@ -36,26 +36,27 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
    }
 
     @Override
-    public void prepareDocumentFrequencyCorrection(DocumentFrequencyAndTermContextProvider dftcp, boolean isBelowDMQ) {
+    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyCorrection dfc, final boolean isBelowDMQ) {
 
-        if ((!isBelowDMQ) && (dftcp != null)) {
-            dftcp.newClause();
+        if (!isBelowDMQ) {
+            dfc.newClause();
         }
 
-        for (LuceneQueryFactory<?> disjunct : disjuncts) {
-            disjunct.prepareDocumentFrequencyCorrection(dftcp, true);
+        for (final LuceneQueryFactory<?> disjunct : disjuncts) {
+            disjunct.prepareDocumentFrequencyCorrection(dfc, true);
         }
 
     }
 
     @Override
-    public DisjunctionMaxQuery createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, DocumentFrequencyAndTermContextProvider dftcp)
+    public DisjunctionMaxQuery createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
+                                           final TermQueryBuilder termQueryBuilder)
             throws IOException {
 
-        List<Query> disjunctList = new LinkedList<>();
+        final List<Query> disjunctList = new LinkedList<>();
 
-        for (LuceneQueryFactory<?> disjunct : disjuncts) {
-            disjunctList.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, dftcp));
+        for (final LuceneQueryFactory<?> disjunct : disjuncts) {
+            disjunctList.add(disjunct.createQuery(boost, dmqTieBreakerMultiplier, termQueryBuilder));
         }
 
         return new DisjunctionMaxQuery(disjunctList, dmqTieBreakerMultiplier);

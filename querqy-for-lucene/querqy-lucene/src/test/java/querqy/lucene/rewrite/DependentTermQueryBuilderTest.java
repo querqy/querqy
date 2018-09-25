@@ -2,17 +2,26 @@ package querqy.lucene.rewrite;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.Weight;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Before;
 import org.junit.Test;
+import querqy.lucene.rewrite.DependentTermQueryBuilder.DependentTermQuery;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -20,16 +29,13 @@ import static org.mockito.Mockito.when;
 /**
  * Created by rene on 04/09/2016.
  */
-public class DependentTermQueryTest extends LuceneTestCase {
+public class DependentTermQueryBuilderTest extends LuceneTestCase {
 
     FieldBoost fieldBoost1 = new ConstantFieldBoost(1f);
-
-
     FieldBoost fieldBoost2  = new ConstantFieldBoost(2f);
 
-    DocumentFrequencyAndTermContextProvider dfc1 = mock(DocumentFrequencyAndTermContextProvider.class);
-
-    DocumentFrequencyAndTermContextProvider dfc2 = mock(DocumentFrequencyAndTermContextProvider.class);
+    DocumentFrequencyCorrection dfc1 = mock(DocumentFrequencyCorrection.class);
+    DocumentFrequencyCorrection dfc2 = mock(DocumentFrequencyCorrection.class);
 
     Term term1 = new Term("f1", "t1");
     Term term2 = new Term("f1", "t2");
@@ -45,7 +51,7 @@ public class DependentTermQueryTest extends LuceneTestCase {
     }
 
     @Test
-    public void testThatHashCodeAndEqualDoNotDependOnDfc() throws Exception {
+    public void testThatHashCodeAndEqualDoNotDependOnDfc() {
 
         DependentTermQuery tq1 = new DependentTermQuery(term1, dfc1, tqIndex1, fieldBoost1);
         DependentTermQuery tq2 = new DependentTermQuery(term1, dfc2, tqIndex1, fieldBoost1);
@@ -55,7 +61,7 @@ public class DependentTermQueryTest extends LuceneTestCase {
     }
 
     @Test
-    public void testThatHashCodeAndEqualDependOnTerm() throws Exception {
+    public void testThatHashCodeAndEqualDependOnTerm() {
 
         DependentTermQuery tq1 = new DependentTermQuery(term1, dfc1, tqIndex1, fieldBoost1);
         DependentTermQuery tq2 = new DependentTermQuery(term2, dfc1, tqIndex1, fieldBoost1);
@@ -66,7 +72,7 @@ public class DependentTermQueryTest extends LuceneTestCase {
     }
 
     @Test
-    public void testThatHashCodeAndEqualDependOnTqIndex() throws Exception {
+    public void testThatHashCodeAndEqualDependOnTqIndex() {
 
         DependentTermQuery tq1 = new DependentTermQuery(term1, dfc1, tqIndex1, fieldBoost1);
         DependentTermQuery tq2 = new DependentTermQuery(term1, dfc1, tqIndex2, fieldBoost1);
@@ -77,7 +83,7 @@ public class DependentTermQueryTest extends LuceneTestCase {
     }
 
     @Test
-    public void testThatHashCodeAndEqualDependOnFieldBoost() throws Exception {
+    public void testThatHashCodeAndEqualDependOnFieldBoost() {
 
         DependentTermQuery tq1 = new DependentTermQuery(term1, dfc1, tqIndex1, fieldBoost1);
         DependentTermQuery tq2 = new DependentTermQuery(term1, dfc1, tqIndex1, fieldBoost2);
@@ -95,8 +101,8 @@ public class DependentTermQueryTest extends LuceneTestCase {
         Directory directory = newDirectory();
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
-        TestUtil.addNumDocs("f1", "v1", indexWriter, 1);
-        TestUtil.addNumDocs("f1", "v2", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "v2", indexWriter, 1);
 
         indexWriter.close();
 
@@ -106,8 +112,9 @@ public class DependentTermQueryTest extends LuceneTestCase {
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
         Term term = new Term("f1", "v1");
-
+        dfc.newClause();
         dfc.prepareTerm(term);
+        dfc.finishedUserQuery();
 
         DependentTermQuery query = new DependentTermQuery(term, dfc, fieldBoost);
 
@@ -123,6 +130,56 @@ public class DependentTermQueryTest extends LuceneTestCase {
 
     }
 
+    @Test
+    public void testCreateWeight() throws Exception {
 
+        Analyzer analyzer = new StandardAnalyzer();
+
+        Directory directory = new RAMDirectory();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setSimilarity(new ClassicSimilarity());
+        IndexWriter indexWriter = new IndexWriter(directory, config);
+
+        TestUtil.addNumDocsWithTextField("f1", "v1", indexWriter, 4);
+        TestUtil.addNumDocsWithTextField("f2", "v1 v1", indexWriter, 1);
+
+        indexWriter.close();
+
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(new ClassicSimilarity());
+
+
+        DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
+
+        Term qTerm1 = new Term("f1", "v1");
+        Term qTerm2 = new Term("f2", "v1");
+        dfc.newClause();
+        dfc.prepareTerm(qTerm1);
+        dfc.prepareTerm(qTerm2);
+        dfc.finishedUserQuery();
+
+        DependentTermQueryBuilder.DependentTermQuery query1 = new DependentTermQueryBuilder(dfc)
+                .createTermQuery(qTerm1, fieldBoost1);
+        DependentTermQueryBuilder.DependentTermQuery query2 = new DependentTermQueryBuilder(dfc)
+                .createTermQuery(qTerm2, fieldBoost2);
+
+
+        TopDocs topDocs = indexSearcher.search(query2, 10);
+
+        final Weight weight2 = query2.createWeight(indexSearcher, true, 4.5f);
+        final Explanation explain = weight2.explain(indexReader.leaves().get(0), topDocs.scoreDocs[0].doc);
+
+        String explainText = explain.toString();
+
+        assertTrue(explainText.contains("9.0 = boost")); // 4.5 (query) * 2.0 (field)
+        assertTrue(explainText.contains("4.0 = docFreq")); // 4 * df of f1:v1
+        assertTrue(explainText.contains("termFreq=2.0")); // don't use tf
+
+        indexReader.close();
+        directory.close();
+        analyzer.close();
+
+    }
 
 }

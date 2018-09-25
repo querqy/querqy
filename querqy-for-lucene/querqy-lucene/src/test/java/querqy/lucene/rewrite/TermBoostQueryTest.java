@@ -45,12 +45,12 @@ public class TermBoostQueryTest extends LuceneTestCase {
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher = newSearcher(indexReader);
 
-        final TermBoostQuery tbq = new TermBoostQuery(new Term("f1", "v1"), fieldBoost);
+        final FieldBoostTermQueryBuilder.FieldBoostTermQuery tbq = new FieldBoostTermQueryBuilder.FieldBoostTermQuery(new Term("f1", "v1"), fieldBoost);
 
         final Weight weight = tbq.createWeight(indexSearcher, true, 1f);
 
-        assertTrue(weight instanceof TermBoostQuery.TermBoostWeight);
-        final TermBoostQuery.TermBoostWeight tbw = (TermBoostQuery.TermBoostWeight) weight;
+        assertTrue(weight instanceof FieldBoostTermQueryBuilder.FieldBoostTermQuery.FieldBoostWeight);
+        final FieldBoostTermQueryBuilder.FieldBoostTermQuery.FieldBoostWeight tbw = (FieldBoostTermQueryBuilder.FieldBoostTermQuery.FieldBoostWeight) weight;
 
         assertEquals(fieldBoostFactor, tbw.getFieldBoost(), 0.0001f);
 
@@ -79,12 +79,12 @@ public class TermBoostQueryTest extends LuceneTestCase {
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher = newSearcher(indexReader);
 
-        final TermBoostQuery tbq = new TermBoostQuery(new Term("f1", "v1"), fieldBoost);
+        final FieldBoostTermQueryBuilder.FieldBoostTermQuery tbq = new FieldBoostTermQueryBuilder.FieldBoostTermQuery(new Term("f1", "v1"), fieldBoost);
 
         final Weight weight = tbq.createWeight(indexSearcher, true, externalBoostFactor);
 
-        assertTrue(weight instanceof TermBoostQuery.TermBoostWeight);
-        final TermBoostQuery.TermBoostWeight tbw = (TermBoostQuery.TermBoostWeight) weight;
+        assertTrue(weight instanceof FieldBoostTermQueryBuilder.FieldBoostTermQuery.FieldBoostWeight);
+        final FieldBoostTermQueryBuilder.FieldBoostTermQuery.FieldBoostWeight tbw = (FieldBoostTermQueryBuilder.FieldBoostTermQuery.FieldBoostWeight) weight;
 
         assertEquals(fieldBoostFactor * externalBoostFactor, tbw.getScore(), 0.0001f);
 
@@ -102,7 +102,7 @@ public class TermBoostQueryTest extends LuceneTestCase {
         Directory directory = newDirectory();
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
-        TestUtil.addNumDocs("f1", "v1", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
 
         indexWriter.close();
 
@@ -112,7 +112,7 @@ public class TermBoostQueryTest extends LuceneTestCase {
 
         final Set<Term> terms = new HashSet<>();
         final Term term = new Term("f1", "v1");
-        new TermBoostQuery(term, new ConstantFieldBoost(1f))
+        new FieldBoostTermQueryBuilder.FieldBoostTermQuery(term, new ConstantFieldBoost(1f))
                 .createWeight(indexSearcher, true, 1f)
                 .extractTerms(terms);
 
@@ -134,7 +134,7 @@ public class TermBoostQueryTest extends LuceneTestCase {
         Directory directory = newDirectory();
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
-        TestUtil.addNumDocs("f1", "v1", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
 
         indexWriter.close();
 
@@ -144,7 +144,7 @@ public class TermBoostQueryTest extends LuceneTestCase {
 
         Similarity similarity = mock(Similarity.class);
         indexSearcher.setSimilarity(similarity);
-        TermBoostQuery termBoostQuery = new TermBoostQuery(new Term("f1", "v1"), fieldBoost);
+        FieldBoostTermQueryBuilder.FieldBoostTermQuery termBoostQuery = new FieldBoostTermQueryBuilder.FieldBoostTermQuery(new Term("f1", "v1"), fieldBoost);
         indexSearcher.search(termBoostQuery, 10);
 
         verify(similarity, never()).computeWeight(
@@ -170,8 +170,8 @@ public class TermBoostQueryTest extends LuceneTestCase {
         Directory directory = newDirectory();
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
-        TestUtil.addNumDocs("f1", "v1", indexWriter, 1);
-        TestUtil.addNumDocs("f1", "v2", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "v2", indexWriter, 1);
 
         indexWriter.close();
 
@@ -179,7 +179,7 @@ public class TermBoostQueryTest extends LuceneTestCase {
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher = newSearcher(indexReader);
 
-        TermBoostQuery termBoostQuery = new TermBoostQuery(new Term("f1", "v1"), fieldBoost);
+        FieldBoostTermQueryBuilder.FieldBoostTermQuery termBoostQuery = new FieldBoostTermQueryBuilder.FieldBoostTermQuery(new Term("f1", "v1"), fieldBoost);
         TopDocs topDocs = indexSearcher.search(termBoostQuery, 10);
 
         assertEquals(1, topDocs.totalHits);
