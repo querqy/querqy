@@ -17,6 +17,7 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
+|7.5.0| 4.1.lucene720.x||
 |7.4.0| 4.1.lucene720.x||
 |7.3.x| 4.1.lucene720.x||
 |7.2.x| 4.1.lucene720.x||
