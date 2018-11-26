@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class WordbreakCompoundRewriterFactory implements RewriterFactory {
+public class WordBreakCompoundRewriterFactory implements RewriterFactory {
 
     private final Supplier<IndexReader> indexReaderSupplier;
     private final String dictionaryField;
@@ -20,7 +20,7 @@ public class WordbreakCompoundRewriterFactory implements RewriterFactory {
     private final int maxCombineLength;
     private final int minBreakLength;
 
-    public WordbreakCompoundRewriterFactory(Supplier<IndexReader> indexReaderSupplier,
+    public WordBreakCompoundRewriterFactory(Supplier<IndexReader> indexReaderSupplier,
                                             String dictionaryField,
                                             int maxChanges,
                                             int minSuggestionFreq,
@@ -42,7 +42,7 @@ public class WordbreakCompoundRewriterFactory implements RewriterFactory {
         wordBreakSpellChecker.setMaxCombineWordLength(maxCombineLength);
         wordBreakSpellChecker.setMinBreakWordLength(minBreakLength);
         wordBreakSpellChecker.setMaxEvaluations(100);
-        return new WordbreakCompoundRewriter(wordBreakSpellChecker, indexReaderSupplier.get(), dictionaryField);
+        return new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReaderSupplier.get(), dictionaryField);
     }
 
     @Override

@@ -4,6 +4,7 @@ import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrRequestInfo;
+import querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory;
 import querqy.rewrite.RewriterFactory;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class WordbreakCompoundRewriterFactory implements RewriterFactoryAdapter 
         Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
-        return new querqy.lucene.contrib.rewrite.WordbreakCompoundRewriterFactory(indexReaderSupplier, indexField,
+        return new WordBreakCompoundRewriterFactory(indexReaderSupplier, indexField,
                 maxChanges, minSuggestionFreq, maxCombineLength, minBreakLength);
     }
 
