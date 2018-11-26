@@ -10,16 +10,12 @@ import static querqy.QuerqyMatchers.must;
 import static querqy.QuerqyMatchers.term;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.CombineSuggestion;
-import org.apache.lucene.search.spell.SuggestMode;
 import org.apache.lucene.search.spell.SuggestWord;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -28,10 +24,6 @@ import querqy.model.Query;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WordBreakCompoundRewriterTest {
@@ -304,9 +296,6 @@ public class WordBreakCompoundRewriterTest {
                         dmq(
                                 term("w1", false),
                                 term("w3w1", true)
-                        ),
-                        dmq(
-                                term("trigger", false)
                         ),
                         dmq(
                                 term("w3", false),

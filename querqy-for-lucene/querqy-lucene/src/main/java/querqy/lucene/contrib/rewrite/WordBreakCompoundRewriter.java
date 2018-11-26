@@ -40,6 +40,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
 
     private ArrayDeque<Term> previousTerms = null;
+    private ArrayDeque<Term> termsToDelete = null;
 
     //
     private List<Node> nodesToAdd = null;
@@ -71,6 +72,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery instanceof Query){
             previousTerms = new ArrayDeque<>(COMPOUND_WINDOW);
+            termsToDelete = new ArrayDeque<>();
             nodesToAdd = new LinkedList<>();
             visit((Query) userQuery);
 
@@ -88,8 +90,27 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
             });
 
+            termsToDelete.forEach(this::removeIfNotOnlyChild);
+
         }
         return query;
+    }
+
+    public void removeIfNotOnlyChild(final Term term) {
+        // remove the term from its parent. If the parent doesn't have any further child,
+        // remove the parent from the grand-parent. If this also hasn't any further child,
+        // do not remove anything
+        // TODO: go until top level?
+        final DisjunctionMaxQuery parentQuery = term.getParent();
+        if (parentQuery.getClauses().size() > 1) {
+            parentQuery.removeClause(term);
+        } else {
+            final BooleanQuery grandParent = parentQuery.getParent();
+            if (grandParent != null && grandParent.getClauses().size() > 1) {
+                grandParent.removeClause(parentQuery);
+            }
+        }
+
     }
 
     @Override
@@ -122,6 +143,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
             if (isReverseCompoundTriggerWord(term)) {
                 this.reverseCompound = true;
+                termsToDelete.add(term);
                 return term;
             }
 
