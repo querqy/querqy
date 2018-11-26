@@ -45,7 +45,7 @@
                	<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
 		   </lst>
 		   <lst name="rewriter">
-		   		<str name="class">querqy.solr.WordbreakCompoundRewriterFactory</str>
+		   		<str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
 				 	<str name="dictionaryField">f1</str>
 		   </lst>
 

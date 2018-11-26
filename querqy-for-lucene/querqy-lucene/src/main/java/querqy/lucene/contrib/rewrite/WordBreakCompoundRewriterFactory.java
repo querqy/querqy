@@ -6,6 +6,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
+import querqy.trie.TrieMap;
 
 import java.util.Map;
 import java.util.Set;
@@ -15,34 +16,42 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
 
     private final Supplier<IndexReader> indexReaderSupplier;
     private final String dictionaryField;
-    private final int maxChanges;
-    private final int minSuggestionFreq;
-    private final int maxCombineLength;
-    private final int minBreakLength;
+    private final WordBreakSpellChecker spellChecker;
+    private final boolean alwaysAddReverseCompounds;
+    private final TrieMap<Boolean> reverseCompoundTriggerWords;
 
-    public WordBreakCompoundRewriterFactory(Supplier<IndexReader> indexReaderSupplier,
-                                            String dictionaryField,
-                                            int maxChanges,
-                                            int minSuggestionFreq,
-                                            int maxCombineLength,
-                                            int minBreakLength) {
+    public WordBreakCompoundRewriterFactory(final Supplier<IndexReader> indexReaderSupplier,
+                                            final String dictionaryField,
+                                            final int maxChanges,
+                                            final int minSuggestionFreq,
+                                            final int maxCombineLength,
+                                            final int minBreakLength,
+                                            final boolean alwaysAddReverseCompounds,
+                                            final Set<String> reverseCompoundTriggerWords) {
+
         this.indexReaderSupplier = indexReaderSupplier;
         this.dictionaryField = dictionaryField;
-        this.maxChanges = maxChanges;
-        this.minSuggestionFreq = minSuggestionFreq;
-        this.maxCombineLength = maxCombineLength;
-        this.minBreakLength = minBreakLength;
+        this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
+
+        this.reverseCompoundTriggerWords = new TrieMap<>();
+        if (reverseCompoundTriggerWords != null) {
+            reverseCompoundTriggerWords.forEach(word -> this.reverseCompoundTriggerWords.put(word, true));
+        }
+
+        spellChecker = new WordBreakSpellChecker();
+        spellChecker.setMaxChanges(maxChanges);
+        spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
+        spellChecker.setMaxCombineWordLength(maxCombineLength);
+        spellChecker.setMinBreakWordLength(minBreakLength);
+        spellChecker.setMaxEvaluations(100);
+
+
     }
 
     @Override
-    public QueryRewriter createRewriter(ExpandedQuery expandedQuery, Map<String, ?> map) {
-        WordBreakSpellChecker wordBreakSpellChecker = new WordBreakSpellChecker();
-        wordBreakSpellChecker.setMaxChanges(maxChanges);
-        wordBreakSpellChecker.setMinSuggestionFrequency(minSuggestionFreq);
-        wordBreakSpellChecker.setMaxCombineWordLength(maxCombineLength);
-        wordBreakSpellChecker.setMinBreakWordLength(minBreakLength);
-        wordBreakSpellChecker.setMaxEvaluations(100);
-        return new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReaderSupplier.get(), dictionaryField);
+    public QueryRewriter createRewriter(final ExpandedQuery expandedQuery, final Map<String, ?> context) {
+        return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
+                alwaysAddReverseCompounds, reverseCompoundTriggerWords);
     }
 
     @Override

@@ -1,16 +1,16 @@
-package querqy.solr;
+package querqy.solr.contrib;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrRequestInfo;
-import querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory;
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.RewriterFactoryAdapter;
 
 import java.io.IOException;
 import java.util.function.Supplier;
 
-public class WordbreakCompoundRewriterFactory implements RewriterFactoryAdapter {
+public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter {
 
     private static final int DEF_MAX_CHANGES = 1;
     private static final int DEF_MIN_SUGGESTION_FREQ = 1;
@@ -34,12 +34,16 @@ public class WordbreakCompoundRewriterFactory implements RewriterFactoryAdapter 
         // the index "dictionary" field to verify compounds / constituents
         String indexField = (String) args.get("dictionaryField");
 
+        // define whether we should always try to add a reverse compound
+        boolean alwaysAddReverseCompounds = getOrDefault(args, "alwaysAddReverseCompounds", Boolean.FALSE);
+
         // the indexReader has to be supplied on a per-request basis from a request thread-local
         Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
-        return new WordBreakCompoundRewriterFactory(indexReaderSupplier, indexField,
-                maxChanges, minSuggestionFreq, maxCombineLength, minBreakLength);
+        // FIXME: add trigger words
+        return new querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory(indexReaderSupplier, indexField,
+                maxChanges, minSuggestionFreq, maxCombineLength, minBreakLength, alwaysAddReverseCompounds, null);
     }
 
     private static <T> T getOrDefault(NamedList<?> args, String key, T def) {
