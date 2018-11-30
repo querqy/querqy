@@ -8,11 +8,22 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.trie.TrieMap;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
 public class WordBreakCompoundRewriterFactory implements RewriterFactory {
+
+    // this controls behaviour of the Lucene WordBreakSpellChecker:
+    // for compounds: maximum distance of leftmost and rightmost term index
+    //                e.g. max_changes = 1 for A B C D will check AB BC CD,
+    //                     max_changes = 2 for A B C D will check AB ABC BC BCD CD
+    // for decompounds: maximum splits performed
+    //                  e.g. max_changes = 1 for ABCD will check A BCD, AB CD, ABC D,
+    //                       max_changes = 2 for ABCD will check A BCD, A B CD, A BC D, AB CD, AB C D, ABC D
+    // as we currently only send 2-grams to WBSP for compounding only max_changes = 1 is correctly supported
+    private static final int MAX_CHANGES = 1;
 
     private final Supplier<IndexReader> indexReaderSupplier;
     private final String dictionaryField;
@@ -22,12 +33,11 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
 
     public WordBreakCompoundRewriterFactory(final Supplier<IndexReader> indexReaderSupplier,
                                             final String dictionaryField,
-                                            final int maxChanges,
                                             final int minSuggestionFreq,
                                             final int maxCombineLength,
                                             final int minBreakLength,
-                                            final boolean alwaysAddReverseCompounds,
-                                            final Set<String> reverseCompoundTriggerWords) {
+                                            final List<String> reverseCompoundTriggerWords,
+                                            final boolean alwaysAddReverseCompounds) {
 
         this.indexReaderSupplier = indexReaderSupplier;
         this.dictionaryField = dictionaryField;
@@ -39,13 +49,11 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
         }
 
         spellChecker = new WordBreakSpellChecker();
-        spellChecker.setMaxChanges(maxChanges);
+        spellChecker.setMaxChanges(MAX_CHANGES);
         spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
         spellChecker.setMaxCombineWordLength(maxCombineLength);
         spellChecker.setMinBreakWordLength(minBreakLength);
         spellChecker.setMaxEvaluations(100);
-
-
     }
 
     @Override

@@ -8,21 +8,18 @@ import querqy.rewrite.RewriterFactory;
 import querqy.solr.RewriterFactoryAdapter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter {
 
-    private static final int DEF_MAX_CHANGES = 1;
     private static final int DEF_MIN_SUGGESTION_FREQ = 1;
     private static final int DEF_MAX_COMBINE_LENGTH = 30;
     private static final int DEF_MIN_BREAK_LENGTH = 3;
 
     @Override
     public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
-        // the maximum number of breaks/combinations to perform
-        Integer maxChanges = getOrDefault(args, "maxChanges", DEF_MAX_CHANGES);
-
-        // the minimum a term has to appear in index to be considered a valid compound or constituent
+        // the minimum frequency of the term in the index' dictionary field to be considered a valid compound or constituent
         Integer minSuggestionFreq = getOrDefault(args, "minSuggestionFrequency", DEF_MIN_SUGGESTION_FREQ);
 
         // the maximum length of a combined term
@@ -34,6 +31,9 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter 
         // the index "dictionary" field to verify compounds / constituents
         String indexField = (String) args.get("dictionaryField");
 
+        // terms triggering a reversal of the surrounding compound, e.g. "tasche AUS samt" -> samttasche
+        List<String> reverseCompoundTriggerWords = (List<String>) args.get("reverseCompoundTriggerWords");
+
         // define whether we should always try to add a reverse compound
         boolean alwaysAddReverseCompounds = getOrDefault(args, "alwaysAddReverseCompounds", Boolean.FALSE);
 
@@ -43,7 +43,8 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter 
 
         // FIXME: add trigger words
         return new querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory(indexReaderSupplier, indexField,
-                maxChanges, minSuggestionFreq, maxCombineLength, minBreakLength, alwaysAddReverseCompounds, null);
+                minSuggestionFreq, maxCombineLength, minBreakLength, reverseCompoundTriggerWords,
+                alwaysAddReverseCompounds);
     }
 
     private static <T> T getOrDefault(NamedList<?> args, String key, T def) {

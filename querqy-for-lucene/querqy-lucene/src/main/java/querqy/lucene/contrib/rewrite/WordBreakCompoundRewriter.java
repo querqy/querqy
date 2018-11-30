@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
@@ -45,7 +46,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     //
     private List<Node> nodesToAdd = null;
 
-    private boolean reverseCompound = false;
     private final boolean alwaysAddReverseCompounds;
 
     public WordBreakCompoundRewriter(final WordBreakSpellChecker wordBreakSpellChecker,
@@ -63,15 +63,13 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         this.wordBreakSpellChecker = wordBreakSpellChecker;
         this.indexReader = indexReader;
         this.dictionaryField = dictionaryField;
-        reverseCompound = alwaysAddReverseCompounds;
-
     }
 
     @Override
     public ExpandedQuery rewrite(final ExpandedQuery query) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery instanceof Query){
-            previousTerms = new ArrayDeque<>(COMPOUND_WINDOW);
+            previousTerms = new ArrayDeque<>();
             termsToDelete = new ArrayDeque<>();
             nodesToAdd = new LinkedList<>();
             visit((Query) userQuery);
@@ -137,30 +135,18 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
     @Override
     public Node visit(final Term term) {
-
         // don't handle generated terms
         if (!term.isGenerated()) {
 
-            if (isReverseCompoundTriggerWord(term)) {
-                this.reverseCompound = true;
+            if (!isReverseCompoundTriggerWord(term)) {
+                decompound(term);
+                compound(term);
+            } else {
                 termsToDelete.add(term);
-                return term;
             }
-
-            decompound(term);
-            compound(term);
 
             previousTerms.add(term);
-            if (previousTerms.size() > COMPOUND_WINDOW) {
-                previousTerms.removeFirst();
-            }
-
-
-        } else {
-            previousTerms.clear();
         }
-
-        this.reverseCompound = alwaysAddReverseCompounds;
 
         return term;
     }
@@ -197,37 +183,36 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     protected void compound(final Term term) {
-
         if (!previousTerms.isEmpty()) {
+            boolean reverseCompound = false;
 
-            // calculate the compounds based on term and lookback window
-            final Iterator<Term> previousTermsIterator = previousTerms.descendingIterator();
+            // calculate the compounds based on term and the previous term,
+            // also possibly including its predecessor if the term before was a "compound reversal" trigger
+            final Iterator<Term> previousTermsIterator = new TermsFromFieldIterator(previousTerms.descendingIterator(), term.getField());
 
-            final ArrayDeque<Term> compoundTerms = new ArrayDeque<>();
-
-            while (previousTermsIterator.hasNext()) {
-                final Term previousTerm = previousTermsIterator.next();
-                if (eq(previousTerm.getField(), term.getField())) {
-                    compoundTerms.addFirst(previousTerm);
+            Term previousTerm = null;
+            while (previousTermsIterator.hasNext() && previousTerm == null) {
+                Term maybePreviousTerm = previousTermsIterator.next();
+                if (isReverseCompoundTriggerWord(maybePreviousTerm)) {
+                    reverseCompound = true;
                 } else {
-                    break;
+                    previousTerm = maybePreviousTerm;
                 }
             }
 
-            if (!compoundTerms.isEmpty()) {
-
+            if (previousTerm != null) {
+                ArrayDeque<Term> compoundTerms = new ArrayDeque<>(2);
+                compoundTerms.add(previousTerm);
                 compoundTerms.add(term);
 
                 try {
                     addCompounds(compoundTerms, false);
-                    if (reverseCompound) {
+                    if (reverseCompound || alwaysAddReverseCompounds) {
                         addCompounds(compoundTerms, true);
                     }
                 } catch (final IOException e) {
                     throw new RuntimeException("Error while compounding " + term, e);
                 }
-
-
             }
 
         }
@@ -268,7 +253,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     @Override
     public Node visit(final BooleanQuery bq) {
         previousTerms.clear();
-        reverseCompound = false;
         return super.visit(bq);
     }
 
@@ -296,6 +280,42 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         return value1 == null && value2 == null || value1 != null && value1.equals(value2);
     }
 
+    // Iterator wrapper that only iterates as long as it can emit terms from a given field
+    private static class TermsFromFieldIterator implements Iterator<Term> {
 
+        private final Iterator<Term> delegate;
+        private final String field;
+
+        private Term slot = null;
+
+        public TermsFromFieldIterator(Iterator<Term> delegate, String field) {
+            this.delegate = delegate;
+            this.field = field;
+        }
+
+        @Override
+        public boolean hasNext() {
+            tryFillSlotIfEmpty();
+            return slot != null && eq(slot.getField(), field);
+        }
+
+        @Override
+        public Term next() {
+            tryFillSlotIfEmpty();
+            if (slot == null || !eq(slot.getField(), field)) {
+                throw new NoSuchElementException("No more terms");
+            } else {
+                Term term = slot;
+                slot = null;
+                return term;
+            }
+        }
+
+        private void tryFillSlotIfEmpty() {
+            if (slot == null && delegate.hasNext()) {
+                slot = delegate.next();
+            }
+        }
+    }
 
 }
