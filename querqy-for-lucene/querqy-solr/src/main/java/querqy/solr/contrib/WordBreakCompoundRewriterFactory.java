@@ -13,20 +13,20 @@ import java.util.function.Supplier;
 
 public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter {
 
-    private static final int DEF_MIN_SUGGESTION_FREQ = 1;
-    private static final int DEF_MAX_COMBINE_LENGTH = 30;
-    private static final int DEF_MIN_BREAK_LENGTH = 3;
+    private static final int DEFAULT_MIN_SUGGESTION_FREQ = 1;
+    private static final int DEFAULT_MAX_COMBINE_LENGTH = 30;
+    private static final int DEFAULT_MIN_BREAK_LENGTH = 3;
 
     @Override
     public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
         // the minimum frequency of the term in the index' dictionary field to be considered a valid compound or constituent
-        Integer minSuggestionFreq = getOrDefault(args, "minSuggestionFrequency", DEF_MIN_SUGGESTION_FREQ);
+        Integer minSuggestionFreq = getOrDefault(args, "minSuggestionFrequency", DEFAULT_MIN_SUGGESTION_FREQ);
 
         // the maximum length of a combined term
-        Integer maxCombineLength = getOrDefault(args, "maxCombineWordLength", DEF_MAX_COMBINE_LENGTH);
+        Integer maxCombineLength = getOrDefault(args, "maxCombineWordLength", DEFAULT_MAX_COMBINE_LENGTH);
 
         // the minimum break term length
-        Integer minBreakLength = getOrDefault(args, "minBreakLength", DEF_MIN_BREAK_LENGTH);
+        Integer minBreakLength = getOrDefault(args, "minBreakLength", DEFAULT_MIN_BREAK_LENGTH);
 
         // the index "dictionary" field to verify compounds / constituents
         String indexField = (String) args.get("dictionaryField");

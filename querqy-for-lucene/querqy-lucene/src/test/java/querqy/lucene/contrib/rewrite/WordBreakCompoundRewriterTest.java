@@ -27,7 +27,6 @@ import querqy.trie.TrieMap;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +96,148 @@ public class WordBreakCompoundRewriterTest {
                 )
         );
     }
+
+    @Test
+    public void testThatGeneratedTermIsNotSplit() throws IOException {
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                false, new TrieMap<>());
+        Query query = new Query();
+        addTerm(query, "w1w2", true);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1w2", true)
+
+                        )
+
+                )
+        );
+    }
+
+    @Test
+    public void testThatGeneratedSecondTermIsNotCompounded() throws IOException {
+        // don't de-compound
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+
+        // compound of terms at idx 0+1
+        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
+                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                false, new TrieMap<>());
+        Query query = new Query();
+        addTerm(query, "w1", false);
+        addTerm(query, "w2", true);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false)
+
+                        ),
+                        dmq(
+                                term("w2", true)
+
+                        )
+
+                )
+        );
+    }
+
+    @Test
+    public void testThatGeneratedFirstTermIsNotCompounded() throws IOException {
+        // don't de-compound
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+
+        // compound of terms at idx 0+1
+        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
+                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                false, new TrieMap<>());
+        Query query = new Query();
+        addTerm(query, "w1", true);
+        addTerm(query, "w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", true)
+
+                        ),
+                        dmq(
+                                term("w2", false)
+
+                        )
+
+                )
+        );
+    }
+
+    @Test
+    public void testThatCompoundingIfGeneratedIsMixedIn() throws IOException {
+        // don't de-compound
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+
+        // compound of terms at idx 0+1
+        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
+                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                false, new TrieMap<>());
+        Query query = new Query();
+        addTerm(query, "w1", false);
+        addTerm(query, "w2g", true);
+        addTerm(query, "w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false),
+                                term("w1w2", true)
+
+                        ),
+                        dmq(
+                                term("w2g", true)
+
+                        ),
+                        dmq(
+                                term("w2", false),
+                                term("w1w2", true)
+
+                        )
+
+
+                )
+        );
+    }
+
 
     @Test
     public void testDecompoundSingleTokenIntoTwoTwoTokenAlternatives() throws IOException {

@@ -138,11 +138,11 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         // don't handle generated terms
         if (!term.isGenerated()) {
 
-            if (!isReverseCompoundTriggerWord(term)) {
+            if (isReverseCompoundTriggerWord(term)) {
+                termsToDelete.add(term);
+            } else {
                 decompound(term);
                 compound(term);
-            } else {
-                termsToDelete.add(term);
             }
 
             previousTerms.add(term);
@@ -183,16 +183,18 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     protected void compound(final Term term) {
+
         if (!previousTerms.isEmpty()) {
             boolean reverseCompound = false;
 
             // calculate the compounds based on term and the previous term,
             // also possibly including its predecessor if the term before was a "compound reversal" trigger
-            final Iterator<Term> previousTermsIterator = new TermsFromFieldIterator(previousTerms.descendingIterator(), term.getField());
+            final Iterator<Term> previousTermsIterator = new TermsFromFieldIterator(previousTerms.descendingIterator(),
+                    term.getField());
 
             Term previousTerm = null;
             while (previousTermsIterator.hasNext() && previousTerm == null) {
-                Term maybePreviousTerm = previousTermsIterator.next();
+                final Term maybePreviousTerm = previousTermsIterator.next();
                 if (isReverseCompoundTriggerWord(maybePreviousTerm)) {
                     reverseCompound = true;
                 } else {
@@ -201,7 +203,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             }
 
             if (previousTerm != null) {
-                ArrayDeque<Term> compoundTerms = new ArrayDeque<>(2);
+                final ArrayDeque<Term> compoundTerms = new ArrayDeque<>(2);
                 compoundTerms.add(previousTerm);
                 compoundTerms.add(term);
 
@@ -277,7 +279,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     private static <T> boolean eq(final T value1, final T value2) {
-        return value1 == null && value2 == null || value1 != null && value1.equals(value2);
+        return (value1 == null && value2 == null) || (value1 != null && value1.equals(value2));
     }
 
     // Iterator wrapper that only iterates as long as it can emit terms from a given field
@@ -288,15 +290,14 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
         private Term slot = null;
 
-        public TermsFromFieldIterator(Iterator<Term> delegate, String field) {
+        public TermsFromFieldIterator(final Iterator<Term> delegate, final String field) {
             this.delegate = delegate;
             this.field = field;
         }
 
         @Override
         public boolean hasNext() {
-            tryFillSlotIfEmpty();
-            return slot != null && eq(slot.getField(), field);
+            return tryFillSlotIfEmpty() && eq(slot.getField(), field);
         }
 
         @Override
@@ -311,9 +312,12 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             }
         }
 
-        private void tryFillSlotIfEmpty() {
+        private boolean tryFillSlotIfEmpty() {
             if (slot == null && delegate.hasNext()) {
                 slot = delegate.next();
+                return true;
+            } else {
+                return false;
             }
         }
     }
