@@ -10,7 +10,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.MockTokenizer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.TypeTokenFilter;
-import org.apache.lucene.analysis.synonym.SynonymFilter;
+import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.LuceneTestCase;
@@ -57,10 +57,10 @@ public class AnalyzingQuerqyParserTest extends LuceneTestCase {
             // White space tokenizer, to lower case tokenizer.
             MockTokenizer tokenizer = new MockTokenizer();
             // Filter for adding synonyms
-            TokenStream result = new SynonymFilter(tokenizer, synonyms, true);
+            TokenStream result = new SynonymGraphFilter(tokenizer, synonyms, true);
             // Filter all non-synonyms, because the synonym filter outputs the
             // original token too.
-            result = new TypeTokenFilter(result, Collections.singleton(SynonymFilter.TYPE_SYNONYM),
+            result = new TypeTokenFilter(result, Collections.singleton(SynonymGraphFilter.TYPE_SYNONYM),
                   true);
             return new TokenStreamComponents(tokenizer, result);
          }

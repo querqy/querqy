@@ -9,7 +9,7 @@ import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
-import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
+import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -42,9 +42,9 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         Analyzer analyzer = new Analyzer() {
             protected TokenStreamComponents createComponents(String fieldName) {
                 Tokenizer source = new WhitespaceTokenizer();
-                TokenStream filter = new WordDelimiterFilter(source,
-                            WordDelimiterFilter.GENERATE_WORD_PARTS 
-                            | WordDelimiterFilter.SPLIT_ON_CASE_CHANGE
+                TokenStream filter = new WordDelimiterGraphFilter(source,
+                        WordDelimiterGraphFilter.GENERATE_WORD_PARTS
+                            | WordDelimiterGraphFilter.SPLIT_ON_CASE_CHANGE
                             , null);
                 filter = new LowerCaseFilter(filter);
                 return new TokenStreamComponents(source, filter);
