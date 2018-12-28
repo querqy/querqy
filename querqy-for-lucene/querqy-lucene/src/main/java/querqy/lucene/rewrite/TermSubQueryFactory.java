@@ -39,8 +39,7 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
 
     @Override
     public Query createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
-                             final TermQueryBuilder termQueryBuilder)
-            throws IOException {
+                             final TermQueryBuilder termQueryBuilder) {
         
         return root.createQuery(
                 this.boost, 

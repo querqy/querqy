@@ -1,6 +1,8 @@
 package querqy.solr;
 
 
+import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -12,7 +14,7 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class NeedsScoresTest extends SolrTestCaseJ4 {
 
-    public void index() throws Exception {
+    public void index() {
 
         assertU(adoc("id", "1", "f1", "qup"));
         assertU(adoc("id", "2", "f1", "qup other", "f2", "u100"));
@@ -33,7 +35,7 @@ public class NeedsScoresTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testBoostIsAddedByDefault() throws Exception {
+    public void testBoostIsAddedByDefault() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
@@ -54,13 +56,13 @@ public class NeedsScoresTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testBoostIsAddedForNeedsScoresTrue() throws Exception {
+    public void testBoostIsAddedForNeedsScoresTrue() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.NEEDS_SCORES, "true",
+                NEEDS_SCORES, "true",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -77,14 +79,14 @@ public class NeedsScoresTest extends SolrTestCaseJ4 {
 
 
     @Test
-    public void testBoostIsNotAddedIfScoresAreNotNeeded() throws Exception {
+    public void testBoostIsNotAddedIfScoresAreNotNeeded() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 DisMaxParams.PF, "f1",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.NEEDS_SCORES, "false",
+                NEEDS_SCORES, "false",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -98,13 +100,13 @@ public class NeedsScoresTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testQueryIsConstantScoreIfScoresAreNotNeeded() throws Exception {
+    public void testQueryIsConstantScoreIfScoresAreNotNeeded() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.NEEDS_SCORES, "false",
+                NEEDS_SCORES, "false",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -117,14 +119,14 @@ public class NeedsScoresTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testQueryDoesNotContainPhraseQueryBoostIfScoresAreNotNeeded() throws Exception {
+    public void testQueryDoesNotContainPhraseQueryBoostIfScoresAreNotNeeded() {
         String q = "qup s";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 DisMaxParams.PF, "f1",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.NEEDS_SCORES, "false",
+                NEEDS_SCORES, "false",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -138,14 +140,14 @@ public class NeedsScoresTest extends SolrTestCaseJ4 {
 
 
     @Test
-    public void testQueryContainsPhraseQueryBoostIfScoresAreNeeded() throws Exception {
+    public void testQueryContainsPhraseQueryBoostIfScoresAreNeeded() {
         String q = "qup s";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 DisMaxParams.PF, "f1",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.NEEDS_SCORES, "true",
+                NEEDS_SCORES, "true",
                 "defType", "querqy",
                 "debugQuery", "true"
         );

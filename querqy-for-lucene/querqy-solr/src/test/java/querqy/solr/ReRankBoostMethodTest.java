@@ -1,5 +1,7 @@
 package querqy.solr;
 
+import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -42,7 +44,7 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_RERANK,
+                QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 "defType", "querqy",
                 "debugQuery", "true"
 
@@ -88,8 +90,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_RERANK,
-                QuerqyDismaxQParser.QBOOST_RERANK_NUMDOCS, "1", // try to re-rank only one doc --> will not change order
+                QBOOST_METHOD, QBOOST_METHOD_RERANK,
+                QBOOST_RERANK_NUMDOCS, "1", // try to re-rank only one doc --> will not change order
                 "defType", "querqy",
                 "debugQuery", "true"
 
@@ -109,8 +111,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
         SolrQueryRequest req2 = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_RERANK,
-                QuerqyDismaxQParser.QBOOST_RERANK_NUMDOCS, "2", // re-rank both docs
+                QBOOST_METHOD, QBOOST_METHOD_RERANK,
+                QBOOST_RERANK_NUMDOCS, "2", // re-rank both docs
                 "defType", "querqy",
                 "debugQuery", "true"
 

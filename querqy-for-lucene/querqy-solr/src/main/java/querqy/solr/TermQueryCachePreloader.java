@@ -49,16 +49,17 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
     
     protected Map<String, Float> getPreloadFields() {
         // REVISIT: we don't need the boost factors as they could be overridden per request
-       String fieldConf = (String) getArgs().get(CONF_PRELOAD_FIELDS); 
-       return QuerqyDismaxQParser.parseFieldBoosts(fieldConf, 1f);
+       final String fieldConf = (String) getArgs().get(CONF_PRELOAD_FIELDS);
+       return SolrSearchEngineRequestAdapter.parseFieldBoosts(new String[] { fieldConf }, 1f);
     }
     
     protected AbstractQuerqyDismaxQParserPlugin getQParserPlugin() {
-        String parserName = (String) getArgs().get(CONF_Q_PARSER_PLUGIN); 
+        final String parserName = (String) getArgs().get(CONF_Q_PARSER_PLUGIN);
         if (parserName == null) {
             throw new RuntimeException("Missing configuration property: " + CONF_Q_PARSER_PLUGIN);
         }
-        AbstractQuerqyDismaxQParserPlugin qParserPlugin = (AbstractQuerqyDismaxQParserPlugin) getCore().getQueryPlugin(parserName);
+        final AbstractQuerqyDismaxQParserPlugin qParserPlugin = (AbstractQuerqyDismaxQParserPlugin) getCore()
+                .getQueryPlugin(parserName);
         if (qParserPlugin == null) {
             throw new RuntimeException("No query parser plugin for name '" + parserName + "'");
         }
@@ -87,8 +88,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
     
     @Override
     public void newSearcher(final SolrIndexSearcher newSearcher, final SolrIndexSearcher currentSearcher) {
-        
-        
+
         final TermQueryCache cache = getCache(newSearcher);
         
         final Map<String, Float> preloadFields = getPreloadFields();

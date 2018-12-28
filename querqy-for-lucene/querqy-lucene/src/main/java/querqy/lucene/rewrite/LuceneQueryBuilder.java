@@ -94,7 +94,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         parentType = ParentType.BQ;
     }
 
-    public Query createQuery(final querqy.model.Query query, final boolean useBooleanQueryForDMQ) throws IOException {
+    public Query createQuery(final querqy.model.Query query, final boolean useBooleanQueryForDMQ) {
         boolean tmp = this.useBooleanQueryForDMQ;
         try {
             this.useBooleanQueryForDMQ = useBooleanQueryForDMQ;
@@ -104,7 +104,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         }
     }
    
-    public Query createQuery(final QuerqyQuery<?> query) throws IOException {
+    public Query createQuery(final QuerqyQuery<?> query) {
 
         if (query instanceof querqy.model.BooleanQuery) {
             parentType = ParentType.BQ;
@@ -270,6 +270,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 termToUse = term;
             }
             if (fieldBoost == null) {
+                // TODO: move to else clause of inner if above
                 throw new RuntimeException("Could not get FieldBoost for term: " + term);
             }
           

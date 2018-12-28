@@ -1,5 +1,7 @@
 package querqy.solr;
 
+import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -12,7 +14,7 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
 
-    public void index() throws Exception {
+    public void index() {
 
         assertU(adoc("id", "1", "f1", "a"));
         assertU(adoc("id", "2", "f1", "a", "f2", "b"));
@@ -34,13 +36,13 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
     }
     
     @Test
-    public void testThatRequestDependentBoostFactorsAreApplied() throws Exception {
+    public void testThatRequestDependentBoostFactorsAreApplied() {
         String q = "a c";
 
         SolrQueryRequest req = req("q", q,
               DisMaxParams.QF, "f1^10 f2^200",
               QueryParsing.OP, "OR",
-              QuerqyDismaxQParser.GFB, "0.4",
+              GFB, "0.4",
               DisMaxParams.TIE, "0.1",
               "defType", "querqy",
               "debugQuery", "true"
@@ -55,7 +57,7 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
         SolrQueryRequest  req2 = req("q", q,
                 DisMaxParams.QF, "f1^88 f2^1600",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.GFB, "0.25",
+                GFB, "0.25",
                 DisMaxParams.TIE, "0.1",
                 "defType", "querqy",
                 "debugQuery", "true"
