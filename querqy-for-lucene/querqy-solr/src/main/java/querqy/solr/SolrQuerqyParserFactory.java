@@ -23,12 +23,12 @@ import querqy.parser.QuerqyParser;
 public interface SolrQuerqyParserFactory {
 
 	/**
-	 * Initialize this factory with configuration parameters.
+	 * Initialise this factory with configuration parameters.
 	 * 
-	 * @param parserConfig
-	 * @param loader
-	 * @throws IOException
-	 * @throws SolrException
+	 * @param parserConfig The configuration (normally kept in solrconfig.xml)
+	 * @param loader A resource loader for initialising resources when a {@link org.apache.solr.core.SolrCore} is loaded.
+	 * @throws IOException if a resource cannot be loaded
+	 * @throws SolrException if the SolrQuerqyParserFactory cannot be initialised.
 	 */
     void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader) throws IOException,
          SolrException;
@@ -37,11 +37,11 @@ public interface SolrQuerqyParserFactory {
      * 
      * Create a {@link QuerqyParser} for the given request context.
      * 
-     * @param qstr
-     * @param localParams
-     * @param params
-     * @param req
-     * @return
+     * @param qstr	The query String
+     * @param localParams Local Solr params
+     * @param params Solr request params
+     * @param req The current Solr request
+     * @return A Querqy query parser for qstr
      */
     QuerqyParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req);
 

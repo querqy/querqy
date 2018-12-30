@@ -1,6 +1,7 @@
 package querqy.solr;
 
-import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+import static querqy.solr.QuerqyDismaxParams.GFB;
+import static querqy.solr.QuerqyDismaxParams.GQF;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.search.BooleanQuery;
@@ -15,7 +16,6 @@ import org.apache.solr.search.WrappedQuery;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -24,7 +24,6 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -667,11 +666,54 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
+    public void testThatBqIsAppliedToMatchAllDocsQuery() {
+
+        SolrQueryRequest req = req("q", "*:*",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.BQ, "f2:w87",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied to MatchAll",
+                req,
+                "//result[@numFound='9']",
+                "//str[@name='parsedquery'][contains(.,'f2:w87')]",
+                "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBqIsAppliedToMatchAllDocsQueryRegardlessOfPf() {
+
+        SolrQueryRequest req = req("q", "*:*",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.BQ, "f2:w87",
+                DisMaxParams.PF, "f1",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied to MatchAll",
+                req,
+                "//result[@numFound='9']",
+                "//str[@name='parsedquery'][contains(.,'f2:w87')]",
+                "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+
+    }
+
+    @Test
     public void testThatBoostParamIsApplied() {
 
         SolrQueryRequest req = req("q", "aaa",
                 DisMaxParams.QF, "f1",
-                SolrSearchEngineRequestAdapter.MULT_BOOST, "{!lucene}f2:w87",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87",
                 "defType", "querqy",
                 "debugQuery", "true");
 

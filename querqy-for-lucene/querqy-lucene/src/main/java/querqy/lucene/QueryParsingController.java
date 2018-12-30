@@ -8,10 +8,8 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.QueryBuilder;
 import org.apache.lucene.queries.function.ValueSource;
 
-import querqy.ComparableCharSequence;
 import querqy.lucene.SearchEngineRequestAdapter.SyntaxException;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
@@ -20,16 +18,14 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.TermQueryBuilder;
 import querqy.model.BoostQuery;
-import querqy.model.DisjunctionMaxClause;
-import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
+import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
-import querqy.model.Term;
+import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.ContextAwareQueryRewriter;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -42,8 +38,35 @@ import java.util.stream.Collectors;
  */
 public class QueryParsingController {
 
+    /**
+     * The default value for {@link SearchEngineRequestAdapter#getUserQuerySimilarityScoring()}
+     * (= {@link QuerySimilarityScoring#DFC})
+     */
+    protected static final QuerySimilarityScoring DEFAULT_USER_QUERY_SIMILARITY_SCORING = QuerySimilarityScoring.DFC;
+
+    /**
+     * The default value for {@link SearchEngineRequestAdapter#getBoostQuerySimilarityScoring()}
+     * (= {@link QuerySimilarityScoring#DFC})
+     */
+    protected static final QuerySimilarityScoring DEFAULT_BOOST_QUERY_SIMILARITY_SCORING = QuerySimilarityScoring.DFC;
+
     protected static final float DEFAULT_TIEBREAKER = 0f;
-    protected static final float DEFAULT_PHRASE_BOOST_TIEBREAKER = 0f;
+
+    protected static final float DEFAULT_POSITIVE_QUERQY_BOOST_WEIGHT = 1f;
+    protected static final float DEFAULT_NEGATIVE_QUERQY_BOOST_WEIGHT = 1f;
+
+    protected static final float DEFAULT_GENERATED_FIELD_BOOST = 1f;
+
+    /**
+     * The default field boost model (= {@link FieldBoostModel#FIXED})
+     */
+    protected static final FieldBoostModel DEFAULT_FIELD_BOOST_MODEL = FieldBoostModel.FIXED;
+
+    /**
+     * The default QuerqyParser class for parsing the user query string. (= {@link querqy.parser.WhiteSpaceQuerqyParser})
+     */
+    protected static final Class<? extends QuerqyParser> DEFAULT_PARSER_CLASS = WhiteSpaceQuerqyParser.class;
+
 
     protected final SearchEngineRequestAdapter requestAdapter;
     protected final String queryString;
@@ -55,7 +78,7 @@ public class QueryParsingController {
     protected final LuceneQueryBuilder builder;
     protected final TermQueryBuilder boostTermQueryBuilder;
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
-    protected final boolean useReRankForBoostQueries;
+    protected final boolean addQuerqyBoostQueriesToMainQuery;
 
     public QueryParsingController(final SearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;
@@ -64,7 +87,7 @@ public class QueryParsingController {
         queryAnalyzer = requestAdapter.getQueryAnalyzer();
 
         final Map<String, Float> queryFieldsAndBoostings = requestAdapter.getQueryFieldsAndBoostings();
-        final float gfb = requestAdapter.getGeneratedFieldBoost().orElse(1f);
+        final float gfb = requestAdapter.getGeneratedFieldBoost().orElse(DEFAULT_GENERATED_FIELD_BOOST);
         Map<String, Float> generatedQueryFieldsAndBoostings = requestAdapter.getGeneratedQueryFieldsAndBoostings();
         if (generatedQueryFieldsAndBoostings.isEmpty()) {
             generatedQueryFieldsAndBoostings = queryFieldsAndBoostings
@@ -84,26 +107,31 @@ public class QueryParsingController {
 
         // TODO: revisit
         searchFieldsAndBoosting = new SearchFieldsAndBoosting(
-                needsScores ? requestAdapter.getFieldBoostModel() : FieldBoostModel.FIXED,
+                needsScores
+                        ? requestAdapter.getFieldBoostModel().orElse(DEFAULT_FIELD_BOOST_MODEL)
+                        : FieldBoostModel.FIXED,
                 queryFieldsAndBoostings,
                 generatedQueryFieldsAndBoostings,
                 gfb);
 
         if (!needsScores) {
-            useReRankForBoostQueries = false;
+            addQuerqyBoostQueriesToMainQuery = true;
             dfc = null;
             boostTermQueryBuilder = null;
             boostSearchFieldsAndBoostings = null;
             builder = new LuceneQueryBuilder(new LuceneTermQueryBuilder(), queryAnalyzer, searchFieldsAndBoosting, 1f,
-                    requestAdapter.getTermQueryCache());
+                    requestAdapter.getTermQueryCache().orElse(null));
         } else {
-            useReRankForBoostQueries = requestAdapter.useReRankQueryForBoosting();
+            addQuerqyBoostQueriesToMainQuery = requestAdapter.addQuerqyBoostQueriesToMainQuery();
 
-            final QuerySimilarityScoring userQuerySimilarityScoring = requestAdapter.getUserQuerySimilarityScoring();
+            final QuerySimilarityScoring userQuerySimilarityScoring = requestAdapter.getUserQuerySimilarityScoring()
+                    .orElse(DEFAULT_USER_QUERY_SIMILARITY_SCORING);
             final TermQueryBuilder userTermQueryBuilder = userQuerySimilarityScoring.createTermQueryBuilder(null);
             dfc = userTermQueryBuilder.getDocumentFrequencyCorrection().orElse(null);
 
-            final QuerySimilarityScoring boostQuerySimilarityScoring = requestAdapter.getBoostQuerySimilarityScoring();
+            final QuerySimilarityScoring boostQuerySimilarityScoring = requestAdapter.getBoostQuerySimilarityScoring()
+                    .orElse(DEFAULT_BOOST_QUERY_SIMILARITY_SCORING);
+
             boostTermQueryBuilder = boostQuerySimilarityScoring.createTermQueryBuilder(dfc);
 
             boostSearchFieldsAndBoostings = requestAdapter.useFieldBoostingInQuerqyBoostQueries()
@@ -115,7 +143,7 @@ public class QueryParsingController {
 
             builder = new LuceneQueryBuilder(userTermQueryBuilder,
                     queryAnalyzer, searchFieldsAndBoosting, requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
-                    requestAdapter.getTermQueryCache());
+                    requestAdapter.getTermQueryCache().orElse(null));
 
         }
 
@@ -125,70 +153,53 @@ public class QueryParsingController {
 
     }
 
-
-
     public LuceneQueries process() throws SyntaxException {
 
 
-        Query mainQuery;
+        final ExpandedQuery parsedInput = (requestAdapter.isMatchAllQuery(queryString))
+                ? new ExpandedQuery(new MatchAllQuery())
+                : new ExpandedQuery(requestAdapter.createQuerqyParser()
+                .orElseGet(QueryParsingController::newDefaultQuerqyParser).parse(queryString));
 
 
-        ExpandedQuery expandedQuery = null;
-
-        final List<Query> querqyBoostQueries;
-        final Query phraseFieldQuery;
-        final List<Query> filterQueries;
-
-        if (requestAdapter.isMatchAllQuery(queryString)) {
-
-            mainQuery = new MatchAllDocsQuery();
-            if (dfc != null) dfc.finishedUserQuery();
-            phraseFieldQuery = null;
-            querqyBoostQueries = Collections.emptyList();
-            filterQueries = Collections.emptyList();
-
-        } else {
-
-            expandedQuery = new ExpandedQuery(requestAdapter.createQuerqyParser().orElseGet(WhiteSpaceQuerqyParser::new)
-                    .parse(queryString));
-
-            phraseFieldQuery = needsScores ? makePhraseFieldQueries(expandedQuery.getUserQuery()) : null;
-
-
-            final Map<String, Object> context = requestAdapter.getContext();
-            if (debugQuery) {
-                context.put(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
-            }
-            expandedQuery = requestAdapter.getRewriteChain().rewrite(expandedQuery, context);
-
-            mainQuery = makeUserQuery(expandedQuery, builder);
-
-            if (dfc != null) dfc.finishedUserQuery();
-
-
-            filterQueries = applyFilterQueries(expandedQuery);
-            querqyBoostQueries = needsScores ? getQuerqyBoostQueries(expandedQuery) : Collections.emptyList();
-
-        }
-
-        final Query userQuery = mainQuery;
         final List<Query> additiveBoosts;
         final List<Query> multiplicativeBoosts;
+
+
         if (needsScores) {
-            additiveBoosts = requestAdapter.getAdditiveBoosts();
-            multiplicativeBoosts = requestAdapter.getMultiplicativeBoosts();
+            additiveBoosts = requestAdapter.getAdditiveBoosts(parsedInput.getUserQuery());
+            multiplicativeBoosts = requestAdapter.getMultiplicativeBoosts(parsedInput.getUserQuery());
         } else {
-            additiveBoosts = multiplicativeBoosts = Collections.emptyList();
+            additiveBoosts = multiplicativeBoosts = null;
         }
+
+
+        final Map<String, Object> context = requestAdapter.getContext();
+        if (debugQuery) {
+            context.put(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
+        }
+
+        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain().rewrite(parsedInput, context);
+
+        Query mainQuery = transformUserQuery(rewrittenQuery.getUserQuery(), builder);
+
+        if (dfc != null) dfc.finishedUserQuery();
+
+
+        final List<Query> filterQueries = transformFilterQueries(rewrittenQuery.getFilterQueries());
+        final List<Query> querqyBoostQueries = needsScores
+                ? getQuerqyBoostQueries(rewrittenQuery)
+                : Collections.emptyList();
+
+        final Query userQuery = mainQuery;
 
         final boolean hasMultiplicativeBoosts = multiplicativeBoosts != null && !multiplicativeBoosts.isEmpty();
         final boolean hasQuerqyBoostQueries = !querqyBoostQueries.isEmpty();
 
         // do we have to add a boost query as an optional clause to the main query?
         final boolean hasOptBoost = needsScores && ((additiveBoosts != null && !additiveBoosts.isEmpty())
-                || (phraseFieldQuery != null)
                 || hasMultiplicativeBoosts
-                || (hasQuerqyBoostQueries && !useReRankForBoostQueries));
+                || (hasQuerqyBoostQueries && addQuerqyBoostQueriesToMainQuery));
 
         if (hasOptBoost) {
 
@@ -207,11 +218,7 @@ public class QueryParsingController {
                 }
             }
 
-            if (phraseFieldQuery != null) {
-                builder.add(phraseFieldQuery, BooleanClause.Occur.SHOULD);
-            }
-
-            if (hasQuerqyBoostQueries && !useReRankForBoostQueries) {
+            if (hasQuerqyBoostQueries && addQuerqyBoostQueriesToMainQuery) {
                 for (final Query q : querqyBoostQueries) {
                     builder.add(q, BooleanClause.Occur.SHOULD);
                 }
@@ -236,16 +243,14 @@ public class QueryParsingController {
             }
         }
 
-        return (useReRankForBoostQueries && hasQuerqyBoostQueries)
+        return ((!addQuerqyBoostQueriesToMainQuery) && hasQuerqyBoostQueries)
                 ? new LuceneQueries(mainQuery, filterQueries, querqyBoostQueries, userQuery, dfc != null)
                 : new LuceneQueries(mainQuery, filterQueries, userQuery, dfc != null);
 
 
     }
 
-    public List<Query> applyFilterQueries(final ExpandedQuery expandedQuery) throws SyntaxException {
-
-        final Collection<QuerqyQuery<?>> filterQueries = expandedQuery.getFilterQueries();
+    public List<Query> transformFilterQueries(final Collection<QuerqyQuery<?>> filterQueries) throws SyntaxException {
 
         if (filterQueries != null && !filterQueries.isEmpty()) {
 
@@ -288,167 +293,25 @@ public class QueryParsingController {
     }
 
 
-    protected Query makePhraseFieldQueries(final QuerqyQuery<?> userQuery) {
-
-        if (userQuery instanceof querqy.model.Query) {
-
-            final List<querqy.model.BooleanClause> clauses = ((querqy.model.Query) userQuery).getClauses();
-
-            if (clauses.size() > 1) {
-
-                final List<PhraseBoostFieldParams> allPhraseFields = requestAdapter.getQueryablePhraseBoostFieldParams();
-
-                if (!allPhraseFields.isEmpty()) {
-
-                    final List<String> sequence = new LinkedList<>();
-
-                    for (final querqy.model.BooleanClause clause : clauses) {
-
-                        if (clause instanceof DisjunctionMaxQuery) {
-
-                            final DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) clause;
-
-                            if (dmq.occur != querqy.model.SubQuery.Occur.MUST_NOT) {
-
-                                for (final DisjunctionMaxClause dmqClause : dmq.getClauses()) {
-                                    if (dmqClause instanceof Term) {
-
-                                        final ComparableCharSequence value = ((Term) dmqClause).getValue();
-                                        final int length = value.length();
-                                        final StringBuilder sb = new StringBuilder(length);
-                                        for (int i = 0; i < length; i++) {
-                                            sb.append(value.charAt(i));
-                                        }
-                                        sequence.add(sb.toString());
-                                        break;
-                                    }
-                                }
-
-                            }
-                        }
-
-                    }
-
-                    if (sequence.size() > 1) {
-
-                        final List<Query> disjuncts = new LinkedList<>();
-
-                        final QueryBuilder queryBuilder = new QueryBuilder(queryAnalyzer);
-
-                        final List<String>[] shingles = new List[4];
-                        String pf = null;
-
-
-                        for (final PhraseBoostFieldParams fieldParams : allPhraseFields) {
-
-                            final int n = fieldParams.getWordGrams();
-                            final int slop = fieldParams.getSlop();
-                            final String fieldname = fieldParams.getField();
-
-                            if (n == 0) {
-
-                                if (pf == null) {
-                                    final StringBuilder sb = new StringBuilder(queryString.length());
-                                    for (final String term : sequence) {
-                                        if (sb.length() > 0) {
-                                            sb.append(' ');
-                                        }
-                                        sb.append(term);
-                                    }
-                                    pf = sb.toString();
-                                }
-                                final Query pq = queryBuilder.createPhraseQuery(fieldname, pf, slop);
-                                if (pq != null) {
-                                    disjuncts.add(LuceneQueryUtil.boost(pq, fieldParams.getBoost()));
-                                }
-
-                            } else if (n <= sequence.size()) {
-
-                                if (shingles[n] == null) {
-                                    shingles[n] = new LinkedList<>();
-                                    for (int i = 0, lenI = sequence.size() - n + 1; i < lenI; i++) {
-                                        final StringBuilder sb = new StringBuilder();
-
-                                        for (int j = i, lenJ = j + n; j < lenJ; j++) {
-                                            if (sb.length() > 0) {
-                                                sb.append(' ');
-                                            }
-                                            sb.append(sequence.get(j));
-                                        }
-                                        shingles[n].add(sb.toString());
-                                    }
-                                }
-
-
-                                final List<Query> nGramQueries = new ArrayList<>(shingles[n].size());
-
-                                for (final String nGram : shingles[n]) {
-                                    final Query pq = queryBuilder.createPhraseQuery(fieldname, nGram, slop);
-                                    if (pq != null) {
-                                        nGramQueries.add(pq);
-                                    }
-                                }
-
-                                switch (nGramQueries.size()) {
-                                    case 0: break;
-                                    case 1: {
-
-                                        final Query nGramQuery = nGramQueries.get(0);
-                                        disjuncts.add(LuceneQueryUtil.boost(nGramQuery, fieldParams.getBoost()));
-                                        break;
-
-                                    }
-                                    default:
-
-                                        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-
-                                        for (final Query nGramQuery : nGramQueries) {
-                                            builder.add(nGramQuery, BooleanClause.Occur.SHOULD);
-                                        }
-
-                                        final BooleanQuery bq = builder.build();
-                                        disjuncts.add(LuceneQueryUtil.boost(bq, fieldParams.getBoost()));
-                                }
-                            }
-                        }
-
-                        switch (disjuncts.size()) {
-                            case 0: break;
-                            case 1: return disjuncts.get(0);
-                            default :
-                                return new org.apache.lucene.search.DisjunctionMaxQuery(disjuncts,
-                                        requestAdapter.getPhraseBoostTiebreaker()
-                                                .orElseGet(() -> requestAdapter.getTiebreaker()
-                                                        .orElse(DEFAULT_TIEBREAKER)));
-                        }
-
-                    }
-
-
-                }
-            }
-        }
-
-        return null;
-
-    }
-
-    public Query makeUserQuery(final ExpandedQuery expandedQuery, LuceneQueryBuilder builder) {
+    public Query transformUserQuery(final QuerqyQuery<?> querqyUserQuery, final LuceneQueryBuilder builder) {
 
         builder.reset();
-        // FIXME wrap
-        final Query query = requestAdapter.applyMinimumShouldMatch(builder.createQuery(expandedQuery.getUserQuery()));
 
-        return (needsScores || query instanceof MatchAllDocsQuery) ? query : new ConstantScoreQuery(query);
+        final Query query = builder.createQuery(querqyUserQuery);
+        final Query userQuery = (query instanceof BooleanQuery)
+                ? requestAdapter.applyMinimumShouldMatch((BooleanQuery) query)
+                : query;
+
+        return needsScores || (userQuery instanceof MatchAllDocsQuery) ? userQuery : new ConstantScoreQuery(userQuery);
 
     }
 
     protected List<Query> getQuerqyBoostQueries(final ExpandedQuery expandedQuery) throws SyntaxException {
 
         final List<Query> result = transformBoostQueries(expandedQuery.getBoostUpQueries(),
-                requestAdapter.getBoostQueryWeight().orElse(1f));
+                requestAdapter.getPositiveQuerqyBoostWeight().orElse(DEFAULT_POSITIVE_QUERQY_BOOST_WEIGHT));
         final List<Query> down = transformBoostQueries(expandedQuery.getBoostDownQueries(),
-                -requestAdapter.getNegativeBoostQueryWeight().map(Math::abs).orElse(1f));
+                -requestAdapter.getNegativeQuerqyBoostWeight().map(Math::abs).orElse(DEFAULT_NEGATIVE_QUERQY_BOOST_WEIGHT));
 
         if (down != null) {
             if (result == null) {
@@ -487,15 +350,9 @@ public class QueryParsingController {
                             new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
                                     boostSearchFieldsAndBoostings,
                                     requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
-                                    requestAdapter.getTermQueryCache());
+                                    requestAdapter.getTermQueryCache().orElse(null));
 
                     luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
-
-                    // TODO
-//                    if (luceneQuery != null) {
-//                        luceneQuery = wrapQuery(luceneQuery);
-//                    }
-
 
                 } else {
                     luceneQuery = null;
@@ -521,7 +378,13 @@ public class QueryParsingController {
         return result;
     }
 
-
+    private static QuerqyParser newDefaultQuerqyParser() {
+        try {
+            return DEFAULT_PARSER_CLASS.newInstance();
+        } catch (final InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 }

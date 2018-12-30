@@ -1,6 +1,11 @@
 package querqy.solr;
 
-import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_NEG_WEIGHT;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_WEIGHT;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_DFC;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
+import static querqy.solr.QuerqyDismaxParams.USER_QUERY_BOOST;
+import static querqy.solr.QuerqyDismaxParams.USER_QUERY_SIMILARITY_SCORE;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;

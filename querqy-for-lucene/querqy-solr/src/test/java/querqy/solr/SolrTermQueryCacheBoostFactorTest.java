@@ -1,6 +1,6 @@
 package querqy.solr;
 
-import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+import static querqy.solr.QuerqyDismaxParams.GFB;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;

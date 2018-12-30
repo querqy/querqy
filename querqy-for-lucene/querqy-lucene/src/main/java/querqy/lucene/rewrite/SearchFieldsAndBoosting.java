@@ -85,6 +85,8 @@ public class SearchFieldsAndBoosting {
 
                 case PRMS: return new PRMSFieldBoost();
 
+                default: throw new IllegalStateException("Unknown FieldBoostModel: " + fieldBoostModel);
+
             }
         }
 

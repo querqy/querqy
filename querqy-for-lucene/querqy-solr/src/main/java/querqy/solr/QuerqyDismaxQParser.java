@@ -1,8 +1,12 @@
 package querqy.solr;
 
+import static org.apache.solr.common.SolrException.ErrorCode.*;
+
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -19,17 +23,27 @@ import querqy.parser.QuerqyParser;
 import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.RewriteChain;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-public class QuerqyDismaxQParser  extends QParser {
+public class QuerqyDismaxQParser extends QParser {
+
+    public static final String MATCH_ALL_QUERY_STRING = "*:*";
 
     protected final QueryParsingController controller;
-    protected final SolrSearchEngineRequestAdapter requestAdapter;
+    protected final DismaxSearchEngineRequestAdapter requestAdapter;
 
     protected LuceneQueries luceneQueries = null;
     protected Query processedQuery = null;
     protected final QuerqyParser querqyParser;
+
+    protected final String userQueryString;
+
+    private static final Query MATCH_ALL_QUERY = new MatchAllDocsQuery();
+    private static final LuceneQueries MATCH_ALL_LUCENE_QUERIES = new LuceneQueries(MATCH_ALL_QUERY,
+            Collections.emptyList(), MATCH_ALL_QUERY, true);
 
     /**
      * Constructor for the QParser
@@ -43,9 +57,14 @@ public class QuerqyDismaxQParser  extends QParser {
                                 final SolrQueryRequest req, final QuerqyParser querqyParser,
                                 final RewriteChain rewriteChain, final TermQueryCache termQueryCache) {
         super(qstr, localParams, params, req);
+        final String q = Objects.requireNonNull(qstr).trim();
+        if (q.isEmpty()) {
+            throw new SolrException(BAD_REQUEST, "Query string must not be empty");
+        }
+        this.userQueryString = q;
         this.querqyParser = querqyParser;
 
-        requestAdapter = new SolrSearchEngineRequestAdapter(this, req, qstr,
+        requestAdapter = new DismaxSearchEngineRequestAdapter(this, req, userQueryString,
                 SolrParams.wrapDefaults(localParams, params), querqyParser, rewriteChain, termQueryCache);
 
 
@@ -56,28 +75,31 @@ public class QuerqyDismaxQParser  extends QParser {
 
     @Override
     public Query parse() throws SyntaxError {
+
         try {
+
             luceneQueries = controller.process();
-            if (luceneQueries.reRankQueries != null && luceneQueries.reRankQueries.size() > 0) {
+
+            if (luceneQueries.querqyBoostQueries != null && luceneQueries.querqyBoostQueries.size() > 0) {
                 final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-                for (final Query q : luceneQueries.reRankQueries) {
+                for (final Query q : luceneQueries.querqyBoostQueries) {
                     builder.add(q, BooleanClause.Occur.SHOULD);
                 }
 
                 processedQuery = new QuerqyReRankQuery(maybeWrapQuery(luceneQueries.mainQuery),
-                        maybeWrapQuery(builder.build()),
-                        requestAdapter.getReRankNumDocs(), 1.0);
+                        maybeWrapQuery(builder.build()), requestAdapter.getReRankNumDocs(), 1.0);
 
             } else {
                 processedQuery = maybeWrapQuery(luceneQueries.mainQuery);
             }
 
-            return processedQuery;
 
         } catch (final SearchEngineRequestAdapter.SyntaxException e) {
             throw new SyntaxError("Syntax error", e);
         }
+
+        return processedQuery;
 
     }
 
@@ -117,6 +139,7 @@ public class QuerqyDismaxQParser  extends QParser {
             return wq;
         }
     }
+
     protected Query maybeWrapQuery(final Query query) {
         if (!luceneQueries.areQueriesInterdependent) {
             if (query instanceof ExtendedQuery) {

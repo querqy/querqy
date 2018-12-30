@@ -1,6 +1,7 @@
 package querqy.solr.contrib;
 
-import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+import static querqy.solr.QuerqyDismaxParams.GFB;
+import static querqy.solr.QuerqyDismaxParams.GQF;
 
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
@@ -9,7 +10,6 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.solr.QuerqyDismaxQParser;

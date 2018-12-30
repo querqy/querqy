@@ -1,6 +1,8 @@
 package querqy.solr;
 
-import static querqy.solr.SolrSearchEngineRequestAdapter.*;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_RERANK_NUMDOCS;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;

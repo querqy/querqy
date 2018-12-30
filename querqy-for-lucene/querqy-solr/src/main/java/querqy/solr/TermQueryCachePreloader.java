@@ -50,7 +50,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
     protected Map<String, Float> getPreloadFields() {
         // REVISIT: we don't need the boost factors as they could be overridden per request
        final String fieldConf = (String) getArgs().get(CONF_PRELOAD_FIELDS);
-       return SolrSearchEngineRequestAdapter.parseFieldBoosts(new String[] { fieldConf }, 1f);
+       return DismaxSearchEngineRequestAdapter.parseFieldBoosts(new String[] { fieldConf }, 1f);
     }
     
     protected AbstractQuerqyDismaxQParserPlugin getQParserPlugin() {
