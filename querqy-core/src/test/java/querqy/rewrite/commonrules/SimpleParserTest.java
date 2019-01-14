@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
+import querqy.Constants;
 import querqy.model.Clause.Occur;
 import querqy.model.InputSequenceElement;
 import querqy.model.Query;
@@ -39,12 +40,12 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     
     SimpleCommonRulesParser createParserWithEmptyReader() {
         reader = new StringReader("");
-        return new SimpleCommonRulesParser(reader, querqyParserFactory, false);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory, false, Constants.DEFAULT_RULES_MAP);
     }
     
     SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
-        return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase,  Constants.DEFAULT_RULES_MAP);
     }
     
     RulesCollection createRulesFromResource(String resourceName, boolean ignoreCase) throws IOException, RuleParseException {

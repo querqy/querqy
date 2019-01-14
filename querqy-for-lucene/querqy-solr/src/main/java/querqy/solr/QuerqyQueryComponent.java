@@ -44,7 +44,11 @@ public class QuerqyQueryComponent extends QueryComponent {
                     filters.addAll(filterQueries);
                 }
             }
-            
+            rb.addDebugInfo("Querqy Criterion", ((QuerqyDismaxQParser) parser).getQuerqyCriterion());
+            rb.addDebugInfo("Querqy Applied Rules",
+                    ((QuerqyDismaxQParser) parser).getQuerqyAppliedRules());
+
+
         }
     }
 

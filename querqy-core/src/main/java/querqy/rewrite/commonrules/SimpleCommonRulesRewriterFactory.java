@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package querqy.rewrite.commonrules;
 
@@ -18,23 +18,24 @@ import querqy.rewrite.commonrules.model.RulesCollection;
 
 /**
  * @author René Kriegler, @renekrie
- *
  */
 public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
 
     final RulesCollection rules;
+    final String ruleSelectionStratedgy;
 
     /**
-     * 
      * @param reader
      * @param querqyParserFactory
      * @param ignoreCase
      * @throws IOException
      */
     public SimpleCommonRulesRewriterFactory(final Reader reader, final QuerqyParserFactory querqyParserFactory,
-                                            final boolean ignoreCase) throws IOException {
+                                            final boolean ignoreCase, String type, String ruleSelectionStratedgy)
+            throws IOException {
         try {
-            rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
+            this.ruleSelectionStratedgy = ruleSelectionStratedgy;
+            rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase, type).parse();
         } catch (final RuleParseException e) {
             throw new IOException(e);
         } finally {
@@ -48,21 +49,21 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
 
     /*
      * (non-Javadoc)
-     *     
+     *
      * @see
      * querqy.rewrite.RewriterFactory#createRewriter(querqy.model.ExpandedQuery,
      * java.util.Map)
      */
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {
-        return new CommonRulesRewriter(rules);
+        return new CommonRulesRewriter(rules, ruleSelectionStratedgy);
     }
 
     @Override
     public Set<Term> getGenerableTerms() {
         // REVISIT: return Iterator? Limit number of results?
         final Set<Term> result = new HashSet<Term>();
-        for (final Instruction instruction: rules.getInstructions()) {
+        for (final Instruction instruction : rules.getInstructions()) {
             result.addAll(instruction.getGenerableTerms());
         }
         return result;

@@ -3,6 +3,7 @@
  */
 package querqy.rewrite.commonrules;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,8 @@ public class LineParser {
     public static final String INSTR_DELETE = "delete";
     public static final String INSTR_FILTER = "filter";
     public static final String INSTR_SYNONYM = "synonym";
-    
+	public static final String PROPERTY = "property";
+
     static final char RAWQUERY = '*';
 	
 	public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
@@ -163,6 +165,10 @@ public class LineParser {
 		if (lcLine.startsWith(INSTR_DECORATE)) {
 		    return parseDecorateInstruction(line);
 		}
+
+        if(lcLine.startsWith(PROPERTY)) {
+            return parseProperty(line);
+        }
 		
 		return new ValidationError("Cannot parse line: " + line);
 		
@@ -369,5 +375,24 @@ public class LineParser {
 		return result;
 	
 	}
+
+    public static Object parseProperty(String  line) {
+
+        if (line.length() == PROPERTY.length()) {
+            return new ValidationError(PROPERTY + " requires a value");
+        }
+
+        String propValue = line.substring(PROPERTY.length()).trim();
+        if (propValue.charAt(0) != '.') {
+            return new ValidationError("Cannot parse line, '.' expetcted in property to get name " + line);
+        }
+
+        String key = propValue.substring(1, propValue.indexOf(":")).trim();
+        String val = propValue.substring(propValue.indexOf(":")).trim();
+        val = val.substring(1).trim();
+
+        return new AbstractMap.SimpleEntry<String, String>(key, val);
+    }
+
 
 }

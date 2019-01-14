@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
+import querqy.Constants;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
@@ -34,6 +35,16 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
             throw new IllegalArgumentException("Property 'rules' not configured");
         }
 
+        String rulesMapType = (String) args.get(Constants.RULES_MAP_TYPE);
+        if(rulesMapType == null) {
+            rulesMapType = Constants.DEFAULT_RULES_MAP;
+        }
+
+        String ruleSelectionStratedgy = (String) args.get(Constants.SELECTION_STRATEDGY);
+        if(ruleSelectionStratedgy == null) {
+            ruleSelectionStratedgy = Constants.DEFAULT_SELECTION_STRATEDGY;
+        }
+
         final Boolean ignoreCase = args.getBooleanArg("ignoreCase");
 
         // querqy parser for queries that are part of the instructions in the
@@ -54,7 +65,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
         return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
                 new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"),
                 querqyParser,
-                ignoreCase == null || ignoreCase);
+                ignoreCase == null || ignoreCase, rulesMapType, ruleSelectionStratedgy);
     }
 
 }

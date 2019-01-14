@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import querqy.Constants;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
@@ -26,9 +27,9 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     public void testInputBoundaryOnBothSides() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, true), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, true), new Properties(new Instructions(Arrays.asList((Instruction) synInstruction))));
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
@@ -102,9 +103,9 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     public void testInputBoundaryOnLeftHandSide() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, false), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, false), new Properties(new Instructions(Arrays.asList((Instruction) synInstruction))));
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
@@ -176,9 +177,9 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     public void testInputBoundaryOnRightHandSide() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, true), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, true), new Properties(new Instructions(Arrays.asList((Instruction) synInstruction))));
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
@@ -251,10 +252,10 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstructionA = new SynonymInstruction(Arrays.asList(mkTerm("aSynonym")));
         SynonymInstruction synInstructionB = new SynonymInstruction(Arrays.asList(mkTerm("bSynonym")));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, false), new Instructions(Arrays.asList((Instruction) synInstructionA)));
-        builder.addRule(new Input(Arrays.asList(mkTerm("b")), true, false), new Instructions(Arrays.asList((Instruction) synInstructionB)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), true, false), new Properties(new Instructions(Arrays.asList((Instruction) synInstructionA))));
+        builder.addRule(new Input(Arrays.asList(mkTerm("b")), true, false), new Properties(new Instructions(Arrays.asList((Instruction) synInstructionB))));
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("a b");
         Map<String, Object> context = new HashMap<>();

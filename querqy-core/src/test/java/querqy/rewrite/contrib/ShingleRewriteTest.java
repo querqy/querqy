@@ -1,20 +1,16 @@
 package querqy.rewrite.contrib;
 
-import java.util.Arrays;
-
 import org.junit.Test;
-
+import querqy.Constants;
 import querqy.model.*;
+import querqy.model.Term;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.LineParser;
-import querqy.rewrite.commonrules.model.Input;
-import querqy.rewrite.commonrules.model.Instruction;
-import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
-import querqy.rewrite.commonrules.model.SynonymInstruction;
-import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
+import querqy.rewrite.commonrules.model.*;
+
+import java.util.Arrays;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
 
@@ -251,10 +247,10 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
     public void testChainingWithWildCard() throws Exception {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
-        builder.addRule((Input) LineParser.parseInput("p1*"), new Instructions(Arrays.asList((Instruction) synInstruction)));
+        builder.addRule((Input) LineParser.parseInput("p1*"), new Properties(new Instructions(Arrays.asList((Instruction) synInstruction))));
         
         RulesCollection rules = builder.build();
-        CommonRulesRewriter commonRulesRewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter commonRulesRewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
         ShingleRewriter shingleRewriter = new ShingleRewriter(false);
 
         ExpandedQuery query = makeQuery("p1xyz t2");

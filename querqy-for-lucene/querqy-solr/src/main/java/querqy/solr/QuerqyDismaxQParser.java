@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queries.function.BoostedQuery;
 import org.apache.lucene.queries.function.ValueSource;
@@ -39,13 +41,7 @@ import querqy.lucene.rewrite.LuceneTermQueryBuilder;
 import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.cache.TermQueryCache;
-import querqy.model.BoostQuery;
-import querqy.model.DisjunctionMaxClause;
-import querqy.model.DisjunctionMaxQuery;
-import querqy.model.ExpandedQuery;
-import querqy.model.QuerqyQuery;
-import querqy.model.RawQuery;
-import querqy.model.Term;
+import querqy.model.*;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.RewriteChain;
@@ -54,6 +50,7 @@ import querqy.rewrite.RewriteChain;
  * @author rene
  *
  */
+@Slf4j
 public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     /**
@@ -243,6 +240,8 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
 
     protected Query userQuery = null;
 
+    protected ExpandedQuery expandedQuery = null;
+
     private DocumentFrequencyCorrection dfc = null;
 
     public QuerqyDismaxQParser(final String qstr, final SolrParams localParams, final SolrParams params,
@@ -408,7 +407,6 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       }
 
       Query mainQuery;
-      ExpandedQuery expandedQuery = null;
       List<Query> querqyBoostQueries = null;
       final Query phraseFieldQuery;
 
@@ -418,6 +416,7 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
           phraseFieldQuery = null;
       } else {
           expandedQuery = makeExpandedQuery();
+          updateRulesCriteria(expandedQuery);
           phraseFieldQuery = needsScores ? makePhraseFieldQueries(expandedQuery.getUserQuery()) : null;
           context = new HashMap<>();
           if (debugQuery) {
@@ -1002,6 +1001,48 @@ public class QuerqyDismaxQParser extends ExtendedDismaxQParser {
       }
 
    }
+
+    private void updateRulesCriteria(ExpandedQuery expandedQuery) {
+        String sort = params.get("rules.criteria.sort");
+        String size = params.get("rules.criteria.size");
+        String[] filters = params.getParams("rules.criteria.filter");
+
+        if (sort != null) {
+            String[] sortCriteria = sort.split("\\s+");
+            if (sortCriteria.length == 2) {
+                expandedQuery.addCrieteria(new SortCriteria(sortCriteria[0], sortCriteria[1]));
+            }
+        }
+
+        if (size != null) {
+            expandedQuery.addCrieteria(new SelectionCriteria(Integer.valueOf(size)));
+        }
+
+        if (filters != null) {
+            Arrays.asList(filters).parallelStream().forEach(filterStr -> {
+                String[] filterArr = filterStr.split(":");
+                if (filterArr.length == 2) {
+                    expandedQuery
+                            .addCrieteria(new FilterCriteria(filterArr[0].trim(), filterArr[1].trim()));
+                }
+            });
+        }
+    }
+
+    public Criterion getQuerqyCriterion() {
+        if (expandedQuery == null || CollectionUtils.isEmpty(expandedQuery.getCriterion())) {
+            return new Criterion();
+        }
+        return expandedQuery.getCriterion();
+    }
+
+    public String getQuerqyAppliedRules() {
+        if (expandedQuery == null) {
+            return "";
+        }
+        return expandedQuery.getAppliedRuleIds();
+    }
+
 
 
 }

@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import querqy.Constants;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
@@ -26,10 +27,10 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
         
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) deco)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) deco))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("a x");
         Map<String, Object> context = new HashMap<>();
@@ -50,10 +51,10 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
         builder.addRule((Input) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
-                    new Instructions(Arrays.asList((Instruction) deco)));
+                new Properties(new Instructions(Arrays.asList((Instruction) deco))));
         
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("");
         Map<String, Object> context = new HashMap<>();
@@ -77,11 +78,11 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         DecorateInstruction deco2 = new DecorateInstruction("deco2");
         DecorateInstruction deco3 = new DecorateInstruction("deco3");
         
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) deco1, (Instruction) deco2)));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, false), new Instructions(Arrays.asList((Instruction) deco3)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false),  new Properties(new Instructions(Arrays.asList((Instruction) deco1, (Instruction) deco2))));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) deco3))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("a x");
         Map<String, Object> context = new HashMap<>();

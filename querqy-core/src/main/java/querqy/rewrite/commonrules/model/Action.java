@@ -4,6 +4,7 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * An Action represents all Instructions triggered for specific input positions.
@@ -16,17 +17,25 @@ import java.util.List;
  */
 public class Action {
 
-   final List<Instructions> instructions;
+   final List<Properties> properties;
    final TermMatches termMatches;
    final int startPosition;
    final int endPosition; // exclusive
 
    public Action(List<Instructions> instructions, TermMatches termMatches, int startPosition, int endPosition) {
-      this.instructions = instructions;
+      this.properties = instructionsToPropertiesMap(instructions);
       this.termMatches = termMatches;
       this.startPosition = startPosition;
       this.endPosition = endPosition;
    }
+
+   public Action(List<Properties> properties, TermMatches termMatches, int startPosition, int endPosition, boolean onlyProperty) {
+      this.properties = properties;
+      this.termMatches = termMatches;
+      this.startPosition = startPosition;
+      this.endPosition = endPosition;
+   }
+
 
    @Override
    public int hashCode() {
@@ -34,7 +43,7 @@ public class Action {
       int result = 1;
       result = prime * result + endPosition;
       result = prime * result
-            + ((instructions == null) ? 0 : instructions.hashCode());
+            + ((properties == null) ? 0 : properties.hashCode());
       result = prime * result + startPosition;
       result = prime * result + ((termMatches == null) ? 0 : termMatches.hashCode());
       return result;
@@ -51,10 +60,10 @@ public class Action {
       Action other = (Action) obj;
       if (endPosition != other.endPosition)
          return false;
-      if (instructions == null) {
-         if (other.instructions != null)
+      if (properties == null) {
+         if (other.properties != null)
             return false;
-      } else if (!instructions.equals(other.instructions))
+      } else if (!properties.equals(other.properties))
          return false;
       if (startPosition != other.startPosition)
          return false;
@@ -68,13 +77,17 @@ public class Action {
 
    @Override
    public String toString() {
-      return "Action [instructions=" + instructions + ", terms=" + termMatches
+      return "Action [properties=" + properties + ", terms=" + termMatches
             + ", startPosition=" + startPosition + ", endPosition="
             + endPosition + "]";
    }
 
    public List<Instructions> getInstructions() {
-      return instructions;
+      return properties.stream().map(property->property.getInstructions()).collect(Collectors.toList());
+   }
+
+   public List<Properties> getProperties() {
+      return properties;
    }
 
    public TermMatches getTermMatches() {
@@ -87,6 +100,13 @@ public class Action {
 
    public int getEndPosition() {
       return endPosition;
+   }
+
+   private static List<Properties> instructionsToPropertiesMap(List<Instructions> instructionsList) {
+      return
+              instructionsList.stream().
+                      map(instructions-> new Properties(instructions)).
+                      collect(Collectors.toList());
    }
 
 }

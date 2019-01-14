@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
@@ -18,12 +19,7 @@ import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.ContextAwareQueryRewriter;
-import querqy.rewrite.commonrules.model.Action;
-import querqy.rewrite.commonrules.model.InputBoundary;
-import querqy.rewrite.commonrules.model.Instruction;
-import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.PositionSequence;
-import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.InputBoundary.Type;
 
 /**
@@ -40,13 +36,16 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
     protected final LinkedList<PositionSequence<Term>> sequencesStack;
     protected ExpandedQuery expandedQuery;
     protected Map<String, Object> context;
+    protected SelectionStratedgy selectionStratedgy;
 
    /**
      * 
      */
-   public CommonRulesRewriter(RulesCollection rules) {
+   public CommonRulesRewriter(RulesCollection rules,  String ruleSelectionStratedgy) {
       this.rules = rules;
       sequencesStack = new LinkedList<>();
+       selectionStratedgy = SelectionStratedgyFactory.getInstance()
+               .getSelectionStratedgy(ruleSelectionStratedgy);
    }
    
    @Override
@@ -98,7 +97,17 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
            context.put(CONTEXT_KEY_DEBUG_DATA, actionsDebugInfo);
        }
 
-       for (Action action : rules.getRewriteActions(sequenceForLookUp)) {
+       List<Action> actions = rules.getRewriteActions(sequenceForLookUp);
+       actions = selectionStratedgy.selectActions(actions, expandedQuery.getCriterion());
+
+       actions.stream().filter(action -> !CollectionUtils.isEmpty(action.getProperties())
+               && action.getProperties().get(0).getPropertyMap() != null
+               && action.getProperties().get(0).getPropertyMap().containsKey("id"))
+               .forEach(action -> this.expandedQuery
+                       .addAppliedRuleId(action.getProperties().get(0).getPropertyMap().get("id")));
+
+
+       for (Action action : actions) {
            if (isDebug) {
                actionsDebugInfo.add(action.toString());
            }

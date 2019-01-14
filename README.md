@@ -625,6 +625,78 @@ Cache configuration (solrconfig.xml):
 </queryParser>          
 ~~~
 
+###Custom Changes
+In rewritter-chain in solr-config.xml add
+```
+         <!--
+          rules-map-type can be of 2 types :
+          1. default-rules-map, its the default if none is mentioned, then it will pick the default.
+          2. property-rules-map, this will also store properties of the rules that can be used under sort & filtering.
+          -->
+        <str name="rules-map-type">property-rules-map</str>
+
+          <!--
+          selection-strategy can be of 2 types :
+          1. default-selection-strategy, its the default if none is mentioned, it will do nothing and return all the actions and apply all of them.
+          2. select-only1-selection-stratedgy, this will apply functions like sort , filter on the actions and return the top 1 action;
+          -->
+        <str name="selection-strategy">select-only1-selection-stratedgy</str>
+
+        In url we need to pass
+        For No of Rules to apply:
+        rules.criteria.size=1
+
+        For Rules Sort
+        rules.criteria.sort=priority%20desc
+
+        For Filter:
+        rules.criteria.filter=active:false
+
+```
+
+
+####
+Sample Rules.txt
+
+```
+party food =>
+    SYNONYM: bird food
+    SYNONYM: cat food
+    DOWN(50): party food
+    property.priority: 2
+    property.active: true
+    property.id: 1
+
+bird food =>
+    SYNONYM: bird food
+    SYNONYM: cat food
+    DOWN(50): party food
+    property.createdBy: lucky sharma
+    property.priority: 10
+    property.active: true
+    property.id: 2
+
+food =>
+    SYNONYM: aves edible
+    SYNONYM: whale fodder
+    DOWN(50): party food
+    property.createdBy: lucky sharma
+    property.priority: 4
+    property.active: false
+    property.id: 3
+
+bird =>
+    SYNONYM: hallow
+    SYNONYM: lucky
+    DOWN(50): beaf
+    property.priority: 1
+    property.active: false
+    property.id: 4
+
+kinder* =>
+	SYNONYM: kinder $1
+	property.id: 5
+```
 
 
 ## License
@@ -660,6 +732,8 @@ Please base development on the branch for the corresponding Solr version. querqy
 Many thanks to [Galeria Kaufhof](https://github.com/Galeria-Kaufhof), [shopping24](https://github.com/shopping24/) and [inoio](https://github.com/inoio) for their support.
 
 [Querqy is built using Travis CI](https://travis-ci.org/renekrie/querqy).
+
+
 
 
 

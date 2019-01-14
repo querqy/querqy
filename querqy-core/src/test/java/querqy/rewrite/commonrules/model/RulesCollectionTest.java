@@ -34,7 +34,7 @@ public class RulesCollectionTest {
       Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions = instructions("instruction1");
-      builder.addRule(input, instructions);
+      builder.addRule(input, new Properties(instructions));
 
       RulesCollection rulesCollection = builder.build();
       PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
@@ -56,7 +56,7 @@ public class RulesCollectionTest {
       Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions = instructions("instruction1", "instruction2");
-      builder.addRule(input, instructions);
+      builder.addRule(input, new Properties(instructions));
 
       RulesCollection rulesCollection = builder.build();
       PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
@@ -78,10 +78,10 @@ public class RulesCollectionTest {
       Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions1 = instructions("instruction1");
-      builder.addRule(input, instructions1);
+      builder.addRule(input, new Properties(instructions1));
 
       Instructions instructions2 = instructions("instruction2");
-      builder.addRule(input, instructions2);
+      builder.addRule(input, new Properties(instructions2));
 
       RulesCollection rulesCollection = builder.build();
       PositionSequence<InputSequenceElement> sequence = new PositionSequence<>();
@@ -105,10 +105,10 @@ public class RulesCollectionTest {
       Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions("instruction1");
-      builder.addRule(input1, instructions1);
+      builder.addRule(input1, new Properties(instructions1));
 
       Instructions instructions2 = instructions("instruction2");
-      builder.addRule(input2, instructions2);
+      builder.addRule(input2, new Properties(instructions2));
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
@@ -152,10 +152,10 @@ public class RulesCollectionTest {
       Input input2 = new Input(inputTerms(null, s2, s3), false, false);
 
       Instructions instructions1 = instructions("instruction1");
-      builder.addRule(input1, instructions1);
+      builder.addRule(input1, new Properties(instructions1));
 
       Instructions instructions2 = instructions("instruction2");
-      builder.addRule(input2, instructions2);
+      builder.addRule(input2, new Properties(instructions2));
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
@@ -202,8 +202,8 @@ public class RulesCollectionTest {
       Instructions instructions1 = instructions("instruction1");
       Instructions instructions2 = instructions("instruction2");
 
-      builder.addRule(input2, instructions2);
-      builder.addRule(input1, instructions1);
+      builder.addRule(input2, new Properties(instructions2));
+      builder.addRule(input1, new Properties(instructions1));
 
       // Input is s1 s2
       RulesCollection rulesCollection = builder.build();
@@ -236,10 +236,10 @@ public class RulesCollectionTest {
       Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions("instruction1");
-      builder.addRule(input1, instructions1);
+      builder.addRule(input1, new Properties(instructions1));
 
       Instructions instructions2 = instructions("instruction2");
-      builder.addRule(input2, instructions2);
+      builder.addRule(input2, new Properties(instructions2));
 
       // Input is just s1
       RulesCollection rulesCollection = builder.build();
@@ -275,7 +275,7 @@ public class RulesCollectionTest {
                   ), false, false);
 
       Instructions instructions1 = instructions("instruction1");
-      builder.addRule(input1, instructions1);
+      builder.addRule(input1, new Properties(instructions1));
 
       Term term11 = new Term(null, "f11", s1);
       Term term12 = new Term(null, "f12", s1);

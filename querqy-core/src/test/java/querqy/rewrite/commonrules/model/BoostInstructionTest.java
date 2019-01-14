@@ -18,6 +18,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import querqy.Constants;
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
@@ -35,10 +36,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) boostInstruction))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
@@ -63,10 +64,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) boostInstruction))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
@@ -92,10 +93,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a +b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) boostInstruction))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
@@ -121,10 +122,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) boostInstruction))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
@@ -149,10 +150,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) boostInstruction))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("x");
         QuerqyQuery<?> mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
@@ -166,10 +167,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Properties(new Instructions(Arrays.asList((Instruction) boostInstruction))));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getBoostUpQueries();
@@ -185,11 +186,11 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b$1").getUserQuery(), BoostDirection.DOWN, 0.2f);
 
-        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(Collections.singletonList((Instruction) boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("x k*"), new Properties(new Instructions(Collections.singletonList((Instruction) boostInstruction))));
 
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
 
         ExpandedQuery query = makeQuery("x klm y");
@@ -211,11 +212,11 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b$1").getUserQuery(), BoostDirection.DOWN, 0.2f);
 
-        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(Collections.singletonList((Instruction) boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("x k*"), new Properties(new Instructions(Collections.singletonList((Instruction) boostInstruction))));
 
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
 
         ExpandedQuery query = makeQuery("x klm y");
@@ -250,11 +251,11 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a $1").getUserQuery(), BoostDirection.DOWN, 0.3f);
 
-        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(Collections.singletonList((Instruction) boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("x k*"), new Properties(new Instructions(Collections.singletonList((Instruction) boostInstruction))));
 
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
 
         ExpandedQuery query = makeQuery("x klm y");
@@ -288,11 +289,11 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a c$1d").getUserQuery(), BoostDirection.UP, 0.3f);
 
-        builder.addRule((Input) LineParser.parseInput("k*"), new Instructions(Collections.singletonList((Instruction) boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("k*"), new Properties(new Instructions(Collections.singletonList((Instruction) boostInstruction))));
 
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
 
 
         ExpandedQuery query = makeQuery("x klm y");

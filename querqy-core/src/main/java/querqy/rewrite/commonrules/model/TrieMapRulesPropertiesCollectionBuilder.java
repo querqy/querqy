@@ -3,26 +3,26 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * @author René Kriegler, @renekrie
  *
  */
-public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
+public class TrieMapRulesPropertiesCollectionBuilder implements RulesCollectionBuilder {
     
-    final TrieMap<List<Instructions>> map = new TrieMap<>();
+    final TrieMap<List<Properties>> map = new TrieMap<>();
     
     final boolean ignoreCase;
     
-    public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
+    public TrieMapRulesPropertiesCollectionBuilder(boolean ignoreCase) {
         this.ignoreCase = ignoreCase;
     }
 
@@ -30,9 +30,8 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      * @see querqy.rewrite.commonrules.model.RulesCollectionBuilder#addRule(querqy.rewrite.commonrules.model.Input, querqy.rewrite.commonrules.model.Instructions)
      */
     @Override
-    public void addRule(Input input,  Properties properties) {
-
-        Instructions instructions = properties.getInstructions();
+    public void addRule(Input input, Properties properties) {
+        
         List<Term> inputTerms = input.getInputTerms();
         
         switch (inputTerms.size()) {
@@ -43,14 +42,14 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
             }
             
             ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, TrieMapRulesCollection.BOUNDARY_WORD);
-            States<List<Instructions>> states = map.get(seq);
-            State<List<Instructions>> state = states.getStateForCompleteSequence();
+            States<List<Properties>> states = map.get(seq);
+            State<List<Properties>> state = states.getStateForCompleteSequence();
             if (state.value != null) {
-                state.value.add(instructions);
+                state.value.add(properties);
             } else {
-                List<Instructions> instructionsList = new LinkedList<>();
-                instructionsList.add(instructions);
-                map.put(seq, instructionsList);
+                List<Properties> propertiesList = new LinkedList<>();
+                propertiesList.add(properties);
+                map.put(seq, propertiesList);
             }
             
         }
@@ -66,17 +65,17 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                 
                 seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
                 
-                States<List<Instructions>> states = map.get(seq);
+                States<List<Properties>> states = map.get(seq);
                 
                 if (isPrefix) {
                     boolean added = false;
                     
-                    List<State<List<Instructions>>> prefixes = states.getPrefixes();
+                    List<State<List<Properties>>> prefixes = states.getPrefixes();
                     
                     if (prefixes != null) {
-                        for (State<List<Instructions>> state: prefixes) {
+                        for (State<List<Properties>> state: prefixes) {
                             if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.add(instructions);
+                                state.value.add(properties);
                                 added = true;
                                 break;
                             }
@@ -85,19 +84,19 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                     }
                     
                     if (!added) {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.putPrefix(seq, instructionsList);
+                        List<Properties> propertiesList = new LinkedList<>();
+                        propertiesList.add(properties);
+                        map.putPrefix(seq, propertiesList);
                     }
                 
                 } else {
-                    State<List<Instructions>> state = states.getStateForCompleteSequence();
+                    State<List<Properties>> state = states.getStateForCompleteSequence();
                     if (state.value != null) {
-                        state.value.add(instructions);
+                        state.value.add(properties);
                     } else {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.put(seq, instructionsList);
+                        List<Properties> propertiesList = new LinkedList<>();
+                        propertiesList.add(properties);
+                        map.put(seq, propertiesList);
                     }
                     
                 }
@@ -112,18 +111,18 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                 
                 seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
                 
-                States<List<Instructions>> states = map.get(seq);
+                States<List<Properties>> states = map.get(seq);
                 
                 if (isPrefix) { 
                     
                     boolean added = false;
                     
-                    List<State<List<Instructions>>> prefixes = states.getPrefixes();
+                    List<State<List<Properties>>> prefixes = states.getPrefixes();
                     
                     if (prefixes != null) {
-                        for (State<List<Instructions>> state: prefixes) {
+                        for (State<List<Properties>> state: prefixes) {
                             if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.add(instructions);
+                                state.value.add(properties);
                                 added = true;
                                 break;
                             }
@@ -132,18 +131,18 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                     }
                     
                     if (!added) {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.putPrefix(seq, instructionsList);
+                        List<Properties> propertiesList = new LinkedList<>();
+                        propertiesList.add(properties);
+                        map.putPrefix(seq, propertiesList);
                     }
                 } else {
-                    State<List<Instructions>> state = states.getStateForCompleteSequence();
+                    State<List<Properties>> state = states.getStateForCompleteSequence();
                     if (state.value != null) {
-                        state.value.add(instructions);
+                        state.value.add(properties);
                     } else {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.put(seq, instructionsList);
+                        List<Properties> propertiesList = new LinkedList<>();
+                        propertiesList.add(properties);
+                        map.put(seq, propertiesList);
                     }
                 }
                 
@@ -172,7 +171,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      */
     @Override
     public RulesCollection build() {
-        return new TrieMapRulesCollection(map, ignoreCase);
+        return new TrieMapRulesPropertiesCollection(map, ignoreCase);
     }
 
 }

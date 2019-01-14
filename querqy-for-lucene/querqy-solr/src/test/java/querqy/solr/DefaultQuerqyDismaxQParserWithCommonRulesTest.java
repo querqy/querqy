@@ -345,7 +345,8 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     public void testSolrResponseContainsDebugInformationOfRulesRewriter() throws Exception {
         String q = "a b";
 
-        String debugQueryRuleForA = "Action [instructions=[[FilterInstruction [filterQuery=RawQuery [queryString=f2:c]]]], " +
+        String debugQueryRuleForA = "Action [properties=[Properties(instructions=[FilterInstruction " +
+                "[filterQuery=RawQuery [queryString=f2:c]]], propertyMap=null)], " +
                 "terms=[TermMatch{queryTerm=*:a, isPrefix=false, wildcardMatch=null}], startPosition=0, endPosition=1]";
 
         SolrQueryRequest requestWithDebugQueryEnabled = req("q", q,

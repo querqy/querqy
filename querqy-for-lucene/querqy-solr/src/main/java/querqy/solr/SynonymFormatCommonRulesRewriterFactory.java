@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
+import querqy.Constants;
 import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
@@ -24,14 +25,8 @@ import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
-import querqy.rewrite.commonrules.model.BoostInstruction;
+import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-import querqy.rewrite.commonrules.model.Input;
-import querqy.rewrite.commonrules.model.Instruction;
-import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
-import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
  * @author René Kriegler, @renekrie
@@ -115,7 +110,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
                                  if (!query.getClauses().isEmpty()) {
                                     for (Input input : inputs) {
                                        BoostInstruction bi = new BoostInstruction(query, direction, boost);
-                                       builder.addRule(input, new Instructions(Collections.singletonList((Instruction) bi)));
+                                       builder.addRule(input,  buildProperty( new Instructions(Collections.singletonList((Instruction) bi))));
                                     }
                                  }
                               }
@@ -191,7 +186,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
       @Override
       public QueryRewriter createRewriter(ExpandedQuery input,
             Map<String, ?> context) {
-         return new CommonRulesRewriter(rules);
+          return new CommonRulesRewriter(rules, Constants.DEFAULT_SELECTION_STRATEDGY);
       }
 
     @Override
@@ -204,5 +199,10 @@ public class SynonymFormatCommonRulesRewriterFactory implements
     }
 
    }
+
+   private static Properties buildProperty(Instructions instructions) {
+      return new Properties(instructions);
+   }
+
 
 }
