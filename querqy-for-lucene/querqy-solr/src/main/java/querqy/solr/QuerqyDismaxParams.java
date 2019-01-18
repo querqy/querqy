@@ -128,33 +128,33 @@ public interface QuerqyDismaxParams {
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#PS}
      */
-    String PS = "PS";
+    String PS = "ps";
 
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#PS2}
      */
-    String PS2 = "PS2";
+    String PS2 = "ps2";
 
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#PS3}
      */
-    String PS3 = "PS3";
+    String PS3 = "ps3";
 
 
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#PF}
      */
-    String PF = "PF";
+    String PF = "pf";
 
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#PF2}
      */
-    String PF2 = "PF2";
+    String PF2 = "pf2";
 
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#PF3}
      */
-    String PF3 = "PF3";
+    String PF3 = "pf3";
 
     /**
      * Same as {@link org.apache.solr.common.params.DisMaxParams#TIE}
