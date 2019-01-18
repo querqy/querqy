@@ -10,7 +10,7 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.queries.function.ValueSource;
 
-import querqy.lucene.SearchEngineRequestAdapter.SyntaxException;
+import querqy.lucene.LuceneSearchEngineRequestAdapter.SyntaxException;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.LuceneTermQueryBuilder;
@@ -39,13 +39,13 @@ import java.util.stream.Collectors;
 public class QueryParsingController {
 
     /**
-     * The default value for {@link SearchEngineRequestAdapter#getUserQuerySimilarityScoring()}
+     * The default value for {@link LuceneSearchEngineRequestAdapter#getUserQuerySimilarityScoring()}
      * (= {@link QuerySimilarityScoring#DFC})
      */
     protected static final QuerySimilarityScoring DEFAULT_USER_QUERY_SIMILARITY_SCORING = QuerySimilarityScoring.DFC;
 
     /**
-     * The default value for {@link SearchEngineRequestAdapter#getBoostQuerySimilarityScoring()}
+     * The default value for {@link LuceneSearchEngineRequestAdapter#getBoostQuerySimilarityScoring()}
      * (= {@link QuerySimilarityScoring#DFC})
      */
     protected static final QuerySimilarityScoring DEFAULT_BOOST_QUERY_SIMILARITY_SCORING = QuerySimilarityScoring.DFC;
@@ -68,7 +68,7 @@ public class QueryParsingController {
     protected static final Class<? extends QuerqyParser> DEFAULT_PARSER_CLASS = WhiteSpaceQuerqyParser.class;
 
 
-    protected final SearchEngineRequestAdapter requestAdapter;
+    protected final LuceneSearchEngineRequestAdapter requestAdapter;
     protected final String queryString;
     protected final boolean needsScores;
     protected final Analyzer queryAnalyzer;
@@ -80,7 +80,7 @@ public class QueryParsingController {
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
     protected final boolean addQuerqyBoostQueriesToMainQuery;
 
-    public QueryParsingController(final SearchEngineRequestAdapter requestAdapter) {
+    public QueryParsingController(final LuceneSearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;
         this.queryString = getValidatedQueryString();
         needsScores = requestAdapter.needsScores();

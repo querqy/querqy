@@ -24,7 +24,7 @@ import org.apache.solr.util.SolrPluginUtils;
 import querqy.lucene.PhraseBoosting;
 import querqy.lucene.PhraseBoosting.PhraseBoostFieldParams;
 import querqy.lucene.QuerySimilarityScoring;
-import querqy.lucene.SearchEngineRequestAdapter;
+import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.QuerqyQuery;
@@ -42,14 +42,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * <p>A {@link SearchEngineRequestAdapter} that provides access from Querqy to Solr and that implements most of
+ * <p>A {@link LuceneSearchEngineRequestAdapter} that provides access from Querqy to Solr and that implements most of
  * Solr's {@link org.apache.solr.search.ExtendedDismaxQParser} behaviour. See constants of this class for default
- * behaviour that is not defined in {@link SearchEngineRequestAdapter}. See {@link QuerqyDismaxParams} for parameter
+ * behaviour that is not defined in {@link LuceneSearchEngineRequestAdapter}. See {@link QuerqyDismaxParams} for parameter
  * names.</p>
  * @see QuerqyDismaxParams
- * @see SearchEngineRequestAdapter
+ * @see LuceneSearchEngineRequestAdapter
  */
-public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdapter {
+public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineRequestAdapter {
 
 
     /**
@@ -71,12 +71,7 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     protected static final String MATCH_ALL_QUERY_STRING = "*:*";
 
-    private static final Optional<QuerySimilarityScoring> OPT_DFC = Optional.of(QuerySimilarityScoring.DFC);
-    private static final Optional<QuerySimilarityScoring> OPT_SIMILARITY_SCORE_OFF
-            = Optional.of(QuerySimilarityScoring.SIMILARITY_SCORE_OFF);
-    private static final Optional<QuerySimilarityScoring> OPT_SIMILARITY_SCORE_ON
-            = Optional.of(QuerySimilarityScoring.SIMILARITY_SCORE_ON);
-
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     private static final Pattern PATTERN_WHITESPACE = Pattern.compile("\\s+");
     private static final Pattern PATTERN_CARAT = Pattern.compile("\\^");
@@ -165,7 +160,7 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     @Override
     public Optional<Float> getUserQueryWeight() {
-        return Optional.ofNullable(solrParams.getFloat(USER_QUERY_BOOST));
+        return getFloatRequestParam(USER_QUERY_BOOST);
     }
 
     @Override
@@ -189,7 +184,7 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     @Override
     public Optional<Float> getTiebreaker() {
-        return Optional.ofNullable(solrParams.getFloat(TIE));
+        return getFloatRequestParam(TIE);
     }
 
 
@@ -249,12 +244,12 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     @Override
     public Optional<Float> getPositiveQuerqyBoostWeight() {
-        return Optional.ofNullable(solrParams.getFloat(QBOOST_WEIGHT));
+        return getFloatRequestParam(QBOOST_WEIGHT);
     }
 
     @Override
     public Optional<Float> getNegativeQuerqyBoostWeight() {
-        return Optional.ofNullable(solrParams.getFloat(QBOOST_NEG_WEIGHT));
+        return getFloatRequestParam(QBOOST_NEG_WEIGHT);
     }
 
     @Override
@@ -309,7 +304,7 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     @Override
     public Optional<Float> getGeneratedFieldBoost() {
-        return Optional.ofNullable(solrParams.getFloat(GFB));
+        return getFloatRequestParam(GFB);
     }
 
     @Override
@@ -340,10 +335,10 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
                         : Optional.empty();
 
 
-        final String[] bfs = solrParams.getParams(BF);
+        final String[] bfs = getRequestParams(BF);
 
         final List<Query> boosts = new ArrayList<>(boostQueries.size()
-                + ((bfs == null) ? 0 : bfs.length)
+                + bfs.length
                 + (phraseBoostQuery.isPresent() ? 1 : 0));
 
         boosts.addAll(boostQueries);
@@ -382,8 +377,8 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     private List<Query> parseQueriesFromParam(final String paramName, final String defaultParserName) throws SyntaxException {
 
-        final String[] qStrings = solrParams.getParams(paramName);
-        if (qStrings != null) {
+        final String[] qStrings = getRequestParams(paramName);
+        if (qStrings.length > 0) {
             final List<Query> result = new ArrayList<>(qStrings.length);
             for (String qs : qStrings) {
                 if (qs != null && qs.trim().length()> 0) {
@@ -434,7 +429,7 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
     protected Map<String, Float> parseQueryFields(final String fieldName, final Float defaultBoost,
                                                       final boolean useDfFallback) {
 
-        final Map<String, Float> queryFields = parseFieldBoosts(solrParams.getParams(fieldName), defaultBoost);
+        final Map<String, Float> queryFields = parseFieldBoosts(getRequestParams(fieldName), defaultBoost);
         if (queryFields.isEmpty() && useDfFallback) {
             final String df = solrParams.get(CommonParams.DF);
             if (df == null) {
@@ -464,20 +459,20 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
 
     private Optional<QuerySimilarityScoring> getSimilarityScoringParam(final String paramName) {
 
-        final String scoring = solrParams.get(paramName);
-        if (scoring == null) {
-            return Optional.empty();
-        }
-        switch (scoring) {
-            case SIMILARITY_SCORE_DFC:
-                return OPT_DFC;
-            case SIMILARITY_SCORE_OFF:
-                return OPT_SIMILARITY_SCORE_OFF;
-            case SIMILARITY_SCORE_ON:
-                return OPT_SIMILARITY_SCORE_ON;
-            default:
-                throw new IllegalArgumentException("Invalid value for " + paramName + ": " + scoring);
-        }
+        return getRequestParam(paramName).map(scoring -> {
+            switch (scoring) {
+                case SIMILARITY_SCORE_DFC:
+                    return QuerySimilarityScoring.DFC;
+                case SIMILARITY_SCORE_OFF:
+                    return QuerySimilarityScoring.SIMILARITY_SCORE_OFF;
+                case SIMILARITY_SCORE_ON:
+                    return QuerySimilarityScoring.SIMILARITY_SCORE_ON;
+                default:
+                    throw new IllegalArgumentException("Invalid value for " + paramName + ": " + scoring);
+            }
+        });
+
+
     }
 
     public boolean isFieldPhraseQueryable(final SchemaField field) {
@@ -488,4 +483,35 @@ public class DismaxSearchEngineRequestAdapter implements SearchEngineRequestAdap
         return false;
     }
 
+    @Override
+    public Optional<String> getRequestParam(final String name) {
+        return Optional.ofNullable(solrParams.get(name));
+    }
+
+    @Override
+    public String[] getRequestParams(final String name) {
+        final String[] params = solrParams.getParams(name);
+        return params == null ? EMPTY_STRING_ARRAY : params;
+
+    }
+
+    @Override
+    public Optional<Boolean> getBooleanRequestParam(final String name) {
+        return Optional.ofNullable(solrParams.getBool(name));
+    }
+
+    @Override
+    public Optional<Integer> getIntegerRequestParam(final String name) {
+        return Optional.ofNullable(solrParams.getInt(name));
+    }
+
+    @Override
+    public Optional<Float> getFloatRequestParam(final String name) {
+        return Optional.ofNullable(solrParams.getFloat(name));
+    }
+
+    @Override
+    public Optional<Double> getDoubleRequestParam(final String name) {
+        return Optional.ofNullable(solrParams.getDouble(name));
+    }
 }

@@ -17,7 +17,7 @@ import org.apache.solr.search.SyntaxError;
 import org.apache.solr.search.WrappedQuery;
 import querqy.lucene.LuceneQueries;
 import querqy.lucene.QueryParsingController;
-import querqy.lucene.SearchEngineRequestAdapter;
+import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.ContextAwareQueryRewriter;
@@ -95,7 +95,7 @@ public class QuerqyDismaxQParser extends QParser {
             }
 
 
-        } catch (final SearchEngineRequestAdapter.SyntaxException e) {
+        } catch (final LuceneSearchEngineRequestAdapter.SyntaxException e) {
             throw new SyntaxError("Syntax error", e);
         }
 
