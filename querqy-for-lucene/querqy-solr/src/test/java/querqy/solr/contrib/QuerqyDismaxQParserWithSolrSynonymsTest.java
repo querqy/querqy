@@ -1,5 +1,8 @@
 package querqy.solr.contrib;
 
+import static querqy.solr.QuerqyDismaxParams.GFB;
+import static querqy.solr.QuerqyDismaxParams.GQF;
+
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.SolrTestCaseJ4;
@@ -7,7 +10,6 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.solr.QuerqyDismaxQParser;
@@ -16,7 +18,7 @@ import querqy.solr.QuerqyDismaxQParser;
 public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
 
-   public static void index() throws Exception {
+   public static void index() {
 
       assertU(adoc("id", "1", "f1", "a"));
       assertU(adoc("id", "2", "f1", "a"));
@@ -33,7 +35,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPFWorksWithSynonymRewriting() throws Exception {
+   public void testThatPFWorksWithSynonymRewriting() {
 
       SolrQueryRequest req = req("q", "a b",
             DisMaxParams.QF, "f1 f2^0.9",
@@ -50,7 +52,7 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPF23FWorksWithSynonymRewriting() throws Exception {
+   public void testThatPF23FWorksWithSynonymRewriting() {
 
       SolrQueryRequest req = req("q", "a b c d",
             DisMaxParams.QF, "f1 f2^0.9",
@@ -69,15 +71,15 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatGeneratedTermsArePenalised() throws Exception {
+   public void testThatGeneratedTermsArePenalised() {
       SolrQueryRequest req = req("q", "a b",
             DisMaxParams.QF, "f1^2",
             DisMaxParams.PF, "f1^0.5",
-            QuerqyDismaxQParser.GFB, "0.8",
+            GFB, "0.8",
             "defType", "querqy",
             "debugQuery", "true");
 
-      assertQ(QuerqyDismaxQParser.GFB + " not working",
+      assertQ(GFB + " not working",
             req,
             "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
             "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
@@ -86,11 +88,11 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    }
    
    @Test
-   public void testThatGeneratedQueryFieldBoostsAreApplied() throws Exception {
+   public void testThatGeneratedQueryFieldBoostsAreApplied() {
       SolrQueryRequest req = req("q", "a",
             DisMaxParams.QF, "f1^2 f2^3",
-            QuerqyDismaxQParser.GFB, "0.8",
-            QuerqyDismaxQParser.GQF, "f2^10",
+            GFB, "0.8",
+            GQF, "f2^10",
             "defType", "querqy",
             "debugQuery", "true");
 
@@ -102,11 +104,11 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    }
    
    @Test
-   public void testThatGeneratedQueryFieldsAreApplied() throws Exception {
+   public void testThatGeneratedQueryFieldsAreApplied() {
       SolrQueryRequest req = req("q", "a",
             DisMaxParams.QF, "f1^2 f2^3",
-            QuerqyDismaxQParser.GFB, "0.8",
-            QuerqyDismaxQParser.GQF, "f2 f4",
+            GFB, "0.8",
+            GQF, "f2 f4",
             "defType", "querqy",
             "debugQuery", "true");
 
@@ -120,8 +122,8 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
 
    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
-      QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-           new WhiteSpaceQuerqyParser(), null);
+      QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
+           new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);

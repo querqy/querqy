@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyDismaxParams.GFB;
+import static querqy.solr.QuerqyDismaxParams.GQF;
+
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
@@ -13,7 +16,6 @@ import org.apache.solr.search.WrappedQuery;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -22,7 +24,6 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,7 @@ import java.util.Set;
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
-   public void index() throws Exception {
+   public void index() {
 
       assertU(adoc("id", "1", "f1", "a"));
       assertU(adoc("id", "2", "f1", "a"));
@@ -59,7 +60,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
    
     @Test
-    public void testLocalParams() throws Exception {
+    public void testLocalParams() {
         SolrQueryRequest req = req("q", "{!querqy qf='f1 f2'}a b");
     
         assertQ("local params don't work",
@@ -69,7 +70,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
    
     @Test
-    public void testThatFilterRulesFromCollationDontEndUpInMainQuery() throws Exception {
+    public void testThatFilterRulesFromCollationDontEndUpInMainQuery() {
         
         SolrQueryRequest req0 = req("q", "spellcheck test",
                 DisMaxParams.QF, "f1 f2",
@@ -115,8 +116,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.MM, "2"
         );
 
-        QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req, new RewriteChain(),
-            new WhiteSpaceQuerqyParser(), null);
+        QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req,
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
 
         Query query = parser.parse();
 
@@ -136,8 +137,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.QF, "f1 f2",
             DisMaxParams.MM, "3");
 
-        QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            new WhiteSpaceQuerqyParser(), null);
+        QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
 
         Query query = parser.parse();
 
@@ -157,8 +158,8 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.MM, "3",
             QueryParsing.OP, "OR"
             );
-        QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-            new WhiteSpaceQuerqyParser(), null);
+        QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
         Query query = parser.parse();
 
         req.close();
@@ -168,7 +169,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatPfIsAppliedOnlyToExistingField() throws Exception {
+    public void testThatPfIsAppliedOnlyToExistingField() {
 
         String q = "a b c d";
 
@@ -192,7 +193,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
    @Test
-   public void testThatMatchAllDoesNotThrowException() throws Exception {
+   public void testThatMatchAllDoesNotThrowException() {
       String q = "*:*";
 
       SolrQueryRequest req = req("q", q,
@@ -215,7 +216,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPfIsAppliedOnlyToFieldsWithTermPositions() throws Exception {
+   public void testThatPfIsAppliedOnlyToFieldsWithTermPositions() {
 
       String q = "a b c d";
       SolrQueryRequest req = req("q", q,
@@ -240,7 +241,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
     @Test
-    public void testThatAnalysisIsRunForPf() throws Exception {
+    public void testThatAnalysisIsRunForPf() {
 
         String q = "K L M";
         SolrQueryRequest req = req("q", q,
@@ -264,7 +265,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatAnalysisIsRunForPf2() throws Exception {
+    public void testThatAnalysisIsRunForPf2() {
 
         String q = "K L M";
         SolrQueryRequest req = req("q", q,
@@ -288,7 +289,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatAnalysisIsRunForPf3() throws Exception {
+    public void testThatAnalysisIsRunForPf3() {
 
         String q = "K L M";
         SolrQueryRequest req = req("q", q,
@@ -312,7 +313,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
    @Test
-   public void testThatPf2IsAppliedOnlyToExistingField() throws Exception {
+   public void testThatPf2IsAppliedOnlyToExistingField() {
 
       String q = "a b c d";
       SolrQueryRequest req = req("q", q,
@@ -334,7 +335,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPf2IsAppliedOnlyToFieldsWithTermPositions() throws Exception {
+   public void testThatPf2IsAppliedOnlyToFieldsWithTermPositions() {
 
       String q = "a b c d";
       SolrQueryRequest req = req("q", q,
@@ -364,7 +365,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPf3IsAppliedOnlyToFieldsWithTermPositions() throws Exception {
+   public void testThatPf3IsAppliedOnlyToFieldsWithTermPositions() {
 
       String q = "a b c d";
       SolrQueryRequest req = req("q", q,
@@ -435,7 +436,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPFWorksWithSynonymRewriting() throws Exception {
+   public void testThatPFWorksWithSynonymRewriting() {
 
       SolrQueryRequest req = req("q", "a b",
             DisMaxParams.QF, "f1 f2^0.9",
@@ -452,7 +453,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatPF23FWorksWithSynonymRewriting() throws Exception {
+   public void testThatPF23FWorksWithSynonymRewriting() {
 
       SolrQueryRequest req = req("q", "a b c d",
             DisMaxParams.QF, "f1 f2^0.9",
@@ -471,15 +472,15 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
    @Test
-   public void testThatGeneratedTermsArePenalised() throws Exception {
+   public void testThatGeneratedTermsArePenalised() {
       SolrQueryRequest req = req("q", "a b",
             DisMaxParams.QF, "f1^2",
             DisMaxParams.PF, "f1^0.5",
-            QuerqyDismaxQParser.GFB, "0.8",
+            GFB, "0.8",
             "defType", "querqy",
             "debugQuery", "true");
 
-      assertQ(QuerqyDismaxQParser.GFB + " not working",
+      assertQ(GFB + " not working",
             req,
             "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
             "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
@@ -488,11 +489,11 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
    
    @Test
-   public void testThatGeneratedQueryFieldBoostsAreApplied() throws Exception {
+   public void testThatGeneratedQueryFieldBoostsAreApplied() {
       SolrQueryRequest req = req("q", "a",
             DisMaxParams.QF, "f1^2 f2^3",
-            QuerqyDismaxQParser.GFB, "0.8",
-            QuerqyDismaxQParser.GQF, "f2^10",
+            GFB, "0.8",
+            GQF, "f2^10",
             "defType", "querqy",
             "debugQuery", "true");
 
@@ -504,11 +505,11 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
    
    @Test
-   public void testThatGeneratedQueryFieldsAreApplied() throws Exception {
+   public void testThatGeneratedQueryFieldsAreApplied() {
       SolrQueryRequest req = req("q", "a",
             DisMaxParams.QF, "f1^2 f2^3",
-            QuerqyDismaxQParser.GFB, "0.8",
-            QuerqyDismaxQParser.GQF, "f2 f4",
+            GFB, "0.8",
+            GQF, "f2 f4",
             "defType", "querqy",
             "debugQuery", "true");
 
@@ -520,7 +521,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
     @Test
-    public void testThatUpRuleCanPickUpPlaceHolder() throws Exception {
+    public void testThatUpRuleCanPickUpPlaceHolder() {
 
         SolrQueryRequest req = req("q", "aaa",
                 DisMaxParams.QF, "f1 f2",
@@ -550,7 +551,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatHighlightingIsApplied() throws Exception {
+    public void testThatHighlightingIsApplied() {
         SolrQueryRequest req = req("q", "a",
                 DisMaxParams.QF, "f1",
                 HighlightParams.HIGHLIGHT, "true",
@@ -569,7 +570,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatHighlightingIsNotAppliedToBoostQuery() throws Exception {
+    public void testThatHighlightingIsNotAppliedToBoostQuery() {
         SolrQueryRequest req = req("q", "o",
                 DisMaxParams.QF, "f1",
                 HighlightParams.HIGHLIGHT, "true",
@@ -588,7 +589,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatHighlightingIsAppliedToSynonyms() throws Exception {
+    public void testThatHighlightingIsAppliedToSynonyms() {
         SolrQueryRequest req = req("q", "o",
                 DisMaxParams.QF, "f1",
                 HighlightParams.HIGHLIGHT, "true",
@@ -607,7 +608,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatMatchAllWithFilterIsApplied() throws Exception {
+    public void testThatMatchAllWithFilterIsApplied() {
         SolrQueryRequest req = req("q", "this should be ignored",
                 DisMaxParams.QF, "f1",
                 "defType", "querqyMatchAllAndFilter",
@@ -625,25 +626,126 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
     }
 
+    @Test
+    public void testThatBfIsApplied() {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.BF, "product(termfreq(f2,'w87'),-1)^2.3",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied",
+                req,
+                "//str[@name='parsedquery'][contains(.,' FunctionQuery(product(termfreq(f2,w87),const(-1)))^2.3')]",
+                "//doc[1]/str[@name='id'][text()='7']"
+
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBqIsApplied() {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.BQ, "f2:w87",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied",
+                req,
+                "//str[@name='parsedquery'][contains(.,'f2:w87')]",
+                "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBqIsAppliedToMatchAllDocsQuery() {
+
+        SolrQueryRequest req = req("q", "*:*",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.BQ, "f2:w87",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied to MatchAll",
+                req,
+                "//result[@numFound='9']",
+                "//str[@name='parsedquery'][contains(.,'f2:w87')]",
+                "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBqIsAppliedToMatchAllDocsQueryRegardlessOfPf() {
+
+        SolrQueryRequest req = req("q", "*:*",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.BQ, "f2:w87",
+                DisMaxParams.PF, "f1",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied to MatchAll",
+                req,
+                "//result[@numFound='9']",
+                "//str[@name='parsedquery'][contains(.,'f2:w87')]",
+                "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBoostParamIsApplied() {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied",
+                req,
+                "//str[@name='parsedquery'][contains(.,'BoostedQuery(boost(+f1:aaa,query(f2:w87,def=1.0)))')]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+
+    }
+
 
     public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
-      QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req, new RewriteChain(),
-           new WhiteSpaceQuerqyParser(), null);
+      QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
+           new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);
       BooleanQuery bq = (BooleanQuery) query;
       String qStr = bq.toString();
       for (String exp : expectedSubstrings) {
-         assertTrue("Missing: " + exp + " in " + bq, qStr.indexOf(exp) > -1);
+         assertTrue("Missing: " + exp + " in " + bq, qStr.contains(exp));
       }
 
    }
 
     protected BooleanQuery assertBQ(Query query) {
 
-        BooleanQuery bq = null;
+        BooleanQuery bq;
         if (query instanceof WrappedQuery) {
             Query w = ((WrappedQuery) query).getWrappedQuery();
             assertTrue(w instanceof BooleanQuery);
@@ -659,7 +761,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     public static class MatchAllRewriter implements RewriterFactoryAdapter {
 
         @Override
-        public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
+        public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) {
             return new RewriterFactory() {
                 @Override
                 public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {

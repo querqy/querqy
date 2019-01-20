@@ -10,7 +10,9 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 
 /**
- * A query rewriter.
+ * <p>A query rewriter.</p>
+ * <p>Query rewriter implementations shall guarantee to preserve the number of top-level query clauses of the
+ * {@link ExpandedQuery#userQuery} when rewriting the query.</p>
  * 
  * @author rene
  *

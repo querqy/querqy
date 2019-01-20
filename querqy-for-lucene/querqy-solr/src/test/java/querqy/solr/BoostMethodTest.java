@@ -1,5 +1,9 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_OPT;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -14,7 +18,7 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class BoostMethodTest extends SolrTestCaseJ4 {
 
-    public void index() throws Exception {
+    public void index() {
 
         assertU(adoc("id", "1", "f1", "qup"));
         assertU(adoc("id", "2", "f1", "qup other", "f2", "u100"));
@@ -35,7 +39,7 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatTheDefaultBoostMethodIsOpt() throws Exception {
+    public void testThatTheDefaultBoostMethodIsOpt() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
@@ -56,13 +60,13 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatOptCanBePassedAsBoostMethodParam() throws Exception {
+    public void testThatOptCanBePassedAsBoostMethodParam() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_OPT,
+                QBOOST_METHOD, QBOOST_METHOD_OPT,
                 "defType", "querqy",
                 "debugQuery", "true"
 
@@ -79,13 +83,13 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatReRankMethodCanBeActivated() throws Exception {
+    public void testThatReRankMethodCanBeActivated() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.QBOOST_METHOD, QuerqyDismaxQParser.QBOOST_METHOD_RERANK,
+                QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 "defType", "querqy",
                 "debugQuery", "true"
 

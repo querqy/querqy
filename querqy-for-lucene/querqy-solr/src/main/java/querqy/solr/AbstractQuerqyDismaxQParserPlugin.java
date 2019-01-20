@@ -41,10 +41,11 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
     protected String termQueryCacheName = null;
     protected boolean ignoreTermQueryCacheUpdates = true; 
     
-    public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req, TermQueryCache termQueryCache);
+    public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req,
+                                         TermQueryCache termQueryCache);
 
     @Override
-    public void init(@SuppressWarnings("rawtypes") NamedList args) {
+    public void init(final @SuppressWarnings("rawtypes") NamedList args) {
         this.initArgs = args;
     }
 
@@ -54,10 +55,11 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
         rewriteChain = loadRewriteChain(loader);
       
         termQueryCacheName = (String) initArgs.get(CONF_CACHE_NAME);
-        
-        Boolean updateCache = initArgs.getBooleanArg(CONF_CACHE_UPDATE);
+
+        final Boolean updateCache = initArgs.getBooleanArg(CONF_CACHE_UPDATE);
         if (termQueryCacheName == null && updateCache != null) {
-            throw new IOException("Configuration property " + CONF_CACHE_NAME + " required if " + CONF_CACHE_UPDATE + " is set");
+            throw new IOException("Configuration property " + CONF_CACHE_NAME + " required if " + CONF_CACHE_UPDATE +
+                    " is set");
         }
 
         ignoreTermQueryCacheUpdates = (updateCache != null) && !updateCache;
@@ -102,60 +104,62 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
         }
     }
 
-   /**
-    * Loads the whole {@link RewriteChain}s from the args and returns a list of
-    * them.
-    */
-   private RewriteChain loadRewriteChain(ResourceLoader loader) throws IOException {
+    /**
+     * Loads the whole {@link RewriteChain}s from the args and returns a list of
+     * them.
+     */
+    private RewriteChain loadRewriteChain(final ResourceLoader loader) throws IOException {
 
-      NamedList<?> chainConfig = (NamedList<?>) initArgs.get("rewriteChain");
-      List<RewriterFactory> factories = new LinkedList<>();
+        final NamedList<?> chainConfig = (NamedList<?>) initArgs.get("rewriteChain");
+        final List<RewriterFactory> factories = new LinkedList<>();
 
-      if (chainConfig != null) {
+        if (chainConfig != null) {
 
-         @SuppressWarnings("unchecked")
-         List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
-         if (rewriterConfigs != null) {
-            for (NamedList<?> config : rewriterConfigs) {
-               RewriterFactoryAdapter factory = loader.newInstance((String) config.get("class"),
-                     RewriterFactoryAdapter.class);
-               factories.add(factory.createRewriterFactory(config, loader));
+            @SuppressWarnings("unchecked")
+            final List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
+            if (rewriterConfigs != null) {
+                for (NamedList<?> config : rewriterConfigs) {
+                    RewriterFactoryAdapter factory = loader.newInstance((String) config.get("class"),
+                        RewriterFactoryAdapter.class);
+                    factories.add(factory.createRewriterFactory(config, loader));
+                }
             }
-         }
-      }
+        }
       
-      return new RewriteChain(factories);
+        return new RewriteChain(factories);
       
-   }
+    }
 
-   protected QuerqyParser createQuerqyParser(String qstr, SolrParams localParams, SolrParams params,
-         SolrQueryRequest req) {
-      return querqyParserFactory.createParser(qstr, localParams, params, req);
-   }
+    protected QuerqyParser createQuerqyParser(final String qstr, final SolrParams localParams, final SolrParams params,
+                                             final SolrQueryRequest req) {
+        return querqyParserFactory.createParser(qstr, localParams, params, req);
+    }
 
-   @Override
-   public final QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
+    @Override
+    public final QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params,
+                                      SolrQueryRequest req) {
+
+        if (termQueryCacheName == null) {
+            return createParser(qstr, localParams, params, req, null);
+        } else {
        
-       if (termQueryCacheName == null) {
-           return createParser(qstr, localParams, params, req, null);
-       } else {
-       
-           @SuppressWarnings("unchecked")
-           SolrCache<CacheKey, TermQueryCacheValue> solrCache = req.getSearcher().getCache(termQueryCacheName);
-           if (solrCache == null) {
-               logger.warn("Missing Solr cache {}", termQueryCacheName);
-               return createParser(qstr, localParams, params, req, null);
-           } else {
-               return createParser(qstr, localParams, params, req, new SolrTermQueryCacheAdapter(ignoreTermQueryCacheUpdates, solrCache));
-           }
+            @SuppressWarnings("unchecked")
+            final SolrCache<CacheKey, TermQueryCacheValue> solrCache = req.getSearcher().getCache(termQueryCacheName);
+            if (solrCache == null) {
+                logger.warn("Missing Solr cache {}", termQueryCacheName);
+                return createParser(qstr, localParams, params, req, null);
+            } else {
+                return createParser(qstr, localParams, params, req,
+                        new SolrTermQueryCacheAdapter(ignoreTermQueryCacheUpdates, solrCache));
+            }
            
-       }
-   }
+        }
+    }
    
 
    
-   public RewriteChain getRewriteChain() {
-       return rewriteChain;
-   }
+    public RewriteChain getRewriteChain() {
+        return rewriteChain;
+    }
 
 }

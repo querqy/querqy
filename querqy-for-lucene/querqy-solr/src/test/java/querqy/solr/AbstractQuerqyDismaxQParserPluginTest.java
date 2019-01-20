@@ -48,7 +48,7 @@ public class AbstractQuerqyDismaxQParserPluginTest {
         when(parserConfig.get("factory")).thenReturn("querqy.solr.SimpleQuerqyQParserFactory");
         when(parserConfig.get("class")).thenReturn("querqy.parser.WhiteSpaceQuerqyParser");
 
-        ResourceLoader resourceLoader = new ClasspathResourceLoader();
+        ResourceLoader resourceLoader = new ClasspathResourceLoader(getClass().getClassLoader());
 
         final SolrQuerqyParserFactory factory = plugin.loadSolrQuerqyParserFactory(resourceLoader, args);
 
@@ -67,7 +67,7 @@ public class AbstractQuerqyDismaxQParserPluginTest {
 
         when(parserConfig.get("factory")).thenReturn(null);
         when(parserConfig.get("class")).thenReturn("querqy.parser.WhiteSpaceQuerqyParser");
-        ResourceLoader resourceLoader = new ClasspathResourceLoader();
+        ResourceLoader resourceLoader = new ClasspathResourceLoader(getClass().getClassLoader());
 
         final SolrQuerqyParserFactory factory = plugin.loadSolrQuerqyParserFactory(resourceLoader, args);
 
@@ -84,7 +84,7 @@ public class AbstractQuerqyDismaxQParserPluginTest {
 
         NamedList<String> args = mock(NamedList.class);
         when(args.get("parser")).thenReturn(DummyQuerqyParser.class.getName());
-        ResourceLoader resourceLoader = new ClasspathResourceLoader();
+        ResourceLoader resourceLoader = new ClasspathResourceLoader(getClass().getClassLoader());
 
         final SolrQuerqyParserFactory factory = plugin.loadSolrQuerqyParserFactory(resourceLoader, args);
 
@@ -102,7 +102,7 @@ public class AbstractQuerqyDismaxQParserPluginTest {
         NamedList<?> args = mock(NamedList.class);
         when(args.get("parser")).thenReturn(null);
 
-        ResourceLoader resourceLoader = new ClasspathResourceLoader();
+        ResourceLoader resourceLoader = new ClasspathResourceLoader(getClass().getClassLoader());
 
         final SolrQuerqyParserFactory factory = plugin.loadSolrQuerqyParserFactory(resourceLoader, args);
 

@@ -50,8 +50,7 @@ public class DisjunctionMaxQueryFactory implements LuceneQueryFactory<Disjunctio
 
     @Override
     public DisjunctionMaxQuery createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
-                                           final TermQueryBuilder termQueryBuilder)
-            throws IOException {
+                                           final TermQueryBuilder termQueryBuilder) {
 
         final List<Query> disjunctList = new LinkedList<>();
 

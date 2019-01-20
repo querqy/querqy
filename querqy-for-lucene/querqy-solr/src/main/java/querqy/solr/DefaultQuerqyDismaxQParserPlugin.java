@@ -10,13 +10,10 @@ import querqy.lucene.rewrite.cache.TermQueryCache;
 public class DefaultQuerqyDismaxQParserPlugin extends AbstractQuerqyDismaxQParserPlugin {
 
    @Override
-   public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req, TermQueryCache termQueryCache) {
-      try {
-         return new QuerqyDismaxQParser(qstr, localParams, params, req, rewriteChain,
-                 createQuerqyParser(qstr, localParams, params, req), termQueryCache);
-      } catch (SyntaxError e) {
-         throw new RuntimeException(e);
-      }
+   public QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params,
+                               final SolrQueryRequest req, final TermQueryCache termQueryCache) {
+         return new QuerqyDismaxQParser(qstr, localParams, params, req,
+                 createQuerqyParser(qstr, localParams, params, req), rewriteChain, termQueryCache);
    }
 
 }

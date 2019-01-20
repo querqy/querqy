@@ -1,5 +1,9 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyDismaxParams.FBM;
+import static querqy.solr.QuerqyDismaxParams.FBM_FIXED;
+import static querqy.solr.QuerqyDismaxParams.FBM_PRMS;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -37,12 +41,12 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testFixedModel() throws Exception {
+    public void testFixedModel() {
 
         String q = "x";
 
         SolrQueryRequest req = req("q", q, DisMaxParams.QF, "f1 f2",
-                QuerqyDismaxQParser.FBM, QuerqyDismaxQParser.FBM_FIXED,
+                FBM, FBM_FIXED,
                 "defType", "querqy");
 
         assertQ("FieldBoost=FIXED should sort doc with greatest length-normalized tf to the first position",
@@ -51,7 +55,7 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
 
     
     @Test
-    public void testThatFixedModelIsDefaultModel() throws Exception {
+    public void testThatFixedModelIsDefaultModel() {
 
         String q = "x";
 
@@ -63,12 +67,12 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
     }
     
     @Test
-    public void testThatPRMSScoresLeastFrequentFieldLowest() throws Exception {
+    public void testThatPRMSScoresLeastFrequentFieldLowest() {
 
         String q = "x";
 
         SolrQueryRequest req = req("q", q, DisMaxParams.QF, "f1 f2",
-                QuerqyDismaxQParser.FBM, QuerqyDismaxQParser.FBM_PRMS,
+                FBM, FBM_PRMS,
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -78,12 +82,12 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
     }
     
     @Test
-    public void testThatPRMSIsAppliedToMultiTermQuery() throws Exception {
+    public void testThatPRMSIsAppliedToMultiTermQuery() {
 
         String q = "x h";
 
         SolrQueryRequest req = req("q", q, DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxQParser.FBM, QuerqyDismaxQParser.FBM_PRMS,
+                FBM, FBM_PRMS,
                 DisMaxParams.MM, "100%",
                 "defType", "querqy");
 
@@ -92,12 +96,12 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
     }
     
     @Test
-    public void testThatPRMSCanHandleTermNotInIndex() throws Exception {
+    public void testThatPRMSCanHandleTermNotInIndex() {
 
         String q = "y24";
 
         SolrQueryRequest req = req("q", q, DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxQParser.FBM, QuerqyDismaxQParser.FBM_PRMS,
+                FBM, FBM_PRMS,
                 DisMaxParams.MM, "100%",
                 "defType", "querqy");
 

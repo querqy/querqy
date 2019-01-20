@@ -178,7 +178,8 @@ public class QuerqyReRankQuery extends RankQuery {
                 this.mainCollector = TopScoreDocCollector.create(Math.max(reRankNumDocs, length));
             } else {
                 sort = sort.rewrite(searcher);
-                this.mainCollector = TopFieldCollector.create(sort, Math.max(reRankNumDocs, length), false, true, true);
+                this.mainCollector = TopFieldCollector.create(sort, Math.max(reRankNumDocs, length), false, true, true,
+                        true);
             }
             this.searcher = searcher;
             this.reRankWeight = reRankWeight;

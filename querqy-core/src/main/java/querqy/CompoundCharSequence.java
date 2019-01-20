@@ -6,8 +6,9 @@ package querqy;
 import java.util.List;
 
 /**
- * 
- * @author rene
+ * A {@link ComparableCharSequence} that is composed of one or more parts (sub-sequences).
+ *
+ * @author René Kriegler, @renekrie
  *
  */
 public class CompoundCharSequence implements ComparableCharSequence {
@@ -24,9 +25,8 @@ public class CompoundCharSequence implements ComparableCharSequence {
 
    /**
     * 
-    * @param separator
-    * @param parts
-    *           The parts to combine.
+    * @param separator A separator that is placed between the parts. Can be null.
+    * @param parts The parts to combine.
     */
    public CompoundCharSequence(final CharSequence separator, final CharSequence... parts) {
       if (parts == null || parts.length == 0) {

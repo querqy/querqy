@@ -1,6 +1,7 @@
 package querqy.lucene.contrib.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.when;
 import static querqy.QuerqyMatchers.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -8,6 +9,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import querqy.antlr.QueryTransformerVisitor;
 import querqy.antlr.parser.QueryLexer;
 import querqy.antlr.parser.QueryParser;
@@ -18,19 +22,28 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
+import java.util.HashMap;
+
+@RunWith(MockitoJUnitRunner.class)
 public class LuceneSynonymsRewriterTest {
 
-   QueryRewriter rewriter;
+    QueryRewriter rewriter;
 
-   @Before
-   public void setUp() throws Exception {
+    @Mock
+    SearchEngineRequestAdapter searchEngineRequestAdapter;
 
-      LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
-      factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
-      factory.build();
+    @Before
+    public void setUp() throws Exception {
 
-      rewriter = factory.createRewriter(null, null);
+        when(searchEngineRequestAdapter.getContext()).thenReturn(new HashMap<>());
+
+        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+        factory.build();
+
+        rewriter = factory.createRewriter(null, searchEngineRequestAdapter);
    }
 
    protected ExpandedQuery makeQuery(String input) {

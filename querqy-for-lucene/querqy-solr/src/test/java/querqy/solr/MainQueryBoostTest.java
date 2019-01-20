@@ -1,5 +1,12 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyDismaxParams.QBOOST_NEG_WEIGHT;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_WEIGHT;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_DFC;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
+import static querqy.solr.QuerqyDismaxParams.USER_QUERY_BOOST;
+import static querqy.solr.QuerqyDismaxParams.USER_QUERY_SIMILARITY_SCORE;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -11,7 +18,7 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class MainQueryBoostTest extends SolrTestCaseJ4 {
 
-    public void index() throws Exception {
+    public void index() {
 
         assertU(adoc("id", "1", "f1", "qup"));
         assertU(adoc("id", "2", "f1", "qup other", "f2", "u100"));
@@ -33,13 +40,13 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testIDFIsOnlyUsedInBoostQueryAndNotInUserQueryIfSimilarityIsOff() throws Exception {
+    public void testIDFIsOnlyUsedInBoostQueryAndNotInUserQueryIfSimilarityIsOff() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_OFF,
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -53,13 +60,13 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testIDFIsUsedInUserQueryIfSimilarityIsSetToDFC() throws Exception {
+    public void testIDFIsUsedInUserQueryIfSimilarityIsSetToDFC() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_DFC,
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -73,14 +80,14 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatUserQueryBoostIsAppliedIfSimilarityIsOff() throws Exception {
+    public void testThatUserQueryBoostIsAppliedIfSimilarityIsOff() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_OFF,
-                QuerqyDismaxQParser.USER_QUERY_BOOST, "60.0",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
+                USER_QUERY_BOOST, "60.0",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -101,14 +108,14 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatUserQueryBoostIsAppliedIfSimilarityIsDFC() throws Exception {
+    public void testThatUserQueryBoostIsAppliedIfSimilarityIsDFC() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_DFC,
-                QuerqyDismaxQParser.USER_QUERY_BOOST, "70.0",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
+                USER_QUERY_BOOST, "70.0",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -125,15 +132,15 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatBoostUpWeightIsAppliedIfSimilarityIsDFC() throws Exception {
+    public void testThatBoostUpWeightIsAppliedIfSimilarityIsDFC() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_DFC,
-                QuerqyDismaxQParser.USER_QUERY_BOOST, "80.0",
-                QuerqyDismaxQParser.QBOOST_WEIGHT, "3",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
+                USER_QUERY_BOOST, "80.0",
+                QBOOST_WEIGHT, "3",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -150,15 +157,15 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatBoostUpWeightIsAppliedIfSimilarityIsOff() throws Exception {
+    public void testThatBoostUpWeightIsAppliedIfSimilarityIsOff() {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_OFF,
-                QuerqyDismaxQParser.USER_QUERY_BOOST, "80.0",
-                QuerqyDismaxQParser.QBOOST_WEIGHT, "3",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
+                USER_QUERY_BOOST, "80.0",
+                QBOOST_WEIGHT, "3",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -179,15 +186,15 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatNegBoostIsAppliedIfSimilarityIsDFC() throws Exception {
+    public void testThatNegBoostIsAppliedIfSimilarityIsDFC() {
         String q = "m";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_DFC,
-                QuerqyDismaxQParser.USER_QUERY_BOOST, "80.0",
-                QuerqyDismaxQParser.QBOOST_NEG_WEIGHT, "3",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
+                USER_QUERY_BOOST, "80.0",
+                QBOOST_NEG_WEIGHT, "3",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -201,15 +208,15 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatNegBoostIsAppliedIfSimilarityIsOff() throws Exception {
+    public void testThatNegBoostIsAppliedIfSimilarityIsOff() {
         String q = "m";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
                 QueryParsing.OP, "OR",
-                QuerqyDismaxQParser.USER_QUERY_SIMILARITY_SCORE, QuerqyDismaxQParser.SIMILARITY_SCORE_OFF,
-                QuerqyDismaxQParser.USER_QUERY_BOOST, "80.0",
-                QuerqyDismaxQParser.QBOOST_NEG_WEIGHT, "3",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
+                USER_QUERY_BOOST, "80.0",
+                QBOOST_NEG_WEIGHT, "3",
                 "defType", "querqy",
                 "debugQuery", "true"
         );

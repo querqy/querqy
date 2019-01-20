@@ -2,6 +2,7 @@ package querqy.lucene.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,104 +21,116 @@ import org.apache.lucene.search.Query;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import querqy.antlr.ANTLRQueryParser;
 import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.model.ExpandedQuery;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
+@RunWith(MockitoJUnitRunner.class)
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
-   Analyzer keywordAnalyzer;
-   Map<String, Float> searchFields;
-   Set<String> stopWords;
+    Analyzer keywordAnalyzer;
+    Map<String, Float> searchFields;
+    Set<String> stopWords;
 
-   @Before
-   public void setUp() {
-      keywordAnalyzer = new KeywordAnalyzer();
-      searchFields = new HashMap<>();
-      searchFields.put("f1", 1.0f);
-      searchFields.put("f11", 1.0f);
-      searchFields.put("f12", 1.0f);
-      searchFields.put("f13", 1.0f);
-      searchFields.put("f14", 1.0f);
-      searchFields.put("f15", 1.0f);
+    @Mock
+    SearchEngineRequestAdapter searchEngineRequestAdapter;
 
-      searchFields.put("f2", 2.0f);
-      searchFields.put("f21", 2.0f);
-      searchFields.put("f22", 2.0f);
-      searchFields.put("f23", 2.0f);
-      searchFields.put("f24", 2.0f);
-      searchFields.put("f25", 2.0f);
+    @Before
+    public void setUp() {
+        keywordAnalyzer = new KeywordAnalyzer();
+        searchFields = new HashMap<>();
+        searchFields.put("f1", 1.0f);
+        searchFields.put("f11", 1.0f);
+        searchFields.put("f12", 1.0f);
+        searchFields.put("f13", 1.0f);
+        searchFields.put("f14", 1.0f);
+        searchFields.put("f15", 1.0f);
 
-      searchFields.put("f3", 3.0f);
-      searchFields.put("f31", 3.0f);
-      searchFields.put("f32", 3.0f);
-      searchFields.put("f33", 3.0f);
-      searchFields.put("f34", 3.0f);
-      searchFields.put("f35", 3.0f);
+        searchFields.put("f2", 2.0f);
+        searchFields.put("f21", 2.0f);
+        searchFields.put("f22", 2.0f);
+        searchFields.put("f23", 2.0f);
+        searchFields.put("f24", 2.0f);
+        searchFields.put("f25", 2.0f);
 
-      stopWords = new HashSet<>(Arrays.asList("stopA", "stopB", "stopC"));
-   }
+        searchFields.put("f3", 3.0f);
+        searchFields.put("f31", 3.0f);
+        searchFields.put("f32", 3.0f);
+        searchFields.put("f33", 3.0f);
+        searchFields.put("f34", 3.0f);
+        searchFields.put("f35", 3.0f);
 
-   Map<String, Float> fields(String... names) {
-      Map<String, Float> result = new HashMap<>(names.length);
-      for (String name : names) {
-         Float value = searchFields.get(name);
-         if (value == null) {
-            throw new IllegalArgumentException("No such field: " + name);
-         }
-         result.put(name, value);
-      }
-      return result;
-   }
+        stopWords = new HashSet<>(Arrays.asList("stopA", "stopB", "stopC"));
 
-   protected Query build(String input, float tie, String... names) throws IOException {
-       Map<String, Float> fields = fields(names);
+        when(searchEngineRequestAdapter.getContext()).thenReturn(new HashMap<>());
+    }
+
+    Map<String, Float> fields(String... names) {
+        Map<String, Float> result = new HashMap<>(names.length);
+        for (String name : names) {
+            Float value = searchFields.get(name);
+            if (value == null) {
+                throw new IllegalArgumentException("No such field: " + name);
+            }
+            result.put(name, value);
+        }
+        return result;
+    }
+
+    protected Query build(String input, float tie, String... names) {
+        Map<String, Float> fields = fields(names);
        
-       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-            keywordAnalyzer, searchFieldsAndBoosting, tie, null);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
+                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
-       ANTLRQueryParser parser = new ANTLRQueryParser();
-       querqy.model.Query q = parser.parse(input);
-       return builder.createQuery(q);
-   }
+        ANTLRQueryParser parser = new ANTLRQueryParser();
+        querqy.model.Query q = parser.parse(input);
+        return builder.createQuery(q);
+    }
 
-   protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
-       Map<String, Float> fields = fields(names);
+    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
+        Map<String, Float> fields = fields(names);
        
-       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-            keywordAnalyzer, searchFieldsAndBoosting, tie, null);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
+                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
-       ANTLRQueryParser parser = new ANTLRQueryParser();
-       querqy.model.Query q = parser.parse(input);
-       LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
-       factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
-       factory.build();
+        ANTLRQueryParser parser = new ANTLRQueryParser();
+        querqy.model.Query q = parser.parse(input);
+        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
+        factory.build();
 
-       QueryRewriter rewriter = factory.createRewriter(null, null);
+        QueryRewriter rewriter = factory.createRewriter(null, searchEngineRequestAdapter);
 
-       return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
+        return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
 
-   }
+    }
    
-   protected Query buildWithStopWords(String input, float tie, String... names) throws IOException {
-       Map<String, Float> fields = fields(names);
+    protected Query buildWithStopWords(String input, float tie, String... names) {
+        Map<String, Float> fields = fields(names);
        
-       SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
+        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields,
+                fields, 0.8f);
        
-       LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-               new StandardAnalyzer(new CharArraySet(stopWords, true)), searchFieldsAndBoosting, tie, null);
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
+                new DocumentFrequencyCorrection()), new StandardAnalyzer(new CharArraySet(stopWords, true)),
+                searchFieldsAndBoosting, tie, null);
        
-       ANTLRQueryParser parser = new ANTLRQueryParser();
-       querqy.model.Query q = parser.parse(input);
-       return builder.createQuery(q);
-   }
+        ANTLRQueryParser parser = new ANTLRQueryParser();
+        querqy.model.Query q = parser.parse(input);
+        return builder.createQuery(q);
+    }
 
    @Test
    public void test01() throws IOException {
@@ -331,7 +344,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
        factory.build();
 
-       QueryRewriter rewriter = factory.createRewriter(null, null);
+       QueryRewriter rewriter = factory.createRewriter(null, searchEngineRequestAdapter);
 
        Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
        

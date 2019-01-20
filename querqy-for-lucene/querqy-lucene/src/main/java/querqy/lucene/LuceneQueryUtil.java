@@ -1,5 +1,8 @@
 package querqy.lucene;
 
+import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.queries.function.ValueSource;
+import org.apache.lucene.queries.function.valuesource.QueryValueSource;
 import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.Query;
 
@@ -17,5 +20,11 @@ public class LuceneQueryUtil {
      */
     public static Query boost(final Query query, final float boostFactor) {
         return boostFactor == 1f ? query : new BoostQuery(query, boostFactor);
+    }
+
+    public static ValueSource queryToValueSource(final Query query) {
+        return (query instanceof FunctionQuery)
+                ? ((FunctionQuery)query).getValueSource()
+                : new QueryValueSource(query, 1.0f);
     }
 }

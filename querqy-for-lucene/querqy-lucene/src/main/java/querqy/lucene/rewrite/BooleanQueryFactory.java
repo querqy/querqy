@@ -45,7 +45,7 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
 
     @Override
     public Query createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
-                             final TermQueryBuilder termQueryBuilder) throws IOException {
+                             final TermQueryBuilder termQueryBuilder) {
 
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 

@@ -15,6 +15,6 @@ public interface LuceneQueryFactory<T extends Query> {
 
     void prepareDocumentFrequencyCorrection(DocumentFrequencyCorrection dfc, boolean isBelowDMQ);
 
-    T createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, TermQueryBuilder termQueryBuilder) throws IOException;
+    T createQuery(FieldBoost boost, float dmqTieBreakerMultiplier, TermQueryBuilder termQueryBuilder);
 
 }

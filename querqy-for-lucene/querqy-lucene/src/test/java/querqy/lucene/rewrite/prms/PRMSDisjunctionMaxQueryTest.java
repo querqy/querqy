@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
-import org.apache.lucene.analysis.synonym.SynonymFilter;
+import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.index.DirectoryReader;
@@ -56,7 +56,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
             @Override
             protected TokenStreamComponents createComponents(String fieldName) {
                 WhitespaceTokenizer source = new WhitespaceTokenizer();
-                TokenStream result = new SynonymFilter(source, synonyms, true);
+                TokenStream result = new SynonymGraphFilter(source, synonyms, true);
                 return new TokenStreamComponents(source, result);
             }
         };
