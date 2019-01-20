@@ -344,23 +344,23 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
         boosts.addAll(boostQueries);
         phraseBoostQuery.ifPresent(boosts::add);
 
-        if (bfs != null) {
-            for (final String bf : bfs) {
-                if (bf != null && bf.trim().length() > 0) {
-                    final Map<String, Float> ff = SolrPluginUtils.parseFieldBoosts(bf);
-                    for (final Map.Entry<String, Float> bfAndBoost : ff.entrySet()) {
-                        try {
-                            final Query fq = qParser.subQuery(bfAndBoost.getKey(), FunctionQParserPlugin.NAME).getQuery();
-                            final Float b = bfAndBoost.getValue();
-                            if (null != b && b != 1f) {
-                                boosts.add(new BoostQuery(fq, b));
-                            } else {
-                                boosts.add(fq);
-                            }
-                        } catch (final SyntaxError syntaxError) {
-                            throw new SyntaxException(syntaxError);
-                        }
+        for (final String bf : bfs) {
 
+            if (bf != null && bf.trim().length() > 0) {
+
+                final Map<String, Float> ff = SolrPluginUtils.parseFieldBoosts(bf);
+                for (final Map.Entry<String, Float> bfAndBoost : ff.entrySet()) {
+
+                    try {
+                        final Query fq = qParser.subQuery(bfAndBoost.getKey(), FunctionQParserPlugin.NAME).getQuery();
+                        final Float b = bfAndBoost.getValue();
+                        if (null != b && b != 1f) {
+                            boosts.add(new BoostQuery(fq, b));
+                        } else {
+                            boosts.add(fq);
+                        }
+                    } catch (final SyntaxError syntaxError) {
+                        throw new SyntaxException(syntaxError);
                     }
 
                 }

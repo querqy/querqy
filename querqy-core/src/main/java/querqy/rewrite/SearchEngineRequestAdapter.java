@@ -1,6 +1,4 @@
-package querqy.lucene;
-
-import querqy.rewrite.RewriteChain;
+package querqy.rewrite;
 
 import java.util.Map;
 import java.util.Optional;

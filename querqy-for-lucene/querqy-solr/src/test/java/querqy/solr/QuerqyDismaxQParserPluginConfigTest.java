@@ -22,7 +22,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
     @Test
     public void testThatFactoryConfigIsAvailable() throws Exception {
-        String q = "*:*";
+        String q = "a";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1",
@@ -40,7 +40,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
     @Test
     public void testThatParserClassConfigIsAvailable() throws Exception {
-        String q = "*:*";
+        String q = "a";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1",
@@ -58,7 +58,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
     @Test
     public void testThatParserConfigIsAvailable() throws Exception {
-        String q = "*:*";
+        String q = "a";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1",
@@ -76,7 +76,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
     @Test
     public void testThatWhiteSpaceQuerqyParserIsTheDefault() throws Exception {
-        String q = "*:*";
+        String q = "a";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1",

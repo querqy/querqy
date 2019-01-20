@@ -3,6 +3,8 @@ package querqy.solr;
 
 import static org.mockito.Mockito.when;
 
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
@@ -13,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
+
+import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DismaxSearchEngineRequestAdapterTest {
@@ -150,4 +154,81 @@ public class DismaxSearchEngineRequestAdapterTest {
         Assert.assertEquals(0, adapter.getRequestParams("p2").length);
 
     }
+
+    @Test
+    public void testThatFieldBoostingInQuerqyBoostQueriesIsOnByDefault() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        when(request.getSchema()).thenReturn(null);
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        Assert.assertTrue(adapter.useFieldBoostingInQuerqyBoostQueries());
+    }
+
+    @Test
+    public void testSettingFieldBoostingInQuerqyBoostQueriesToOn() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add(QuerqyDismaxParams.QBOOST_FIELD_BOOST, QuerqyDismaxParams.QBOOST_FIELD_BOOST_ON);
+
+        when(request.getSchema()).thenReturn(null);
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        Assert.assertTrue(adapter.useFieldBoostingInQuerqyBoostQueries());
+    }
+
+    @Test
+    public void testSettingFieldBoostingInQuerqyBoostQueriesToOff() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add(QuerqyDismaxParams.QBOOST_FIELD_BOOST, QuerqyDismaxParams.QBOOST_FIELD_BOOST_OFF);
+
+        when(request.getSchema()).thenReturn(null);
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        Assert.assertFalse(adapter.useFieldBoostingInQuerqyBoostQueries());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testThatIllegalValueForFieldBoostingInQuerqyBoostThrowsException() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add(QuerqyDismaxParams.QBOOST_FIELD_BOOST, "maybe");
+
+        when(request.getSchema()).thenReturn(null);
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        adapter.useFieldBoostingInQuerqyBoostQueries();
+
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testThatExceptionIsThrownIfThereAreNeitherQueryFieldsNorDefaultField() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+
+        when(request.getSchema()).thenReturn(null);
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        adapter.parseQueryFields(DisMaxParams.QF, 1f, true);
+
+    }
+
+    @Test
+    public void testThatParseQueryFieldsReturnsEmptyMapIfThereAreNoQueryFieldsAndDefaultFieldNotEnabled() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add(CommonParams.DF, "f1"); // setting default field but not enabling it
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        Assert.assertTrue(adapter.parseQueryFields(DisMaxParams.QF, 1f, false).isEmpty());
+    }
+
+    @Test
+    public void testThatParseQueryFieldsUsesDefaultFieldIfEnabled() {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add(CommonParams.DF, "f1"); // setting default field but not enabling it
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, null);
+        final Map<String, Float> fields = adapter.parseQueryFields(DisMaxParams.QF, 2f, true);
+        Assert.assertEquals(1, fields.size());
+        Assert.assertEquals(2f, fields.get("f1").floatValue(), 0.001f);
+    }
+
+
+
 }

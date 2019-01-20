@@ -3,13 +3,13 @@ package querqy.lucene;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.parser.QuerqyParser;
-import querqy.rewrite.RewriteChain;
 
 import java.util.List;
 import java.util.Map;

@@ -28,9 +28,11 @@ import querqy.rewrite.ContextAwareQueryRewriter;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +81,7 @@ public class QueryParsingController {
     protected final TermQueryBuilder boostTermQueryBuilder;
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
     protected final boolean addQuerqyBoostQueriesToMainQuery;
+    protected String parserDebugInfo = null;
 
     public QueryParsingController(final LuceneSearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;
@@ -156,11 +159,20 @@ public class QueryParsingController {
     public LuceneQueries process() throws SyntaxException {
 
 
-        final ExpandedQuery parsedInput = (requestAdapter.isMatchAllQuery(queryString))
-                ? new ExpandedQuery(new MatchAllQuery())
-                : new ExpandedQuery(requestAdapter.createQuerqyParser()
-                .orElseGet(QueryParsingController::newDefaultQuerqyParser).parse(queryString));
+        final ExpandedQuery parsedInput;
+        if (requestAdapter.isMatchAllQuery(queryString)) {
 
+            parsedInput = new ExpandedQuery(new MatchAllQuery());
+
+        } else {
+
+            final QuerqyParser parser = requestAdapter.createQuerqyParser()
+                    .orElseGet(QueryParsingController::newDefaultQuerqyParser);
+            if (debugQuery) {
+                parserDebugInfo = parser.getClass().getName();
+            }
+            parsedInput = new ExpandedQuery(parser.parse(queryString));
+        }
 
         final List<Query> additiveBoosts;
         final List<Query> multiplicativeBoosts;
@@ -179,7 +191,7 @@ public class QueryParsingController {
             context.put(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
         }
 
-        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain().rewrite(parsedInput, context);
+        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
 
         Query mainQuery = transformUserQuery(rewrittenQuery.getUserQuery(), builder);
 
@@ -376,6 +388,29 @@ public class QueryParsingController {
         }
 
         return result;
+    }
+
+    public Map<String, Object> getDebugInfo() {
+
+        if (debugQuery) {
+
+            Map<String, Object> info = new TreeMap<>();
+
+            if (parserDebugInfo != null) {
+                info.put("querqy.parser", parserDebugInfo);
+            }
+            final Object contextDebugInfo = requestAdapter.getContext()
+                    .get(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_DATA);
+            if (contextDebugInfo != null) {
+                info.put("querqy.rewrite", contextDebugInfo);
+            }
+            return info;
+
+        } else {
+
+            return Collections.emptyMap();
+
+        }
     }
 
     private static QuerqyParser newDefaultQuerqyParser() {

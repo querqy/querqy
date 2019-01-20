@@ -21,23 +21,24 @@ public class RewriteChain {
     final List<RewriterFactory> factories;
 
     public RewriteChain() {
-        this(Collections.<RewriterFactory> emptyList());
+        this(Collections.emptyList());
     }
 
     public RewriteChain(List<RewriterFactory> factories) {
         this.factories = factories;
     }
 
-    public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
+    public ExpandedQuery rewrite(final ExpandedQuery query,
+                                 final SearchEngineRequestAdapter searchEngineRequestAdapter) {
       
         ExpandedQuery work = query;
       
-        for (RewriterFactory factory : factories) {
+        for (final RewriterFactory factory : factories) {
          
-            QueryRewriter rewriter = factory.createRewriter(work, context);
+            final QueryRewriter rewriter = factory.createRewriter(work, searchEngineRequestAdapter);
          
             work = (rewriter instanceof ContextAwareQueryRewriter)
-                 ? ((ContextAwareQueryRewriter) rewriter).rewrite(work, context)
+                 ? ((ContextAwareQueryRewriter) rewriter).rewrite(work, searchEngineRequestAdapter)
                  : rewriter.rewrite(work);
          
         }

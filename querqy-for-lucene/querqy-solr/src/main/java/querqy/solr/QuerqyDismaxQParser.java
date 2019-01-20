@@ -4,7 +4,6 @@ import static org.apache.solr.common.SolrException.ErrorCode.*;
 
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
@@ -23,14 +22,11 @@ import querqy.parser.QuerqyParser;
 import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.RewriteChain;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class QuerqyDismaxQParser extends QParser {
-
-    public static final String MATCH_ALL_QUERY_STRING = "*:*";
 
     protected final QueryParsingController controller;
     protected final DismaxSearchEngineRequestAdapter requestAdapter;
@@ -40,10 +36,6 @@ public class QuerqyDismaxQParser extends QParser {
     protected final QuerqyParser querqyParser;
 
     protected final String userQueryString;
-
-    private static final Query MATCH_ALL_QUERY = new MatchAllDocsQuery();
-    private static final LuceneQueries MATCH_ALL_LUCENE_QUERIES = new LuceneQueries(MATCH_ALL_QUERY,
-            Collections.emptyList(), MATCH_ALL_QUERY, true);
 
     /**
      * Constructor for the QParser
@@ -107,26 +99,32 @@ public class QuerqyDismaxQParser extends QParser {
     public Query getQuery() throws SyntaxError {
         if (query==null) {
             query=parse();
+            applyLocalParams();
 
-            if (localParams != null) {
-                final String cacheStr = localParams.get(CommonParams.CACHE);
-                if (cacheStr != null) {
-                    if (CommonParams.FALSE.equals(cacheStr)) {
-                        extendedQuery().setCache(false);
-                    } else if (CommonParams.TRUE.equals(cacheStr)) {
-                        extendedQuery().setCache(true);
-                    } else if ("sep".equals(cacheStr) && !luceneQueries.areQueriesInterdependent) {
-                        extendedQuery().setCacheSep(true);
-                    }
-                }
-
-                int cost = localParams.getInt(CommonParams.COST, Integer.MIN_VALUE);
-                if (cost != Integer.MIN_VALUE) {
-                    extendedQuery().setCost(cost);
-                }
-            }
         }
         return query;
+    }
+
+    protected void applyLocalParams() {
+
+        if (localParams != null) {
+            final String cacheStr = localParams.get(CommonParams.CACHE);
+            if (cacheStr != null) {
+                if (CommonParams.FALSE.equals(cacheStr)) {
+                    extendedQuery().setCache(false);
+                } else if (CommonParams.TRUE.equals(cacheStr)) {
+                    extendedQuery().setCache(true);
+                } else if ("sep".equals(cacheStr) && !luceneQueries.areQueriesInterdependent) {
+                    extendedQuery().setCacheSep(true);
+                }
+            }
+
+            int cost = localParams.getInt(CommonParams.COST, Integer.MIN_VALUE);
+            if (cost != Integer.MIN_VALUE) {
+                extendedQuery().setCost(cost);
+            }
+        }
+
     }
 
     private ExtendedQuery extendedQuery() {
@@ -167,20 +165,9 @@ public class QuerqyDismaxQParser extends QParser {
     public void addDebugInfo(final NamedList<Object> debugInfo) {
 
         super.addDebugInfo(debugInfo);
-
-        debugInfo.add("querqy.parser", querqyParser.getClass().getName());
-
-        final Map<String, Object> context = requestAdapter.getContext();
-
-        if (context != null) {
-
-            @SuppressWarnings("unchecked") final List<String> rulesDebugInfo =
-                    (List<String>) context.get(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_DATA);
-
-            if (rulesDebugInfo != null) {
-                debugInfo.add("querqy.rewrite", rulesDebugInfo);
-            }
-
+        final Map<String, Object> info = controller.getDebugInfo();
+        for (final Map.Entry<String, Object> entry : info.entrySet()) {
+            debugInfo.add(entry.getKey(), entry.getValue());
         }
 
     }
