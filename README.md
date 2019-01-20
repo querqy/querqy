@@ -17,11 +17,11 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|7.6.0| 4.2.lucene720.x||
-|7.5.0| 4.2.lucene720.x||
-|7.4.0| 4.2.lucene720.x||
-|7.3.x| 4.2.lucene720.x||
-|7.2.x| 4.2.lucene720.x||
+|7.6.0| 4.3.lucene720.x||
+|7.5.0| 4.3.lucene720.x||
+|7.4.0| 4.3.lucene720.x||
+|7.3.x| 4.3.lucene720.x||
+|7.2.x| 4.3.lucene720.x||
 |7.1.0| 4.1.lucene700.x||
 |7.0.x| 4.1.lucene700.x|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
 |6.6.x| 3.5.x||
