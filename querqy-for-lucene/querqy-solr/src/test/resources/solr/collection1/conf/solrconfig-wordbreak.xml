@@ -47,8 +47,11 @@
 		   <lst name="rewriter">
 		   		<str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
 				 	<str name="dictionaryField">f1</str>
+				 	<arr name="reverseCompoundTriggerWords">
+						<str>für</str>
+						<str>aus</str>
+					</arr>
 		   </lst>
-
 		 </lst>
      	 
 		 <lst name="parser">
