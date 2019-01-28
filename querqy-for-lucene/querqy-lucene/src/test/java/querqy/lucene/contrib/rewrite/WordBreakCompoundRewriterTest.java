@@ -9,11 +9,20 @@ import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.must;
 import static querqy.QuerqyMatchers.term;
 
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.CombineSuggestion;
 import org.apache.lucene.search.spell.SuggestWord;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -23,13 +32,17 @@ import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.rewrite.RewriteChain;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -48,7 +61,7 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1w2", false);
 
@@ -74,7 +87,7 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1w2", false);
 
@@ -103,7 +116,7 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1w2", true);
 
@@ -134,7 +147,7 @@ public class WordBreakCompoundRewriterTest {
 
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", true);
@@ -170,7 +183,7 @@ public class WordBreakCompoundRewriterTest {
 
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1", true);
         addTerm(query, "w2", false);
@@ -206,7 +219,7 @@ public class WordBreakCompoundRewriterTest {
 
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2g", true);
@@ -245,7 +258,7 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2"), decompoundSuggestion("w", "1w2") });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1w2", false);
 
@@ -272,6 +285,41 @@ public class WordBreakCompoundRewriterTest {
         );
     }
 
+
+    @Test
+    public void testThatOnlyMaxExpansionsAreApplied() throws IOException {
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w3", "w4"), decompoundSuggestion("w", "3w4"),
+                        decompoundSuggestion("w3w", "4") });
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                false, new TrieMap<>(), 2, false);
+        Query query = new Query();
+        addTerm(query, "w3w4", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w3w4", false),
+                                bq(
+                                        dmq(must(), term("w3", true)),
+                                        dmq(must(), term("w4", true))
+                                ),
+                                bq(
+                                        dmq(must(), term("w", true)),
+                                        dmq(must(), term("3w4", true))
+                                )
+
+                        )
+
+                )
+        );
+    }
+
     @Test
     public void testCompoundTwoInputTokensOnly() throws IOException {
         // don't de-compound
@@ -283,7 +331,7 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
@@ -317,7 +365,7 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new  CombineSuggestion[] { });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, new TrieMap<>());
+                false, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
@@ -353,7 +401,7 @@ public class WordBreakCompoundRewriterTest {
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                true, new TrieMap<>());
+                true, new TrieMap<>(), 5, false);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
@@ -394,7 +442,7 @@ public class WordBreakCompoundRewriterTest {
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, triggerWords);
+                false, triggerWords, 5, false);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "trigger", false);
@@ -435,7 +483,7 @@ public class WordBreakCompoundRewriterTest {
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
-                false, triggerWords);
+                false, triggerWords, 5, false);
         Query query = new Query();
         addTerm(query, "w0", false);
         addTerm(query, "w1", false);

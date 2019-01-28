@@ -1,6 +1,8 @@
 package querqy.lucene.contrib.rewrite;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.spell.CombineSuggestion;
 import org.apache.lucene.search.spell.SuggestMode;
 import org.apache.lucene.search.spell.SuggestWord;
@@ -23,15 +25,16 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
     private static final int COMPOUND_WINDOW = 3;
-    private static final int MAX_EXPANSION = 5;
 
     private final WordBreakSpellChecker wordBreakSpellChecker;
     private final IndexReader indexReader;
@@ -48,11 +51,26 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
     private final boolean alwaysAddReverseCompounds;
 
+    private final int maxDecompoundExpansions;
+    private final int decompoundsToQuery;
+    private final boolean verifyDecompoundCollation;
+
+    /**
+     *
+     * @param wordBreakSpellChecker
+     * @param indexReader
+     * @param dictionaryField
+     * @param alwaysAddReverseCompounds
+     * @param reverseCompoundTriggerWords
+     * @param maxDecompoundExpansions
+     * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     */
     public WordBreakCompoundRewriter(final WordBreakSpellChecker wordBreakSpellChecker,
                                      final IndexReader indexReader,
                                      final String dictionaryField,
                                      final boolean alwaysAddReverseCompounds,
-                                     final TrieMap<Boolean> reverseCompoundTriggerWords) {
+                                     final TrieMap<Boolean> reverseCompoundTriggerWords,
+                                     final int maxDecompoundExpansions, final boolean verifyDecompoundCollation) {
 
         if (reverseCompoundTriggerWords == null) {
             throw new IllegalArgumentException("reverseCompoundTriggerWords must not be null");
@@ -60,9 +78,12 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
         this.reverseCompoundTriggerWords = reverseCompoundTriggerWords;
+        this.maxDecompoundExpansions = maxDecompoundExpansions;
+        this.verifyDecompoundCollation = verifyDecompoundCollation;
         this.wordBreakSpellChecker = wordBreakSpellChecker;
         this.indexReader = indexReader;
         this.dictionaryField = dictionaryField;
+        this.decompoundsToQuery = verifyDecompoundCollation ? maxDecompoundExpansions * 4 : maxDecompoundExpansions;
     }
 
     @Override
@@ -258,10 +279,46 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         return super.visit(bq);
     }
 
-    protected SuggestWord[][] suggestWordbreaks(final Term term) throws IOException {
-        return wordBreakSpellChecker.suggestWordBreaks(toLuceneTerm(term), MAX_EXPANSION, indexReader,
-                SuggestMode.SUGGEST_ALWAYS,
-                WordBreakSpellChecker.BreakSuggestionSortMethod.NUM_CHANGES_THEN_MAX_FREQUENCY);
+    protected List<SuggestWord[]> suggestWordbreaks(final Term term) throws IOException {
+        final SuggestWord[][] rawSuggestions = wordBreakSpellChecker
+                .suggestWordBreaks(toLuceneTerm(term), decompoundsToQuery, indexReader, SuggestMode.SUGGEST_ALWAYS,
+                        WordBreakSpellChecker.BreakSuggestionSortMethod.NUM_CHANGES_THEN_MAX_FREQUENCY);
+
+        if (rawSuggestions.length == 0) {
+            return Collections.emptyList();
+        }
+
+        if (!verifyDecompoundCollation) {
+            return Arrays.stream(rawSuggestions)
+                    .filter(suggestion -> suggestion != null && suggestion.length > 1)
+                    .limit(maxDecompoundExpansions).collect(Collectors.toList());
+        }
+
+        final IndexSearcher searcher = new IndexSearcher(indexReader);
+        return Arrays.stream(rawSuggestions)
+                .filter(suggestion -> suggestion != null && suggestion.length > 1)
+                .map(suggestion -> new MaxSortable<>(suggestion, countCollatedMatches(suggestion, searcher)))
+                .filter(sortable -> sortable.count > 0)
+                .sorted()
+                .limit(maxDecompoundExpansions) // TODO: use PriorityQueue
+                .map(sortable -> sortable.obj)
+                .collect(Collectors.toList());
+
+    }
+
+    protected int countCollatedMatches(final SuggestWord[] suggestion, final IndexSearcher searcher) {
+        org.apache.lucene.search.BooleanQuery.Builder builder = new org.apache.lucene.search.BooleanQuery.Builder();
+        for (final SuggestWord word : suggestion) {
+            builder.add(new org.apache.lucene.search.BooleanClause(
+                    new TermQuery(new org.apache.lucene.index.Term(dictionaryField, word.string)),
+                    org.apache.lucene.search.BooleanClause.Occur.FILTER));
+        }
+
+        try {
+            return searcher.count(builder.build());
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected CombineSuggestion[] suggestCombination(final Iterator<Term> terms) throws IOException {
@@ -272,6 +329,22 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
         return wordBreakSpellChecker.suggestWordCombinations(
                 luceneTerms.toArray(new org.apache.lucene.index.Term[0]), 10, indexReader, SuggestMode.SUGGEST_ALWAYS);
+    }
+
+    public static class MaxSortable<T> implements Comparable<MaxSortable<T>> {
+        public final T obj;
+        public final int count;
+
+        public MaxSortable(final T obj, final int count) {
+            this.obj = obj;
+            this.count = count;
+        }
+
+        @Override
+        public int compareTo(final MaxSortable<T> o) {
+            // reverse order
+            return Integer.compare(o.count, this.count);
+        }
     }
 
     private org.apache.lucene.index.Term toLuceneTerm(final Term querqyTerm) {
