@@ -30,18 +30,40 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
     private final WordBreakSpellChecker spellChecker;
     private final boolean alwaysAddReverseCompounds;
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
+    private final int maxDecompoundExpansions;
+    private final boolean verifyDecompundCollation;
 
+    /**
+     *
+     * @param indexReaderSupplier
+     * @param dictionaryField
+     * @param minSuggestionFreq
+     * @param maxCombineLength
+     * @param minBreakLength
+     * @param reverseCompoundTriggerWords
+     * @param alwaysAddReverseCompounds
+     * @param maxDecompoundExpansions
+     * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     */
     public WordBreakCompoundRewriterFactory(final Supplier<IndexReader> indexReaderSupplier,
                                             final String dictionaryField,
                                             final int minSuggestionFreq,
                                             final int maxCombineLength,
                                             final int minBreakLength,
                                             final List<String> reverseCompoundTriggerWords,
-                                            final boolean alwaysAddReverseCompounds) {
+                                            final boolean alwaysAddReverseCompounds,
+                                            final int maxDecompoundExpansions,
+                                            final boolean verifyDecompoundCollation) {
 
         this.indexReaderSupplier = indexReaderSupplier;
         this.dictionaryField = dictionaryField;
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
+        this.verifyDecompundCollation = verifyDecompoundCollation;
+        if (maxDecompoundExpansions < 0) {
+            throw new IllegalArgumentException("maxDecompoundExpansions >= 0 required. Actual value: "
+                    + maxDecompoundExpansions);
+        }
+        this.maxDecompoundExpansions = maxDecompoundExpansions;
 
         this.reverseCompoundTriggerWords = new TrieMap<>();
         if (reverseCompoundTriggerWords != null) {
@@ -59,7 +81,8 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery expandedQuery, final Map<String, ?> context) {
         return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
-                alwaysAddReverseCompounds, reverseCompoundTriggerWords);
+                alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
+                verifyDecompundCollation);
     }
 
     @Override

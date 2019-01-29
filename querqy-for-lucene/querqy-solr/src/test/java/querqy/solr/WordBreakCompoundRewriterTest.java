@@ -15,6 +15,7 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
     }
 
     private static void addDocs() {
+
         assertU(adoc("id", "1",
                 "f1", "herren"));
         assertU(adoc("id", "2",
@@ -26,12 +27,36 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 "f2", "kinder"));
         assertU(adoc("id", "5",
                 "f1", "damenjacke lila"));
+        assertU(adoc("id", "6",
+                "f1", "kinder"));
         assertU(commit());
+        
     }
 
     @Test
-    public void testWordbreakDecompounding() {
-        String q = "schöne herrenjacke";
+    public void testWordBreakDecompounding() {
+        String q = "herrenjacke";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.MM, "100%",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Misssing decompound",
+                req,
+                "//result[@name='response' and @numFound='1']",
+                "//doc/str[@name='id'][contains(.,'2')]"
+        );
+
+
+        req.close();
+    }
+
+    @Test
+    public void testVerifyCollationInWordBreakDecompounding() {
+        String q = "kinderjacke";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2",
@@ -40,9 +65,9 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 "debugQuery", "on"
         );
 
-        assertQ("Decompounding failed",
+        assertQ("Decompound collation not verified",
                 req,
-                "//result[@name='response' and @numFound='1']/doc[1]/str[@name='id'][text()='2']"
+                "//result[@name='response' and @numFound='0']"
         );
 
         req.close();
@@ -104,4 +129,27 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
 
         req.close();
     }
+
+    @Test
+    public void testDoNotVerifyCollationInWordBreakDecompounding() {
+        String q = "kinderjacke";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.MM, "100%",
+                "defType", "querqyNoCollation",
+                "debugQuery", "on"
+        );
+
+        assertQ("Decompound collation verified when it should not",
+                req,
+                "//result[@name='response' and @numFound='1']",
+                "//doc/str[@name='id'][contains(.,'4')]"
+        );
+
+        req.close();
+    }
+
+
+
 }
