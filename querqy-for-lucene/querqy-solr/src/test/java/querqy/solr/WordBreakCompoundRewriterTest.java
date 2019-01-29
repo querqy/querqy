@@ -31,7 +31,6 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 "f1", "kinder"));
         assertU(commit());
         
-        assertU(commit());
     }
 
     @Test
