@@ -24,10 +24,7 @@ import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCase {
 
@@ -182,6 +179,16 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
         @Override
         public boolean isDebugQuery() {
             return false;
+        }
+
+        @Override
+        public void setAppliedRules(List<String> rules) {
+            return;
+        }
+
+        @Override
+        public List<String> getAppliedRules() {
+            return new ArrayList<>();
         }
     }
 }

@@ -44,7 +44,8 @@ public class QuerqyQueryComponent extends QueryComponent {
                     filters.addAll(filterQueries);
                 }
             }
-            
+            List<String> querqyRules = ((QuerqyDismaxQParser) parser).getAppliedRules();
+            rb.rsp.add("APPLIED_RULES", querqyRules);
         }
     }
 

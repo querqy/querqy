@@ -17,6 +17,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.InputSequenceElement;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 public class RulesCollectionTest {
 
@@ -389,7 +390,7 @@ public class RulesCollectionTest {
 
       @Override
       public void apply(PositionSequence<Term> sequence,
-            TermMatches termsMatches, int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
+                        TermMatches termsMatches, int startPosition, int endPosition, ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
       }
 
     @Override

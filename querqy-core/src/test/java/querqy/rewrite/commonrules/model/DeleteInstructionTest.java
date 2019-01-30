@@ -12,10 +12,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import querqy.model.BoostQuery;
-import querqy.model.DisjunctionMaxQuery;
-import querqy.model.ExpandedQuery;
-import querqy.model.Query;
+import querqy.model.*;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.LineParser;
@@ -36,7 +33,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
       ExpandedQuery query = makeQuery("a");
-      Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+      Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -62,7 +59,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       querqy.model.Term termB = new querqy.model.Term(dmq, null, "b");
       dmq.addClause(termB);
 
-      Query rewritten = (Query) rewriter.rewrite(expandedQuery, EMPTY_CONTEXT).getUserQuery();
+      Query rewritten = (Query) rewriter.rewrite(expandedQuery, new EmptySearchRequestAdapter()).getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -88,7 +85,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       querqy.model.Term termB = new querqy.model.Term(dmq, null, "a");
       dmq.addClause(termB);
 
-      Query rewritten = (Query) rewriter.rewrite(expandedQuery, EMPTY_CONTEXT).getUserQuery();
+      Query rewritten = (Query) rewriter.rewrite(expandedQuery, new EmptySearchRequestAdapter()).getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -106,7 +103,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       RulesCollection rules = builder.build();
       CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
-      Query rewritten = (Query) rewriter.rewrite(makeQuery("a b"), EMPTY_CONTEXT).getUserQuery();
+      Query rewritten = (Query) rewriter.rewrite(makeQuery("a b"), new EmptySearchRequestAdapter()).getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -124,7 +121,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       RulesCollection rules = builder.build();
       CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
-      Query rewritten = (Query) rewriter.rewrite(makeQuery("a a"), EMPTY_CONTEXT).getUserQuery();
+      Query rewritten = (Query) rewriter.rewrite(makeQuery("a a"), new EmptySearchRequestAdapter()).getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -154,7 +151,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
        ExpandedQuery query = makeQuery("x klm");
 
 
-       Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+       Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
 
 
        assertThat(rewritten,
@@ -187,7 +184,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         ExpandedQuery query = makeQuery("x ab klm");
 
 
-        Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
 
 
         assertThat(rewritten,
@@ -219,7 +216,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         ExpandedQuery query = makeQuery("klm");
 
 
-        Query rewritten = (Query) rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
 
 
         assertThat(rewritten,

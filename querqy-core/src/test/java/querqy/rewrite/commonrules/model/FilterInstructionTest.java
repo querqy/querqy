@@ -39,7 +39,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -71,7 +71,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
 
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getFilterQueries();
 
         assertNotNull(filterQueries);
         assertEquals(1, filterQueries.size());
@@ -104,7 +104,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -131,7 +131,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
         assertFalse(mainQuery.isGenerated());
 
     }
