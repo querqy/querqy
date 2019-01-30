@@ -86,6 +86,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     private final String minShouldMatch;
     private final Map<String, Object> context;
     private final QParser qParser;
+    private final List<String> appliedRules;
 
     public DismaxSearchEngineRequestAdapter(final QParser qParser, final SolrQueryRequest request,
                                             final String queryString, final SolrParams solrParams,
@@ -99,6 +100,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
         this.request = request;
         this.rewriteChain = rewriteChain;
         this.context = new HashMap<>();
+        this.appliedRules = new ArrayList<>();
 
         final int ps0 = solrParams.getInt(PS, 0);
         final int ps2 = solrParams.getInt(PS2, ps0);
@@ -513,5 +515,14 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     @Override
     public Optional<Double> getDoubleRequestParam(final String name) {
         return Optional.ofNullable(solrParams.getDouble(name));
+    }
+
+
+    public void setAppliedRules(List<String> rules) {
+        appliedRules.addAll(rules);
+    }
+
+    public List<String> getAppliedRules() {
+        return appliedRules;
     }
 }
