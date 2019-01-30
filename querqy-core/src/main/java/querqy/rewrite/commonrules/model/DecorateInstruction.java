@@ -10,6 +10,7 @@ import java.util.Set;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 /**
  * @author René Kriegler, @renekrie
@@ -34,13 +35,13 @@ public class DecorateInstruction implements Instruction {
     @Override
     public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
             int startPosition, int endPosition, ExpandedQuery expandedQuery,
-            Map<String, Object> context) {
+                      SearchEngineRequestAdapter searchEngineRequestAdapter) {
         
         @SuppressWarnings("unchecked")
-        Set<Object> decorations = (Set<Object>) context.get(CONTEXT_KEY);
+        Set<Object> decorations = (Set<Object>) searchEngineRequestAdapter.getContext().get(CONTEXT_KEY);
         if (decorations == null) {
             decorations = new HashSet<>();
-            context.put(CONTEXT_KEY, decorations);
+            searchEngineRequestAdapter.getContext().put(CONTEXT_KEY, decorations);
         }
         
         decorations.add(decorationValue);

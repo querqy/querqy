@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package querqy.solr;
 
@@ -28,13 +28,13 @@ public class QuerqyQueryComponent extends QueryComponent {
      */
     @Override
     public void prepare(ResponseBuilder rb) throws IOException {
-        
+
         super.prepare(rb);
-        
+
         QParser parser = rb.getQparser();
-        
+
         if (parser instanceof QuerqyDismaxQParser) {
-        
+
             List<Query> filterQueries = ((QuerqyDismaxQParser) parser).getFilterQueries();
             if ((filterQueries != null) && !filterQueries.isEmpty()) {
                 List<Query> filters = rb.getFilters();
@@ -44,7 +44,7 @@ public class QuerqyQueryComponent extends QueryComponent {
                     filters.addAll(filterQueries);
                 }
             }
-            
+
         }
     }
 
@@ -53,13 +53,13 @@ public class QuerqyQueryComponent extends QueryComponent {
      */
     @Override
     public void process(ResponseBuilder rb) throws IOException {
-        
+
         super.process(rb);
-        
+
         QParser parser = rb.getQparser();
-        
+
         if (parser instanceof QuerqyDismaxQParser) {
-            
+
             Map<String, Object> context = ((QuerqyDismaxQParser) parser).getContext();
             if (context != null) {
 
@@ -68,7 +68,7 @@ public class QuerqyQueryComponent extends QueryComponent {
                 if (decorations != null) {
                     rb.rsp.add("querqy_decorations", decorations);
                 }
-                
+
             }
         }
 

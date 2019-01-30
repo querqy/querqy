@@ -8,6 +8,7 @@ import java.util.List;
 
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
+import querqy.rewrite.commonrules.Properties;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -24,6 +25,12 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
         this.ignoreCase = ignoreCase;
+    }
+
+
+    @Override
+    public void addRule(Input input, Properties properties) {
+       this.addRule(input, properties.getInstructions());
     }
 
     /* (non-Javadoc)

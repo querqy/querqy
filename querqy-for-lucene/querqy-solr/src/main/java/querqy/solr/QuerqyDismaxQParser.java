@@ -46,8 +46,8 @@ public class QuerqyDismaxQParser extends QParser {
      * @param req         The original {@link SolrQueryRequest}.
      */
     public QuerqyDismaxQParser(final String qstr, final SolrParams localParams, final SolrParams params,
-                                final SolrQueryRequest req, final QuerqyParser querqyParser,
-                                final RewriteChain rewriteChain, final TermQueryCache termQueryCache) {
+                               final SolrQueryRequest req, final QuerqyParser querqyParser,
+                               final RewriteChain rewriteChain, final TermQueryCache termQueryCache) {
         super(qstr, localParams, params, req);
         final String q = Objects.requireNonNull(qstr).trim();
         if (q.isEmpty()) {

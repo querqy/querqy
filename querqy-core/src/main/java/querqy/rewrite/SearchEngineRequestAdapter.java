@@ -1,5 +1,6 @@
 package querqy.rewrite;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -74,6 +75,7 @@ public interface SearchEngineRequestAdapter {
      */
     Optional<Double> getDoubleRequestParam(String name);
 
+
     /**
      * <p>Should debug information be collected while rewriting the query?</p>
      * <p>Debug information will be kept in the context map under the
@@ -85,4 +87,15 @@ public interface SearchEngineRequestAdapter {
      */
     boolean isDebugQuery();
 
+    /**
+     * Set applied Rules for the search term
+     * @param rules
+     */
+    void setAppliedRules(List<String> rules);
+
+    /**
+     * Fetch applied Rules for the search term
+     * @return
+     */
+    List<String> getAppliedRules();
 }

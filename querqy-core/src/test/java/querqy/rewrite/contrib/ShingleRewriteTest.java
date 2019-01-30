@@ -258,7 +258,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         ShingleRewriter shingleRewriter = new ShingleRewriter(false);
 
         ExpandedQuery query = makeQuery("p1xyz t2");
-        query = commonRulesRewriter.rewrite(query, EMPTY_CONTEXT);
+        query = commonRulesRewriter.rewrite(query, new EmptySearchRequestAdapter());
         query = shingleRewriter.rewrite(query);
         
         assertThat((Query) query.getUserQuery(),

@@ -10,6 +10,7 @@ import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 /**
  * @author René Kriegler, @renekrie
@@ -48,7 +49,7 @@ public class DeleteInstruction implements Instruction {
     */
    @Override
    public void apply(PositionSequence<querqy.model.Term> sequence, TermMatches termMatches,
-           int startPosition, int endPosition, ExpandedQuery expandedQuery,  Map<String, Object> context) {
+                     int startPosition, int endPosition, ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
       // make sure that at least one term will be left in the query after we
       // apply this instruction
 
