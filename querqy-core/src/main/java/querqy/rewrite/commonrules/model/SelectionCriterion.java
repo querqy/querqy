@@ -1,14 +1,12 @@
-package querqy.model;
-
-import querqy.rewrite.commonrules.model.Action;
+package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
-public class SelectionCriteria implements Criteria {
+public class SelectionCriterion implements Criterion {
 
     int size;
 
-    public SelectionCriteria(int size) {
+    public SelectionCriterion(int size) {
         this.size = size;
     }
 
@@ -28,7 +26,7 @@ public class SelectionCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return "SelectionCriteria{" +
+        return "SelectionCriterion{" +
                 "size=" + size +
                 '}';
     }

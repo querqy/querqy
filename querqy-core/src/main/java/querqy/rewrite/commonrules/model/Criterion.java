@@ -1,10 +1,8 @@
-package querqy.model;
-
-import querqy.rewrite.commonrules.model.Action;
+package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
-public interface Criteria {
+public interface Criterion {
 
     boolean isValid(Action action);
 

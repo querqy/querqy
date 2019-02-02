@@ -3,7 +3,6 @@
  */
 package querqy.rewrite.commonrules;
 
-import org.apache.commons.collections4.CollectionUtils;
 import querqy.model.*;
 import querqy.model.Term;
 import querqy.rewrite.ContextAwareQueryRewriter;
@@ -28,7 +27,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
     protected final LinkedList<PositionSequence<Term>> sequencesStack;
     protected ExpandedQuery expandedQuery;
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
-    protected SelectionStratedgy selectionStratedgy;
+    protected SelectionStrategy selectionStrategy;
 
    /**
      *
@@ -36,14 +35,14 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
    public CommonRulesRewriter(RulesCollection rules) {
       this.rules = rules;
       sequencesStack = new LinkedList<>();
-      selectionStratedgy = SelectionStratedgyFactory.getInstance().getSelectionStratedgy(Constants.DEFAULT_SELECTION_STRATEDGY);
+      selectionStrategy = SelectionStrategyFactory.getInstance().getSelectionStrategy(Constants.DEFAULT_SELECTION_STRATEGY);
    }
 
-    public CommonRulesRewriter(RulesCollection rules,  String ruleSelectionStratedgy) {
+    public CommonRulesRewriter(RulesCollection rules,  String ruleSelectionStrategy) {
         this.rules = rules;
         sequencesStack = new LinkedList<>();
-        selectionStratedgy = SelectionStratedgyFactory.getInstance()
-                .getSelectionStratedgy(ruleSelectionStratedgy);
+        selectionStrategy = SelectionStrategyFactory.getInstance()
+                .getSelectionStrategy(ruleSelectionStrategy);
     }
 
    @Override
@@ -101,7 +100,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        }
 
        List<Action> actions = rules.getRewriteActions(sequenceForLookUp);
-       actions = selectionStratedgy.selectActions(actions, retrieveCriterionFromRequest());
+       actions = selectionStrategy.selectActions(actions, retrieveCriteriaFromRequest());
        final List<String> appliedRules = new ArrayList<>();
        actions.stream()
                .map(Action::getInstructions)
@@ -160,36 +159,37 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
       return super.visit(term);
    }
 
-    public Criterion retrieveCriterionFromRequest() {
-        Optional<String> sort = searchEngineRequestAdapter.getRequestParam("rules.criteria.sort");
-        Optional<String> size = searchEngineRequestAdapter.getRequestParam("rules.criteria.size");
-        String[] filters = searchEngineRequestAdapter.getRequestParams("rules.criteria.filter");
+    public Criteria retrieveCriteriaFromRequest() {
 
-        Criterion criterion = new Criterion();
+        final Optional<String> sort = searchEngineRequestAdapter.getRequestParam("rules.criteria.sort");
+        final Optional<String> size = searchEngineRequestAdapter.getRequestParam("rules.criteria.size");
+        final String[] filters = searchEngineRequestAdapter.getRequestParams("rules.criteria.filter");
+
+        final Criteria criteria = new Criteria();
 
         sort.ifPresent(sortStr -> {
-            String[] sortCriteria = sortStr.split("\\s+");
-            if (sortCriteria.length == 2) {
-                criterion.add(new SortCriteria(sortCriteria[0], sortCriteria[1]));
+            String[] sortCriterion = sortStr.split("\\s+"); // FIXME: precompile regex
+            if (sortCriterion.length == 2) {
+                criteria.add(new SortCriterion(sortCriterion[0], sortCriterion[1]));
             }
         });
 
         if (size.isPresent()) {
-            criterion.add(new SelectionCriteria(Integer.valueOf(size.get())));
+            criteria.add(new SelectionCriterion(Integer.valueOf(size.get())));
         } else {
-            criterion.add(new SelectionCriteria(-1));
+            criteria.add(new SelectionCriterion(-1));
         }
 
-        if (filters != null) {
-            Arrays.asList(filters).parallelStream().forEach(filterStr -> {
-                String[] filterArr = filterStr.split(":");
-                if (filterArr.length == 2) {
-                    criterion
-                            .add(new FilterCriteria(filterArr[0].trim(), filterArr[1].trim()));
-                }
-            });
-        }
+        // FIXME: throw exception on syntax error
+        // FIXME: check for empty name/value
+        // FIXME: precompile regex
+        Arrays.asList(filters).parallelStream().forEach(filterStr -> {
+            String[] filterArr = filterStr.split(":");
+            if (filterArr.length == 2) {
+                criteria.add(new FilterCriterion(filterArr[0].trim(), filterArr[1].trim()));
+            }
+        });
 
-        return criterion;
+        return criteria;
     }
 }

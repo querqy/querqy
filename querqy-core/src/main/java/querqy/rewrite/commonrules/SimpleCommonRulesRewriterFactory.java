@@ -23,7 +23,7 @@ import querqy.utils.Constants;
 public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
 
     final RulesCollection rules;
-    final String ruleSelectionStratedgy;
+    final String ruleSelectionStrategy;
 
     /**
      * @param reader
@@ -34,7 +34,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
     public SimpleCommonRulesRewriterFactory(final Reader reader, final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase) throws IOException {
         try {
-            ruleSelectionStratedgy = Constants.DEFAULT_SELECTION_STRATEDGY;
+            ruleSelectionStrategy = Constants.DEFAULT_SELECTION_STRATEGY;
             rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
         } catch (final RuleParseException e) {
             throw new IOException(e);
@@ -55,10 +55,10 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
      * @throws IOException
      */
     public SimpleCommonRulesRewriterFactory(final Reader reader, final QuerqyParserFactory querqyParserFactory,
-                                            final boolean ignoreCase, final String ruleSelectionStratedgy)
+                                            final boolean ignoreCase, final String ruleSelectionStrategy)
             throws IOException {
         try {
-            this.ruleSelectionStratedgy = ruleSelectionStratedgy;
+            this.ruleSelectionStrategy = ruleSelectionStrategy;
             rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
         } catch (final RuleParseException e) {
             throw new IOException(e);
@@ -80,7 +80,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
      */
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {
-        return new CommonRulesRewriter(rules, ruleSelectionStratedgy);
+        return new CommonRulesRewriter(rules, ruleSelectionStrategy);
     }
 
     @Override

@@ -1,20 +1,20 @@
-package querqy.model;
+package querqy.rewrite.commonrules.model;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
-public class Criterion extends LinkedList<Criteria> {
+public class Criteria extends LinkedList<Criterion> {
 
     /**
      *
      */
     private static final long serialVersionUID = 1L;
 
-    public Criterion() {
+    public Criteria() {
         super();
     }
 
-    public Criterion(Collection<Criteria> criterion) {
+    public Criteria(Collection<Criterion> criterion) {
         super(criterion);
     }
 

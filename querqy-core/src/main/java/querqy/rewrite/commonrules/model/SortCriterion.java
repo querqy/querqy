@@ -1,18 +1,15 @@
-package querqy.model;
-
-import querqy.rewrite.commonrules.model.Action;
-import querqy.rewrite.commonrules.model.Instructions;
+package querqy.rewrite.commonrules.model;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SortCriteria implements Criteria {
+public class SortCriterion implements Criterion {
 
     private String name;
     private String type; // TODO: change this into an enum ASC(factor=1), DESC(factor=-1) and use factor * .compare()
 
-    public SortCriteria(final String name, final String type) {
+    public SortCriterion(final String name, final String type) {
         this.name = name;
         this.type = type;
     }
@@ -73,7 +70,7 @@ public class SortCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return "SortCriteria{" +
+        return "SortCriterion{" +
                 "field='" + name + '\'' +
                 ", type='" + type + '\'' +
                 '}';

@@ -1,18 +1,15 @@
-package querqy.model;
+package querqy.rewrite.commonrules.model;
 
-
-import querqy.rewrite.commonrules.model.Action;
-import querqy.rewrite.commonrules.model.Instructions;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FilterCriteria implements Criteria {
+public class FilterCriterion implements Criterion {
 
     private final String name;
     private final String value;
 
-    public FilterCriteria(final String name, final String value) {
+    public FilterCriterion(final String name, final String value) {
         this.name = name;
         this.value = value;
     }
@@ -39,7 +36,7 @@ public class FilterCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return "FilterCriteria{" +
+        return "FilterCriterion{" +
                 "field='" + name + '\'' +
                 ", value='" + value + '\'' +
                 '}';

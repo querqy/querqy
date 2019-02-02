@@ -35,9 +35,10 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
             throw new IllegalArgumentException("Property 'rules' not configured");
         }
 
-        String ruleSelectionStratedgy = (String) args.get(Constants.SELECTION_STRATEDGY);
-        if(ruleSelectionStratedgy == null) {
-            ruleSelectionStratedgy = Constants.DEFAULT_SELECTION_STRATEDGY;
+        // FIXME validate
+        String ruleSelectionStrategy = (String) args.get(Constants.SELECTION_STRATEGY);
+        if (ruleSelectionStrategy == null) {
+            ruleSelectionStrategy = Constants.DEFAULT_SELECTION_STRATEGY;
         }
 
 
@@ -61,7 +62,7 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
         return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
                 new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"),
                 querqyParser,
-                ignoreCase == null || ignoreCase, ruleSelectionStratedgy);
+                ignoreCase == null || ignoreCase, ruleSelectionStrategy);
     }
 
 }
