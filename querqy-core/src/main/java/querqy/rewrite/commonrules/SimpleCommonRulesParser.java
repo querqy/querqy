@@ -20,7 +20,6 @@ import querqy.utils.Constants;
 public class SimpleCommonRulesParser {
 
     static final String EMPTY = "".intern();
-    static final String ARROW_OP = "=>";
 
     final BufferedReader reader;
     final QuerqyParserFactory querqyParserFactory;
@@ -28,25 +27,14 @@ public class SimpleCommonRulesParser {
     final RulesCollectionBuilder builder;
     Input input = null;
     Instructions instructions = null;
-    Map<String, String> propertyMap = null;
 
-    @Deprecated
-    public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory, boolean ignoreCase) {
-        this(in, querqyParserFactory, ignoreCase, Constants.DEFAULT_RULES_MAP);
-    }
 
-    public SimpleCommonRulesParser(Reader in, QuerqyParserFactory querqyParserFactory, boolean ignoreCase, String rulesMapType) {
+    public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
+                                   final boolean ignoreCase) {
 
         this.reader = new BufferedReader(in);
         this.querqyParserFactory = querqyParserFactory;
-        switch (rulesMapType) {
-            case Constants.PROPERTY_RULES_MAP:
-                builder = new TrieMapRulesPropertiesCollectionBuilder(ignoreCase);
-                break;
-            case Constants.DEFAULT_RULES_MAP:
-            default:
-                builder = new TrieMapRulesCollectionBuilder(ignoreCase);
-        }
+        this.builder = new TrieMapRulesCollectionBuilder(ignoreCase);
     }
 
     public RulesCollection parse() throws IOException, RuleParseException {
@@ -73,7 +61,7 @@ public class SimpleCommonRulesParser {
             if (instructions.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
-            builder.addRule(input,  new Properties(instructions, propertyMap));
+            builder.addRule(input,  instructions);
             input = null;
             //  instructions = new Instructions();
         }
@@ -87,13 +75,12 @@ public class SimpleCommonRulesParser {
                 putRule();
                 input = (Input) lineObject;
                 instructions = new Instructions();
-                propertyMap = new HashMap<>();
             } else if (lineObject instanceof ValidationError) {
                 throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
                 instructions.add((Instruction) lineObject);
             } else if (lineObject instanceof Map.Entry) {
-                propertyMap.put((String) ((Map.Entry) lineObject).getKey(),
+                instructions.addProperty((String) ((Map.Entry) lineObject).getKey(),
                         (String) ((Map.Entry) lineObject).getValue());
             }
 

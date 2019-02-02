@@ -1,6 +1,5 @@
 package querqy.rewrite.commonrules.model;
 
-import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import querqy.model.*;
@@ -10,7 +9,6 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -39,7 +37,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -71,7 +69,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
 
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getFilterQueries();
 
         assertNotNull(filterQueries);
         assertEquals(1, filterQueries.size());
@@ -104,7 +102,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -131,7 +129,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("x");
-        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
         assertFalse(mainQuery.isGenerated());
 
     }

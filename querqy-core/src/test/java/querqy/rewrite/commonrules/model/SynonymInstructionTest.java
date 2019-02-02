@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import querqy.model.EmptySearchRequestAdapter;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
@@ -25,7 +25,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -51,7 +51,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a b c");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -84,7 +84,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -108,7 +108,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a b");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -135,7 +135,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a b c");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -173,7 +173,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("p1xyz");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -203,7 +203,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("busstop");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -233,7 +233,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("p1 p2xyz");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(
@@ -272,7 +272,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("p1");
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
         assertThat(rewritten,
               bq(

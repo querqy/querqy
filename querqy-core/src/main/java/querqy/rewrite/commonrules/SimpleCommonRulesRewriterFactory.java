@@ -52,15 +52,14 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
      * @param reader
      * @param querqyParserFactory
      * @param ignoreCase
-     * @param rulesMapType
      * @throws IOException
      */
     public SimpleCommonRulesRewriterFactory(final Reader reader, final QuerqyParserFactory querqyParserFactory,
-                                            final boolean ignoreCase, String rulesMapType, String ruleSelectionStratedgy)
+                                            final boolean ignoreCase, final String ruleSelectionStratedgy)
             throws IOException {
         try {
             this.ruleSelectionStratedgy = ruleSelectionStratedgy;
-            rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase, rulesMapType).parse();
+            rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
         } catch (final RuleParseException e) {
             throw new IOException(e);
         } finally {

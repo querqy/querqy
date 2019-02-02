@@ -1,7 +1,7 @@
 package querqy.model;
 
-import org.apache.commons.collections4.CollectionUtils;
 import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.Instructions;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,55 +9,72 @@ import java.util.List;
 
 public class SortCriteria implements Criteria {
 
-    private String field;
-    private String type;
+    private String name;
+    private String type; // TODO: change this into an enum ASC(factor=1), DESC(factor=-1) and use factor * .compare()
 
-    public SortCriteria(String field, String type) {
-        this.field = field;
+    public SortCriteria(final String name, final String type) {
+        this.name = name;
         this.type = type;
     }
 
     @Override
-    public List<Action> apply(List<Action> actions) {
+    public List<Action> apply(final List<Action> actions) {
+        // FIXME: avoid changing the input list
         Collections.sort(actions, new Comparator<Action>() {
             @Override
             public int compare(Action o1, Action o2) {
 
-                if (!(CollectionUtils.isNotEmpty(o1.getProperties())
-                        && CollectionUtils.isNotEmpty(o2.getProperties())
-                        && o1.getProperties().get(0) != null
-                        && o2.getProperties().get(0) != null
-                        && o1.getProperties().get(0).getPropertyMap() != null
-                        && o2.getProperties().get(0).getPropertyMap() != null)) {
+                final List<Instructions> instructions1 = o1.getInstructions();
+                if (instructions1.isEmpty()) {
                     return 0;
                 }
-                String o1Value = o1.getProperties().get(0).getPropertyMap().getOrDefault(field, "");
-                String o2Value = o2.getProperties().get(0).getPropertyMap().getOrDefault(field, "");
-
-                if (type.equals("asc")) {
-                    return o1Value.compareTo(o2Value);
-                } else if (type.equals("desc")) {
-                    return o2Value.compareTo(o1Value);
+                final List<Instructions> instructions2 = o2.getInstructions();
+                if (instructions2.isEmpty()) {
+                    return 0;
                 }
-                return 0;
+
+                return instructions1.get(0)
+                        .getProperty(name)
+                        .map( o1Value ->
+                            instructions2.get(0)
+                                    .getProperty(name)
+                                    .map(o2Value -> {
+
+                                        if (type.equals("asc")) {
+                                            return o1Value.compareTo(o2Value);
+                                        } else if (type.equals("desc")) {
+                                            return o2Value.compareTo(o1Value);
+                                        }
+
+                                        return 0;
+                                    }).orElse(0)
+
+                            ).orElse(0);
+
+
+
             }
         });
         return actions;
     }
 
     @Override
-    public boolean isValid(Action action) {
+    public boolean isValid(final Action action) {
 
-        return (CollectionUtils.isNotEmpty(action.getProperties())
-                && action.getProperties().get(0) != null
-                && action.getProperties().get(0).getPropertyMap() != null
-                && action.getProperties().get(0).getPropertyMap().containsKey(field));
+        final List<Instructions> instructions = action.getInstructions();
+        if (instructions.isEmpty()) {
+            return false;
+        }
+
+        // FIXME: I don't think this is the correct semantics for sorting (this seems to filter)
+        return instructions.get(0).getProperty(name).isPresent();
+
     }
 
     @Override
     public String toString() {
         return "SortCriteria{" +
-                "field='" + field + '\'' +
+                "field='" + name + '\'' +
                 ", type='" + type + '\'' +
                 '}';
     }

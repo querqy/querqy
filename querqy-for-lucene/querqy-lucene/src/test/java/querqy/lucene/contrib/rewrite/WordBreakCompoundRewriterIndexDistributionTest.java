@@ -18,10 +18,9 @@ import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
-import querqy.rewrite.RewriteChain;
-import querqy.rewrite.SearchEngineRequestAdapter;
 
 import java.io.IOException;
 import java.util.*;
@@ -84,7 +83,7 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
             try {
                 rewritten = new WordBreakCompoundRewriterFactory(() -> reader, "dict", 1, 2, 1, Collections.emptyList(),
                         false, 2, true)
-                        .createRewriter(expandedQuery, new DummySearchEngineRequestAdapter())
+                        .createRewriter(expandedQuery, new EmptySearchEngineRequestAdapter())
                         .rewrite(expandedQuery);
             } finally {
                 reader.close();
@@ -133,62 +132,4 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
         dmq.addClause(term);
     }
 
-
-    private static class DummySearchEngineRequestAdapter implements SearchEngineRequestAdapter {
-
-        @Override
-        public RewriteChain getRewriteChain() {
-            return null;
-        }
-
-        @Override
-        public Map<String, Object> getContext() {
-            return null;
-        }
-
-        @Override
-        public Optional<String> getRequestParam(String name) {
-            return Optional.empty();
-        }
-
-        @Override
-        public String[] getRequestParams(String name) {
-            return new String[0];
-        }
-
-        @Override
-        public Optional<Boolean> getBooleanRequestParam(String name) {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<Integer> getIntegerRequestParam(String name) {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<Float> getFloatRequestParam(String name) {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<Double> getDoubleRequestParam(String name) {
-            return Optional.empty();
-        }
-
-        @Override
-        public boolean isDebugQuery() {
-            return false;
-        }
-
-        @Override
-        public void setAppliedRules(List<String> rules) {
-            return;
-        }
-
-        @Override
-        public List<String> getAppliedRules() {
-            return new ArrayList<>();
-        }
-    }
 }

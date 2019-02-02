@@ -87,15 +87,4 @@ public interface SearchEngineRequestAdapter {
      */
     boolean isDebugQuery();
 
-    /**
-     * Set applied Rules for the search term
-     * @param rules
-     */
-    void setAppliedRules(List<String> rules);
-
-    /**
-     * Fetch applied Rules for the search term
-     * @return
-     */
-    List<String> getAppliedRules();
 }

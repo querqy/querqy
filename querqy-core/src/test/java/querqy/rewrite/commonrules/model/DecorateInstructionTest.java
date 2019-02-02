@@ -6,13 +6,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
 
-import querqy.model.EmptySearchRequestAdapter;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
@@ -34,7 +32,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a x");
-        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchRequestAdapter();
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
         
@@ -58,7 +56,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("");
-        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchRequestAdapter();
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
         
@@ -86,7 +84,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
 
         ExpandedQuery query = makeQuery("a x");
-        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchRequestAdapter();
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
         

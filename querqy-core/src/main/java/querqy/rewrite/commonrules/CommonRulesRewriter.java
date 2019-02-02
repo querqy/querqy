@@ -102,14 +102,16 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
 
        List<Action> actions = rules.getRewriteActions(sequenceForLookUp);
        actions = selectionStratedgy.selectActions(actions, retrieveCriterionFromRequest());
-       List<String> appliedRules = new ArrayList<>();
-       actions.stream().filter(action -> !CollectionUtils.isEmpty(action.getProperties())
-               && action.getProperties().get(0).getPropertyMap() != null
-               && action.getProperties().get(0).getPropertyMap().containsKey("id"))
-               .forEach(action -> appliedRules
-                       .add(action.getProperties().get(0).getPropertyMap().get("id")));
+       final List<String> appliedRules = new ArrayList<>();
+       actions.stream()
+               .map(Action::getInstructions)
+               .flatMap(Collection::stream)
+               // FIXME make this configurable or at least avoid 'magic number'
+               .forEach(instructions -> instructions.getProperty("id")
+                       .ifPresent(appliedRules::add));
 
-       searchEngineRequestAdapter.setAppliedRules(appliedRules);
+
+       //searchEngineRequestAdapter.setAppliedRules(appliedRules); // FIXME: use DECORATION
 
        for (Action action : actions) {
            if (isDebug) {

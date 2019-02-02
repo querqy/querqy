@@ -5,7 +5,7 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 
 import java.util.*;
 
-public class EmptySearchRequestAdapter implements SearchEngineRequestAdapter {
+public class EmptySearchEngineRequestAdapter implements SearchEngineRequestAdapter {
 
     Map<String, Object> context = new HashMap<>();
 
@@ -54,13 +54,4 @@ public class EmptySearchRequestAdapter implements SearchEngineRequestAdapter {
         return false;
     }
 
-    @Override
-    public void setAppliedRules(List<String> rules) {
-
-    }
-
-    @Override
-    public List<String> getAppliedRules() {
-        return new ArrayList<>();
-    }
 }

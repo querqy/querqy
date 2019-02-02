@@ -179,8 +179,4 @@ public class QuerqyDismaxQParser extends QParser {
     public List<Query> getFilterQueries() {
         return luceneQueries == null ? null : luceneQueries.filterQueries;
     }
-
-    public List<String> getAppliedRules() {
-        return requestAdapter.getAppliedRules();
-    }
 }

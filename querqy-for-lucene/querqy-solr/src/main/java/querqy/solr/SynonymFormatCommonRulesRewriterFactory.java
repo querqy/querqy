@@ -24,7 +24,6 @@ import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
-import querqy.rewrite.commonrules.Properties;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.Input;
@@ -37,7 +36,7 @@ import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 /**
  * @author René Kriegler, @renekrie
  *
- * 
+ *
  */
 @Deprecated
 public class SynonymFormatCommonRulesRewriterFactory implements
@@ -45,7 +44,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
    /*
     * (non-Javadoc)
-    * 
+    *
     * @see
     * querqy.solr.RewriterFactoryAdapter#createRewriterFactory(org.apache.solr
     * .common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
@@ -116,7 +115,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
                                  if (!query.getClauses().isEmpty()) {
                                     for (Input input : inputs) {
                                        BoostInstruction bi = new BoostInstruction(query, direction, boost);
-                                       builder.addRule(input, buildProperty(new Instructions(Collections.singletonList((Instruction) bi))));
+                                       builder.addRule(input, new Instructions(Collections.singletonList((Instruction) bi)));
                                     }
                                  }
                               }
@@ -132,10 +131,6 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
          }
       }
-   }
-
-   private static Properties buildProperty(Instructions instructions) {
-      return new Properties(instructions);
    }
 
    List<Input> makeInputs(String inputsStr) {

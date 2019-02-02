@@ -1,28 +1,35 @@
 package querqy.model;
 
 
-import org.apache.commons.collections4.CollectionUtils;
 import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.Instructions;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class FilterCriteria implements Criteria {
 
-    String field;
-    String value;
+    private final String name;
+    private final String value;
 
-    public FilterCriteria(String field, String value) {
-        this.field = field;
+    public FilterCriteria(final String name, final String value) {
+        this.name = name;
         this.value = value;
     }
 
     @Override
-    public boolean isValid(Action action) {
-        if (CollectionUtils.isEmpty(action.getProperties())) {
+    public boolean isValid(final Action action) {
+
+        final List<Instructions> instructions = action.getInstructions();
+        if (instructions.isEmpty()) {
             return false;
         }
-        return action.getProperties().get(0).getPropertyMap().getOrDefault(field, "").equals(value);
+
+        return instructions.get(0)
+                .getProperty(name)
+                .filter(value::equals)
+                .isPresent();
+
     }
 
     @Override
@@ -33,7 +40,7 @@ public class FilterCriteria implements Criteria {
     @Override
     public String toString() {
         return "FilterCriteria{" +
-                "field='" + field + '\'' +
+                "field='" + name + '\'' +
                 ", value='" + value + '\'' +
                 '}';
     }
