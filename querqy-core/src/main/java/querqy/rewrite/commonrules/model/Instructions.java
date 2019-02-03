@@ -28,13 +28,23 @@ public class Instructions extends LinkedList<Instruction> {
      */
     private final Map<String, String> properties;
 
-    public Instructions() {
+    /**
+     * This property is used for ordering Instructions objects. The creator of Instructions objects must ensure to
+     * set a unique order value per Instructions. ord can be used to order rules, for example, by the order found in
+     * rules.txt.
+     *
+     */
+    public final int ord;
+
+    public Instructions(int ord) {
         super();
+        this.ord = ord;
         properties = new HashMap<>();
     }
 
-    public Instructions(final Collection<Instruction> instructions) {
+    public Instructions(final int ord, final Collection<Instruction> instructions) {
         super(instructions);
+        this.ord = ord;
         properties = new HashMap<>();
     }
 

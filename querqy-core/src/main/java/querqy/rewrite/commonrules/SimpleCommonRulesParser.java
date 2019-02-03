@@ -6,11 +6,9 @@ package querqy.rewrite.commonrules;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.HashMap;
 import java.util.Map;
 
 import querqy.rewrite.commonrules.model.*;
-import querqy.utils.Constants;
 
 /**
  * This parser reads a set of rules in the Common Rules format and creates a {@link RulesCollection}.
@@ -27,6 +25,7 @@ public class SimpleCommonRulesParser {
     final RulesCollectionBuilder builder;
     Input input = null;
     Instructions instructions = null;
+    int instructionsCount = 0;
 
 
     public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
@@ -74,7 +73,7 @@ public class SimpleCommonRulesParser {
             if (lineObject instanceof Input) {
                 putRule();
                 input = (Input) lineObject;
-                instructions = new Instructions();
+                instructions = new Instructions(instructionsCount++);
             } else if (lineObject instanceof ValidationError) {
                 throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {

@@ -758,10 +758,10 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
         return bq;
     }
 
-    public static class MatchAllRewriter implements RewriterFactoryAdapter {
+    public static class MatchAllRewriter implements FactoryAdapter<RewriterFactory> {
 
         @Override
-        public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) {
+        public RewriterFactory createFactory(NamedList<?> args, ResourceLoader resourceLoader) {
             return new RewriterFactory() {
                 @Override
                 public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {

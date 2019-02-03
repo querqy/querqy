@@ -10,13 +10,13 @@ import org.apache.solr.common.util.NamedList;
 
 import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.rewrite.RewriterFactory;
-import querqy.solr.RewriterFactoryAdapter;
+import querqy.solr.FactoryAdapter;
 
 /**
  * @author rene
  *
  */
-public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
+public class SolrSynonymsRewriterFactory implements FactoryAdapter<RewriterFactory> {
 
    /*
     * (non-Javadoc)
@@ -26,7 +26,7 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
     * common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
     */
    @Override
-   public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
+   public RewriterFactory createFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
 
       Boolean expand = args.getBooleanArg("expand");
       if (expand == null) {

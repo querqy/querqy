@@ -7,10 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import querqy.model.ExpandedQuery;
@@ -18,12 +16,9 @@ import querqy.model.InputSequenceElement;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 
 public class RulesCollectionTest {
-
-   @Before
-   public void setUp() throws Exception {
-   }
 
    @Test
    public void testSingeInputSingleInstruction() {
@@ -34,7 +29,7 @@ public class RulesCollectionTest {
 
       Input input = new Input(inputTerms(null, s1), false, false);
 
-      Instructions instructions = instructions("instruction1");
+      Instructions instructions = instructions(1, "instruction1");
       builder.addRule(input, instructions);
 
       RulesCollection rulesCollection = builder.build();
@@ -42,8 +37,8 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions), termMatches(s1), 0, 1)));
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+      assertThat(actions, contains(new Action(instructions, termMatches(s1), 0, 1)));
 
    }
 
@@ -56,7 +51,7 @@ public class RulesCollectionTest {
 
       Input input = new Input(inputTerms(null, s1), false, false);
 
-      Instructions instructions = instructions("instruction1", "instruction2");
+      Instructions instructions = instructions(1, "instruction1", "instruction2");
       builder.addRule(input, instructions);
 
       RulesCollection rulesCollection = builder.build();
@@ -64,8 +59,8 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions), termMatches(s1), 0, 1)));
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+      assertThat(actions, contains(new Action(instructions, termMatches(s1), 0, 1)));
 
    }
 
@@ -78,10 +73,10 @@ public class RulesCollectionTest {
 
       Input input = new Input(inputTerms(null, s1), false, false);
 
-      Instructions instructions1 = instructions("instruction1");
+      Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input, instructions1);
 
-      Instructions instructions2 = instructions("instruction2");
+      Instructions instructions2 = instructions(2, "instruction2");
       builder.addRule(input, instructions2);
 
       RulesCollection rulesCollection = builder.build();
@@ -89,13 +84,15 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1, instructions2), termMatches(s1), 0, 1)));
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+      assertThat(actions, contains(
+              new Action(instructions1, termMatches(s1), 0, 1),
+              new Action(instructions2, termMatches(s1), 0, 1)));
 
    }
 
    @Test
-   public void testTwoInputsOneInstructionsPerInput() {
+   public void testTwoInputsOneInstructionsPerInputOrdered() {
 
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
@@ -105,10 +102,10 @@ public class RulesCollectionTest {
       Input input1 = new Input(inputTerms(null, s1), false, false);
       Input input2 = new Input(inputTerms(null, s2), false, false);
 
-      Instructions instructions1 = instructions("instruction1");
+      Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
 
-      Instructions instructions2 = instructions("instruction2");
+      Instructions instructions2 = instructions(2, "instruction2");
       builder.addRule(input2, instructions2);
 
       // Input is just s1
@@ -117,32 +114,33 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), termMatches(s1), 0, 1)));
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+
+      assertThat(actions, contains(new Action(instructions1, termMatches(s1), 0, 1)));
 
       // Input is just s2
       sequence = new PositionSequence<>();
       sequence.nextPosition();
       sequence.addElement(new Term(null, s2));
 
-      actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions2), termMatches(s2), 0, 1)));
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+      assertThat(actions, contains(new Action(instructions2, termMatches(s2), 0, 1)));
 
-      // Input is s2 s1
+      // Input is s2 s1, but order based on ord is s1 s2
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions2), termMatches(s2), 0, 1),
-            new Action(Arrays.asList(instructions1), termMatches(s1), 1, 2))
+            new Action(instructions1, termMatches(s1), 1, 2),
+            new Action(instructions2, termMatches(s2), 0, 1))
 
       );
 
    }
 
    @Test
-   public void testCompoundAndInterlacedInput() throws Exception {
+   public void testCompoundAndInterlacedInput() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
       String s1 = "test1";
@@ -152,10 +150,10 @@ public class RulesCollectionTest {
       Input input1 = new Input(inputTerms(null, s1, s2), false, false);
       Input input2 = new Input(inputTerms(null, s2, s3), false, false);
 
-      Instructions instructions1 = instructions("instruction1");
+      Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
 
-      Instructions instructions2 = instructions("instruction2");
+      Instructions instructions2 = instructions(2, "instruction2");
       builder.addRule(input2, instructions2);
 
       // Input is just s1
@@ -164,26 +162,26 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertTrue(actions.isEmpty());
 
       // Input is s1 s2
       sequence.nextPosition();
       sequence.addElement(new Term(null, s2));
 
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions1), termMatches(s1, s2), 0, 2))
+            new Action(instructions1, termMatches(s1, s2), 0, 2))
 
       );
 
       // Input is s1 s2 s3
       sequence.nextPosition();
       sequence.addElement(new Term(null, s3));
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions1), termMatches(s1, s2), 0, 2),
-            new Action(Arrays.asList(instructions2), termMatches(s2, s3), 1, 3)
+            new Action(instructions1, termMatches(s1, s2), 0, 2),
+            new Action(instructions2, termMatches(s2, s3), 1, 3)
             )
 
       );
@@ -191,7 +189,7 @@ public class RulesCollectionTest {
    }
 
    @Test
-   public void testTwoMatchingInputsOnePartial() throws Exception {
+   public void testTwoMatchingInputsOnePartial() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
       String s1 = "test1";
@@ -200,8 +198,8 @@ public class RulesCollectionTest {
       Input input1 = new Input(inputTerms(null, s1, s2), false, false);
       Input input2 = new Input(inputTerms(null, s2), false, false);
 
-      Instructions instructions1 = instructions("instruction1");
-      Instructions instructions2 = instructions("instruction2");
+      Instructions instructions1 = instructions(1, "instruction1");
+      Instructions instructions2 = instructions(2, "instruction2");
 
       builder.addRule(input2, instructions2);
       builder.addRule(input1, instructions1);
@@ -215,10 +213,10 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s2));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertThat(actions, contains(
-            new Action(Arrays.asList(instructions1), termMatches(s1, s2), 0, 2),
-            new Action(Arrays.asList(instructions2), termMatches(s2), 1, 2)
+            new Action(instructions1, termMatches(s1, s2), 0, 2),
+            new Action(instructions2, termMatches(s2), 1, 2)
 
             )
 
@@ -227,7 +225,7 @@ public class RulesCollectionTest {
    }
 
    @Test
-   public void testMultipleTermsPerPosition() throws Exception {
+   public void testMultipleTermsPerPosition() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
       String s1 = "test1";
@@ -236,10 +234,10 @@ public class RulesCollectionTest {
       Input input1 = new Input(inputTerms(null, s1), false, false);
       Input input2 = new Input(inputTerms(null, s2), false, false);
 
-      Instructions instructions1 = instructions("instruction1");
+      Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
 
-      Instructions instructions2 = instructions("instruction2");
+      Instructions instructions2 = instructions(2, "instruction2");
       builder.addRule(input2, instructions2);
 
       // Input is just s1
@@ -248,19 +246,19 @@ public class RulesCollectionTest {
       sequence.nextPosition();
       sequence.addElement(new Term(null, s1));
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), termMatches(s1), 0, 1)));
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+      assertThat(actions, contains(new Action(instructions1, termMatches(s1), 0, 1)));
 
       sequence.addElement(new Term(null, s2));
 
-      actions = rulesCollection.getRewriteActions(sequence);
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), termMatches(s1), 0, 1),
-            new Action(Arrays.asList(instructions2), termMatches(s2), 0, 1)));
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
+      assertThat(actions, contains(new Action(instructions1, termMatches(s1), 0, 1),
+            new Action(instructions2, termMatches(s2), 0, 1)));
 
    }
 
    @Test
-   public void testMultipleTermsWithFieldNamesPerPosition() throws Exception {
+   public void testMultipleTermsWithFieldNamesPerPosition() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
       String s1 = "test1";
@@ -275,7 +273,7 @@ public class RulesCollectionTest {
 
                   ), false, false);
 
-      Instructions instructions1 = instructions("instruction1");
+      Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
 
       Term term11 = new Term(null, "f11", s1);
@@ -290,30 +288,31 @@ public class RulesCollectionTest {
       sequence.addElement(term11);
       sequence.addElement(term21);
 
-      List<Action> actions = rulesCollection.getRewriteActions(sequence);
+      List<Action> actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertTrue(actions.isEmpty());
 
       sequence.nextPosition();
       sequence.addElement(term12);
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertTrue(actions.isEmpty());
 
       sequence.addElement(term22);
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
 
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1),
+      assertThat(actions, contains(new Action(instructions1,
             new TermMatches(Arrays.asList(new TermMatch(term11), new TermMatch(term22))), 0, 2)));
       sequence.clear();
 
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
       assertTrue(actions.isEmpty());
       sequence.nextPosition();
       sequence.addElement(term12);
       sequence.nextPosition();
       sequence.addElement(term21);
-      actions = rulesCollection.getRewriteActions(sequence);
+      actions = AbstractCommonRulesTest.getActions(rulesCollection, sequence);
 
-      assertThat(actions, contains(new Action(Arrays.asList(instructions1), new TermMatches(Arrays.asList(new TermMatch(term12), new TermMatch(term21))), 0, 2)));
+      assertThat(actions, contains(new Action(instructions1,
+              new TermMatches(Arrays.asList(new TermMatch(term12), new TermMatch(term21))), 0, 2)));
 
    }
 
@@ -334,20 +333,12 @@ public class RulesCollectionTest {
       return result;
    }
 
-   List<Term> termsWithFieldname(String fieldName, String... values) {
-      List<Term> result = new LinkedList<>();
-      for (String value : values) {
-         result.add(new Term(null, fieldName, value));
-      }
-      return result;
-   }
-
-   Instructions instructions(String... names) {
+   Instructions instructions(int ord, String... names) {
       List<Instruction> instructions = new LinkedList<>();
       for (String name : names) {
          instructions.add(new SimpleInstruction(name));
       }
-      return new Instructions(instructions);
+      return new Instructions(ord, instructions);
    }
 
    static class SimpleInstruction implements Instruction {

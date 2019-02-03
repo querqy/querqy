@@ -1,9 +1,6 @@
 package querqy.rewrite.commonrules.model;
 
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class FilterCriterion implements Criterion {
 
     private final String name;
@@ -15,14 +12,9 @@ public class FilterCriterion implements Criterion {
     }
 
     @Override
-    public boolean isValid(final Action action) {
+    public boolean isValid(final Instructions instructions) {
 
-        final List<Instructions> instructions = action.getInstructions();
-        if (instructions.isEmpty()) {
-            return false;
-        }
-
-        return instructions.get(0)
+        return instructions
                 .getProperty(name)
                 .filter(value::equals)
                 .isPresent();
@@ -30,14 +22,9 @@ public class FilterCriterion implements Criterion {
     }
 
     @Override
-    public List<Action> apply(List<Action> actions) {
-        return actions.parallelStream().filter(this::isValid).collect(Collectors.toList());
-    }
-
-    @Override
     public String toString() {
         return "FilterCriterion{" +
-                "field='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", value='" + value + '\'' +
                 '}';
     }

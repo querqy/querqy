@@ -4,8 +4,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 import org.junit.Test;
@@ -26,10 +28,11 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
         
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) deco)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false),
+                new Instructions(1, Collections.singletonList(deco)));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a x");
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
@@ -50,10 +53,10 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
         builder.addRule((Input) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
-                    new Instructions(Arrays.asList((Instruction) deco)));
+                    new Instructions(1, Collections.singletonList( deco)));
         
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("");
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
@@ -77,11 +80,13 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         DecorateInstruction deco2 = new DecorateInstruction("deco2");
         DecorateInstruction deco3 = new DecorateInstruction("deco3");
         
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) deco1, (Instruction) deco2)));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, false), new Instructions(Arrays.asList((Instruction) deco3)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false),
+                new Instructions(1, Arrays.asList(deco1, deco2)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, false),
+                new Instructions(2, Collections.singletonList(deco3)));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a x");
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();

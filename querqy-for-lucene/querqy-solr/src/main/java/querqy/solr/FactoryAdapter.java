@@ -7,8 +7,8 @@ import org.apache.solr.common.util.NamedList;
 
 import querqy.rewrite.RewriterFactory;
 
-public interface RewriterFactoryAdapter {
+public interface FactoryAdapter<T> {
 
-   RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException;
+   T createFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException;
 
 }

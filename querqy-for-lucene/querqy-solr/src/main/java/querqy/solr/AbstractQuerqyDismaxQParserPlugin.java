@@ -12,7 +12,6 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrCache;
-import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,9 +118,10 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
             final List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
             if (rewriterConfigs != null) {
                 for (NamedList<?> config : rewriterConfigs) {
-                    RewriterFactoryAdapter factory = loader.newInstance((String) config.get("class"),
-                        RewriterFactoryAdapter.class);
-                    factories.add(factory.createRewriterFactory(config, loader));
+                    @SuppressWarnings("unchecked")
+                    FactoryAdapter<RewriterFactory> factory = loader.newInstance((String) config.get("class"),
+                        FactoryAdapter.class);
+                    factories.add(factory.createFactory(config, loader));
                 }
             }
         }

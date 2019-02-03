@@ -31,6 +31,7 @@ import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.SelectionStrategyFactory;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
@@ -40,18 +41,18 @@ import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
  */
 @Deprecated
 public class SynonymFormatCommonRulesRewriterFactory implements
-      RewriterFactoryAdapter {
+        FactoryAdapter<RewriterFactory> {
 
    /*
     * (non-Javadoc)
     *
     * @see
-    * querqy.solr.RewriterFactoryAdapter#createRewriterFactory(org.apache.solr
+    * querqy.solr.FactoryAdapter#createRewriterFactory(org.apache.solr
     * .common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
     */
    @Override
-   public RewriterFactory createRewriterFactory(NamedList<?> args,
-         ResourceLoader resourceLoader) throws IOException {
+   public RewriterFactory createFactory(NamedList<?> args,
+                                        ResourceLoader resourceLoader) throws IOException {
 
       String boostUp = (String) args.get("boostUp");
       String boostDown = (String) args.get("boostDown");
@@ -82,6 +83,8 @@ public class SynonymFormatCommonRulesRewriterFactory implements
             BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.openResource(resourceName)))) {
 
          String line;
+
+         int ord = 0;
 
          while ((line = reader.readLine()) != null) {
 
@@ -115,7 +118,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
                                  if (!query.getClauses().isEmpty()) {
                                     for (Input input : inputs) {
                                        BoostInstruction bi = new BoostInstruction(query, direction, boost);
-                                       builder.addRule(input, new Instructions(Collections.singletonList((Instruction) bi)));
+                                       builder.addRule(input, new Instructions(ord++, Collections.singletonList(bi)));
                                     }
                                  }
                               }
@@ -191,7 +194,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
       @Override
       public QueryRewriter createRewriter(ExpandedQuery input,
             Map<String, ?> context) {
-         return new CommonRulesRewriter(rules);
+         return new CommonRulesRewriter(rules, SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
       }
 
     @Override

@@ -9,7 +9,6 @@ import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.InputBoundary.Type;
-import querqy.utils.Constants;
 
 import java.util.*;
 
@@ -29,56 +28,46 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
     protected SelectionStrategy selectionStrategy;
 
-   /**
-     *
-     */
-   public CommonRulesRewriter(RulesCollection rules) {
-      this.rules = rules;
-      sequencesStack = new LinkedList<>();
-      selectionStrategy = SelectionStrategyFactory.getInstance().getSelectionStrategy(Constants.DEFAULT_SELECTION_STRATEGY);
-   }
-
-    public CommonRulesRewriter(RulesCollection rules,  String ruleSelectionStrategy) {
+    public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
         this.rules = rules;
         sequencesStack = new LinkedList<>();
-        selectionStrategy = SelectionStrategyFactory.getInstance()
-                .getSelectionStrategy(ruleSelectionStrategy);
+        this.selectionStrategy = selectionStrategy;
     }
 
-   @Override
-   public ExpandedQuery rewrite(ExpandedQuery query) {
-       throw new UnsupportedOperationException("This rewriter needs a query context");
-   }
+    @Override
+    public ExpandedQuery rewrite(ExpandedQuery query) {
+        throw new UnsupportedOperationException("This rewriter needs a query context");
+    }
 
     @Override
     public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
         throw new UnsupportedOperationException("This rewriter needs a query adapter");
     }
 
-   @Override
-   public ExpandedQuery rewrite(ExpandedQuery query, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    @Override
+    public ExpandedQuery rewrite(ExpandedQuery query, SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
-      QuerqyQuery<?> userQuery = query.getUserQuery();
+        QuerqyQuery<?> userQuery = query.getUserQuery();
 
-      if (userQuery instanceof Query) {
+        if (userQuery instanceof Query) {
 
-         this.expandedQuery = query;
-         this.searchEngineRequestAdapter = searchEngineRequestAdapter;
+            this.expandedQuery = query;
+            this.searchEngineRequestAdapter = searchEngineRequestAdapter;
 
-         sequencesStack.add(new PositionSequence<Term>());
+            sequencesStack.add(new PositionSequence<>());
 
-         super.visit((BooleanQuery) query.getUserQuery());
+            super.visit((BooleanQuery) query.getUserQuery());
 
-         applySequence(sequencesStack.removeLast(), true);
+            applySequence(sequencesStack.removeLast(), true);
 
-      }
-      return query;
-   }
+        }
+        return query;
+    }
 
    @Override
    public Node visit(BooleanQuery booleanQuery) {
 
-      sequencesStack.add(new PositionSequence<Term>());
+      sequencesStack.add(new PositionSequence<>());
 
       super.visit(booleanQuery);
 
@@ -87,11 +76,12 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
       return null;
    }
 
-   protected void applySequence(PositionSequence<Term> sequence, boolean addBoundaries) {
+   protected void applySequence(final PositionSequence<Term> sequence, boolean addBoundaries) {
 
-       PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
+       final PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries
+               ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
 
-       boolean isDebug = Boolean.TRUE.equals(searchEngineRequestAdapter.getContext().get(CONTEXT_KEY_DEBUG_ENABLED));
+       final boolean isDebug = Boolean.TRUE.equals(searchEngineRequestAdapter.getContext().get(CONTEXT_KEY_DEBUG_ENABLED));
        List<String> actionsDebugInfo = (List<String>) searchEngineRequestAdapter.getContext().get(CONTEXT_KEY_DEBUG_DATA);
        // prepare debug info context object if requested
        if (isDebug && actionsDebugInfo == null) {
@@ -99,30 +89,34 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
            searchEngineRequestAdapter.getContext().put(CONTEXT_KEY_DEBUG_DATA, actionsDebugInfo);
        }
 
-       List<Action> actions = rules.getRewriteActions(sequenceForLookUp);
-       actions = selectionStrategy.selectActions(actions, retrieveCriteriaFromRequest());
+       final TopRewritingActionCollector collector = selectionStrategy.getTopRewritingActionCollector();
+       rules.collectRewriteActions(sequenceForLookUp, collector);
+
+       final List<Action> actions = collector.createActions();
+               //actions = selectionStrategy.selectActions(actions, retrieveCriteriaFromRequest());
+
        final List<String> appliedRules = new ArrayList<>();
-       actions.stream()
-               .map(Action::getInstructions)
-               .flatMap(Collection::stream)
-               // FIXME make this configurable or at least avoid 'magic number'
-               .forEach(instructions -> instructions.getProperty("id")
-                       .ifPresent(appliedRules::add));
-
-
-       //searchEngineRequestAdapter.setAppliedRules(appliedRules); // FIXME: use DECORATION
 
        for (Action action : actions) {
            if (isDebug) {
                actionsDebugInfo.add(action.toString());
            }
-           for (Instructions instructions : action.getInstructions()) {
-              for (Instruction instruction : instructions) {
-                 instruction.apply(sequence, action.getTermMatches(), action.getStartPosition(),
-                       action.getEndPosition(), expandedQuery, searchEngineRequestAdapter);
-              }
-           }
-        }
+
+           final Instructions instructions = action.getInstructions();
+           instructions.forEach(instruction ->
+
+                           instruction.apply(sequence, action.getTermMatches(),
+                               action.getStartPosition(),
+                               action.getEndPosition(), expandedQuery, searchEngineRequestAdapter)
+
+
+           );
+
+           // FIXME make the property name configurable or at least avoid 'magic number'
+           instructions.getProperty("id").ifPresent(appliedRules::add);
+       }
+
+       //searchEngineRequestAdapter.setAppliedRules(appliedRules); // FIXME: use DECORATION
    }
 
    protected PositionSequence<InputSequenceElement> termSequenceToInputSequence(PositionSequence<Term> sequence) {
@@ -159,37 +153,5 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
       return super.visit(term);
    }
 
-    public Criteria retrieveCriteriaFromRequest() {
 
-        final Optional<String> sort = searchEngineRequestAdapter.getRequestParam("rules.criteria.sort");
-        final Optional<String> size = searchEngineRequestAdapter.getRequestParam("rules.criteria.size");
-        final String[] filters = searchEngineRequestAdapter.getRequestParams("rules.criteria.filter");
-
-        final Criteria criteria = new Criteria();
-
-        sort.ifPresent(sortStr -> {
-            String[] sortCriterion = sortStr.split("\\s+"); // FIXME: precompile regex
-            if (sortCriterion.length == 2) {
-                criteria.add(new SortCriterion(sortCriterion[0], sortCriterion[1]));
-            }
-        });
-
-        if (size.isPresent()) {
-            criteria.add(new SelectionCriterion(Integer.valueOf(size.get())));
-        } else {
-            criteria.add(new SelectionCriterion(-1));
-        }
-
-        // FIXME: throw exception on syntax error
-        // FIXME: check for empty name/value
-        // FIXME: precompile regex
-        Arrays.asList(filters).parallelStream().forEach(filterStr -> {
-            String[] filterArr = filterStr.split(":");
-            if (filterArr.length == 2) {
-                criteria.add(new FilterCriterion(filterArr[0].trim(), filterArr[1].trim()));
-            }
-        });
-
-        return criteria;
-    }
 }

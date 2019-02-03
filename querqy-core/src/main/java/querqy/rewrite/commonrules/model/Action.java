@@ -3,27 +3,26 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
  * An Action represents all Instructions triggered for specific input positions.
- * It references the sequence of query terms that matched the rule. As there can
- * be more than one term in a single position it's possible that more than one
- * sequence matched the input.
+ * It references the sequence of query terms that matched the rule. If there is
+ * more than one term in a single position it's possible that more than one
+ * sequence matched the input. In that case a separate Action could be created
+ * for the same position.
  *
  * @author rene
  *
  */
 public class Action {
 
-   final List<Instructions> instructions;
+   final Instructions instructions;
    final TermMatches termMatches;
    final int startPosition;
    final int endPosition; // exclusive
 
-   public Action(final List<Instructions> instructions, final TermMatches termMatches, final int startPosition,
+   public Action(final Instructions instructions, final TermMatches termMatches, final int startPosition,
                  final int endPosition) {
       this.instructions = Objects.requireNonNull(instructions, "instructions must not be null");
       this.termMatches = termMatches;
@@ -76,7 +75,7 @@ public class Action {
             + endPosition + "]";
    }
 
-   public List<Instructions> getInstructions() {
+   public Instructions getInstructions() {
       return instructions;
    }
 

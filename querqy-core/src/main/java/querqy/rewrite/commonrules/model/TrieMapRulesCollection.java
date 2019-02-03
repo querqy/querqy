@@ -3,7 +3,6 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,13 +35,14 @@ public class TrieMapRulesCollection implements RulesCollection {
     }
 
     /* (non-Javadoc)
-     * @see querqy.rewrite.commonrules.model.RulesCollection#getRewriteActions(querqy.rewrite.commonrules.model.PositionSequence)
+     * @see querqy.rewrite.commonrules.model.RulesCollection#collectRewriteActions(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TopRewritingActionCollector)
      */
     @Override
-    public List<Action> getRewriteActions(final PositionSequence<InputSequenceElement> sequence) {
-        final List<Action> result = new ArrayList<>();
+    public void collectRewriteActions(final PositionSequence<InputSequenceElement> sequence,
+                                      final TopRewritingActionCollector collector) {
+
         if (sequence.isEmpty()) {
-            return result;
+            return;
         }
 
         // We have a list of terms (resulting from DisMax alternatives) per
@@ -56,7 +56,10 @@ public class TrieMapRulesCollection implements RulesCollection {
 
                 final State<List<Instructions>> stateExactMatch = states.getStateForCompleteSequence();
                 if (stateExactMatch.isFinal() && stateExactMatch.value != null) {
-                    result.add(new Action(stateExactMatch.value, new TermMatches(new TermMatch(term)), 0, 1));
+
+                    collector.offer(stateExactMatch.value,
+                            instructions -> new Action(instructions, new TermMatches(new TermMatch(term)), 0, 1));
+
                 }
 
                 final List<State<List<Instructions>>> statesForPrefixes = states.getPrefixes();
@@ -64,13 +67,11 @@ public class TrieMapRulesCollection implements RulesCollection {
                     for (final State<List<Instructions>> stateForPrefix: statesForPrefixes) {
                         
                         if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
-                            result.add(
-                                    new Action(stateForPrefix.value, 
-                                            new TermMatches(
-                                                    new TermMatch(term, 
-                                                            true, 
-                                                            term.subSequence(stateForPrefix.index + 1, term.length()))), 
-                                                0, 1));
+                            collector.offer(stateForPrefix.value,
+                                    instructions -> new Action(instructions, new TermMatches(
+                                            new TermMatch(term, true,
+                                            term.subSequence(stateForPrefix.index + 1, term.length()))), 0, 1));
+
                         }
                     }
                 }
@@ -84,6 +85,8 @@ public class TrieMapRulesCollection implements RulesCollection {
             int pos = 0;
 
             for (final List<InputSequenceElement> position : sequence) {
+
+                final int pos1 = pos;
                 
                 boolean anyTermAtPosition = false;
 
@@ -113,11 +116,21 @@ public class TrieMapRulesCollection implements RulesCollection {
                         final State<List<Instructions>> stateExactMatch = states.getStateForCompleteSequence();
                         if (stateExactMatch.isKnown()) {
                             if (stateExactMatch.isFinal()) {
-                                final TermMatches matches = new TermMatches(prefix.matches);
-                                 if (isTerm) {
-                                     matches.add(new TermMatch((Term) element));
-                                 }
-                                 result.add(new Action( stateExactMatch.value, matches, pos - matches.size() + ofs, pos + ofs));
+                                final int start;
+                                if (isTerm) {
+                                    start = pos - (prefix.matches.size() + 1) + ofs;
+                                } else {
+                                    start = pos - prefix.matches.size() + ofs;
+                                }
+
+                                collector.offer(stateExactMatch.value, instructions -> {
+                                    final TermMatches matches = new TermMatches(prefix.matches);
+                                    if (isTerm) {
+                                        matches.add(new TermMatch((Term) element));
+                                    }
+                                    return new Action(instructions, matches, start, pos1 + ofs);
+                                });
+
                             }
                             final Prefix<List<Instructions>> newPrefix = new Prefix<List<Instructions>>(prefix, stateExactMatch);
                             if (isTerm) {
@@ -133,16 +146,26 @@ public class TrieMapRulesCollection implements RulesCollection {
                             for (final State<List<Instructions>> stateForPrefix: statesForPrefixes) {
                                 
                                 if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
-                                    final TermMatches matches = new TermMatches(prefix.matches);
+                                    final int start;
                                     if (isTerm) {
-                                        final Term term = (Term) element;
-                                        matches.add(
-                                            new TermMatch(term, 
-                                                    true, 
-                                                    term.subSequence(stateForPrefix.index + 1, term.length())));
+                                        start = pos - (prefix.matches.size() + 1) + ofs;
+                                    } else {
+                                        start = pos - prefix.matches.size() + ofs;
                                     }
-                                    
-                                    result.add(new Action( stateForPrefix.value, matches, pos - matches.size() + ofs, pos + ofs));
+
+
+                                    collector.offer(stateForPrefix.value, instructions -> {
+                                        final TermMatches matches = new TermMatches(prefix.matches);
+                                        if (isTerm) {
+                                            final Term term = (Term) element;
+                                            matches.add(
+                                                    new TermMatch(term,
+                                                            true,
+                                                            term.subSequence(stateForPrefix.index + 1, term.length())));
+                                        }
+                                        return new Action(instructions, matches, start, pos1 + ofs);
+                                    });
+
                                 }
                                 
                                 // TODO: continue with next match after prefix match
@@ -158,7 +181,10 @@ public class TrieMapRulesCollection implements RulesCollection {
                         if (stateExactMatch.isFinal()) {
                             // we do not let match the boundary on its own:
                             if (isTerm) {
-                                result.add(new Action( stateExactMatch.value, new TermMatches(new TermMatch((Term) element)), pos, pos + 1));
+                                collector.offer(stateExactMatch.value,
+                                        instructions ->
+                                                new Action(instructions, new TermMatches(new TermMatch((Term) element)),
+                                                        pos1, pos1 + 1));
                             }
                         }
                         // ... and save it as a prefix to the following term
@@ -173,8 +199,14 @@ public class TrieMapRulesCollection implements RulesCollection {
                         for (final State<List<Instructions>> stateForPrefix: statesForPrefixes) {
                             if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
                                 if (isTerm) {
-                                    final Term term = (Term) element;
-                                    result.add(new Action( stateForPrefix.value, new TermMatches(new TermMatch(term, true, term.subSequence(stateForPrefix.index + 1, term.length()))), pos, pos + 1));
+                                    collector.offer(stateForPrefix.value, instructions -> {
+                                                final Term term = (Term) element;
+                                                return new Action(instructions,
+                                                        new TermMatches(
+                                                                new TermMatch(term, true,
+                                                                term.subSequence(stateForPrefix.index + 1,
+                                                                        term.length()))), pos1, pos1 + 1);
+                                            });
                                     // TODO: continue with next match after prefix match
                                 }
                             }
@@ -193,7 +225,6 @@ public class TrieMapRulesCollection implements RulesCollection {
 
         }
 
-        return result;    
     }
     
     @Override

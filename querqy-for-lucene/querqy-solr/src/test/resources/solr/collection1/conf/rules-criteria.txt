@@ -1,0 +1,20 @@
+input1 =>
+   SYNONYM: syn1
+   property.priority: 2
+   property.group: 1
+   property.id: 1
+
+input2 =>
+   SYNONYM: syn2
+   property.priority: 1
+   property.group: 1
+   property.id: 2
+
+input1 =>
+   SYNONYM: syn3
+   property.priority: 1
+   property.group: 2
+   property.id: 3
+
+
+

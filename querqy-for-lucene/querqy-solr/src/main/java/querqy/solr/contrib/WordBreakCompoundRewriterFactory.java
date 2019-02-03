@@ -5,13 +5,12 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrRequestInfo;
 import querqy.rewrite.RewriterFactory;
-import querqy.solr.RewriterFactoryAdapter;
+import querqy.solr.FactoryAdapter;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter {
+public class WordBreakCompoundRewriterFactory implements FactoryAdapter<RewriterFactory> {
 
     private static final int DEFAULT_MIN_SUGGESTION_FREQ = 1;
     private static final int DEFAULT_MAX_COMBINE_LENGTH = 30;
@@ -19,7 +18,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter 
     private static final int DEFAULT_MAX_DECOMPOUND_EXPANSIONS = 3;
 
     @Override
-    public RewriterFactory createRewriterFactory(final NamedList<?> args, ResourceLoader resourceLoader) {
+    public RewriterFactory createFactory(final NamedList<?> args, ResourceLoader resourceLoader) {
 
         // the minimum frequency of the term in the index' dictionary field to be considered a valid compound
         // or constituent
