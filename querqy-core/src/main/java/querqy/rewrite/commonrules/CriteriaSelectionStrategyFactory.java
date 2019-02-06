@@ -29,7 +29,7 @@ public class CriteriaSelectionStrategyFactory implements SelectionStrategyFactor
                     String[] sortCriterion = sortStr.split("\\s+"); // FIXME: precompile regex
                     if (sortCriterion.length == 2) {
                         // FIXME: check for empty name
-                        return new Sorting(sortCriterion[0], sortCriterion[1]);
+                        return new Sorting(sortCriterion[0], Sorting.SortOrder.fromString(sortCriterion[1]));
                     } else {
                         throw new IllegalArgumentException("Invalid value for rules.criteria.sort: " + sortStr);
                     }
