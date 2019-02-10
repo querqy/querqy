@@ -4,8 +4,8 @@ import java.util.Comparator;
 
 public class CriteriaSelectionStrategy implements SelectionStrategy {
 
-    protected final Comparator<Instructions> sortingComparator;
-    protected final Criteria criteria;
+    private final Comparator<Instructions> sortingComparator;
+    private final Criteria criteria;
 
 
     public CriteriaSelectionStrategy(final Criteria criteria) {
@@ -17,8 +17,12 @@ public class CriteriaSelectionStrategy implements SelectionStrategy {
 
 
     @Override
-    public TopRewritingActionCollector getTopRewritingActionCollector() {
+    public TopRewritingActionCollector createTopRewritingActionCollector() {
         return new TopRewritingActionCollector(sortingComparator, criteria.getLimit(), criteria.getFilters());
+    }
+
+    public Comparator<Instructions> getSortingComparator() {
+        return sortingComparator;
     }
 
 

@@ -89,7 +89,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
            searchEngineRequestAdapter.getContext().put(CONTEXT_KEY_DEBUG_DATA, actionsDebugInfo);
        }
 
-       final TopRewritingActionCollector collector = selectionStrategy.getTopRewritingActionCollector();
+       final TopRewritingActionCollector collector = selectionStrategy.createTopRewritingActionCollector();
        rules.collectRewriteActions(sequenceForLookUp, collector);
 
        final List<Action> actions = collector.createActions();

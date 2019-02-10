@@ -9,7 +9,7 @@ public class ConfigurationOrderSelectionStrategy implements SelectionStrategy {
 
 
     @Override
-    public TopRewritingActionCollector getTopRewritingActionCollector() {
+    public TopRewritingActionCollector createTopRewritingActionCollector() {
         return new TopRewritingActionCollector(COMPARATOR, -1, Collections.emptyList());
     }
 

@@ -1,6 +1,7 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Sorting implements Comparator<Instructions> {
@@ -62,5 +63,17 @@ public class Sorting implements Comparator<Instructions> {
                 '}';
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Sorting sorting = (Sorting) o;
+        return Objects.equals(name, sorting.name) &&
+                order == sorting.order;
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, order);
+    }
 }

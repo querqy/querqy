@@ -33,7 +33,7 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public static List<Action> getActions(final RulesCollection rules, final PositionSequence<InputSequenceElement> seq) {
-        final TopRewritingActionCollector collector = DEFAULT_SELECTION_STRATEGY.getTopRewritingActionCollector();
+        final TopRewritingActionCollector collector = DEFAULT_SELECTION_STRATEGY.createTopRewritingActionCollector();
         rules.collectRewriteActions(seq, collector);
         return collector.createActions();
     }
