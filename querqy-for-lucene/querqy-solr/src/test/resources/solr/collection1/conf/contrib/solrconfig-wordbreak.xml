@@ -51,7 +51,8 @@
 						<str>für</str>
 						<str>aus</str>
 					</arr>
-			   <bool name="decompound.verifyCollation">true</bool>
+			    <bool name="decompound.verifyCollation">true</bool>
+				<bool name="lowerCaseInput">true</bool>
 		   	</lst>
 		 </lst>
      	 
@@ -62,7 +63,7 @@
      	 
 	</queryParser>
 
-    <queryParser name="querqyNoCollation" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+    <queryParser name="querqyNoCollationNoLowerCase" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 
         <lst name="rewriteChain">
             <lst name="rewriter">
@@ -75,6 +76,7 @@
                 <str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
                 <str name="dictionaryField">f1</str>
                 <bool name="decompound.verifyCollation">false</bool>
+                <bool name="lowerCaseInput">false</bool>
             </lst>
 
         </lst>

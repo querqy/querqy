@@ -27,6 +27,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
 
     private final Supplier<IndexReader> indexReaderSupplier;
     private final String dictionaryField;
+    private final boolean lowerCaseInput;
     private final WordBreakSpellChecker spellChecker;
     private final boolean alwaysAddReverseCompounds;
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
@@ -34,9 +35,9 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
     private final boolean verifyDecompundCollation;
 
     /**
-     *
      * @param indexReaderSupplier
      * @param dictionaryField
+     * @param lowerCaseInput
      * @param minSuggestionFreq
      * @param maxCombineLength
      * @param minBreakLength
@@ -47,6 +48,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
      */
     public WordBreakCompoundRewriterFactory(final Supplier<IndexReader> indexReaderSupplier,
                                             final String dictionaryField,
+                                            final boolean lowerCaseInput,
                                             final int minSuggestionFreq,
                                             final int maxCombineLength,
                                             final int minBreakLength,
@@ -57,6 +59,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
 
         this.indexReaderSupplier = indexReaderSupplier;
         this.dictionaryField = dictionaryField;
+        this.lowerCaseInput = lowerCaseInput;
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
         this.verifyDecompundCollation = verifyDecompoundCollation;
         if (maxDecompoundExpansions < 0) {
@@ -81,7 +84,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery expandedQuery, final Map<String, ?> context) {
         return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
-                alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
+                lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
                 verifyDecompundCollation);
     }
 

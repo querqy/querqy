@@ -7,7 +7,6 @@ import org.apache.solr.request.SolrRequestInfo;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.RewriterFactoryAdapter;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -34,6 +33,9 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter 
         // the index "dictionary" field to verify compounds / constituents
         final String indexField = (String) args.get("dictionaryField");
 
+        // whether query strings should be turned into lower case before trying to compound/decompound
+        final boolean lowerCaseInput = getOrDefault(args, "lowerCaseInput", Boolean.FALSE);
+
         // terms triggering a reversal of the surrounding compound, e.g. "tasche AUS samt" -> samttasche
         final List<String> reverseCompoundTriggerWords = (List<String>) args.get("reverseCompoundTriggerWords");
 
@@ -55,7 +57,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactoryAdapter 
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
         return new querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory(indexReaderSupplier, indexField,
-                minSuggestionFreq, maxCombineLength, minBreakLength, reverseCompoundTriggerWords,
+                lowerCaseInput, minSuggestionFreq, maxCombineLength, minBreakLength, reverseCompoundTriggerWords,
                 alwaysAddReverseCompounds, maxDecompoundExpansions, verifyDecompoundCollation);
     }
 
