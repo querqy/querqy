@@ -2,6 +2,7 @@ package querqy.rewrite.contrib;
 
 import java.util.Arrays;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import querqy.model.*;
@@ -284,7 +285,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
     }
     
     @Test
-    public void testShingleWithHyphens() throws Exception {
+    public void testShingleWithHyphens() {
         
         Query query = new Query();
         addTerm(query, "cde-fgh", false);
@@ -313,6 +314,35 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
                 )
         );
         
+    }
+
+    @Test
+    public void testVisitDMQCanHandleNoNonGeneratedClause() {
+        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(null, Clause.Occur.SHOULD, false);
+
+        // we cannot use Mockito mock objects as Mockito doesn't mock Term.isGenerated() (due to the primitive boolean
+        // return type)
+        Term term1 = new Term(dmq, null, "value1", true) {
+            @Override
+            public <T> T accept(NodeVisitor<T> visitor) {
+                Assert.fail("Generated node must not be visited");
+                return null;
+            }
+        };
+        dmq.addClause(term1);
+
+        Term term2 = new Term(dmq, null, "value2", true) {
+            @Override
+            public <T> T accept(NodeVisitor<T> visitor) {
+                Assert.fail("Generated node must not be visited");
+                return null;
+            }
+        };
+        dmq.addClause(term2);
+
+        ShingleRewriter rewriter = new ShingleRewriter(false);
+        rewriter.visit(dmq);
+
     }
 
     private void addTerm(Query query, String value) {

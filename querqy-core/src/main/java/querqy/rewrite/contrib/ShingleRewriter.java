@@ -63,7 +63,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
                 
                 if (acceptGeneratedTerms) {
                     
-                    throw new IllegalArgumentException("cannot handle more then one DMQ clause");
+                    throw new IllegalArgumentException("cannot handle more than one DMQ clause");
                     
                 } else {
                     
@@ -74,12 +74,15 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
                         if (!clause.isGenerated()) {
                             // second non-generated clause - cannot handle this
                             if (nonGeneratedClause != null) {
-                                throw new IllegalArgumentException("cannot handle more then one non-generated DMQ clause");
+                                throw new IllegalArgumentException("cannot handle more than one non-generated DMQ clause");
                             }
                             nonGeneratedClause = clause;
                         }
                     }
-                    nonGeneratedClause.accept(this);
+
+                    if (nonGeneratedClause != null) {
+                        nonGeneratedClause.accept(this);
+                    }
                 }
             
             }
