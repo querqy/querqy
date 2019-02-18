@@ -457,6 +457,157 @@ public class WordBreakCompoundRewriterTest {
     }
 
     @Test
+    public void testCompoundTriggerWordWithLowerCaseInputSetToFalse() throws IOException {
+        TrieMap<Boolean> triggerWords = new TrieMap<>();
+        triggerWords.put("Trigger_Upper", true);
+        triggerWords.put("trigger_lower", true);
+
+        // don't de-compound
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+
+        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
+        suggestions.put(Arrays.asList("w3", "w1"), new  CombineSuggestion[] { combineSuggestion("w3w1", 0, 1) });
+        setupWordBreakMockWithCombinations(suggestions);
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                false, false, triggerWords, 5, false);
+        Query query = new Query();
+        addTerm(query, "w1", false);
+        addTerm(query, "Trigger_Upper", false);
+        addTerm(query, "w3", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false),
+                                term("w3w1", true)
+                        ),
+                        dmq(
+                                term("w3", false),
+                                term("w3w1", true)
+                        )
+
+                )
+        );
+
+        Query query2 = new Query();
+        addTerm(query2, "w1", false);
+        addTerm(query2, "trigger_upper", false);
+        addTerm(query2, "w3", false);
+
+        ExpandedQuery expandedQuery2 = new ExpandedQuery(query2);
+
+        final ExpandedQuery rewritten2 = rewriter.rewrite(expandedQuery2);
+
+        assertThat((Query) rewritten2.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false)
+                        ),
+                        dmq(
+                                term("trigger_upper", false)
+                        ),
+                        dmq(
+                                term("w3", false)
+                        )
+
+                )
+        );
+
+        Query query3 = new Query();
+        addTerm(query3, "w1", false);
+        addTerm(query3, "Trigger_Lower", false);
+        addTerm(query3, "w3", false);
+
+        ExpandedQuery expandedQuery3 = new ExpandedQuery(query3);
+
+        final ExpandedQuery rewritten3 = rewriter.rewrite(expandedQuery3);
+
+        assertThat((Query) rewritten3.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false)
+                        ),
+                        dmq(
+                                term("Trigger_Lower", false)
+                        ),
+                        dmq(
+                                term("w3", false)
+                        )
+
+                )
+        );
+    }
+
+    @Test
+    public void testCompoundTriggerWordWithLowerCaseInputSetToTrue() throws IOException {
+        TrieMap<Boolean> triggerWords = new TrieMap<>();
+        triggerWords.put("trigger_lower", true);
+
+        // don't de-compound
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+
+        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
+        suggestions.put(Arrays.asList("w3", "w1"), new  CombineSuggestion[] { combineSuggestion("w3w1", 0, 1) });
+        setupWordBreakMockWithCombinations(suggestions);
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
+                true, false, triggerWords, 5, false);
+
+        Query query1 = new Query();
+        addTerm(query1, "w1", false);
+        addTerm(query1, "trigger_lower", false);
+        addTerm(query1, "w3", false);
+
+        ExpandedQuery expandedQuery1 = new ExpandedQuery(query1);
+
+        final ExpandedQuery rewritten1 = rewriter.rewrite(expandedQuery1);
+
+        assertThat((Query) rewritten1.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false),
+                                term("w3w1", true)
+                        ),
+                        dmq(
+                                term("w3", false),
+                                term("w3w1", true)
+                        )
+
+                )
+        );
+
+        Query query2 = new Query();
+        addTerm(query2, "w1", false);
+        addTerm(query2, "Trigger_Lower", false);
+        addTerm(query2, "w3", false);
+
+        ExpandedQuery expandedQuery2 = new ExpandedQuery(query2);
+
+        final ExpandedQuery rewritten2 = rewriter.rewrite(expandedQuery2);
+
+        assertThat((Query) rewritten2.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1", false),
+                                term("w3w1", true)
+                        ),
+                        dmq(
+                                term("w3", false),
+                                term("w3w1", true)
+                        )
+
+                )
+        );
+    }
+
+    @Test
     public void testCompoundTriggerAffectsOnlySurroundingCompound() throws IOException {
         TrieMap<Boolean> triggerWords = new TrieMap<>();
         triggerWords.put("trigger", true);
