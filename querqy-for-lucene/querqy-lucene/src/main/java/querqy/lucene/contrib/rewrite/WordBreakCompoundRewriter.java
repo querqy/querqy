@@ -177,7 +177,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     private boolean isReverseCompoundTriggerWord(final Term term) {
-        return reverseCompoundTriggerWords.get(term).getStateForCompleteSequence().isFinal();
+        return reverseCompoundTriggerWords.get(lowerCaseInput ? new LowerCaseCharSequence(term) : term)
+                .getStateForCompleteSequence().isFinal();
     }
 
     protected void decompound(final Term term) {

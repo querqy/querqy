@@ -70,7 +70,13 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
 
         this.reverseCompoundTriggerWords = new TrieMap<>();
         if (reverseCompoundTriggerWords != null) {
-            reverseCompoundTriggerWords.forEach(word -> this.reverseCompoundTriggerWords.put(word, true));
+            if (lowerCaseInput) {
+                reverseCompoundTriggerWords
+                        .forEach(word -> this.reverseCompoundTriggerWords.put(word.toLowerCase(), true));
+            } else {
+                reverseCompoundTriggerWords.forEach(word -> this.reverseCompoundTriggerWords.put(word, true));
+            }
+
         }
 
         spellChecker = new WordBreakSpellChecker();
@@ -91,5 +97,9 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
     @Override
     public Set<Term> getGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+
+    TrieMap<Boolean> getReverseCompoundTriggerWords() {
+        return reverseCompoundTriggerWords;
     }
 }
