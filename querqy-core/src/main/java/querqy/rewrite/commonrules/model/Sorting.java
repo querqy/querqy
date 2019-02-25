@@ -42,12 +42,13 @@ public class Sorting implements Comparator<Instructions> {
     @Override
     public int compare(final Instructions instructions1, final Instructions instructions2) {
 
-        final Optional<String> property1 = instructions1.getProperty(name);
-        final Optional<String> property2 = instructions2.getProperty(name);
+        final Optional<Object> property1 = instructions1.getProperty(name);
+        final Optional<Object> property2 = instructions2.getProperty(name);
 
-        final int c =  property1.map(o1Value ->
-            property2.map(o2Value -> o1Value.compareTo(o2Value) * order.factor)
-                    .orElse(-1) // p1 exist, p2 doesn't -> sort p1 before p2,  TODO: always sort missing last?
+        // p1 exist, p2 doesn't -> sort p1 before p2,  TODO: always sort missing last?
+        final int c = property1.map(o1Value ->
+                property2.map(o2Value -> ((Comparable) o1Value).compareTo( o2Value) * order.factor)
+                        .orElse(-1)
         ).orElseGet(() -> property2.isPresent() ? 1 : 0);
 
         // The contract is that we can only return 0 if both params are equal. Use Instructions.ord to ensure this:

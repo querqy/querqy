@@ -43,7 +43,7 @@ public class TopRewritingActionCollector {
             } else if (topN.size() < limit) {
                 topN.put(instr, actionCreator);
             } else {
-                final Instructions lastInstructions = topN.lastKey();
+                 final Instructions lastInstructions = topN.lastKey();
                 if (comparator.compare(lastInstructions, instr) > 0) {
                     topN.put(instr, actionCreator);
                     if (topN.size() > limit) {

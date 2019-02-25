@@ -22,6 +22,7 @@
         <junit.version>4.11</junit.version>
         <hamcrest.version>1.3</hamcrest.version>
         <mockito.version>1.10.19</mockito.version>
+        <noggit.version>0.8</noggit.version>
     </properties>
 
     <dependencies>
@@ -49,6 +50,12 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.noggit</groupId>
+            <artifactId>noggit</artifactId>
+            <version>${noggit.version}</version>
+        </dependency>
+
     </dependencies>
 
 

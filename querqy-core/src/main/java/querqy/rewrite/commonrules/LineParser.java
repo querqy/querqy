@@ -3,23 +3,16 @@
  */
 package querqy.rewrite.commonrules;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.AbstractMap;
+import java.text.ParseException;
+import java.util.*;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.noggit.JSONParser;
 import querqy.model.Clause.Occur;
 import querqy.model.RawQuery;
 import querqy.parser.QuerqyParser;
-import querqy.rewrite.commonrules.model.BoostInstruction;
+import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-import querqy.rewrite.commonrules.model.DecorateInstruction;
-import querqy.rewrite.commonrules.model.DeleteInstruction;
-import querqy.rewrite.commonrules.model.FilterInstruction;
-import querqy.rewrite.commonrules.model.Input;
-import querqy.rewrite.commonrules.model.PrefixTerm;
-import querqy.rewrite.commonrules.model.SynonymInstruction;
-import querqy.rewrite.commonrules.model.Term;
 
 /**
  * @author René Kriegler, @renekrie
@@ -35,7 +28,8 @@ public class LineParser {
     public static final String INSTR_DELETE = "delete";
     public static final String INSTR_FILTER = "filter";
     public static final String INSTR_SYNONYM = "synonym";
-    public static final String PROPERTY = "property";
+    public static final String PROPERTY_IDENTIFIER = "@";
+
 
     static final char RAWQUERY = '*';
 
@@ -53,7 +47,7 @@ public class LineParser {
             return new ValidationError("Missing input for instruction");
         }
 
-        String lcLine = line.toLowerCase();
+        String lcLine = line.toLowerCase().trim();
 
         if (lcLine.startsWith(INSTR_DELETE)) {
 
@@ -165,7 +159,7 @@ public class LineParser {
             return parseDecorateInstruction(line);
         }
 
-        if(lcLine.startsWith(PROPERTY)) {
+        if (lcLine.startsWith(PROPERTY_IDENTIFIER)) {
             return parseProperty(line);
         }
 
@@ -286,7 +280,8 @@ public class LineParser {
             }
         }
         Object expr = parseTermExpression(s);
-        return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary);
+        return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr,
+                requiresLeftBoundary, requiresRightBoundary);
 
     }
 
@@ -377,22 +372,26 @@ public class LineParser {
 
     }
 
-    public static Object parseProperty(String  line) {
+    public static Object parseProperty(String line) {
 
-        if (line.length() == PROPERTY.length()) {
-            return new ValidationError(PROPERTY + " requires a value");
+        if (line.length() == PROPERTY_IDENTIFIER.length()) {
+            return new ValidationError(PROPERTY_IDENTIFIER + " requires a key & value");
         }
 
-        String propValue = line.substring(PROPERTY.length()).trim();
-        if (propValue.charAt(0) != '.') {
-            return new ValidationError("Cannot parse line, '.' expetcted in property to get name " + line);
+        String propValue = line.substring(PROPERTY_IDENTIFIER.length()).trim();
+        if (!propValue.contains(":")) {
+            return new ValidationError("Cannot parse line, '.' expetcted property in format @propertyName: propertyVal " + line);
         }
 
-        String key = propValue.substring(1, propValue.indexOf(":")).trim();
-        String val = propValue.substring(propValue.indexOf(":")).trim();
-        val = val.substring(1).trim();
-
-        return new AbstractMap.SimpleEntry<String, String>(key, val);
+        String key = propValue.substring(0, propValue.indexOf(":")).trim();
+        String val = propValue.substring(propValue.indexOf(":")).trim().substring(1).trim();
+        Object valData = TypeDetector.getTypedObjectFromString(val);
+        if(valData == null) {
+            return new ValidationError(" Unable to determine proeprty type for: "+line);
+        }
+        return new AbstractMap.SimpleEntry<String, Object>(key, valData);
     }
+
+
 
 }

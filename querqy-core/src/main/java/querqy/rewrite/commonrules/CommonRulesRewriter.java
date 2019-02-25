@@ -20,6 +20,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
 
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
+    public static final String APPLIED_RULES = "APPLIED_RULES";
 
 
     protected final RulesCollection rules;
@@ -95,7 +96,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        final List<Action> actions = collector.createActions();
                //actions = selectionStrategy.selectActions(actions, retrieveCriteriaFromRequest());
 
-       final List<String> appliedRules = new ArrayList<>();
+       final Set<String> appliedRules = new HashSet<>();
 
        for (Action action : actions) {
            if (isDebug) {
@@ -113,10 +114,11 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
            );
 
            // FIXME make the property name configurable or at least avoid 'magic number'
-           instructions.getProperty("id").ifPresent(appliedRules::add);
+           instructions.getProperty(SimpleCommonRulesParser.QUERQY_NAME_PROPERTY).map(obj -> String.valueOf(obj)).ifPresent(appliedRules::add);
        }
 
-       //searchEngineRequestAdapter.setAppliedRules(appliedRules); // FIXME: use DECORATION
+        searchEngineRequestAdapter.getContext().put(APPLIED_RULES, appliedRules);
+
    }
 
    protected PositionSequence<InputSequenceElement> termSequenceToInputSequence(PositionSequence<Term> sequence) {

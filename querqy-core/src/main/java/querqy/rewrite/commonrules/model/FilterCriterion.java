@@ -6,9 +6,9 @@ import java.util.Objects;
 public class FilterCriterion implements Criterion {
 
     private final String name;
-    private final String value;
+    private final Object value;
 
-    public FilterCriterion(final String name, final String value) {
+    public FilterCriterion(final String name, final Object value) {
         this.name = name;
         this.value = value;
     }
@@ -20,7 +20,6 @@ public class FilterCriterion implements Criterion {
                 .getProperty(name)
                 .filter(value::equals)
                 .isPresent();
-
     }
 
     @Override

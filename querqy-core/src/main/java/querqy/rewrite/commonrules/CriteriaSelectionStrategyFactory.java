@@ -2,11 +2,7 @@ package querqy.rewrite.commonrules;
 
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.SelectionStrategyFactory;
-import querqy.rewrite.commonrules.model.Criteria;
-import querqy.rewrite.commonrules.model.CriteriaSelectionStrategy;
-import querqy.rewrite.commonrules.model.FilterCriterion;
-import querqy.rewrite.commonrules.model.SelectionStrategy;
-import querqy.rewrite.commonrules.model.Sorting;
+import querqy.rewrite.commonrules.model.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +43,8 @@ public class CriteriaSelectionStrategyFactory implements SelectionStrategyFactor
                     // FIXME: precompile regex
                     final String[] filterArr = filterStr.split(":");
                     if (filterArr.length == 2) {
-                        return new FilterCriterion(filterArr[0].trim(), filterArr[1].trim());
+                        return new FilterCriterion(filterArr[0].trim(),
+                                TypeDetector.getTypedObjectFromString(filterArr[1].trim()));
                     } else {
                         throw new IllegalArgumentException("Invalid value for rules.criteria.filter: " + filterStr);
                     }
