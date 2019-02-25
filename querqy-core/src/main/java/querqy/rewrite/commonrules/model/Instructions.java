@@ -26,7 +26,7 @@ public class Instructions extends LinkedList<Instruction> {
     /**
      * Properties that are applicable to all {@link Instruction}s in this collection
      */
-    private final Map<String, String> properties;
+    private final Map<String, Object> properties;
 
     /**
      * This property is used for ordering Instructions objects. The creator of Instructions objects must ensure to
@@ -48,12 +48,16 @@ public class Instructions extends LinkedList<Instruction> {
         properties = new HashMap<>();
     }
 
-    public void addProperty(final String name, final String value) {
+    public void addProperty(final String name, final Object value) {
         properties.put(name, value);
     }
 
-    public Optional<String> getProperty(final String name) {
+    public Optional<Object> getProperty(final String name) {
         return Optional.ofNullable(properties.get(name));
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 
 }

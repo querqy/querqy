@@ -18,6 +18,7 @@ import querqy.rewrite.commonrules.model.*;
 public class SimpleCommonRulesParser {
 
     static final String EMPTY = "".intern();
+    static final String QUERQY_NAME_PROPERTY = "querqy_name";
 
     final BufferedReader reader;
     final QuerqyParserFactory querqyParserFactory;
@@ -74,13 +75,14 @@ public class SimpleCommonRulesParser {
                 putRule();
                 input = (Input) lineObject;
                 instructions = new Instructions(instructionsCount++);
+                instructions.addProperty(QUERQY_NAME_PROPERTY, input.getInputTerms());
             } else if (lineObject instanceof ValidationError) {
                 throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
                 instructions.add((Instruction) lineObject);
             } else if (lineObject instanceof Map.Entry) {
                 instructions.addProperty((String) ((Map.Entry) lineObject).getKey(),
-                        (String) ((Map.Entry) lineObject).getValue());
+                         ((Map.Entry) lineObject).getValue());
             }
 
         }

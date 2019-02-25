@@ -68,6 +68,11 @@ public class QuerqyQueryComponent extends QueryComponent {
                 if (decorations != null) {
                     rb.rsp.add("querqy_decorations", decorations);
                 }
+
+                Set<Object> appliedRules = (Set<Object>) context.get(CommonRulesRewriter.APPLIED_RULES);
+                if (appliedRules != null) {
+                    rb.rsp.add("querqy_appliedrules", appliedRules);
+                }
                 
             }
         }

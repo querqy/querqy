@@ -1,20 +1,20 @@
 input1 =>
    SYNONYM: syn1
-   property.priority: 2
-   property.group: 1
-   property.id: 1
+   @priority: 2
+   @group: 1
+   @id: 1
 
 input2 =>
    SYNONYM: syn2
-   property.priority: 1
-   property.group: 1
-   property.id: 2
+   @priority: 1
+   @group: 1
+   @id: 2
 
 input1 =>
    SYNONYM: syn3
-   property.priority: 1
-   property.group: 2
-   property.id: 3
+   @priority: 1
+   @group: 2
+   @id: 3
 
 
 
