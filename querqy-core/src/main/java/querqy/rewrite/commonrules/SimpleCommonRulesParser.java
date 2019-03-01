@@ -61,6 +61,7 @@ public class SimpleCommonRulesParser {
             if (instructions.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
+            buildLoggerInstruction();
             builder.addRule(input,  instructions);
             input = null;
             //  instructions = new Instructions();
@@ -75,7 +76,6 @@ public class SimpleCommonRulesParser {
                 putRule();
                 input = (Input) lineObject;
                 instructions = new Instructions(instructionsCount++);
-                instructions.addProperty(QUERQY_NAME_PROPERTY, input.getInputTerms());
             } else if (lineObject instanceof ValidationError) {
                 throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
@@ -101,5 +101,8 @@ public class SimpleCommonRulesParser {
         }
         return line;
     }
-
+    
+    private void buildLoggerInstruction() {
+        instructions.add(new DecorateInstruction(QUERQY_NAME_PROPERTY+","+input.getRawInput()));
+    }
 }

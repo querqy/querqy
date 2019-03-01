@@ -18,6 +18,7 @@ public class Input {
    final List<Term> inputTerms;
    final boolean requiresLeftBoundary;
    final boolean requiresRightBoundary;
+   String rawInput = null;
 
    public Input(List<Term> inputTerms) {
        this(inputTerms, false, false);
@@ -87,4 +88,11 @@ public class Input {
        return requiresRightBoundary;
    }
 
+   public void setRawInput(String rawInput) {
+      this.rawInput = rawInput;
+   }
+
+   public String getRawInput() {
+      return rawInput;
+   }
 }

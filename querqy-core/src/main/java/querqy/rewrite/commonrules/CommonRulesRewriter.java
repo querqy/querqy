@@ -113,8 +113,6 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
 
            );
 
-           // FIXME make the property name configurable or at least avoid 'magic number'
-           instructions.getProperty(SimpleCommonRulesParser.QUERQY_NAME_PROPERTY).map(obj -> String.valueOf(obj)).ifPresent(appliedRules::add);
        }
 
         searchEngineRequestAdapter.getContext().put(APPLIED_RULES, appliedRules);

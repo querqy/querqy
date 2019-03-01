@@ -261,6 +261,7 @@ public class LineParser {
         boolean requiresRightBoundary = false;
 
         s = s.trim();
+        String rawInput = s;
         if (s.length() > 0 && s.charAt(0) == BOUNDARY) {
             requiresLeftBoundary = true;
             s = s.substring(1).trim();
@@ -280,8 +281,14 @@ public class LineParser {
             }
         }
         Object expr = parseTermExpression(s);
-        return (expr instanceof ValidationError) ? expr : new Input((List<Term>) expr,
-                requiresLeftBoundary, requiresRightBoundary);
+        if (expr instanceof ValidationError) {
+            return expr;
+        } else {
+            Input input = new Input((List<Term>) expr,
+                    requiresLeftBoundary, requiresRightBoundary);
+            input.setRawInput(rawInput);
+            return input;
+        }
 
     }
 
@@ -386,12 +393,11 @@ public class LineParser {
         String key = propValue.substring(0, propValue.indexOf(":")).trim();
         String val = propValue.substring(propValue.indexOf(":")).trim().substring(1).trim();
         Object valData = TypeDetector.getTypedObjectFromString(val);
-        if(valData == null) {
-            return new ValidationError(" Unable to determine proeprty type for: "+line);
+        if (valData == null) {
+            return new ValidationError(" Unable to determine proeprty type for: " + line);
         }
         return new AbstractMap.SimpleEntry<String, Object>(key, valData);
     }
-
 
 
 }

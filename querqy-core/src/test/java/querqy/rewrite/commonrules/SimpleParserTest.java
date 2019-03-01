@@ -20,17 +20,8 @@ import querqy.model.InputSequenceElement;
 import querqy.model.Query;
 import querqy.model.RawQuery;
 import querqy.model.Term;
-import querqy.rewrite.commonrules.model.Action;
-import querqy.rewrite.commonrules.model.BoostInstruction;
+import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-import querqy.rewrite.commonrules.model.DeleteInstruction;
-import querqy.rewrite.commonrules.model.FilterInstruction;
-import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.PositionSequence;
-import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.SynonymInstruction;
-import querqy.rewrite.commonrules.model.TermMatch;
-import querqy.rewrite.commonrules.model.TermMatches;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
     
@@ -87,8 +78,11 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t2);
         List<Action> actions = getActions(rules, seq);
         final DeleteInstruction deleteInstruction = new DeleteInstruction(Collections.singletonList(mkTerm("aa")));
-        assertThat(actions, contains( 
-                new Action(new Instructions(1, Collections.singletonList(deleteInstruction)),
+        assertThat(actions, contains(
+                new Action(new Instructions(1, Arrays.asList(
+                        new DeleteInstruction(Collections.singletonList(mkTerm("aa"))),
+                        new DecorateInstruction(decorateTerm("aa")))
+                        ),
                         new TermMatches(new TermMatch(t1)), 0, 1)));
     }
 
@@ -113,22 +107,27 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
 
                 new Action(
                                 new Instructions(1,
-                                        Collections.singletonList(
-                                                new DeleteInstruction(Collections.singletonList(mkTerm("b"))))),
+                                        Arrays.asList(
+                                                new DeleteInstruction(Collections.singletonList(mkTerm("b"))),
+                                                new DecorateInstruction(decorateTerm("a b"))
+                                        )),
                                                 new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2),
                                 
                 new Action(
                                 new Instructions(3,
                                         Arrays.asList(
                                                 new DeleteInstruction(Collections.singletonList(mkTerm("a"))),
-                                                new DeleteInstruction(Collections.singletonList(mkTerm("c")))
+                                                new DeleteInstruction(Collections.singletonList(mkTerm("c"))),
+                                                new DecorateInstruction(decorateTerm("a b c"))
                                         )),
                                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3),
                 new Action(
                         new Instructions(6,
-                                Collections.singletonList(
+                                Arrays.asList(
                                         new BoostInstruction(
-                                                new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f))),
+                                                new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f),
+                                        new DecorateInstruction(decorateTerm("a"))
+                                )),
                         new TermMatches(new TermMatch(t1)), 0, 1)
 
                 ));	
@@ -148,8 +147,10 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         assertThat(actions, contains( 
                 new Action(
                                 new Instructions(1,
-                                        Collections.singletonList(
-                                                new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f))),
+                                        Arrays.asList(
+                                                new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f),
+                                                new DecorateInstruction(decorateTerm("t1 t2"))
+                                        )),
                                                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
                 
@@ -167,8 +168,10 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         assertThat(actions, contains(
                 new Action(
                         new Instructions(1,
-                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("flt2 flt3")))
-                                        ),
+                                Arrays.asList(new FilterInstruction(makeQueryUsingFactory("flt2 flt3")),
+                                        new DecorateInstruction(decorateTerm("tf2"))
+                                )
+                        ),
                         new TermMatches(new TermMatch(t1)), 0, 1)
                 
                 
@@ -208,8 +211,10 @@ ts6 =>
         assertThat(actions, contains(
                 new Action(
                         new Instructions(1,
-                                        Collections.singletonList(
-                                                new SynonymInstruction(Collections.singletonList(mkTerm("syn1"))))
+                                        Arrays.asList(
+                                                new SynonymInstruction(Collections.singletonList(mkTerm("syn1"))),
+                                                new DecorateInstruction(decorateTerm("ts1 ts2"))
+                                        )
                                         ),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
@@ -233,13 +238,15 @@ ts6 =>
         assertThat(actions, contains(
                 new Action(
                                 new Instructions(1,
-                                        Collections.singletonList(
+                                        Arrays.asList(
                                                 new SynonymInstruction(
                                                         Arrays.asList(
                                                                 mkTerm("syn5"),
                                                                 mkTerm("syn6", "f1"),
                                                                 mkTerm("syn7", "f2", "f3")
-                                                        )))
+                                                        )),
+                                                new DecorateInstruction(decorateTerm("ts6"))
+                                        )
                                         ),
                                                         new TermMatches(new TermMatch(t1)), 0, 1)
                 
@@ -295,10 +302,10 @@ ts6 =>
         assertThat(actions, contains( 
                 new Action(
                         new Instructions(1,
-                                        Collections.singletonList(
-                                                new FilterInstruction(makeQueryUsingFactory("FLT4")
-
-                                                ))),
+                                        Arrays.asList(
+                                                new FilterInstruction(makeQueryUsingFactory("FLT4")),
+                                                new DecorateInstruction(decorateTerm("tS7 Ts8 TS"))
+                                        )),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
@@ -329,8 +336,10 @@ ts6 =>
         assertThat(actions, contains( 
                 new Action(
                         new Instructions(1,
-                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLT4")
-                                ))),
+                                Arrays.asList(
+                                        new FilterInstruction(makeQueryUsingFactory("FLT4")),
+                                        new DecorateInstruction(decorateTerm("tS7 Ts8 TS"))
+                                )),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
@@ -361,9 +370,10 @@ ts6 =>
         assertThat(actions, contains( 
                 new Action(
                         new Instructions(1,
-                                        Collections.singletonList(
-                                                new FilterInstruction(makeQueryUsingFactory("FLT4")
-                                        ))),
+                                        Arrays.asList(
+                                                new FilterInstruction(makeQueryUsingFactory("FLT4")),
+                                                new DecorateInstruction(decorateTerm("tS7 Ts8 TS"))
+                                        )),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 ));
     }
@@ -398,8 +408,10 @@ ts6 =>
         assertThat(actions, contains( 
                 new Action(
                         new Instructions(1,
-                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB1")
-                                ))),
+                                Arrays.asList(
+                                        new FilterInstruction(makeQueryUsingFactory("FLTTB1")),
+                                        new DecorateInstruction(decorateTerm("\"tb1"))
+                                )),
                         new TermMatches(Collections.singletonList(new TermMatch(t1))), 0, 1)
                 ));
     }
@@ -467,8 +479,10 @@ ts6 =>
         assertThat(actions, contains( 
                 new Action(
                         new Instructions(1,
-                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB2")
-                                ))),
+                                Arrays.asList(
+                                        new FilterInstruction(makeQueryUsingFactory("FLTTB2")),
+                                        new DecorateInstruction(decorateTerm("\"tb2\""))
+                                )),
                         new TermMatches(Collections.singletonList(new TermMatch(t2))), 0, 1)
                 ));
     }

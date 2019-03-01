@@ -38,4 +38,7 @@ public abstract class AbstractCommonRulesTest {
         return collector.createActions();
     }
 
+    protected String decorateTerm(String s) {
+        return SimpleCommonRulesParser.QUERQY_NAME_PROPERTY+","+s;
+    }
 }
