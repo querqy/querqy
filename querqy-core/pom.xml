@@ -4,13 +4,13 @@
 
     <artifactId>querqy-core</artifactId>
     <groupId>querqy</groupId>
-    <version>3.2.1-SNAPSHOT</version>
+    <version>3.2.1</version>
 
     <scm>
         <url>git@github.com:renekrie/querqy.git</url>
         <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:renekrie/querqy.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>querqy-core-3.2.1</tag>
     </scm>
 
     <prerequisites>
