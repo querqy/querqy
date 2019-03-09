@@ -30,7 +30,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -57,14 +58,17 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
-        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(1, Collections.singletonList(boostInstruction)));
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(),
+                BoostDirection.UP, 0.5f);
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getBoostUpQueries();
+        Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
+                .getBoostUpQueries();
 
         assertThat(upQueries,
                 contains(
@@ -87,7 +91,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a +b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -115,8 +120,10 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
-        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(1, Collections.singletonList(boostInstruction)));
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(),
+                BoostDirection.UP, 0.5f);
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -144,7 +151,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -161,7 +169,8 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false, "a"),
+                new Instructions(1, Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

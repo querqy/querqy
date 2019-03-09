@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
@@ -154,7 +155,9 @@ public class SynonymFormatCommonRulesRewriterFactory implements
             }
 
             if (!terms.isEmpty()) {
-               result.add(new Input(terms));
+               result.add(new Input(terms, terms.stream()
+                       .map(querqy.rewrite.commonrules.model.Term::toString)
+                       .collect(Collectors.joining(" "))));
             }
          }
       }

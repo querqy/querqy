@@ -3,6 +3,7 @@ package querqy.rewrite.commonrules.model;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -12,16 +13,12 @@ import querqy.ComparableCharSequence;
 
 public class InputTest {
 
-   @Before
-   public void setUp() throws Exception {
-   }
-
    @Test
    public void testGetInputSequencesForSingleTermWithoutFieldName() {
       char[] s1 = "test".toCharArray();
       Term term1 = new Term(s1, 0, s1.length, null);
 
-      Input input = new Input(Arrays.asList(term1), false, false);
+      Input input = new Input(Collections.singletonList(term1), false, false, "test");
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
@@ -40,7 +37,7 @@ public class InputTest {
       char[] s2 = "test2".toCharArray();
       Term term2 = new Term(s2, 0, s2.length, null);
 
-      Input input = new Input(Arrays.asList(term1, term2), false, false);
+      Input input = new Input(Arrays.asList(term1, term2), false, false, "test test2");
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
@@ -56,7 +53,7 @@ public class InputTest {
       char[] s1 = "test".toCharArray();
       Term term1 = new Term(s1, 0, s1.length, Arrays.asList("name1"));
 
-      Input input = new Input(Arrays.asList(term1), false, false);
+      Input input = new Input(Collections.singletonList(term1), false, false, "name1:test");
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
@@ -72,7 +69,7 @@ public class InputTest {
       char[] s1 = "test".toCharArray();
       Term term1 = new Term(s1, 0, s1.length, Arrays.asList("name1", "name2"));
 
-      Input input = new Input(Arrays.asList(term1), false, false);
+      Input input = new Input(Collections.singletonList(term1), false, false, "name1:test name2:test");
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(2, sequences.size());
@@ -94,7 +91,8 @@ public class InputTest {
       char[] s2 = "test2".toCharArray();
       Term term2 = new Term(s2, 0, s2.length, Arrays.asList("name3", "name4"));
 
-      Input input = new Input(Arrays.asList(term1, term2), false, false);
+      // making up a syntax
+      Input input = new Input(Arrays.asList(term1, term2), false, false, "[name1,name2]:test [name3,name4]:test2");
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(4, sequences.size());
@@ -124,7 +122,8 @@ public class InputTest {
       char[] s2 = "test2".toCharArray();
       Term term2 = new Term(s2, 0, s2.length, null);
 
-      Input input = new Input(Arrays.asList(term1, term2), false, false);
+      // making up a syntax
+      Input input = new Input(Arrays.asList(term1, term2), false, false, "[name1,name2]:test test2");
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(2, sequences.size());
@@ -137,5 +136,19 @@ public class InputTest {
       assertEquals("name2:test test2", seq.toString());
 
    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testThatANullMatchExpressionIsNotAccepted4x() {
+        char[] s1 = "test2".toCharArray();
+        Term term1 = new Term(s1, 0, s1.length, null);
+        new Input(Collections.singletonList(term1), false, false, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testThatANullMatchExpressionIsNotAccepted2x() {
+        char[] s1 = "test2".toCharArray();
+        Term term1 = new Term(s1, 0, s1.length, null);
+        new Input(Collections.singletonList(term1), null);
+    }
 
 }

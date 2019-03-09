@@ -10,25 +10,44 @@ import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 
 /**
+ * An input object representing the left-hand side of a rewriting rule
+ *
  * @author rene
  *
  */
 public class Input {
 
-   final List<Term> inputTerms;
-   final boolean requiresLeftBoundary;
-   final boolean requiresRightBoundary;
-   String rawInput = null;
+    final List<Term> inputTerms;
+    final boolean requiresLeftBoundary;
+    final boolean requiresRightBoundary;
+    private final String matchExpression;
 
-   public Input(List<Term> inputTerms) {
-       this(inputTerms, false, false);
-   }
-   
-   public Input(List<Term> inputTerms, boolean requiresLeftBoundary, boolean requiresRightBoundary) {
-      this.inputTerms = inputTerms;
-      this.requiresLeftBoundary = requiresLeftBoundary;
-      this.requiresRightBoundary = requiresRightBoundary;
-   }
+    /**
+     * Same as {@link #Input(List, boolean, boolean, String)} with both boundaries not required (set to false)
+     * @param inputTerms The sequence of terms to match
+     * @param matchExpression A string that represents the input match condition (i.e. the left-hand side in rules.txt)
+     */
+    public Input(final List<Term> inputTerms, final String matchExpression) {
+        this(inputTerms, false, false, matchExpression);
+    }
+
+    /**
+     *
+     * @param inputTerms The sequence of terms to match
+     * @param requiresLeftBoundary true iff the first input term must be the first term in the query
+     * @param requiresRightBoundary true iff the last input term must be the last term in the query
+     * @param matchExpression A string that represents the input match condition (i.e. the left hand-side in rules.txt)
+     */
+    public Input(final List<Term> inputTerms, final boolean requiresLeftBoundary, final boolean requiresRightBoundary,
+                 final String matchExpression) {
+        if (matchExpression == null) {
+            throw new IllegalArgumentException("matchExpression must not be null");
+        }
+        this.inputTerms = inputTerms;
+        this.requiresLeftBoundary = requiresLeftBoundary;
+        this.requiresRightBoundary = requiresRightBoundary;
+        this.matchExpression = matchExpression;
+    }
 
    public boolean isEmpty() {
       return inputTerms == null || inputTerms.isEmpty();
@@ -47,7 +66,7 @@ public class Input {
       }
 
       List<ComparableCharSequence> seqs = new LinkedList<>();
-      collectTails(new LinkedList<ComparableCharSequence>(), slots, seqs);
+      collectTails(new LinkedList<>(), slots, seqs);
       return seqs;
 
    }
@@ -88,11 +107,7 @@ public class Input {
        return requiresRightBoundary;
    }
 
-   public void setRawInput(String rawInput) {
-      this.rawInput = rawInput;
-   }
-
-   public String getRawInput() {
-      return rawInput;
+   public String getMatchExpression() {
+      return matchExpression;
    }
 }

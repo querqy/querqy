@@ -28,7 +28,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
         
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, Collections.singletonList(deco)));
 
         RulesCollection rules = builder.build();
@@ -80,9 +80,9 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         DecorateInstruction deco2 = new DecorateInstruction("deco2");
         DecorateInstruction deco3 = new DecorateInstruction("deco3");
         
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, Arrays.asList(deco1, deco2)));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a")), false, false),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
                 new Instructions(2, Collections.singletonList(deco3)));
 
         RulesCollection rules = builder.build();

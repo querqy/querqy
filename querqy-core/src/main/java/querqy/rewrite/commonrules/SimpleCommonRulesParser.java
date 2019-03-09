@@ -103,6 +103,6 @@ public class SimpleCommonRulesParser {
     }
     
     private void buildLoggerInstruction() {
-        instructions.add(new DecorateInstruction(QUERQY_NAME_PROPERTY+","+input.getRawInput()));
+        instructions.add(new DecorateInstruction(QUERQY_NAME_PROPERTY+","+input.getMatchExpression()));
     }
 }

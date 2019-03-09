@@ -3,11 +3,8 @@
  */
 package querqy.rewrite.commonrules;
 
-import java.text.ParseException;
 import java.util.*;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import org.noggit.JSONParser;
 import querqy.model.Clause.Occur;
 import querqy.model.RawQuery;
 import querqy.parser.QuerqyParser;
@@ -280,14 +277,11 @@ public class LineParser {
                 return new ValidationError(WILDCARD + " cannot be combined with right boundary");
             }
         }
-        Object expr = parseTermExpression(s);
+        final Object expr = parseTermExpression(s);
         if (expr instanceof ValidationError) {
             return expr;
         } else {
-            Input input = new Input((List<Term>) expr,
-                    requiresLeftBoundary, requiresRightBoundary);
-            input.setRawInput(rawInput);
-            return input;
+            return new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary, rawInput);
         }
 
     }
@@ -302,7 +296,7 @@ public class LineParser {
                 return new ValidationError("Missing prefix for wildcard " + WILDCARD);
             }
             Term term = new Term(new char[]{ch}, 0, 1, null);
-            return Arrays.asList(term);
+            return Collections.singletonList(term);
         }
 
 
