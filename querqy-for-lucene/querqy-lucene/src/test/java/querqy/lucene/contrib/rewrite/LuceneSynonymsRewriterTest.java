@@ -37,8 +37,6 @@ public class LuceneSynonymsRewriterTest {
     @Before
     public void setUp() throws Exception {
 
-        when(searchEngineRequestAdapter.getContext()).thenReturn(new HashMap<>());
-
         LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory("LuceneSynonymsRewriter", true, true);
         factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
         factory.build();

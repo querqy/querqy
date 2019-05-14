@@ -1,4 +1,4 @@
-package querqy.solr;
+package querqy.solr.contrib;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -10,7 +10,7 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-wordbreak.xml", "schema.xml");
+        initCore("contrib/solrconfig-wordbreak.xml", "schema.xml");
         addDocs();
     }
 
@@ -48,6 +48,47 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response' and @numFound='1']",
                 "//doc/str[@name='id'][contains(.,'2')]"
+        );
+
+
+        req.close();
+    }
+
+    @Test
+    public void testThatLowerCaseTrueIsApplied() {
+        String q = "Herrenjacke";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.MM, "100%",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Misssing decompound",
+                req,
+                "//result[@name='response' and @numFound='1']",
+                "//doc/str[@name='id'][contains(.,'2')]"
+        );
+
+
+        req.close();
+    }
+
+    @Test
+    public void testThatLowerCaseFalseConfigIsApplied() {
+        String q = "Herrenjacke";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.MM, "100%",
+                "defType", "querqyNoCollationNoLowerCase",
+                "debugQuery", "on"
+        );
+
+        assertQ("Misssing decompound",
+                req,
+                "//result[@name='response' and @numFound='0']"
         );
 
 
@@ -137,7 +178,7 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 DisMaxParams.MM, "100%",
-                "defType", "querqyNoCollation",
+                "defType", "querqyNoCollationNoLowerCase",
                 "debugQuery", "on"
         );
 

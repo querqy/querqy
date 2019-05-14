@@ -28,7 +28,7 @@ import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 public class PRMSFieldBoostTest extends LuceneTestCase {
 

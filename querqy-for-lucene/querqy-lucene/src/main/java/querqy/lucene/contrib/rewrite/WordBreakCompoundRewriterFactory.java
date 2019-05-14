@@ -28,6 +28,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
     private final Supplier<IndexReader> indexReaderSupplier;
     private final String dictionaryField;
+    private final boolean lowerCaseInput;
     private final WordBreakSpellChecker spellChecker;
     private final boolean alwaysAddReverseCompounds;
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
@@ -35,9 +36,9 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final boolean verifyDecompundCollation;
 
     /**
-     *
      * @param indexReaderSupplier
      * @param dictionaryField
+     * @param lowerCaseInput
      * @param minSuggestionFreq
      * @param maxCombineLength
      * @param minBreakLength
@@ -49,6 +50,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     public WordBreakCompoundRewriterFactory(final String rewriterId,
                                             final Supplier<IndexReader> indexReaderSupplier,
                                             final String dictionaryField,
+                                            final boolean lowerCaseInput,
                                             final int minSuggestionFreq,
                                             final int maxCombineLength,
                                             final int minBreakLength,
@@ -59,6 +61,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.dictionaryField = dictionaryField;
+        this.lowerCaseInput = lowerCaseInput;
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
         this.verifyDecompundCollation = verifyDecompoundCollation;
         if (maxDecompoundExpansions < 0) {
@@ -69,7 +72,13 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         this.reverseCompoundTriggerWords = new TrieMap<>();
         if (reverseCompoundTriggerWords != null) {
-            reverseCompoundTriggerWords.forEach(word -> this.reverseCompoundTriggerWords.put(word, true));
+            if (lowerCaseInput) {
+                reverseCompoundTriggerWords
+                        .forEach(word -> this.reverseCompoundTriggerWords.put(word.toLowerCase(), true));
+            } else {
+                reverseCompoundTriggerWords.forEach(word -> this.reverseCompoundTriggerWords.put(word, true));
+            }
+
         }
 
         spellChecker = new WordBreakSpellChecker();
@@ -84,12 +93,16 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     public QueryRewriter createRewriter(final ExpandedQuery input,
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
-                alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
+                lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
                 verifyDecompundCollation);
     }
 
     @Override
     public Set<Term> getGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+
+    TrieMap<Boolean> getReverseCompoundTriggerWords() {
+        return reverseCompoundTriggerWords;
     }
 }

@@ -7,6 +7,8 @@ import org.apache.lucene.search.spell.CombineSuggestion;
 import org.apache.lucene.search.spell.SuggestMode;
 import org.apache.lucene.search.spell.SuggestWord;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
+import org.apache.lucene.util.BytesRef;
+import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
@@ -39,6 +41,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final WordBreakSpellChecker wordBreakSpellChecker;
     private final IndexReader indexReader;
     private final String dictionaryField;
+    private final boolean lowerCaseInput;
 
     // We are not using this as a map but as a kind of a set to look up CharSequences quickly
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
@@ -56,10 +59,10 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final boolean verifyDecompoundCollation;
 
     /**
-     *
      * @param wordBreakSpellChecker
      * @param indexReader
      * @param dictionaryField
+     * @param lowerCaseInput
      * @param alwaysAddReverseCompounds
      * @param reverseCompoundTriggerWords
      * @param maxDecompoundExpansions
@@ -68,7 +71,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     public WordBreakCompoundRewriter(final WordBreakSpellChecker wordBreakSpellChecker,
                                      final IndexReader indexReader,
                                      final String dictionaryField,
-                                     final boolean alwaysAddReverseCompounds,
+                                     final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
                                      final int maxDecompoundExpansions, final boolean verifyDecompoundCollation) {
 
@@ -83,6 +86,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         this.wordBreakSpellChecker = wordBreakSpellChecker;
         this.indexReader = indexReader;
         this.dictionaryField = dictionaryField;
+        this.lowerCaseInput = lowerCaseInput;
         this.decompoundsToQuery = verifyDecompoundCollation ? maxDecompoundExpansions * 4 : maxDecompoundExpansions;
     }
 
@@ -173,7 +177,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     private boolean isReverseCompoundTriggerWord(final Term term) {
-        return reverseCompoundTriggerWords.get(term).getStateForCompleteSequence().isFinal();
+        return reverseCompoundTriggerWords.get(lowerCaseInput ? new LowerCaseCharSequence(term) : term)
+                .getStateForCompleteSequence().isFinal();
     }
 
     protected void decompound(final Term term) {
@@ -348,7 +353,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     private org.apache.lucene.index.Term toLuceneTerm(final Term querqyTerm) {
-        return new org.apache.lucene.index.Term(dictionaryField, querqyTerm.getValue().toString());
+        return new org.apache.lucene.index.Term(dictionaryField,
+                new BytesRef(lowerCaseInput ? new LowerCaseCharSequence(querqyTerm) : querqyTerm));
     }
 
     private static <T> boolean eq(final T value1, final T value2) {

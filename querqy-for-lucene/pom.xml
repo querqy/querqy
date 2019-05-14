@@ -1,6 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>querqy</groupId>
+        <artifactId>querqy-parent</artifactId>
+        <version>3.2.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <groupId>querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
     <version>4.4.lucene720.0-SNAPSHOT</version>
@@ -13,20 +20,11 @@
         <tag>HEAD</tag>
     </scm>
 
-    <prerequisites>
-        <maven>3.3.0</maven>
-    </prerequisites>
-
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <querqy.core.version>3.2.1-SNAPSHOT</querqy.core.version>
+        <querqy.core.version>3.3.0-SNAPSHOT</querqy.core.version>
         <querqy.antlr.version>3.0.2</querqy.antlr.version>
         <lucene.version>7.2.0</lucene.version>
         <commons.io.version>2.5</commons.io.version>
-        <slf4j.version>1.7.24</slf4j.version>
-        <junit.version>4.11</junit.version>
-        <hamcrest.version>1.3</hamcrest.version>
-        <mockito.version>1.10.19</mockito.version>
     </properties>
 
     <modules>
@@ -45,27 +43,15 @@
     <dependencies>
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>${hamcrest.version}</version>
-            <scope>test</scope>
+            <artifactId>hamcrest</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -75,7 +61,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version>
+                <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
                         <tests.codec>Lucene70</tests.codec>
@@ -85,6 +71,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -98,8 +85,9 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>${maven-release-plugin.version}</version>
                     <configuration>
                         <useReleaseProfile>false</useReleaseProfile>
                         <releaseProfiles>release</releaseProfiles>
@@ -107,17 +95,19 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
                         <showDeprecation>true</showDeprecation>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>cobertura-maven-plugin</artifactId>
-                    <version>2.7</version>
+                    <version>${cobertura-maven-plugin.version}</version>
                     <configuration>
                         <instrumentation>
                             <excludes>
@@ -141,7 +131,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.6</version>
+                <version>${cobertura-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>

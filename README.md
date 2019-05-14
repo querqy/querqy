@@ -6,6 +6,9 @@ Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.
 
 Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
 
+**NEW: There is now a web UI for managing common query rewriting rules with Querqy. Make sure you check out [SMUI](https://github.com/pbartusch/smui)!**
+
+
 ## Getting started: setting up Common Rules under Solr
 
 ### Getting Querqy and deploying it to Solr
@@ -17,6 +20,7 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
+|7.7.0| 4.3.lucene720.x||
 |7.6.0| 4.3.lucene720.x||
 |7.5.0| 4.3.lucene720.x||
 |7.4.0| 4.3.lucene720.x||

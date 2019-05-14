@@ -69,7 +69,6 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
         stopWords = new HashSet<>(Arrays.asList("stopA", "stopB", "stopC"));
 
-        when(searchEngineRequestAdapter.getContext()).thenReturn(new HashMap<>());
     }
 
     Map<String, Float> fields(String... names) {

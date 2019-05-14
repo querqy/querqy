@@ -1,6 +1,6 @@
 package querqy.solr;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import querqy.infologging.InfoLogging;
+
 import querqy.lucene.LuceneQueries;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
@@ -136,7 +137,6 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");
