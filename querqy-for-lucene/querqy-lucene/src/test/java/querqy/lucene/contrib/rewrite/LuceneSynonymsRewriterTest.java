@@ -39,7 +39,7 @@ public class LuceneSynonymsRewriterTest {
 
         when(searchEngineRequestAdapter.getContext()).thenReturn(new HashMap<>());
 
-        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(true, true);
+        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory("LuceneSynonymsRewriter", true, true);
         factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
         factory.build();
 

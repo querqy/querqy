@@ -14,10 +14,11 @@ import org.apache.solr.search.QParser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import querqy.infologging.InfoLogging;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.parser.WhiteSpaceQuerqyParser;
+import querqy.infologging.InfoLoggingContext;
 
 /**
  * Created by rene on 04/05/2017.
@@ -29,7 +30,7 @@ public class AbstractQuerqyDismaxQParserPluginTest {
 
         @Override
         public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req,
-                                    TermQueryCache termQueryCache) {
+                                    InfoLogging infoLogging, TermQueryCache termQueryCache) {
             return null;
         }
     };

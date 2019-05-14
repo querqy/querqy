@@ -81,7 +81,8 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
             final IndexReader reader = DirectoryReader.open(directory);
 
             try {
-                rewritten = new WordBreakCompoundRewriterFactory(() -> reader, "dict", 1, 2, 1, Collections.emptyList(),
+                rewritten = new WordBreakCompoundRewriterFactory("WordBreakCompoundRewriter", () -> reader, "dict", 1,
+                        2, 1, Collections.emptyList(),
                         false, 2, true)
                         .createRewriter(expandedQuery, new EmptySearchEngineRequestAdapter())
                         .rewrite(expandedQuery);

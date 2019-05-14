@@ -3,6 +3,7 @@
  */
 package querqy.rewrite.commonrules;
 
+import querqy.infologging.InfoLoggingContext;
 import querqy.model.*;
 import querqy.model.Term;
 import querqy.rewrite.ContextAwareQueryRewriter;
@@ -94,9 +95,12 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        rules.collectRewriteActions(sequenceForLookUp, collector);
 
        final List<Action> actions = collector.createActions();
-               //actions = selectionStrategy.selectActions(actions, retrieveCriteriaFromRequest());
 
-       final Set<String> appliedRules = new HashSet<>();
+
+       final InfoLoggingContext infoLoggingContext = searchEngineRequestAdapter.getInfoLoggingContext().orElse(null);
+       final boolean infoLoggingEnabled = infoLoggingContext != null && infoLoggingContext.isEnabledForRewriter();
+
+       final Set<String> appliedRules = infoLoggingEnabled ? new HashSet<>() : null;
 
        for (Action action : actions) {
            if (isDebug) {
@@ -113,9 +117,22 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
 
            );
 
+           if (infoLoggingEnabled) {
+
+               instructions.getProperty(Instructions.StandardPropertyNames.LOG_MESSAGE)
+                       .map(String::valueOf).ifPresent(appliedRules::add);
+
+           }
+
        }
 
-        searchEngineRequestAdapter.getContext().put(APPLIED_RULES, appliedRules);
+
+       if (infoLoggingEnabled && !appliedRules.isEmpty()) {
+           final Map<String, Set<String>> message = new IdentityHashMap<>(1);
+           message.put(APPLIED_RULES, appliedRules);
+           infoLoggingContext.log(message);
+       }
+
 
    }
 

@@ -16,6 +16,7 @@ import org.apache.solr.search.WrappedQuery;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.infologging.InfoLogging;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -23,9 +24,10 @@ import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.infologging.InfoLoggingContext;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 @SolrTestCaseJ4.SuppressSSL
@@ -117,7 +119,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
         );
 
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req,
-            new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
 
         Query query = parser.parse();
 
@@ -138,7 +140,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             DisMaxParams.MM, "3");
 
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-            new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
 
         Query query = parser.parse();
 
@@ -159,7 +161,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
             QueryParsing.OP, "OR"
             );
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-            new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
         Query query = parser.parse();
 
         req.close();
@@ -731,7 +733,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-           new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
+           new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);
@@ -761,10 +763,10 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     public static class MatchAllRewriter implements FactoryAdapter<RewriterFactory> {
 
         @Override
-        public RewriterFactory createFactory(NamedList<?> args, ResourceLoader resourceLoader) {
-            return new RewriterFactory() {
+        public RewriterFactory createFactory(final String rewriterId, NamedList<?> args, ResourceLoader resourceLoader) {
+            return new RewriterFactory(rewriterId) {
                 @Override
-                public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {
+                public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
                     return query -> {
                         query.setUserQuery(new MatchAllQuery());
                         query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
@@ -777,6 +779,11 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
                     return Collections.emptySet();
                 }
             };
+        }
+
+        @Override
+        public Class<?> getCreatedClass() {
+            return QueryRewriter.class;
         }
     }
 }

@@ -19,8 +19,9 @@ import querqy.lucene.QueryParsingController;
 import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.parser.QuerqyParser;
-import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.RewriteChain;
+import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.infologging.InfoLogging;
 
 import java.util.List;
 import java.util.Map;
@@ -46,8 +47,9 @@ public class QuerqyDismaxQParser extends QParser {
      * @param req         The original {@link SolrQueryRequest}.
      */
     public QuerqyDismaxQParser(final String qstr, final SolrParams localParams, final SolrParams params,
-                                final SolrQueryRequest req, final QuerqyParser querqyParser,
-                                final RewriteChain rewriteChain, final TermQueryCache termQueryCache) {
+                               final SolrQueryRequest req, final QuerqyParser querqyParser,
+                               final RewriteChain rewriteChain, final InfoLogging infoLogging,
+                               final TermQueryCache termQueryCache) {
         super(qstr, localParams, params, req);
         final String q = Objects.requireNonNull(qstr).trim();
         if (q.isEmpty()) {
@@ -57,7 +59,7 @@ public class QuerqyDismaxQParser extends QParser {
         this.querqyParser = querqyParser;
 
         requestAdapter = new DismaxSearchEngineRequestAdapter(this, req, userQueryString,
-                SolrParams.wrapDefaults(localParams, params), querqyParser, rewriteChain, termQueryCache);
+                SolrParams.wrapDefaults(localParams, params), querqyParser, rewriteChain, infoLogging, termQueryCache);
 
 
         controller = new QueryParsingController(requestAdapter);
@@ -172,8 +174,8 @@ public class QuerqyDismaxQParser extends QParser {
 
     }
 
-    public Map<String, Object> getContext() {
-        return requestAdapter.getContext();
+      public SearchEngineRequestAdapter getSearchEngineRequestAdapter() {
+        return requestAdapter;
     }
 
     public List<Query> getFilterQueries() {

@@ -30,7 +30,7 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
      * .common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
      */
     @Override
-    public RewriterFactory createFactory(final NamedList<?> args,
+    public RewriterFactory createFactory(final String id, final NamedList<?> args,
                                          final ResourceLoader resourceLoader) throws IOException {
 
         final String rulesResourceName = (String) args.get("rules");
@@ -51,8 +51,9 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
                     @SuppressWarnings("unchecked")
                     final FactoryAdapter<SelectionStrategyFactory> factory = resourceLoader
                             .newInstance((String) config.get("class"), FactoryAdapter.class);
-                    final String id = (String) config.get("id");
-                    if (selectionStrategyFactories.put(id, factory.createFactory(config, resourceLoader)) != null) {
+                    final String strategyId = (String) config.get("id");
+                    if (selectionStrategyFactories.put(strategyId,
+                            factory.createFactory(strategyId, config, resourceLoader)) != null) {
                         throw new IOException("Duplicate id in rules.selectionStrategy: " + id);
                     }
                 }
@@ -77,10 +78,13 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
             querqyParser = new WhiteSpaceQuerqyParserFactory();
         }
 
-        return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
-                new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"),
-                querqyParser,
+        return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(id,
+                new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"), querqyParser,
                 ignoreCase == null || ignoreCase, selectionStrategyFactories);
     }
 
+    @Override
+    public Class<?> getCreatedClass() {
+        return querqy.rewrite.commonrules.CommonRulesRewriter.class;
+    }
 }

@@ -10,9 +10,12 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.infologging.InfoLogging;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.solr.QuerqyDismaxQParser;
+
+import java.util.Collections;
 
 @SolrTestCaseJ4.SuppressSSL
 public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
@@ -123,14 +126,14 @@ public class QuerqyDismaxQParserWithSolrSynonymsTest extends SolrTestCaseJ4 {
    public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
       QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-           new WhiteSpaceQuerqyParser(), new RewriteChain(), null);
+           new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
       Query query = parser.parse();
       req.close();
       assertTrue(query instanceof BooleanQuery);
       BooleanQuery bq = (BooleanQuery) query;
       String qStr = bq.toString();
       for (String exp : expectedSubstrings) {
-         assertTrue("Missing: " + exp, qStr.indexOf(exp) > -1);
+         assertTrue("Missing: " + exp, qStr.contains(exp));
       }
 
    }

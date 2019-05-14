@@ -3,10 +3,14 @@
  */
 package querqy.rewrite.commonrules;
 
+import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.ID;
+import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.LOG_MESSAGE;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
+import java.util.Optional;
 
 import querqy.rewrite.commonrules.model.*;
 
@@ -61,10 +65,18 @@ public class SimpleCommonRulesParser {
             if (instructions.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
-            buildLoggerInstruction();
+
+            final Optional<Object> optId = instructions.getProperty(ID);
+            if (!optId.isPresent()) {
+                instructions.addProperty(ID, String.valueOf(input.getMatchExpression()) + "#"
+                        + instructions.ord);
+            }
+            final Optional<Object> optLogMessage = instructions.getProperty(LOG_MESSAGE);
+            if (!optLogMessage.isPresent()) {
+                instructions.addProperty(LOG_MESSAGE, instructions.getId());
+            }
             builder.addRule(input,  instructions);
             input = null;
-            //  instructions = new Instructions();
         }
     }
 
@@ -102,7 +114,4 @@ public class SimpleCommonRulesParser {
         return line;
     }
     
-    private void buildLoggerInstruction() {
-        instructions.add(new DecorateInstruction(QUERQY_NAME_PROPERTY+","+input.getMatchExpression()));
-    }
 }

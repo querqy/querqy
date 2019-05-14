@@ -24,6 +24,7 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
@@ -52,8 +53,8 @@ public class SynonymFormatCommonRulesRewriterFactory implements
     * .common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
     */
    @Override
-   public RewriterFactory createFactory(NamedList<?> args,
-                                        ResourceLoader resourceLoader) throws IOException {
+   public RewriterFactory createFactory(final String id, final NamedList<?> args, final ResourceLoader resourceLoader)
+           throws IOException {
 
       String boostUp = (String) args.get("boostUp");
       String boostDown = (String) args.get("boostDown");
@@ -74,11 +75,16 @@ public class SynonymFormatCommonRulesRewriterFactory implements
          addBoostInstructions(builder, BoostDirection.DOWN, 1f, resourceLoader, boostDown);
       }
 
-      return new RulesRewriterFactory(builder.build());
+      return new RulesRewriterFactory(id, builder.build());
    }
 
-   void addBoostInstructions(RulesCollectionBuilder builder, BoostDirection direction, float boost,
-         ResourceLoader resourceLoader, String resourceName) throws IOException {
+    @Override
+    public Class<?> getCreatedClass() {
+        return CommonRulesRewriter.class;
+    }
+
+    void addBoostInstructions(RulesCollectionBuilder builder, BoostDirection direction, float boost,
+                              ResourceLoader resourceLoader, String resourceName) throws IOException {
 
       try (
             BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.openResource(resourceName)))) {
@@ -155,9 +161,9 @@ public class SynonymFormatCommonRulesRewriterFactory implements
             }
 
             if (!terms.isEmpty()) {
-               result.add(new Input(terms, terms.stream()
-                       .map(querqy.rewrite.commonrules.model.Term::toString)
-                       .collect(Collectors.joining(" "))));
+                result.add(new Input(terms, terms.stream()
+                        .map(querqy.rewrite.commonrules.model.Term::toString)
+                        .collect(Collectors.joining(" "))));
             }
          }
       }
@@ -186,28 +192,31 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
    }
 
-   public static class RulesRewriterFactory implements RewriterFactory {
+   public static class RulesRewriterFactory extends RewriterFactory {
 
-      final RulesCollection rules;
+        final RulesCollection rules;
 
-      public RulesRewriterFactory(RulesCollection rules) {
-         this.rules = rules;
-      }
-
-      @Override
-      public QueryRewriter createRewriter(ExpandedQuery input,
-            Map<String, ?> context) {
-         return new CommonRulesRewriter(rules, SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
-      }
-
-    @Override
-    public Set<Term> getGenerableTerms() {
-        Set<Term> result = new HashSet<>();
-        for (Instruction instruction: rules.getInstructions()) {
-            result.addAll(instruction.getGenerableTerms());
+        public RulesRewriterFactory(final String rewriterId, RulesCollection rules) {
+            super(rewriterId);
+            this.rules = rules;
         }
-        return result;
-    }
+
+        @Override
+        public QueryRewriter createRewriter(final ExpandedQuery input,
+                                            final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+            return new CommonRulesRewriter(rules, SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
+        }
+
+        @Override
+        public Set<Term> getGenerableTerms() {
+            Set<Term> result = new HashSet<>();
+            for (Instruction instruction: rules.getInstructions()) {
+                result.addAll(instruction.getGenerableTerms());
+            }
+            return result;
+        }
+
+
 
    }
 

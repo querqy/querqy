@@ -4,6 +4,7 @@ import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrRequestInfo;
+import querqy.lucene.contrib.rewrite.WordBreakCompoundRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.FactoryAdapter;
 
@@ -18,7 +19,7 @@ public class WordBreakCompoundRewriterFactory implements FactoryAdapter<Rewriter
     private static final int DEFAULT_MAX_DECOMPOUND_EXPANSIONS = 3;
 
     @Override
-    public RewriterFactory createFactory(final NamedList<?> args, ResourceLoader resourceLoader) {
+    public RewriterFactory createFactory(final String id, final NamedList<?> args, ResourceLoader resourceLoader) {
 
         // the minimum frequency of the term in the index' dictionary field to be considered a valid compound
         // or constituent
@@ -53,9 +54,14 @@ public class WordBreakCompoundRewriterFactory implements FactoryAdapter<Rewriter
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
-        return new querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory(indexReaderSupplier, indexField,
+        return new querqy.lucene.contrib.rewrite.WordBreakCompoundRewriterFactory(id, indexReaderSupplier, indexField,
                 minSuggestionFreq, maxCombineLength, minBreakLength, reverseCompoundTriggerWords,
                 alwaysAddReverseCompounds, maxDecompoundExpansions, verifyDecompoundCollation);
+    }
+
+    @Override
+    public Class<?> getCreatedClass() {
+        return WordBreakCompoundRewriter.class;
     }
 
     private static <T> T getOrDefault(final NamedList<?> args, String key, T def) {

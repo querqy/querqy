@@ -381,14 +381,14 @@ public class LineParser {
 
         String propValue = line.substring(PROPERTY_IDENTIFIER.length()).trim();
         if (!propValue.contains(":")) {
-            return new ValidationError("Cannot parse line, '.' expetcted property in format @propertyName: propertyVal " + line);
+            return new ValidationError("Cannot parse line, '.' expected property in format @propertyName: propertyVal " + line);
         }
 
         String key = propValue.substring(0, propValue.indexOf(":")).trim();
         String val = propValue.substring(propValue.indexOf(":")).trim().substring(1).trim();
         Object valData = TypeDetector.getTypedObjectFromString(val);
         if (valData == null) {
-            return new ValidationError(" Unable to determine proeprty type for: " + line);
+            return new ValidationError(" Unable to determine property type for: " + line);
         }
         return new AbstractMap.SimpleEntry<String, Object>(key, valData);
     }

@@ -19,7 +19,7 @@ import querqy.rewrite.commonrules.model.SelectionStrategy;
 /**
  * @author René Kriegler, @renekrie
  */
-public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
+public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
     public static final String PARAM_SELECTION_STRATEGY = "rules.criteria.strategy";
 
@@ -28,16 +28,20 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
 
 
     /**
+     *
+     * @param rewriterId
      * @param reader
      * @param querqyParserFactory
      * @param ignoreCase
      * @param selectionStrategyFactories
      * @throws IOException
      */
-    public SimpleCommonRulesRewriterFactory(final Reader reader, final QuerqyParserFactory querqyParserFactory,
+    public SimpleCommonRulesRewriterFactory(final String rewriterId,
+                                            final Reader reader, final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories)
             throws IOException {
+        super(rewriterId);
         this.selectionStrategyFactories = new HashMap<>(selectionStrategyFactories);
 
         try {
@@ -51,18 +55,6 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactory {
                 // TODO: log
             }
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * querqy.rewrite.RewriterFactory#createRewriter(querqy.model.ExpandedQuery,
-     * java.util.Map)
-     */
-    @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input, final Map<String, ?> context) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

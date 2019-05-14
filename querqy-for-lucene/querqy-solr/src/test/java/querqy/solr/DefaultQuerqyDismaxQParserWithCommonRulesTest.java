@@ -216,7 +216,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         
         assertQ("Single decoration fails",
                 req,
-                "//arr[@name='querqy_decorations'][count(str)=3]",
+                "//arr[@name='querqy_decorations'][count(str)=1]",
                 "//arr[@name='querqy_decorations']/str[text()='deco 1']"
 
           );
@@ -242,7 +242,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         
         assertQ("Multiple decorations fail",
                 req,
-                "//arr[@name='querqy_decorations'][count(str)=5]",
+                "//arr[@name='querqy_decorations'][count(str)=2]",
                 "//arr[@name='querqy_decorations']/str[text()='deco 1']",
                 "//arr[@name='querqy_decorations']/str[text()='deco 2']"
 
@@ -337,29 +337,6 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
 
         req.close();
-    }
-
-    @Test
-    public void testSolrResponseContainsDebugInformationOfRulesRewriter() {
-        String q = "a b";
-
-        String debugQueryRuleForA = "Action [instructions=[FilterInstruction [filterQuery=RawQuery [queryString=f2:c]], " +
-                "DecorateInstruction [decorationValue=querqy_name,a]], terms=[TermMatch{queryTerm=*:a, isPrefix=false, " +
-                "wildcardMatch=null}], startPosition=0, endPosition=1]";
-
-
-        SolrQueryRequest requestWithDebugQueryEnabled = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                "defType", "querqy",
-                "debugQuery", "on"
-        );
-
-        assertQ("Rules debug information not included in debug field of Solr response",
-                requestWithDebugQueryEnabled,
-                "//lst[@name='debug']/arr[@name='querqy.rewrite']/str[text() = '" + debugQueryRuleForA + "']"
-        );
-
-        requestWithDebugQueryEnabled.close();
     }
 
 }

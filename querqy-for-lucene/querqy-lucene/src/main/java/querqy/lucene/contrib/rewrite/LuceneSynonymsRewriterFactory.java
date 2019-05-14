@@ -22,39 +22,41 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 /**
  * @author rene
  *
  */
-public class LuceneSynonymsRewriterFactory implements RewriterFactory {
+public class LuceneSynonymsRewriterFactory extends RewriterFactory {
 
-   @Override
-   public QueryRewriter createRewriter(ExpandedQuery input, Map<String, ?> context) {
-      return new LuceneSynonymsRewriter(synonymMap);
-   }
+    SynonymMap synonymMap = null;
+    final SolrSynonymParser parser;
 
-   SynonymMap synonymMap = null;
-   final SolrSynonymParser parser;
+    public LuceneSynonymsRewriterFactory(final String rewriterId, final boolean expand, final boolean ignoreCase) {
+        super(rewriterId);
 
-   public LuceneSynonymsRewriterFactory(boolean expand, final boolean ignoreCase) throws IOException {
-
-      Analyzer analyzer = new Analyzer() {
-         @Override
-         protected TokenStreamComponents createComponents(String fieldName) {
-            Tokenizer tokenizer = new KeywordTokenizer();
-            TokenStream stream = tokenizer;
-            if (ignoreCase) {
-               stream = new LowerCaseFilter(stream);
+        Analyzer analyzer = new Analyzer() {
+            @Override
+            protected TokenStreamComponents createComponents(String fieldName) {
+                Tokenizer tokenizer = new KeywordTokenizer();
+                TokenStream stream = tokenizer;
+                if (ignoreCase) {
+                   stream = new LowerCaseFilter(stream);
+                }
+                return new TokenStreamComponents(tokenizer, stream);
             }
-            return new TokenStreamComponents(tokenizer, stream);
-         }
-      };
+        };
 
-      parser = new SolrSynonymParser(true, expand, analyzer);
-   }
+        parser = new SolrSynonymParser(true, expand, analyzer);
+    }
 
-   public void addResource(InputStream is) throws IOException {
+    @Override
+    public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        return new LuceneSynonymsRewriter(synonymMap);
+    }
+
+    public void addResource(InputStream is) throws IOException {
       try {
          parser.parse(new InputStreamReader(is));
       } catch (ParseException e) {

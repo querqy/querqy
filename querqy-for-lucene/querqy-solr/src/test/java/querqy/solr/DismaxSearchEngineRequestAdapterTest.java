@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import querqy.infologging.InfoLogging;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 
@@ -33,6 +34,9 @@ public class DismaxSearchEngineRequestAdapterTest {
     @Mock
     RewriteChain rewriteChain;
 
+    @Mock
+    InfoLogging infoLogging;
+
     @Test
     public void testGetDoubleParam() {
 
@@ -44,7 +48,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         when(request.getSchema()).thenReturn(null);
 
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
         Assert.assertEquals(0.5, adapter.getDoubleRequestParam(name).get(), 0.001);
         Assert.assertFalse(adapter.getDoubleRequestParam("p2").isPresent());
@@ -63,7 +67,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         when(request.getSchema()).thenReturn(null);
 
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
         Assert.assertEquals(-0.03f, adapter.getFloatRequestParam(name).get(), 0.001f);
         Assert.assertFalse(adapter.getFloatRequestParam("p2").isPresent());
@@ -82,7 +86,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         when(request.getSchema()).thenReturn(null);
 
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
         Assert.assertEquals(value, adapter.getIntegerRequestParam(name).get().intValue());
         Assert.assertFalse(adapter.getIntegerRequestParam("p2").isPresent());
@@ -102,7 +106,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         when(request.getSchema()).thenReturn(null);
 
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
         Assert.assertTrue(adapter.getBooleanRequestParam(name1).get());
         Assert.assertFalse(adapter.getBooleanRequestParam(name2).get());
@@ -122,7 +126,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         when(request.getSchema()).thenReturn(null);
 
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
         Assert.assertEquals(value, adapter.getRequestParam(name).get());
         Assert.assertFalse(adapter.getRequestParam("p2").isPresent());
@@ -143,7 +147,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         when(request.getSchema()).thenReturn(null);
 
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
         final String[] value = adapter.getRequestParams(name);
         Assert.assertNotNull(value);
@@ -160,7 +164,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         ModifiableSolrParams params = new ModifiableSolrParams();
         when(request.getSchema()).thenReturn(null);
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         Assert.assertTrue(adapter.useFieldBoostingInQuerqyBoostQueries());
     }
 
@@ -171,7 +175,7 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         when(request.getSchema()).thenReturn(null);
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         Assert.assertTrue(adapter.useFieldBoostingInQuerqyBoostQueries());
     }
 
@@ -182,7 +186,7 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         when(request.getSchema()).thenReturn(null);
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         Assert.assertFalse(adapter.useFieldBoostingInQuerqyBoostQueries());
     }
 
@@ -193,7 +197,7 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         when(request.getSchema()).thenReturn(null);
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         adapter.useFieldBoostingInQuerqyBoostQueries();
 
     }
@@ -204,7 +208,7 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         when(request.getSchema()).thenReturn(null);
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         adapter.parseQueryFields(DisMaxParams.QF, 1f, true);
 
     }
@@ -214,7 +218,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         ModifiableSolrParams params = new ModifiableSolrParams();
         params.add(CommonParams.DF, "f1"); // setting default field but not enabling it
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         Assert.assertTrue(adapter.parseQueryFields(DisMaxParams.QF, 1f, false).isEmpty());
     }
 
@@ -223,7 +227,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         ModifiableSolrParams params = new ModifiableSolrParams();
         params.add(CommonParams.DF, "f1"); // setting default field but not enabling it
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
-                "some query", params, querqyParser, rewriteChain, null);
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
         final Map<String, Float> fields = adapter.parseQueryFields(DisMaxParams.QF, 2f, true);
         Assert.assertEquals(1, fields.size());
         Assert.assertEquals(2f, fields.get("f1").floatValue(), 0.001f);
