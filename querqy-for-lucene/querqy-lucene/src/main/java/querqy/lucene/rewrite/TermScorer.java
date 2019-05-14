@@ -1,11 +1,7 @@
-/**
- * 
- */
 package querqy.lucene.rewrite;
 
-/**
+/*
  * Copied from org.apache.lucene.search.TermScorer, which is only package-visible
- * 
  */
 import java.io.IOException;
 
@@ -52,12 +48,25 @@ final class TermScorer extends Scorer {
   public DocIdSetIterator iterator() { return postingsEnum; }
 
   @Override
+  public float getMaxScore(int upTo) throws IOException {
+
+    float maxScore = Float.MIN_VALUE;
+    int nextDoc = postingsEnum.nextDoc();
+    while (nextDoc < upTo) {
+      final float score = docScorer.score(nextDoc, postingsEnum.freq());
+      maxScore = Math.max(maxScore, score);
+      nextDoc = postingsEnum.nextDoc();
+    }
+    return maxScore;
+  }
+
+  @Override
   public float score() throws IOException {
     assert docID() != DocIdSetIterator.NO_MORE_DOCS;
     return docScorer.score(postingsEnum.docID(), postingsEnum.freq());
   }
 
-    public Similarity.SimScorer getDocScorer() {
+  public Similarity.SimScorer getDocScorer() {
         return docScorer;
     }
 

@@ -6,12 +6,13 @@ import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.ReaderUtil;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermContext;
 import org.apache.lucene.index.TermState;
+import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Weight;
@@ -57,10 +58,10 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
         }
 
         @Override
-        public Weight createWeight(final IndexSearcher searcher, final boolean needsScores, final float boost)
+        public Weight createWeight(final IndexSearcher searcher, final ScoreMode scoreMode, final float boost)
                 throws IOException {
             final IndexReaderContext context = searcher.getTopReaderContext();
-            final TermContext termState = TermContext.build(context, term);
+            final TermStates termState = TermStates.build(context, term, scoreMode.needsScores());
             // TODO: set boosts to 1f if needsScores is false?
             return new FieldBoostWeight(termState, boost, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
         }
@@ -68,13 +69,13 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
 
 
         class FieldBoostWeight extends Weight {
-            private final TermContext termStates;
+            private final TermStates termStates;
             private float score;
             private float queryBoost;
             private final float fieldBoost;
 
 
-            public FieldBoostWeight(final TermContext termStates, final float queryBoost, final float fieldBoost) {
+            public FieldBoostWeight(final TermStates termStates, final float queryBoost, final float fieldBoost) {
                 super(FieldBoostTermQuery.this);
                 assert termStates != null : "TermContext must not be null";
                 this.termStates = termStates;
@@ -113,7 +114,7 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
              * the term does not exist in the given context
              */
             private TermsEnum getTermsEnum(final LeafReaderContext context) throws IOException {
-                final TermState state = termStates.get(context.ord);
+                final TermState state = termStates.get(context);
                 if (state == null) { // term is not present in that reader
                     assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;
                     return null;
@@ -203,6 +204,10 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
             @Override
             public DocIdSetIterator iterator() { return postingsEnum; }
 
+            @Override
+            public float getMaxScore(int upTo) throws IOException {
+                return score;
+            }
 
 
             @Override

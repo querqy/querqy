@@ -10,7 +10,7 @@
 
     <groupId>querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>4.4.lucene720.0-SNAPSHOT</version>
+    <version>5.0.lucene810.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
@@ -23,7 +23,7 @@
     <properties>
         <querqy.core.version>3.2.1</querqy.core.version>
         <querqy.antlr.version>3.0.2</querqy.antlr.version>
-        <lucene.version>7.2.0</lucene.version>
+        <lucene.version>8.1.0</lucene.version>
         <commons.io.version>2.5</commons.io.version>
     </properties>
 
@@ -64,7 +64,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene70</tests.codec>
+                        <tests.codec>Lucene80</tests.codec>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

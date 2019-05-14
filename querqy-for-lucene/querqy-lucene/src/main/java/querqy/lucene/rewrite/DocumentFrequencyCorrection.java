@@ -1,10 +1,16 @@
 package querqy.lucene.rewrite;
 
-import org.apache.lucene.index.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.lucene.index.IndexReaderContext;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.TermState;
+import org.apache.lucene.index.TermStates;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 
 /**
  * Created by rene on 10/09/2016.
@@ -29,13 +35,13 @@ public class DocumentFrequencyCorrection {
             throws IOException {
 
         final int[] dfs = new int[terms.size()];
-        final TermContext[] contexts = new TermContext[dfs.length];
+        final TermStates[] states = new TermStates[dfs.length];
 
         for (int i = 0; i < dfs.length; i++) {
 
             final Term term = terms.get(i);
 
-            contexts[i] = new TermContext(indexReaderContext);
+            states[i] = new TermStates(indexReaderContext);
 
             for (final LeafReaderContext ctx : indexReaderContext.leaves()) {
 
@@ -46,7 +52,7 @@ public class DocumentFrequencyCorrection {
                         final TermState termState = termsEnum.termState();
                         final int df = termsEnum.docFreq();
                         dfs[i] = dfs[i] + df;
-                        contexts[i].register(termState, ctx.ord, df, -1);
+                        states[i].register(termState, ctx.ord, df, df);
                     }
                 }
 
@@ -75,7 +81,7 @@ public class DocumentFrequencyCorrection {
                     if (dfs[pos] > 0) {
                         int delta = max - dfs[pos];
                         if (delta > 0) {
-                            contexts[pos].accumulateStatistics(delta, -1);
+                            states[pos].accumulateStatistics(delta, delta);
                         }
                     }
                     pos++;
@@ -83,7 +89,7 @@ public class DocumentFrequencyCorrection {
             }
         }
 
-        return new TermStats(dfs, contexts, indexReaderContext);
+        return new TermStats(dfs, states, indexReaderContext);
 
     }
 
@@ -116,7 +122,7 @@ public class DocumentFrequencyCorrection {
             ts = calculateTermContexts(indexReaderContext);
         }
 
-        return new DocumentFrequencyAndTermContext(ts.documentFrequencies[tqIndex], ts.termContexts[tqIndex]);
+        return new DocumentFrequencyAndTermContext(ts.documentFrequencies[tqIndex], ts.termStates[tqIndex]);
     }
 
     protected TermStats calculateTermContexts(final IndexReaderContext indexReaderContext)
@@ -193,11 +199,11 @@ public class DocumentFrequencyCorrection {
     public static class DocumentFrequencyAndTermContext {
 
         public final int df;
-        public final TermContext termContext;
+        public final TermStates termStates;
 
-        public DocumentFrequencyAndTermContext(int df, TermContext termContext) {
+        public DocumentFrequencyAndTermContext(int df, TermStates termStates) {
             this.df = df;
-            this.termContext = termContext;
+            this.termStates = termStates;
         }
 
 
@@ -205,13 +211,13 @@ public class DocumentFrequencyCorrection {
 
     public static class TermStats {
         final int[] documentFrequencies;
-        final TermContext[] termContexts;
+        final TermStates[] termStates;
         final IndexReaderContext topReaderContext;
 
-        public TermStats(final int[] documentFrequencies, final TermContext[] termContexts,
+        public TermStats(final int[] documentFrequencies, final TermStates[] termStates,
                          final IndexReaderContext topReaderContext) {
             this.documentFrequencies = documentFrequencies;
-            this.termContexts = termContexts;
+            this.termStates = termStates;
             this.topReaderContext = topReaderContext;
         }
     }

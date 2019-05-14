@@ -1,7 +1,7 @@
 package querqy.lucene;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.queries.function.BoostedQuery;
+import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -28,7 +28,6 @@ import querqy.rewrite.ContextAwareQueryRewriter;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -246,9 +245,9 @@ public class QueryParsingController {
                                     .stream()
                                     .map(LuceneQueryUtil::queryToValueSource)
                                     .toArray());
-                    mainQuery = new BoostedQuery(bq, prod);
+                    mainQuery = FunctionScoreQuery.boostByValue(bq, prod.asDoubleValuesSource());
                 } else {
-                    mainQuery = new BoostedQuery(bq, LuceneQueryUtil.queryToValueSource(multiplicativeBoosts.get(0)));
+                    mainQuery = FunctionScoreQuery.boostByValue(bq, LuceneQueryUtil.queryToDoubleValueSource(multiplicativeBoosts.get(0)));
                 }
             } else {
                 mainQuery = bq;

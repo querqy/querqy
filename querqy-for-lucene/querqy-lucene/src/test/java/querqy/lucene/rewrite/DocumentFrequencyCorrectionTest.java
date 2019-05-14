@@ -45,7 +45,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         dfc.finishedUserQuery();
         DocumentFrequencyAndTermContext documentFrequencyAndTermContext = dfc.getDocumentFrequencyAndTermContext(tq.tqIndex, indexSearcher.getTopReaderContext());
         
-        assertEquals(df, documentFrequencyAndTermContext.termContext.docFreq());
+        assertEquals(df, documentFrequencyAndTermContext.termStates.docFreq());
         
         indexReader.close();
         directory.close();
@@ -110,10 +110,10 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
         DocumentFrequencyAndTermContext dftc2a = dfc.getDocumentFrequencyAndTermContext(tq2a.tqIndex,
                 indexSearcher.getTopReaderContext());
 
-        assertEquals(df1, dftc1.termContext.docFreq());
-        assertEquals(df2, dftc2.termContext.docFreq());
-        assertEquals(df2 * 2 - 1, dftc1a.termContext.docFreq()); // df = max in clause + max in user query - 1
-        assertEquals(df2 * 2 - 1, dftc2a.termContext.docFreq());
+        assertEquals(df1, dftc1.termStates.docFreq());
+        assertEquals(df2, dftc2.termStates.docFreq());
+        assertEquals(df2 * 2 - 1, dftc1a.termStates.docFreq()); // df = max in clause + max in user query - 1
+        assertEquals(df2 * 2 - 1, dftc2a.termStates.docFreq());
         
         
         indexReader.close();
