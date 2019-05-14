@@ -1,9 +1,9 @@
 package querqy.lucene.contrib.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static querqy.QuerqyMatchers.bq;
@@ -19,7 +19,7 @@ import org.apache.lucene.search.spell.WordBreakSpellChecker;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -101,8 +101,8 @@ public class WordBreakCompoundRewriterTest {
 
     @Test
     public void testThatGeneratedTermIsNotSplit() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
+//        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+//                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
                 false, false, new TrieMap<>(), 5, false);
@@ -131,8 +131,8 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
 
         // compound of terms at idx 0+1
-        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+//        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
+//                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
 
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
@@ -167,8 +167,8 @@ public class WordBreakCompoundRewriterTest {
                 .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
 
         // compound of terms at idx 0+1
-        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+//        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
+//                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
 
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(wordBreakSpellChecker, indexReader, "field1",
