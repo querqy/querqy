@@ -16,5 +16,11 @@ input1 =>
    @group: 2
    @id: 3
 
+input4 =>
+   SYNONYM: syn3
+   @priority: 1
+   @group: 4
+   @id: 4
+
 
 

@@ -12,20 +12,20 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.rewrite.commonrules.RuleSelectionParams;
-import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
 
 @SolrTestCaseJ4.SuppressSSL
 public class CriteriaSelectionTest extends SolrTestCaseJ4 {
 
     // matching CommonRulesRewriter in solrconfig-commonrules-criteria.xml:
-    private static final String REWRITER_ID = "rules1";
+    private static final String REWRITER_ID_1 = "rules1";
+    private static final String REWRITER_ID_2 = "rules2";
 
     public void index() {
 
         assertU(adoc("id", "1", "f1", "syn1"));
         assertU(adoc("id", "2", "f1", "syn2"));
         assertU(adoc("id", "3", "f1", "syn3"));
+        assertU(adoc("id", "4", "f1", "syn4"));
 
         assertU(commit());
     }
@@ -66,9 +66,9 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 // we set the criteria but don't enable the strategy
-                getFilterParamName(REWRITER_ID), "group:1",
-                getFilterParamName(REWRITER_ID), "priority asc",
-                getLimitParamName(REWRITER_ID), "1",
+                getFilterParamName(REWRITER_ID_1), "group:1",
+                getFilterParamName(REWRITER_ID_1), "priority asc",
+                getLimitParamName(REWRITER_ID_1), "1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -86,7 +86,7 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input1 input2",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getStrategyParamName(REWRITER_ID), "criteria",
+                getStrategyParamName(REWRITER_ID_1), "criteria",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -104,8 +104,8 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input1 input2",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getStrategyParamName(REWRITER_ID), "criteria",
-                getFilterParamName(REWRITER_ID), "group:1",
+                getStrategyParamName(REWRITER_ID_1), "criteria",
+                getFilterParamName(REWRITER_ID_1), "group:1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -123,10 +123,10 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input1 input2",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getStrategyParamName(REWRITER_ID), "criteria",
-                getFilterParamName(REWRITER_ID), "group:1",
-                getSortParamName(REWRITER_ID), "priority asc",
-                getLimitParamName(REWRITER_ID), "1",
+                getStrategyParamName(REWRITER_ID_1), "criteria",
+                getFilterParamName(REWRITER_ID_1), "group:1",
+                getSortParamName(REWRITER_ID_1), "priority asc",
+                getLimitParamName(REWRITER_ID_1), "1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -139,5 +139,48 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
 
         req.close();
     }
+
+    @Test
+    public void testThatSelectionIsAppliedPerRewriter() {
+        SolrQueryRequest req = req("q", "input4",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getStrategyParamName(REWRITER_ID_1), "criteria",
+                getStrategyParamName(REWRITER_ID_2), "criteria",
+                getFilterParamName(REWRITER_ID_1), "group:4",
+                getFilterParamName(REWRITER_ID_2), "group:44",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("Rewriter selection not working",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc/str[@name='id'][text()='3']",
+                "//result/doc/str[@name='id'][text()='4']"
+        );
+
+        req.close();
+
+
+        req = req("q", "input4",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getStrategyParamName(REWRITER_ID_1), "criteria",
+                getStrategyParamName(REWRITER_ID_2), "criteria",
+                getFilterParamName(REWRITER_ID_2), "group:4", // Flipping the groups between rewriters
+                getFilterParamName(REWRITER_ID_1), "group:44",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("Rewriter selection not working",
+                req,
+                "//result[@name='response' and @numFound='0']"
+        );
+
+        req.close();
+    }
+
 
 }

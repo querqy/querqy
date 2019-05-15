@@ -2,7 +2,7 @@ package querqy.rewrite.commonrules;
 
 public interface RuleSelectionParams {
 
-    String PARAM_QUERQY_PREFIX = "querqy";
+    String PARAM_QUERQY_PREFIX = "querqy.";
     String PARAM_SUFFIX_SELECTION_STRATEGY = ".criteria.strategy";
     String PARAM_SUFFIX_SELECTION_LIMIT = ".criteria.limit";
     String PARAM_SUFFIX_SELECTION_SORT = ".criteria.sort";
