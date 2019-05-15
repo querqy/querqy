@@ -4,8 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class FilterCriterionTest {
@@ -13,8 +14,7 @@ public class FilterCriterionTest {
     @Test
     public void testThatInstructionsWithMatchingNameAndValuePropsIsAccepted() {
 
-        final Instructions instructions = new Instructions(1);
-        instructions.addProperty("n1", "v1");
+        final Instructions instructions = InstructionsTestSupport.instructions(1, "n1", "v1");
 
         final FilterCriterion filter = new FilterCriterion("n1", "v1");
         assertTrue(filter.isValid(instructions));
@@ -23,8 +23,7 @@ public class FilterCriterionTest {
     @Test
     public void testThatInstructionsThatMatchesNameOnlyIsNotAccepted() {
 
-        final Instructions instructions = new Instructions(1);
-        instructions.addProperty("n1", "v2");
+        final Instructions instructions = InstructionsTestSupport.instructions(1, "n1", "v2");
 
         final FilterCriterion filter = new FilterCriterion("n1", "v1");
         assertFalse(filter.isValid(instructions));
@@ -33,8 +32,7 @@ public class FilterCriterionTest {
     @Test
     public void testThatInstructionsThatMatchesValueOnlyIsNotAccepted() {
 
-        final Instructions instructions = new Instructions(1);
-        instructions.addProperty("n2", "v1");
+        final Instructions instructions = InstructionsTestSupport.instructions(1, "n2", "v1");
 
         final FilterCriterion filter = new FilterCriterion("n1", "v1");
         assertFalse(filter.isValid(instructions));
@@ -43,7 +41,7 @@ public class FilterCriterionTest {
     @Test
     public void testThatInstructionsWithNoPropsIsNotAccepted() {
 
-        final Instructions instructions = new Instructions(1);
+        final Instructions instructions = instructions(1);
 
         final FilterCriterion filter = new FilterCriterion("n1", "v1");
         assertFalse(filter.isValid(instructions));

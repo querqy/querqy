@@ -22,7 +22,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
-                new Instructions(1, Collections.singletonList(delete)));
+                new Instructions(1, "1", Collections.singletonList(delete)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -43,7 +43,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
-                new Instructions(1, Collections.singletonList(delete)));
+                new Instructions(1, "1", Collections.singletonList(delete)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -70,7 +70,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
       builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
-              new Instructions(1, Collections.singletonList(delete)));
+              new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -98,7 +98,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
       builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
-              new Instructions(1, Collections.singletonList(delete)));
+              new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -118,7 +118,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
       builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
-              new Instructions(1, Collections.singletonList(delete)));
+              new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -143,7 +143,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
        DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
 
-       builder.addRule(input, new Instructions(1, Collections.singletonList(deleteInstruction)));
+       builder.addRule(input, new Instructions(1, "1", Collections.singletonList(deleteInstruction)));
 
        RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -176,7 +176,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
         DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
 
-        builder.addRule(input, new Instructions(1, Collections.singletonList(deleteInstruction)));
+        builder.addRule(input, new Instructions(1, "1", Collections.singletonList(deleteInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -206,7 +206,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
         DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
 
-        builder.addRule(input, new Instructions(1, Collections.singletonList(deleteInstruction)));
+        builder.addRule(input, new Instructions(1, "1", Collections.singletonList(deleteInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

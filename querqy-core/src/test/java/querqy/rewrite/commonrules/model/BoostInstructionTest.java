@@ -31,7 +31,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(boostInstruction)));
+                new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -61,7 +61,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(),
                 BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(boostInstruction)));
+                new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -92,7 +92,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a +b").getUserQuery(), BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(boostInstruction)));
+                new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -123,7 +123,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(),
                 BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(boostInstruction)));
+                new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -152,7 +152,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(boostInstruction)));
+                new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -170,7 +170,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
         builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false, "a"),
-                new Instructions(1, Collections.singletonList(boostInstruction)));
+                new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -189,7 +189,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b$1").getUserQuery(), BoostDirection.DOWN, 0.2f);
 
-        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
 
         RulesCollection rules = builder.build();
@@ -215,7 +215,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b$1").getUserQuery(), BoostDirection.DOWN, 0.2f);
 
-        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
 
         RulesCollection rules = builder.build();
@@ -254,7 +254,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a $1").getUserQuery(), BoostDirection.DOWN, 0.3f);
 
-        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("x k*"), new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
 
         RulesCollection rules = builder.build();
@@ -292,7 +292,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a c$1d").getUserQuery(), BoostDirection.UP, 0.3f);
 
-        builder.addRule((Input) LineParser.parseInput("k*"), new Instructions(1, Collections.singletonList(boostInstruction)));
+        builder.addRule((Input) LineParser.parseInput("k*"), new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
 
         RulesCollection rules = builder.build();

@@ -125,7 +125,9 @@ public class SynonymFormatCommonRulesRewriterFactory implements
                                  if (!query.getClauses().isEmpty()) {
                                     for (Input input : inputs) {
                                        BoostInstruction bi = new BoostInstruction(query, direction, boost);
-                                       builder.addRule(input, new Instructions(ord++, Collections.singletonList(bi)));
+                                       ord++;
+                                       builder.addRule(input, new Instructions(ord, Integer.toString(ord),
+                                               Collections.singletonList(bi)));
                                     }
                                  }
                               }

@@ -32,7 +32,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a b").getUserQuery());
 
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(filterInstruction)));
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -62,7 +62,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("-ab").getUserQuery());
 
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(filterInstruction)));
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
 
@@ -98,7 +98,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
 
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(filterInstruction)));
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -126,7 +126,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
 
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, Collections.singletonList(filterInstruction)));
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

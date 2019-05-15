@@ -9,6 +9,9 @@ import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyName
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,9 +32,9 @@ public class SimpleCommonRulesParser {
     int lineNumber = 0;
     final RulesCollectionBuilder builder;
     Input input = null;
-    Instructions instructions = null;
     int instructionsCount = 0;
-
+    List<Instruction> instructionList = null;
+    Map<String, Object> instructionProperties = null;
 
     public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
                                    final boolean ignoreCase) {
@@ -62,21 +65,20 @@ public class SimpleCommonRulesParser {
 
     public void putRule() throws RuleParseException {
         if (input != null) {
-            if (instructions.isEmpty()) {
+            if (instructionList.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
 
-            final Optional<Object> optId = instructions.getProperty(ID);
-            if (!optId.isPresent()) {
-                instructions.addProperty(ID, String.valueOf(input.getMatchExpression()) + "#"
-                        + instructions.ord);
-            }
-            final Optional<Object> optLogMessage = instructions.getProperty(LOG_MESSAGE);
-            if (!optLogMessage.isPresent()) {
-                instructions.addProperty(LOG_MESSAGE, instructions.getId());
-            }
-            builder.addRule(input,  instructions);
+            final int ord = instructionsCount++;
+            final Object id = instructionProperties
+                    .computeIfAbsent(ID, k -> String.valueOf(input.getMatchExpression()) + "#" + ord);
+
+            instructionProperties.putIfAbsent(LOG_MESSAGE, id);
+
+            builder.addRule(input, new Instructions(ord, id, instructionList, instructionProperties));
             input = null;
+            instructionProperties = null;
+            instructionList = null;
         }
     }
 
@@ -87,14 +89,15 @@ public class SimpleCommonRulesParser {
             if (lineObject instanceof Input) {
                 putRule();
                 input = (Input) lineObject;
-                instructions = new Instructions(instructionsCount++);
+                instructionList = new LinkedList<>();
+                instructionProperties = new HashMap<>();
             } else if (lineObject instanceof ValidationError) {
                 throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
-                instructions.add((Instruction) lineObject);
+                instructionList.add((Instruction) lineObject);
             } else if (lineObject instanceof Map.Entry) {
-                instructions.addProperty((String) ((Map.Entry) lineObject).getKey(),
-                         ((Map.Entry) lineObject).getValue());
+                instructionProperties.put((String) ((Map.Entry) lineObject).getKey(),
+                        ((Map.Entry) lineObject).getValue());
             }
 
         }

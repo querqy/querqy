@@ -78,9 +78,9 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t2);
         List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains(
-                new Action(new Instructions(1, Arrays.asList(
+                new Action(new Instructions(1, "1", Collections.singletonList(
                         new DeleteInstruction(Collections.singletonList(mkTerm("aa")))
-                        )),
+                )),
                         new TermMatches(new TermMatch(t1)), 0, 1)));
     }
 
@@ -104,21 +104,21 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         assertThat(actions, contains( 
 
                 new Action(
-                                new Instructions(1,
+                                new Instructions(1, "1",
                                         Collections.singletonList(
                                                 new DeleteInstruction(Collections.singletonList(mkTerm("b")))
                                         )),
                                                 new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2),
                                 
                 new Action(
-                                new Instructions(3,
+                                new Instructions(3, "3",
                                         Arrays.asList(
                                                 new DeleteInstruction(Collections.singletonList(mkTerm("a"))),
                                                 new DeleteInstruction(Collections.singletonList(mkTerm("c")))
                                         )),
                                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3),
                 new Action(
-                        new Instructions(6,
+                        new Instructions(6, "6",
                                 Collections.singletonList(
                                         new BoostInstruction(
                                                 new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f)
@@ -141,7 +141,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains( 
                 new Action(
-                                new Instructions(1,
+                                new Instructions(1, "1",
                                         Collections.singletonList(
                                                 new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f)
                                         )),
@@ -161,7 +161,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains(
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("flt2 flt3"))
                                 )
                         ),
@@ -203,10 +203,10 @@ ts6 =>
         List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains(
                 new Action(
-                        new Instructions(1,
-                                        Arrays.asList(
-                                                new SynonymInstruction(Collections.singletonList(mkTerm("syn1")))
-                                        )
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                        new SynonymInstruction(Collections.singletonList(mkTerm("syn1")))
+                                )
                                         ),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
@@ -229,7 +229,7 @@ ts6 =>
         List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains(
                 new Action(
-                                new Instructions(1,
+                                new Instructions(1, "1",
                                         Collections.singletonList(
                                                 new SynonymInstruction(
                                                         Arrays.asList(
@@ -292,7 +292,7 @@ ts6 =>
 
         assertThat(actions, contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(
                                                 new FilterInstruction(makeQueryUsingFactory("FLT4"))
                                         )),
@@ -325,7 +325,7 @@ ts6 =>
 
         assertThat(actions, contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(
                                         new FilterInstruction(makeQueryUsingFactory("FLT4"))
                                 )),
@@ -358,7 +358,7 @@ ts6 =>
 
         assertThat(actions, contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(
                                                 new FilterInstruction(makeQueryUsingFactory("FLT4"))
                                         )),
@@ -395,7 +395,7 @@ ts6 =>
 
         assertThat(actions, contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(
                                         new FilterInstruction(makeQueryUsingFactory("FLTTB1"))
                                 )),
@@ -432,7 +432,7 @@ ts6 =>
 
         assertThat(actions, not(contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB1")
                                 ))),
                                 new TermMatches(Collections.singletonList(new TermMatch(t1))), 0, 1)
@@ -465,7 +465,7 @@ ts6 =>
 
         assertThat(actions, contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(
                                         new FilterInstruction(makeQueryUsingFactory("FLTTB2"))
                                 )),
@@ -502,7 +502,7 @@ ts6 =>
 
         assertThat(actions, not(contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB2")
                                 ))),
                          new TermMatches(Collections.singletonList(new TermMatch(t2))), 0, 1)
@@ -531,7 +531,7 @@ ts6 =>
 
         assertThat(actions, contains( 
                 new Action(
-                        new Instructions(1,
+                        new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB4")
                                 ))),
                         new TermMatches(Collections.singletonList(new TermMatch(t4))), 0, 1)

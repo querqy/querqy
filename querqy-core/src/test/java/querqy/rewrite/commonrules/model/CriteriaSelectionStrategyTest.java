@@ -3,6 +3,7 @@ package querqy.rewrite.commonrules.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -19,8 +20,8 @@ public class CriteriaSelectionStrategyTest {
 
         final Comparator<Instructions> comparator = strategy.getSortingComparator();
 
-        final Instructions instructions1 = new Instructions(1);
-        final Instructions instructions2 = new Instructions(2);
+        final Instructions instructions1 = instructions(1);
+        final Instructions instructions2 = instructions(2);
 
         assertEquals(0, comparator.compare(instructions1, instructions1));
         assertEquals(0, comparator.compare(instructions2, instructions2));

@@ -12,6 +12,7 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.LineParser;
 import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.InstructionsTestSupport;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
@@ -19,6 +20,7 @@ import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
 import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 /**
  * Test for ShingleRewriter.
@@ -254,7 +256,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
         builder.addRule((Input) LineParser.parseInput("p1*"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                instructions(1, Collections.singletonList(synInstruction)));
         
         RulesCollection rules = builder.build();
         CommonRulesRewriter commonRulesRewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

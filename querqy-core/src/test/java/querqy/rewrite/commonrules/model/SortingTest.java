@@ -4,6 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.hamcrest.Matchers;
 
@@ -19,8 +21,8 @@ public class SortingTest {
     @Test
     public void testThatSortAscUsesOrdIfNoPropertyWasSet() {
 
-        final Instructions instructions1 = new Instructions(10);
-        final Instructions instructions2 = new Instructions(20);
+        final Instructions instructions1 = instructions(10);
+        final Instructions instructions2 = instructions(20);
         assertThat(sortAsc.compare(instructions1, instructions2), Matchers.lessThan(0));
         assertThat(sortAsc.compare(instructions2, instructions1), Matchers.greaterThan(0));
         Assert.assertEquals(0, sortAsc.compare(instructions1, instructions1));
@@ -31,8 +33,8 @@ public class SortingTest {
     @Test
     public void testThatSortDescUsesOrdIfNoPropertyWasSet() {
 
-        final Instructions instructions1 = new Instructions(10);
-        final Instructions instructions2 = new Instructions(20);
+        final Instructions instructions1 = instructions(10);
+        final Instructions instructions2 = instructions(20);
         assertThat(sortDesc.compare(instructions2, instructions1), Matchers.lessThan(0));
         assertThat(sortDesc.compare(instructions1, instructions2), Matchers.greaterThan(0));
         Assert.assertEquals(0, sortDesc.compare(instructions1, instructions1));
@@ -42,9 +44,8 @@ public class SortingTest {
     @Test
     public void testMissingPropertyIsSortedLastForAscOrderIfPropertyExistsForLowerOrd() {
 
-        final Instructions instructions1 = new Instructions(10);
-        instructions1.addProperty("f1", "some value");
-        final Instructions instructions2 = new Instructions(20);
+        final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "some value");
+        final Instructions instructions2 = instructions(20);
 
         assertThat(sortAsc.compare(instructions1, instructions2), Matchers.lessThan(0));
         assertThat(sortAsc.compare(instructions2, instructions1), Matchers.greaterThan(0));
@@ -56,9 +57,8 @@ public class SortingTest {
     @Test
     public void testMissingPropertyIsSortedLastForAscOrderIfPropertyExistsForHigherOrd() {
 
-        final Instructions instructions1 = new Instructions(10);
-        final Instructions instructions2 = new Instructions(20);
-        instructions2.addProperty("f1", "some value");
+        final Instructions instructions1 = instructions(10);
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "some value");
 
         assertThat(sortAsc.compare(instructions2, instructions1), Matchers.lessThan(0));
         assertThat(sortAsc.compare(instructions1, instructions2), Matchers.greaterThan(0));
@@ -70,9 +70,8 @@ public class SortingTest {
     @Test
     public void testMissingPropertyIsSortedLastForDescOrderIfPropertyExistsForLowerOrd() {
 
-        final Instructions instructions1 = new Instructions(10);
-        instructions1.addProperty("f1", "some value");
-        final Instructions instructions2 = new Instructions(20);
+        final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "some value");
+        final Instructions instructions2 = instructions(20);
 
         assertThat(sortDesc.compare(instructions1, instructions2), Matchers.lessThan(0));
         assertThat(sortDesc.compare(instructions2, instructions1), Matchers.greaterThan(0));
@@ -84,9 +83,8 @@ public class SortingTest {
     @Test
     public void testMissingPropertyIsSortedLastForDescOrderIfPropertyExistsForHigherOrd() {
 
-        final Instructions instructions1 = new Instructions(10);
-        final Instructions instructions2 = new Instructions(20);
-        instructions2.addProperty("f1", "some value");
+        final Instructions instructions1 = instructions(10);
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "some value");
 
         assertThat(sortDesc.compare(instructions2, instructions1), Matchers.lessThan(0));
         assertThat(sortDesc.compare(instructions1, instructions2), Matchers.greaterThan(0));
@@ -99,10 +97,8 @@ public class SortingTest {
     @Test
     public void testThatSortAscUsesOrdIfPropertyHasSameValueForBoth() {
 
-        final Instructions instructions1 = new Instructions(10);
-        instructions1.addProperty("f1", "v1");
-        final Instructions instructions2 = new Instructions(20);
-        instructions2.addProperty("f1", "v1");
+        final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "v1");
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "v1");
 
         assertThat(sortAsc.compare(instructions1, instructions2), Matchers.lessThan(0));
         assertThat(sortAsc.compare(instructions2, instructions1), Matchers.greaterThan(0));
@@ -114,10 +110,8 @@ public class SortingTest {
     @Test
     public void testThatSortDescUsesOrdIfPropertyHasSameValueForBoth() {
 
-        final Instructions instructions1 = new Instructions(10);
-        instructions1.addProperty("f1", "v1");
-        final Instructions instructions2 = new Instructions(20);
-        instructions2.addProperty("f1", "v1");
+        final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "v1");
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "v1");
 
         assertThat(sortDesc.compare(instructions2, instructions1), Matchers.lessThan(0));
         assertThat(sortDesc.compare(instructions1, instructions2), Matchers.greaterThan(0));
@@ -129,10 +123,8 @@ public class SortingTest {
     @Test
     public void testSortAscByProperty() {
 
-        final Instructions instructions1 = new Instructions(10);
-        instructions1.addProperty("f1", "v1");
-        final Instructions instructions2 = new Instructions(20);
-        instructions2.addProperty("f1", "v2");
+        final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "v1");
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "v2");
 
         assertThat(sortAsc.compare(instructions1, instructions2), Matchers.lessThan(0));
         assertThat(sortAsc.compare(instructions2, instructions1), Matchers.greaterThan(0));
@@ -143,10 +135,8 @@ public class SortingTest {
     @Test
     public void testSortDescByProperty() {
 
-        final Instructions instructions1 = new Instructions(10);
-        instructions1.addProperty("f1", "v1");
-        final Instructions instructions2 = new Instructions(20);
-        instructions2.addProperty("f1", "v2");
+        final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "v1");
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "v2");
 
         assertThat(sortDesc.compare(instructions2, instructions1), Matchers.lessThan(0));
         assertThat(sortDesc.compare(instructions1, instructions2), Matchers.greaterThan(0));

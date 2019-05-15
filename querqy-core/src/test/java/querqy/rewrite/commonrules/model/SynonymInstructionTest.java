@@ -23,7 +23,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -48,11 +48,11 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         SynonymInstruction synInstruction2 = new SynonymInstruction(Collections.singletonList(mkTerm("s2")));
         SynonymInstruction synInstruction3 = new SynonymInstruction(Collections.singletonList(mkTerm("s3")));
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
-                new Instructions(1, Collections.singletonList(synInstruction1)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction1)));
         builder.addRule(new Input(Collections.singletonList(mkTerm("b")), "b"),
-                new Instructions(2, Collections.singletonList(synInstruction2)));
+                new Instructions(2, "1", Collections.singletonList(synInstruction2)));
         builder.addRule(new Input(Collections.singletonList(mkTerm("c")), "c"),
-                new Instructions(3, Collections.singletonList(synInstruction3)));
+                new Instructions(3, "1", Collections.singletonList(synInstruction3)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -86,7 +86,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1_1"), mkTerm("s1_2")));
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -111,7 +111,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
         builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b")), "a b"),
-                new Instructions(1, Collections.singletonList( synInstruction)));
+                new Instructions(1, "1", Collections.singletonList( synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -139,7 +139,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "s1_1"), mkTerm("s1_2")));
         builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b")), "a b"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -177,7 +177,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
         builder.addRule((Input) LineParser.parseInput("p1*"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -208,7 +208,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "bus"), mkTerm("$1")));
         builder.addRule((Input) LineParser.parseInput("bus*"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -239,7 +239,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p2"), mkTerm("$1")));
         builder.addRule((Input) LineParser.parseInput("p1 p2*"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -279,7 +279,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
         builder.addRule((Input) LineParser.parseInput("p1*"),
-                new Instructions(1, Collections.singletonList(synInstruction)));
+                new Instructions(1, "1", Collections.singletonList(synInstruction)));
         
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

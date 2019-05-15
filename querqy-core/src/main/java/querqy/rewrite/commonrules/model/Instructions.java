@@ -6,6 +6,7 @@ package querqy.rewrite.commonrules.model;
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.ID;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -28,12 +29,14 @@ public class Instructions extends LinkedList<Instruction> {
     /**
       *
       */
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     /**
      * Properties that are applicable to all {@link Instruction}s in this collection
      */
-    private final Map<String, Object> properties = new HashMap<>();
+    private final Map<String, Object> properties;
+
+    private final Object id;
 
     /**
      * This property is used for ordering Instructions objects. The creator of Instructions objects must ensure to
@@ -43,24 +46,23 @@ public class Instructions extends LinkedList<Instruction> {
      */
     public final int ord;
 
-    public Instructions(final int ord) {
-        super();
-        this.ord = ord;
-    }
-
-    public Instructions(final int ord, final Collection<Instruction> instructions) {
+    public Instructions(final int ord, Object id, final Collection<Instruction> instructions,
+                        final Map<String, Object> properties) {
         super(instructions);
         this.ord = ord;
+        if (id == null) {
+            throw new IllegalArgumentException("id must not be null");
+        }
+        this.id = id;
+        this.properties = properties;
     }
 
-    public void addProperty(final String name, final Object value) {
-        properties.put(name, value);
+    public Instructions(final int ord, final Object id, final Collection<Instruction> instructions) {
+        this(ord, id, instructions, Collections.emptyMap());
     }
 
-    // TODO We rely on someone setting the ID property (i.e. SimpleCommonRulesParser). Change the parser so that
-    // we can pass the ID to the constructor of Instructions
     public Object getId() {
-        return properties.get(ID);
+        return id;
     }
 
     public Optional<Object> getProperty(final String name) {
