@@ -12,15 +12,17 @@ import java.util.stream.Collectors;
 public class CriteriaSelectionStrategyFactory implements SelectionStrategyFactory {
 
     @Override
-    public SelectionStrategy createSelectionStrategy(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        final Criteria criteria = retrieveCriteriaFromRequest(searchEngineRequestAdapter);
+    public SelectionStrategy createSelectionStrategy(final String rewriterId,
+                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        final Criteria criteria = retrieveCriteriaFromRequest(rewriterId, searchEngineRequestAdapter);
         return criteria.isEmpty() ? DEFAULT_SELECTION_STRATEGY : new CriteriaSelectionStrategy(criteria);
     }
 
-    public Criteria retrieveCriteriaFromRequest(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public Criteria retrieveCriteriaFromRequest(final String rewriterId,
+                                                final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final Optional<Sorting> sorting = searchEngineRequestAdapter
-                .getRequestParam("rules.criteria.sort")
+                .getRequestParam(RuleSelectionParams.getSortParamName(rewriterId))
                 .map(sortStr -> {
                     String[] sortCriterion = sortStr.split("\\s+"); // FIXME: precompile regex
                     if (sortCriterion.length == 2) {
@@ -33,11 +35,11 @@ public class CriteriaSelectionStrategyFactory implements SelectionStrategyFactor
 
 
         final Optional<Integer> limit = searchEngineRequestAdapter
-                .getRequestParam("rules.criteria.limit")
+                .getRequestParam(RuleSelectionParams.getLimitParamName(rewriterId))
                 .map(Integer::valueOf);
 
         final List<FilterCriterion> filterCriteria = Arrays.stream(searchEngineRequestAdapter
-                .getRequestParams("rules.criteria.filter"))
+                .getRequestParams(RuleSelectionParams.getFilterParamName(rewriterId)))
                 .map(filterStr -> {
                     // FIXME: check for empty name/value
                     // FIXME: precompile regex

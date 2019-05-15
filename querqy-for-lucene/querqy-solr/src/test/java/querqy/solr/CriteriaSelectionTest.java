@@ -1,16 +1,25 @@
 package querqy.solr;
 
 
+import static querqy.rewrite.commonrules.RuleSelectionParams.getFilterParamName;
+import static querqy.rewrite.commonrules.RuleSelectionParams.getLimitParamName;
+import static querqy.rewrite.commonrules.RuleSelectionParams.getSortParamName;
+import static querqy.rewrite.commonrules.RuleSelectionParams.getStrategyParamName;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.commonrules.RuleSelectionParams;
 import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
 
 @SolrTestCaseJ4.SuppressSSL
 public class CriteriaSelectionTest extends SolrTestCaseJ4 {
+
+    // matching CommonRulesRewriter in solrconfig-commonrules-criteria.xml:
+    private static final String REWRITER_ID = "rules1";
 
     public void index() {
 
@@ -57,9 +66,9 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 // we set the criteria but don't enable the strategy
-                "rules.criteria.filter", "group:1",
-                "rules.criteria.sort", "priority asc",
-                "rules.criteria.limit", "1",
+                getFilterParamName(REWRITER_ID), "group:1",
+                getFilterParamName(REWRITER_ID), "priority asc",
+                getLimitParamName(REWRITER_ID), "1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -77,7 +86,7 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input1 input2",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                SimpleCommonRulesRewriterFactory.PARAM_SELECTION_STRATEGY, "criteria",
+                getStrategyParamName(REWRITER_ID), "criteria",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -95,8 +104,8 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input1 input2",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                SimpleCommonRulesRewriterFactory.PARAM_SELECTION_STRATEGY, "criteria",
-                "rules.criteria.filter", "group:1",
+                getStrategyParamName(REWRITER_ID), "criteria",
+                getFilterParamName(REWRITER_ID), "group:1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -114,10 +123,10 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input1 input2",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                SimpleCommonRulesRewriterFactory.PARAM_SELECTION_STRATEGY, "criteria",
-                "rules.criteria.filter", "group:1",
-                "rules.criteria.sort", "priority asc",
-                "rules.criteria.limit", "1",
+                getStrategyParamName(REWRITER_ID), "criteria",
+                getFilterParamName(REWRITER_ID), "group:1",
+                getSortParamName(REWRITER_ID), "priority asc",
+                getLimitParamName(REWRITER_ID), "1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );

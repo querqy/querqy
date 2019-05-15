@@ -38,6 +38,7 @@
 	
 		<lst name="rewriteChain">
            <lst name="rewriter">
+			   <str name="id">rules1</str>
                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
                <str name="rules">rules-criteria.txt</str>
                <bool name="ignoreCase">true</bool>

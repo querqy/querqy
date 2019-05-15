@@ -21,10 +21,9 @@ import querqy.rewrite.commonrules.model.SelectionStrategy;
  */
 public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
-    public static final String PARAM_SELECTION_STRATEGY = "rules.criteria.strategy";
-
     final RulesCollection rules;
     final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
+    final String strategyParam;
 
 
     /**
@@ -41,7 +40,11 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories)
             throws IOException {
+
         super(rewriterId);
+
+        this.strategyParam = RuleSelectionParams.getStrategyParamName(rewriterId);
+
         this.selectionStrategyFactories = new HashMap<>(selectionStrategyFactories);
 
         try {
@@ -62,13 +65,13 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final SelectionStrategy selectionStrategy = searchEngineRequestAdapter
-                .getRequestParam(PARAM_SELECTION_STRATEGY)
+                .getRequestParam(strategyParam)
                 .map(name -> {
                     final SelectionStrategyFactory factory = selectionStrategyFactories.get(name);
                     if (factory == null) {
                         throw new IllegalArgumentException("No selection strategy for name " + name);
                     }
-                    return factory.createSelectionStrategy(searchEngineRequestAdapter);
+                    return factory.createSelectionStrategy(getRewriterId(), searchEngineRequestAdapter);
                 })
                 .orElse(SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY); // strategy not specified in params
 

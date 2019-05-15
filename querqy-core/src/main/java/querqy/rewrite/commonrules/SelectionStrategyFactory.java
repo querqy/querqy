@@ -8,7 +8,7 @@ public interface SelectionStrategyFactory {
 
     SelectionStrategy DEFAULT_SELECTION_STRATEGY = new ConfigurationOrderSelectionStrategy();
 
-    SelectionStrategy createSelectionStrategy(SearchEngineRequestAdapter searchEngineRequestAdapter);
+    SelectionStrategy createSelectionStrategy(String rewriterId, SearchEngineRequestAdapter searchEngineRequestAdapter);
 
 
 }
