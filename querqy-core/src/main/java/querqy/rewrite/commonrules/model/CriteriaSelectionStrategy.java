@@ -2,6 +2,9 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.Comparator;
 
+/**
+ * Select rules based on {@link Criteria}.
+ */
 public class CriteriaSelectionStrategy implements SelectionStrategy {
 
     private final Comparator<Instructions> sortingComparator;

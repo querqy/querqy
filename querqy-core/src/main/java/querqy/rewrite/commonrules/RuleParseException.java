@@ -20,17 +20,21 @@ public class RuleParseException extends Exception {
    public RuleParseException() {
    }
 
+   public RuleParseException(final String message) {
+       super(message);
+   }
+
    /**
     * @param message
     */
-   public RuleParseException(int lineNumber, String message) {
+   public RuleParseException(final int lineNumber, final String message) {
       super("Line " + lineNumber + ": " + message);
    }
 
    /**
     * @param cause
     */
-   public RuleParseException(Throwable cause) {
+   public RuleParseException(final Throwable cause) {
       super(cause);
    }
 
@@ -38,7 +42,7 @@ public class RuleParseException extends Exception {
     * @param message
     * @param cause
     */
-   public RuleParseException(String message, Throwable cause) {
+   public RuleParseException(final String message, final Throwable cause) {
       super(message, cause);
    }
 
@@ -48,8 +52,8 @@ public class RuleParseException extends Exception {
     * @param enableSuppression
     * @param writableStackTrace
     */
-   public RuleParseException(String message, Throwable cause,
-         boolean enableSuppression, boolean writableStackTrace) {
+   public RuleParseException(final String message, final Throwable cause, final boolean enableSuppression,
+                             final boolean writableStackTrace) {
       super(message, cause, enableSuppression, writableStackTrace);
    }
 

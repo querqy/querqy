@@ -34,7 +34,7 @@ public class Instructions extends LinkedList<Instruction> {
     /**
      * Properties that are applicable to all {@link Instruction}s in this collection
      */
-    private final Map<String, Object> properties;
+    private final InstructionsProperties properties;
 
     private final Object id;
 
@@ -47,7 +47,7 @@ public class Instructions extends LinkedList<Instruction> {
     public final int ord;
 
     public Instructions(final int ord, Object id, final Collection<Instruction> instructions,
-                        final Map<String, Object> properties) {
+                        final InstructionsProperties properties) {
         super(instructions);
         this.ord = ord;
         if (id == null) {
@@ -58,7 +58,7 @@ public class Instructions extends LinkedList<Instruction> {
     }
 
     public Instructions(final int ord, final Object id, final Collection<Instruction> instructions) {
-        this(ord, id, instructions, Collections.emptyMap());
+        this(ord, id, instructions, new InstructionsProperties(Collections.emptyMap()));
     }
 
     public Object getId() {
@@ -66,10 +66,10 @@ public class Instructions extends LinkedList<Instruction> {
     }
 
     public Optional<Object> getProperty(final String name) {
-        return Optional.ofNullable(properties.get(name));
+        return properties.getProperty(name);
     }
 
-    public Map<String, Object> getProperties() {
+    public InstructionsProperties getProperties() {
         return properties;
     }
 

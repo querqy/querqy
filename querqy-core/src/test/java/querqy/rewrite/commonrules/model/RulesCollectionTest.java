@@ -338,7 +338,7 @@ public class RulesCollectionTest {
       for (String name : names) {
          instructions.add(new SimpleInstruction(name));
       }
-      return new Instructions(ord, "1", instructions);
+      return new Instructions(ord, Integer.toString(ord), instructions);
    }
 
    static class SimpleInstruction implements Instruction {

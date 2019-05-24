@@ -29,15 +29,19 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     QuerqyParserFactory querqyParserFactory = new WhiteSpaceQuerqyParserFactory();
     
     SimpleCommonRulesParser createParserWithEmptyReader() {
-        reader = new StringReader("");
-        return new SimpleCommonRulesParser(reader, querqyParserFactory, false);
+        return createParserFromString("", false);
     }
-    
+
+    SimpleCommonRulesParser createParserFromString(final String rulesString, final boolean ignoreCase) {
+        reader = new StringReader(rulesString);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase);
+    }
+
     SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
         return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase);
     }
-    
+
     RulesCollection createRulesFromResource(String resourceName, boolean ignoreCase) throws IOException, RuleParseException {
         SimpleCommonRulesParser parser = createParserFromResource(resourceName, ignoreCase);
         return parser.parse();
@@ -517,7 +521,7 @@ ts6 =>
      * @throws Exception
      */
     //@Test TODO enable test once we can handle wild card before right input boundary
-    public void test16() throws Exception {
+    public void test17() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", true);
         Term t4 = new Term(null, "tb4abc");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
@@ -537,7 +541,7 @@ ts6 =>
                         new TermMatches(Collections.singletonList(new TermMatch(t4))), 0, 1)
                 ));
     }
-    
+
     
     @Test
     public void testError01() throws Exception {

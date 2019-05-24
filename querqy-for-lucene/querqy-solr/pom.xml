@@ -32,6 +32,16 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>querqy-lucene</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <!--
+                    This is provided by Solr - we don't want to package it
+                -->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+
+            </exclusions>
         </dependency>
 
         <dependency>

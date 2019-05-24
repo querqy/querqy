@@ -19,6 +19,7 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
     // matching CommonRulesRewriter in solrconfig-commonrules-criteria.xml:
     private static final String REWRITER_ID_1 = "rules1";
     private static final String REWRITER_ID_2 = "rules2";
+    private static final String REWRITER_ID_3 = "rules3";
 
     public void index() {
 
@@ -177,6 +178,47 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         assertQ("Rewriter selection not working",
                 req,
                 "//result[@name='response' and @numFound='0']"
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testJsonFilterEquality() {
+        SolrQueryRequest req = req("q", "input5 input6",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getStrategyParamName(REWRITER_ID_3), "criteria",
+                getFilterParamName(REWRITER_ID_3), "$[?(@.tenant)].tenant[?(@.enabled == true)]",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("Json eq filter criterion doesn't work",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc/str[@name='id'][text()='1']",
+                "//result/doc/str[@name='id'][text()='2']"
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testJsonFilterEqualityAndGreaterThan() {
+        SolrQueryRequest req = req("q", "input5 input6",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getStrategyParamName(REWRITER_ID_3), "criteria",
+                getFilterParamName(REWRITER_ID_3), "$[?(@.tenant && @.priority > 5)].tenant[?(@.enabled == true)]",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("Json eq and gt filter criterion doesn't work",
+                req,
+                "//result[@name='response' and @numFound='1']",
+                "//result/doc/str[@name='id'][text()='1']"
         );
 
         req.close();

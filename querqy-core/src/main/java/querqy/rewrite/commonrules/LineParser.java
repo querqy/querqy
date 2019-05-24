@@ -1,6 +1,3 @@
-/**
- *
- */
 package querqy.rewrite.commonrules;
 
 import java.util.*;
@@ -25,7 +22,6 @@ public class LineParser {
     public static final String INSTR_DELETE = "delete";
     public static final String INSTR_FILTER = "filter";
     public static final String INSTR_SYNONYM = "synonym";
-    public static final String PROPERTY_IDENTIFIER = "@";
 
 
     static final char RAWQUERY = '*';
@@ -156,11 +152,7 @@ public class LineParser {
             return parseDecorateInstruction(line);
         }
 
-        if (lcLine.startsWith(PROPERTY_IDENTIFIER)) {
-            return parseProperty(line);
-        }
-
-        return new ValidationError("Cannot parse line: " + line);
+        return line;
 
     }
 
@@ -371,26 +363,6 @@ public class LineParser {
 
         return result;
 
-    }
-
-    public static Object parseProperty(String line) {
-
-        if (line.length() == PROPERTY_IDENTIFIER.length()) {
-            return new ValidationError(PROPERTY_IDENTIFIER + " requires a key & value");
-        }
-
-        String propValue = line.substring(PROPERTY_IDENTIFIER.length()).trim();
-        if (!propValue.contains(":")) {
-            return new ValidationError("Cannot parse line, '.' expected property in format @propertyName: propertyVal " + line);
-        }
-
-        String key = propValue.substring(0, propValue.indexOf(":")).trim();
-        String val = propValue.substring(propValue.indexOf(":")).trim().substring(1).trim();
-        Object valData = TypeDetector.getTypedObjectFromString(val);
-        if (valData == null) {
-            return new ValidationError(" Unable to determine property type for: " + line);
-        }
-        return new AbstractMap.SimpleEntry<String, Object>(key, valData);
     }
 
 

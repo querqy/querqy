@@ -46,7 +46,7 @@
 			   <lst name="rules.selectionStrategy">
                    <lst name="strategy">
                        <str name="id">criteria</str>
-                       <str name="class">querqy.solr.CriteriaSelectionStrategyFactory</str>
+                       <str name="class">querqy.solr.PrimitiveValueSelectionStrategyFactory</str>
                    </lst>
                </lst>
            </lst>
@@ -59,7 +59,20 @@
                 <lst name="rules.selectionStrategy">
                     <lst name="strategy">
                         <str name="id">criteria</str>
-                        <str name="class">querqy.solr.CriteriaSelectionStrategyFactory</str>
+                        <str name="class">querqy.solr.PrimitiveValueSelectionStrategyFactory</str>
+                    </lst>
+                </lst>
+            </lst>
+            <lst name="rewriter">
+                <str name="id">rules3</str>
+                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+                <str name="rules">rules-criteria3.txt</str>
+                <bool name="ignoreCase">true</bool>
+                <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+                <lst name="rules.selectionStrategy">
+                    <lst name="strategy">
+                        <str name="id">criteria</str>
+                        <str name="class">querqy.solr.ExpressionSelectionStrategyFactory</str>
                     </lst>
                 </lst>
             </lst>

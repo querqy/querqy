@@ -10,11 +10,11 @@ public class TopRewritingActionCollector {
 
     private final TreeMap<Instructions, Function<Instructions, Action>> topN;
     private final int limit;
-    private List<? extends Criterion> filters;
+    private List<? extends FilterCriterion> filters;
     private final Comparator<Instructions> comparator;
 
     public TopRewritingActionCollector(final Comparator<Instructions> comparator, final int limit,
-                                       final List<? extends Criterion> filters) {
+                                       final List<? extends FilterCriterion> filters) {
         topN = new TreeMap<>(comparator);
         this.limit = limit;
         this.filters = filters;
@@ -30,7 +30,7 @@ public class TopRewritingActionCollector {
 
         instructions.stream()
                 .filter(instr -> {
-                    for (final Criterion filter : filters) {
+                    for (final FilterCriterion filter : filters) {
                         if (!filter.isValid(instr)) {
                             return false;
                         }
@@ -68,7 +68,7 @@ public class TopRewritingActionCollector {
         return limit;
     }
 
-    public List<? extends Criterion> getFilters() {
+    public List<? extends FilterCriterion> getFilters() {
         return filters;
     }
 

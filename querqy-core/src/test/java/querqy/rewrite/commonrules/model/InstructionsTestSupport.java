@@ -10,15 +10,17 @@ public interface InstructionsTestSupport {
     static Instructions instructions(final int ord, final String name, final Object value) {
         final Map<String, Object> props = new HashMap<>(1);
         props.put(name, value);
-        return new Instructions(ord, Integer.toString(ord), Collections.emptyList(), props);
+        return new Instructions(ord, Integer.toString(ord), Collections.emptyList(), new InstructionsProperties(props));
     }
 
     static Instructions instructions(final int ord, final Collection<Instruction> instructions) {
-        return new Instructions(ord, Integer.toString(ord), instructions, Collections.emptyMap());
+        return new Instructions(ord, Integer.toString(ord), instructions,
+                new InstructionsProperties(Collections.emptyMap()));
     }
 
     static Instructions instructions(final int ord) {
-        return new Instructions(ord, Integer.toString(ord), Collections.emptyList(), Collections.emptyMap());
+        return new Instructions(ord, Integer.toString(ord), Collections.emptyList(),
+                new InstructionsProperties(Collections.emptyMap()));
     }
 
 }

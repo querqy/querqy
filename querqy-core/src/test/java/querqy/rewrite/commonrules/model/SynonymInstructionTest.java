@@ -50,9 +50,9 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
                 new Instructions(1, "1", Collections.singletonList(synInstruction1)));
         builder.addRule(new Input(Collections.singletonList(mkTerm("b")), "b"),
-                new Instructions(2, "1", Collections.singletonList(synInstruction2)));
+                new Instructions(2, "2", Collections.singletonList(synInstruction2)));
         builder.addRule(new Input(Collections.singletonList(mkTerm("c")), "c"),
-                new Instructions(3, "1", Collections.singletonList(synInstruction3)));
+                new Instructions(3, "3", Collections.singletonList(synInstruction3)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 

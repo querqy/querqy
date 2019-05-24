@@ -1,18 +1,16 @@
 package querqy.rewrite.commonrules.model;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static querqy.rewrite.commonrules.model.ConfigurationOrderSelectionStrategy.COMPARATOR;
+import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 public class TopRewritingActionCollectorTest {
@@ -28,7 +26,7 @@ public class TopRewritingActionCollectorTest {
         for (int i = 0; i < numActions; i++) {
             final int pos = i;
             collector.offer(
-                    Collections.singletonList(instructionsEmpty(i)),
+                    Collections.singletonList(instructions(i)),
                     instr -> new Action(instr, new TermMatches(), pos, pos + 2)
             );
         }
@@ -49,7 +47,7 @@ public class TopRewritingActionCollectorTest {
         for (int i = 0; i < numActions; i++) {
             final int pos = i;
             collector.offer(
-                    Collections.singletonList(instructionsEmpty(numActions - i - 1)), // reverse order
+                    Collections.singletonList(instructions(numActions - i - 1)), // reverse order
                     instr -> new Action(instr, new TermMatches(), pos, pos + 2)
             );
         }
@@ -76,7 +74,7 @@ public class TopRewritingActionCollectorTest {
         for (int i = 0; i < numActions; i++) {
             final int pos = i;
             collector.offer(
-                    Collections.singletonList(instructionsEmpty(i)),
+                    Collections.singletonList(instructions(i)),
                     instr -> new Action(instr, new TermMatches(), pos, pos + 2)
             );
         }
@@ -98,7 +96,7 @@ public class TopRewritingActionCollectorTest {
         for (int i = 0; i < numActions; i++) {
             final int pos = i;
             collector.offer(
-                    Collections.singletonList(instructionsEmpty(i)),
+                    Collections.singletonList(instructions(i)),
                     instr -> new Action(instr, new TermMatches(), pos, pos + 2)
             );
         }
@@ -111,14 +109,6 @@ public class TopRewritingActionCollectorTest {
 
     }
 
-    private static Instructions instructionsWithProperty(final int ord, final String name, final Object value) {
-        final Map<String, Object> props = new HashMap<>(1);
-        props.put(name, value);
-        return new Instructions(ord, Integer.toString(ord), Collections.emptyList(), props);
-    }
 
-    private static Instructions instructionsEmpty(final int ord) {
-        return new Instructions(ord, Integer.toString(ord), Collections.emptyList(), Collections.emptyMap());
-    }
 
 }
