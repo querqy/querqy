@@ -662,7 +662,7 @@ The properties that where defined for a single set of rules are considered a JSO
  - `$[?('t1' in @.tenant)]` matches ID1 but not ID2 
  - `$[?(@.priority > 1 && @.culture)].culture[?(@.lang=='en)]` matches ID2 but not ID1. The expression ```[?(@.priority > 1 && @.culture)]``` first tests for priority > 1 (both rules matching) and then for the existence of 'culture', which only matches ID2. Then the 'lang' property of 'culture' is tested for matching 'en'.
 
-
+If more than one filter parameters are passed to a Common Rules rewriter, a rule must match all filters before it will be applied. 
 
 #### Rewriter ordering
 
