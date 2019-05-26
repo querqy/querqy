@@ -34,7 +34,8 @@ input6 =>
                 "enabled": false
 
             }
-        ]
+        ],
+        "tt": ["a", "b"]
    }@
 
 input6 =>

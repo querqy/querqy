@@ -205,6 +205,25 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
     }
 
     @Test
+    public void testJsonList() {
+        SolrQueryRequest req = req("q", "input5 input6",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getStrategyParamName(REWRITER_ID_3), "criteria",
+                getFilterParamName(REWRITER_ID_3), "$[?('a' in @.tt)]",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("Json eq filter criterion doesn't work",
+                req,
+                "//result[@name='response' and @numFound='1']"
+        );
+
+        req.close();
+    }
+
+    @Test
     public void testJsonFilterEqualityAndGreaterThan() {
         SolrQueryRequest req = req("q", "input5 input6",
                 DisMaxParams.QF, "f1",
