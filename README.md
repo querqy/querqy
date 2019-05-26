@@ -656,14 +656,11 @@ querqy.common1.criteria.filter=<JsonPath expression>
 
 The properties that where defined for a single set of rules are considered a JSON document and a rule filter matches the rule if the JsonPath expression matches this JSON document. What follows is a list of examples that relate to the above rules:
 
-
-| Expression passed as value for parameter querqy.common1.criteria.filter | matching |
-|---|---|
-| `$[?(@.enabled == true)]` | matches ID2 but not ID1 |
-| `$[?(@.group == 'electronics')]` | matches ID1 but not ID2 |
-| `$[?(@.priority > 5)]` | matches ID2 but not ID1 |
-| `$[?('t1' in @.tenant)]` | matches ID1 but not ID2 |
-| `$[?(@.priority > 1 && @.culture)].culture[?(@.lang=='en)]` | matches ID2 but not ID1. The expression ```[?(@.priority > 1 && @.culture)]``` first tests for priority > 1 (both rules matching) and then for the existence of 'culture', which only matches ID2. Then the 'lang' property of 'culture' is tested for matching 'en' |
+ - `$[?(@.enabled == true)]` matches ID2 but not ID1
+ - `$[?(@.group == 'electronics')]` matches ID1 but not ID2
+ - `$[?(@.priority > 5)]` matches ID2 but not ID1 
+ - `$[?('t1' in @.tenant)]` matches ID1 but not ID2 
+ - `$[?(@.priority > 1 && @.culture)].culture[?(@.lang=='en)]` matches ID2 but not ID1. The expression ```[?(@.priority > 1 && @.culture)]``` first tests for priority > 1 (both rules matching) and then for the existence of 'culture', which only matches ID2. Then the 'lang' property of 'culture' is tested for matching 'en'.
 
 
 
