@@ -16,13 +16,15 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.runners.MockitoJUnitRunner;
+import querqy.infologging.InfoLogging;
 
 import querqy.lucene.LuceneQueries;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
+import querqy.infologging.InfoLoggingContext;
 
 import java.util.Collections;
 
@@ -39,6 +41,9 @@ public class QuerqyDismaxQParserTest {
     RewriteChain rewriteChain;
 
     @Mock
+    InfoLogging infoLogging;
+
+    @Mock
     IndexSchema schema;
 
 
@@ -47,7 +52,7 @@ public class QuerqyDismaxQParserTest {
 
         try {
             new QuerqyDismaxQParser(" ", new ModifiableSolrParams(), new ModifiableSolrParams(), request, querqyParser,
-                    rewriteChain, null);
+                    rewriteChain, infoLogging, null);
             Assert.fail();
         } catch (final SolrException e) {
             Assert.assertEquals(400, e.code());
@@ -55,7 +60,7 @@ public class QuerqyDismaxQParserTest {
 
         try {
             new QuerqyDismaxQParser("", new ModifiableSolrParams(), new ModifiableSolrParams(), request, querqyParser,
-                    rewriteChain, null);
+                    rewriteChain, infoLogging, null);
             Assert.fail();
         } catch (final SolrException e) {
             Assert.assertEquals(400, e.code());
@@ -75,7 +80,7 @@ public class QuerqyDismaxQParserTest {
         final ModifiableSolrParams localParams = new ModifiableSolrParams();
         localParams.add(CommonParams.CACHE, CommonParams.FALSE);
         final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
-                querqyParser, rewriteChain, null);
+                querqyParser, rewriteChain, infoLogging, null);
         final Query query = parser.getQuery();
         Assert.assertTrue(query instanceof ExtendedQuery);
         final ExtendedQuery extendedQuery = (ExtendedQuery) query;
@@ -96,7 +101,7 @@ public class QuerqyDismaxQParserTest {
         final ModifiableSolrParams localParams = new ModifiableSolrParams();
         localParams.add(CommonParams.CACHE, CommonParams.TRUE);
         final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
-                querqyParser, rewriteChain, null);
+                querqyParser, rewriteChain, infoLogging, null);
         final Query query = parser.getQuery();
         Assert.assertTrue(query instanceof ExtendedQuery);
         final ExtendedQuery extendedQuery = (ExtendedQuery) query;
@@ -118,7 +123,7 @@ public class QuerqyDismaxQParserTest {
         localParams.add(CommonParams.CACHE, "sep");
 
         final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
-                querqyParser, rewriteChain, null);
+                querqyParser, rewriteChain, infoLogging, null);
         parser.luceneQueries = new LuceneQueries(new MatchAllDocsQuery(), Collections.emptyList(),
                 Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), true);
         parser.applyLocalParams();
@@ -132,7 +137,6 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-//        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");
@@ -141,7 +145,7 @@ public class QuerqyDismaxQParserTest {
         localParams.add(CommonParams.CACHE, "sep");
 
         final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
-                querqyParser, rewriteChain, null);
+                querqyParser, rewriteChain, infoLogging, null);
         parser.luceneQueries = new LuceneQueries(new MatchAllDocsQuery(), Collections.emptyList(),
                 Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), false);
         parser.applyLocalParams();

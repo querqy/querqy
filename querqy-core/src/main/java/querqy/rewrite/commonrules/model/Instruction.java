@@ -8,6 +8,7 @@ import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 /**
  * 
@@ -27,10 +28,10 @@ public interface Instruction {
     * @param startPosition
     * @param endPosition
     * @param expandedQuery
-    * @param context
+    * @param searchEngineRequestAdapter
     */
    void apply(PositionSequence<Term> sequence, TermMatches termMatches, int startPosition, int endPosition,
-         ExpandedQuery expandedQuery,  Map<String, Object> context);
+         ExpandedQuery expandedQuery,  SearchEngineRequestAdapter searchEngineRequestAdapter);
    
    Set<Term> getGenerableTerms();
 

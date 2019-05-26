@@ -6,6 +6,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class WordBreakCompoundRewriterFactory implements RewriterFactory {
+public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
     // this controls behaviour of the Lucene WordBreakSpellChecker:
     // for compounds: maximum distance of leftmost and rightmost term index
@@ -46,7 +47,8 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
      * @param maxDecompoundExpansions
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
      */
-    public WordBreakCompoundRewriterFactory(final Supplier<IndexReader> indexReaderSupplier,
+    public WordBreakCompoundRewriterFactory(final String rewriterId,
+                                            final Supplier<IndexReader> indexReaderSupplier,
                                             final String dictionaryField,
                                             final boolean lowerCaseInput,
                                             final int minSuggestionFreq,
@@ -56,7 +58,7 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
                                             final boolean alwaysAddReverseCompounds,
                                             final int maxDecompoundExpansions,
                                             final boolean verifyDecompoundCollation) {
-
+        super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.dictionaryField = dictionaryField;
         this.lowerCaseInput = lowerCaseInput;
@@ -88,7 +90,8 @@ public class WordBreakCompoundRewriterFactory implements RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery expandedQuery, final Map<String, ?> context) {
+    public QueryRewriter createRewriter(final ExpandedQuery input,
+                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
                 verifyDecompundCollation);

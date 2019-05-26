@@ -5,6 +5,9 @@ package querqy.solr;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
@@ -12,27 +15,51 @@ import org.apache.solr.common.util.NamedList;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.SelectionStrategyFactory;
 
 /**
  * @author René Kriegler, @renekrie
  */
-public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter {
+public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<RewriterFactory> {
 
     /*
      * (non-Javadoc)
      *
      * @see
-     * querqy.solr.RewriterFactoryAdapter#createRewriterFactory(org.apache.solr
+     * querqy.solr.FactoryAdapter#createRewriterFactory(org.apache.solr
      * .common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
      */
     @Override
-    public RewriterFactory createRewriterFactory(final NamedList<?> args,
-                                                 final ResourceLoader resourceLoader) throws IOException {
+    public RewriterFactory createFactory(final String id, final NamedList<?> args,
+                                         final ResourceLoader resourceLoader) throws IOException {
 
         final String rulesResourceName = (String) args.get("rules");
         if (rulesResourceName == null) {
             throw new IllegalArgumentException("Property 'rules' not configured");
         }
+
+        final Map<String, SelectionStrategyFactory> selectionStrategyFactories = new HashMap<>();
+
+        final NamedList<?> selectionStrategyConfiguration = (NamedList<?>) args.get("rules.selectionStrategy");
+
+        if (selectionStrategyConfiguration != null) {
+
+            @SuppressWarnings("unchecked")
+            final List<NamedList<?>> strategyConfigs = (List<NamedList<?>>) selectionStrategyConfiguration.getAll("strategy");
+            if (strategyConfigs != null) {
+                for (NamedList<?> config : strategyConfigs) {
+                    @SuppressWarnings("unchecked")
+                    final FactoryAdapter<SelectionStrategyFactory> factory = resourceLoader
+                            .newInstance((String) config.get("class"), FactoryAdapter.class);
+                    final String strategyId = (String) config.get("id");
+                    if (selectionStrategyFactories.put(strategyId,
+                            factory.createFactory(strategyId, config, resourceLoader)) != null) {
+                        throw new IOException("Duplicate id in rules.selectionStrategy: " + id);
+                    }
+                }
+            }
+        }
+
 
         final Boolean ignoreCase = args.getBooleanArg("ignoreCase");
 
@@ -51,10 +78,13 @@ public class SimpleCommonRulesRewriterFactory implements RewriterFactoryAdapter 
             querqyParser = new WhiteSpaceQuerqyParserFactory();
         }
 
-        return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
-                new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"),
-                querqyParser,
-                ignoreCase == null || ignoreCase);
+        return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(id,
+                new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"), querqyParser,
+                ignoreCase == null || ignoreCase, selectionStrategyFactories);
     }
 
+    @Override
+    public Class<?> getCreatedClass() {
+        return querqy.rewrite.commonrules.CommonRulesRewriter.class;
+    }
 }

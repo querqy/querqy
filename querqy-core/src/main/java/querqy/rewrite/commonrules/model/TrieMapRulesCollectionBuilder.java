@@ -3,8 +3,10 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
@@ -19,6 +21,7 @@ import querqy.trie.TrieMap;
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     final TrieMap<List<Instructions>> map = new TrieMap<>();
+    private final Set<Object> seenInstructionIds = new HashSet<>();
     
     final boolean ignoreCase;
     
@@ -30,7 +33,11 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      * @see querqy.rewrite.commonrules.model.RulesCollectionBuilder#addRule(querqy.rewrite.commonrules.model.Input, querqy.rewrite.commonrules.model.Instructions)
      */
     @Override
-    public void addRule(Input input, Instructions instructions) {
+    public void addRule(final Input input, final Instructions instructions) {
+
+        if (seenInstructionIds.contains(instructions.getId())) {
+            throw new IllegalStateException("Duplicate instructions ID " + instructions.getId());
+        }
         
         List<Term> inputTerms = input.getInputTerms();
         
@@ -147,7 +154,9 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                 }
                 
             } 
-       }
+        }
+
+        seenInstructionIds.add(instructions.getId());
 
     }
     

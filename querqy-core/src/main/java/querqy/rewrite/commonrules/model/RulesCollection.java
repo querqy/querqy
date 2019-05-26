@@ -10,9 +10,9 @@ public interface RulesCollection {
     /** 
      * Find and return all rewrite actions for an input sequence
      * @param sequence
-     * @return
+     * @param collector
      */
-    List<Action> getRewriteActions(PositionSequence<InputSequenceElement> sequence);
+    void collectRewriteActions(PositionSequence<InputSequenceElement> sequence, TopRewritingActionCollector collector);
     
     /**
      * 

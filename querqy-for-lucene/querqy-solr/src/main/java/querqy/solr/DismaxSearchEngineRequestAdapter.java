@@ -31,6 +31,8 @@ import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
+import querqy.infologging.InfoLogging;
+import querqy.infologging.InfoLoggingContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,15 +88,20 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     private final String minShouldMatch;
     private final Map<String, Object> context;
     private final QParser qParser;
+    private final InfoLoggingContext infoLoggingContext;
 
     public DismaxSearchEngineRequestAdapter(final QParser qParser, final SolrQueryRequest request,
                                             final String queryString, final SolrParams solrParams,
                                             final QuerqyParser querqyParser, final RewriteChain rewriteChain,
+                                            final InfoLogging infoLogging,
                                             final TermQueryCache termQueryCache) {
         this.qParser = qParser;
         this.userQueryString = queryString;
         this.solrParams = solrParams;
         this.termQueryCache = termQueryCache;
+        this.infoLoggingContext = solrParams.getBool(INFO_LOGGING, false) && infoLogging != null
+                ? new InfoLoggingContext(infoLogging, this)
+                : null;
         this.querqyParser = querqyParser;
         this.request = request;
         this.rewriteChain = rewriteChain;
@@ -260,6 +267,11 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     @Override
     public Map<String, Object> getContext() {
         return context;
+    }
+
+    @Override
+    public Optional<InfoLoggingContext> getInfoLoggingContext() {
+        return Optional.ofNullable(infoLoggingContext);
     }
 
     @Override

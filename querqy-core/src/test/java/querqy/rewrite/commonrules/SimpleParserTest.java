@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
@@ -19,18 +20,8 @@ import querqy.model.InputSequenceElement;
 import querqy.model.Query;
 import querqy.model.RawQuery;
 import querqy.model.Term;
-import querqy.rewrite.commonrules.model.Action;
-import querqy.rewrite.commonrules.model.BoostInstruction;
+import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-import querqy.rewrite.commonrules.model.DeleteInstruction;
-import querqy.rewrite.commonrules.model.FilterInstruction;
-import querqy.rewrite.commonrules.model.Instruction;
-import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.PositionSequence;
-import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.SynonymInstruction;
-import querqy.rewrite.commonrules.model.TermMatch;
-import querqy.rewrite.commonrules.model.TermMatches;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
     
@@ -38,15 +29,19 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     QuerqyParserFactory querqyParserFactory = new WhiteSpaceQuerqyParserFactory();
     
     SimpleCommonRulesParser createParserWithEmptyReader() {
-        reader = new StringReader("");
-        return new SimpleCommonRulesParser(reader, querqyParserFactory, false);
+        return createParserFromString("", false);
     }
-    
+
+    SimpleCommonRulesParser createParserFromString(final String rulesString, final boolean ignoreCase) {
+        reader = new StringReader(rulesString);
+        return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase);
+    }
+
     SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
         return new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase);
     }
-    
+
     RulesCollection createRulesFromResource(String resourceName, boolean ignoreCase) throws IOException, RuleParseException {
         SimpleCommonRulesParser parser = createParserFromResource(resourceName, ignoreCase);
         return parser.parse();
@@ -85,14 +80,14 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t1);
         seq.nextPosition();
         seq.addElement(t2);
-        List<Action> actions = rules.getRewriteActions(seq);
-        assertThat(actions, contains( 
-                new Action(
-                        Arrays.asList(
-                                new Instructions(Arrays.asList((Instruction) new DeleteInstruction(Arrays.asList(mkTerm("aa")))))), 
-                                new TermMatches(new TermMatch(t1)), 0, 1)));
+        List<Action> actions = getActions(rules, seq);
+        assertThat(actions, contains(
+                new Action(new Instructions(1, "1", Collections.singletonList(
+                        new DeleteInstruction(Collections.singletonList(mkTerm("aa")))
+                )),
+                        new TermMatches(new TermMatch(t1)), 0, 1)));
     }
-    
+
     @Test
     public void test02() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
@@ -109,32 +104,31 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t3);
         seq.nextPosition();
         seq.addElement(t4);
-        List<Action> actions = rules.getRewriteActions(seq);
+        List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains( 
+
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new BoostInstruction(
-                                                        new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN ,2f)))),
-                                                        new TermMatches(new TermMatch(t1)), 0, 1),
-                new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("b")))))), 
+                                new Instructions(1, "1",
+                                        Collections.singletonList(
+                                                new DeleteInstruction(Collections.singletonList(mkTerm("b")))
+                                        )),
                                                 new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2),
                                 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
+                                new Instructions(3, "3",
                                         Arrays.asList(
-                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("a"))),
-                                                (Instruction) new DeleteInstruction(Arrays.asList(mkTerm("c")))
-                                                        ))), 
-                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
-                
-                
+                                                new DeleteInstruction(Collections.singletonList(mkTerm("a"))),
+                                                new DeleteInstruction(Collections.singletonList(mkTerm("c")))
+                                        )),
+                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3),
+                new Action(
+                        new Instructions(6, "6",
+                                Collections.singletonList(
+                                        new BoostInstruction(
+                                                new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f)
+                                )),
+                        new TermMatches(new TermMatch(t1)), 0, 1)
+
                 ));	
     }
     
@@ -148,14 +142,13 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.addElement(t1);
         seq.nextPosition();
         seq.addElement(t2);
-        List<Action> actions = rules.getRewriteActions(seq);
+        List<Action> actions = getActions(rules, seq);
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f))
-                                                        )), 
+                                new Instructions(1, "1",
+                                        Collections.singletonList(
+                                                new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f)
+                                        )),
                                                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
                 
@@ -169,15 +162,14 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
         seq.addElement(t1);
-        List<Action> actions = rules.getRewriteActions(seq);
-        assertThat(actions, contains( 
+        List<Action> actions = getActions(rules, seq);
+        assertThat(actions, contains(
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("flt2 flt3")))
-                                                        )), 
-                                                        new TermMatches(new TermMatch(t1)), 0, 1)
+                        new Instructions(1, "1",
+                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("flt2 flt3"))
+                                )
+                        ),
+                        new TermMatches(new TermMatch(t1)), 0, 1)
                 
                 
                 ));
@@ -212,15 +204,15 @@ ts6 =>
         seq.addElement(t1);
         seq.nextPosition();
         seq.addElement(t2);
-        List<Action> actions = rules.getRewriteActions(seq);
-        assertThat(actions, contains( 
+        List<Action> actions = getActions(rules, seq);
+        assertThat(actions, contains(
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new SynonymInstruction(Arrays.asList(mkTerm("syn1"))))
-                                                        )), 
-                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                        new SynonymInstruction(Collections.singletonList(mkTerm("syn1")))
+                                )
+                                        ),
+                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
                 
                 
                 ));
@@ -237,20 +229,20 @@ ts6 =>
         Term t1 = new Term(null, "ts6");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
         seq.nextPosition();
-        seq.addElement(t1);Character.toLowerCase('L');
-        List<Action> actions = rules.getRewriteActions(seq);
-        assertThat(actions, contains( 
+        seq.addElement(t1);
+        List<Action> actions = getActions(rules, seq);
+        assertThat(actions, contains(
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new SynonymInstruction(
+                                new Instructions(1, "1",
+                                        Collections.singletonList(
+                                                new SynonymInstruction(
                                                         Arrays.asList(
                                                                 mkTerm("syn5"),
                                                                 mkTerm("syn6", "f1"),
                                                                 mkTerm("syn7", "f2", "f3")
-                                                                )))
-                                                        )), 
+                                                        ))
+                                        )
+                                        ),
                                                         new TermMatches(new TermMatch(t1)), 0, 1)
                 
                 
@@ -276,7 +268,7 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(t3);
-        List<Action> actions = rules.getRewriteActions(seq);
+        List<Action> actions = getActions(rules, seq);
         assertTrue(actions.isEmpty());
         
     }
@@ -300,17 +292,15 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(t3);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
-                                                                
-                                                        )))), 
-                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                                new FilterInstruction(makeQueryUsingFactory("FLT4"))
+                                        )),
+                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
                 ));
@@ -335,17 +325,15 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(t3);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
-                                                                
-                                                        )))), 
-                                                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                        new FilterInstruction(makeQueryUsingFactory("FLT4"))
+                                )),
+                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 
                 
                 ));
@@ -370,19 +358,15 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(t3);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLT4")
-                                                                
-                                                        )))), 
-                                          new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
-                
-                
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                                new FilterInstruction(makeQueryUsingFactory("FLT4"))
+                                        )),
+                        new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 ));
     }
     
@@ -411,19 +395,15 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB1")
-                                                                
-                                                        )))), 
-                                          new TermMatches(Arrays.asList(new TermMatch(t1))), 0, 1)
-                
-                
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                        new FilterInstruction(makeQueryUsingFactory("FLTTB1"))
+                                )),
+                        new TermMatches(Collections.singletonList(new TermMatch(t1))), 0, 1)
                 ));
     }
     
@@ -452,19 +432,14 @@ ts6 =>
         seq.addElement(t1);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, not(contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB1")
-                                                                
-                                                        )))), 
-                                          new TermMatches(Arrays.asList(new TermMatch(t1))), 0, 1)
-                
-                
+                        new Instructions(1, "1",
+                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB1")
+                                ))),
+                                new TermMatches(Collections.singletonList(new TermMatch(t1))), 0, 1)
                 )));
     }   
     
@@ -490,22 +465,18 @@ ts6 =>
         seq.addElement(t2);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB2")
-                                                                
-                                                        )))), 
-                                          new TermMatches(Arrays.asList(new TermMatch(t2))), 0, 1)
-                
-                
+                        new Instructions(1, "1",
+                                Collections.singletonList(
+                                        new FilterInstruction(makeQueryUsingFactory("FLTTB2"))
+                                )),
+                        new TermMatches(Collections.singletonList(new TermMatch(t2))), 0, 1)
                 ));
-    }  
-    
+    }
+
     /**
      * "tb1 =>
      *   FILTER: FLTTB1
@@ -531,19 +502,15 @@ ts6 =>
         seq.addElement(tx);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, not(contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB2")
-                                                                
-                                                        )))), 
-                                          new TermMatches(Arrays.asList(new TermMatch(t2))), 0, 1)
-                
-                
+                        new Instructions(1, "1",
+                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB2")
+                                ))),
+                         new TermMatches(Collections.singletonList(new TermMatch(t2))), 0, 1)
+
                 )));
     }  
     
@@ -554,7 +521,7 @@ ts6 =>
      * @throws Exception
      */
     //@Test TODO enable test once we can handle wild card before right input boundary
-    public void test16() throws Exception {
+    public void test17() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", true);
         Term t4 = new Term(null, "tb4abc");
         PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
@@ -564,22 +531,17 @@ ts6 =>
         seq.addElement(t4);
         seq.nextPosition();
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
-        List<Action> actions = rules.getRewriteActions(seq);
-       
+        List<Action> actions = getActions(rules, seq);
+
         assertThat(actions, contains( 
                 new Action(
-                        Arrays.asList(
-                                new Instructions(
-                                        Arrays.asList(
-                                                (Instruction) new FilterInstruction(makeQueryUsingFactory("FLTTB4")
-                                                                
-                                                        )))), 
-                                          new TermMatches(Arrays.asList(new TermMatch(t4))), 0, 1)
-                
-                
+                        new Instructions(1, "1",
+                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB4")
+                                ))),
+                        new TermMatches(Collections.singletonList(new TermMatch(t4))), 0, 1)
                 ));
     }
-    
+
     
     @Test
     public void testError01() throws Exception {
@@ -591,7 +553,5 @@ ts6 =>
                     + "Term [fieldNames=null, value=c]", e.getMessage());
         }
     }
-    
-
 
 }

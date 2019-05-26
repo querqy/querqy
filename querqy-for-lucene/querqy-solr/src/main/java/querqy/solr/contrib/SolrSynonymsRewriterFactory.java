@@ -8,15 +8,16 @@ import java.io.IOException;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
+import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriter;
 import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.rewrite.RewriterFactory;
-import querqy.solr.RewriterFactoryAdapter;
+import querqy.solr.FactoryAdapter;
 
 /**
  * @author rene
  *
  */
-public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
+public class SolrSynonymsRewriterFactory implements FactoryAdapter<RewriterFactory> {
 
    /*
     * (non-Javadoc)
@@ -26,7 +27,8 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
     * common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
     */
    @Override
-   public RewriterFactory createRewriterFactory(NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
+   public RewriterFactory createFactory(final String id, final NamedList<?> args, final ResourceLoader resourceLoader)
+           throws IOException {
 
       Boolean expand = args.getBooleanArg("expand");
       if (expand == null) {
@@ -43,7 +45,7 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
          throw new IllegalArgumentException("Property 'synonyms' not configured");
       }
 
-      LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(expand, ignoreCase);
+      LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory(id, expand, ignoreCase);
       for (String resource : synonymResoureName.split(",")) {
          resource = resource.trim();
          if (resource.length() > 0) {
@@ -57,4 +59,8 @@ public class SolrSynonymsRewriterFactory implements RewriterFactoryAdapter {
 
    }
 
+    @Override
+    public Class<?> getCreatedClass() {
+        return LuceneSynonymsRewriter.class;
+    }
 }

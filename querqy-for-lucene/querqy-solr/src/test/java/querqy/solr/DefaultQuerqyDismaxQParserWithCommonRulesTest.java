@@ -11,7 +11,7 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ4 {
 
-    public void index() throws Exception {
+    public void index() {
 
         assertU(adoc("id", "1", "f1", "a", "f2", "c"));
 
@@ -32,8 +32,6 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
         assertU(adoc("id", "10", "f1", "k", "f2", "qnegraw", "f3", "qnegraw2"));
 
         assertU(adoc("id", "11", "f1", "nok", "f2", "qnegraw", "f3", "qnegraw2"));
-
-
 
         assertU(commit());
     }
@@ -77,7 +75,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
-    public void testThatDownRuleIsApplied() throws Exception {
+    public void testThatDownRuleIsApplied() {
         String q = "m b";
 
         SolrQueryRequest req = req("q", q,
@@ -117,7 +115,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     
     
     @Test
-    public void testDeleteIsAppliedInContext() throws Exception {
+    public void testDeleteIsAppliedInContext() {
         String q = "t1 t2";
 
         SolrQueryRequest req = req("q", q,
@@ -137,7 +135,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
-    public void testThatRuleMatchingIsCaseInsensitive() throws Exception {
+    public void testThatRuleMatchingIsCaseInsensitive() {
         String q = "T1 T2";
 
         SolrQueryRequest req = req("q", q,
@@ -158,7 +156,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
-    public void testPrefixWithSynoynm() throws Exception {
+    public void testPrefixWithSynoynm() {
         String q = "Px";
 
         SolrQueryRequest req = req("q", q,
@@ -181,7 +179,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
-    public void testPrefixWithNoCharLeftForWildcard() throws Exception {
+    public void testPrefixWithNoCharLeftForWildcard() {
         String q = "p";
 
         SolrQueryRequest req = req("q", q,
@@ -204,7 +202,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
-    public void testThatSingleDecorationIsApplied() throws Exception {
+    public void testThatSingleDecorationIsApplied() {
         
         String q = "a d1";
 
@@ -230,7 +228,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
     
     @Test
-    public void testThatMultipleDecorationsAreApplied() throws Exception {
+    public void testThatMultipleDecorationsAreApplied() {
         
         String q = "a d2 d1 d1";
 
@@ -257,7 +255,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
 
     @Test
-    public void testThatPurelyNegativeFilterIsApplied() throws Exception {
+    public void testThatPurelyNegativeFilterIsApplied() {
         String q = "qneg";
 
         SolrQueryRequest req = req("q", q,
@@ -278,7 +276,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
 
     @Test
-    public void testThatNegativeFilterIsApplied() throws Exception {
+    public void testThatNegativeFilterIsApplied() {
         String q = "qneg2";
 
         SolrQueryRequest req = req("q", q,
@@ -300,7 +298,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
 
     @Test
-    public void testThatPurelyNegativeRawQueryFilterIsApplied() throws Exception {
+    public void testThatPurelyNegativeRawQueryFilterIsApplied() {
         String q = "qnegraw";
 
         SolrQueryRequest req = req("q", q,
@@ -321,7 +319,7 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
 
     @Test
-    public void testThatNegativeRawQueryFilterIsApplied() throws Exception {
+    public void testThatNegativeRawQueryFilterIsApplied() {
         String q = "qnegraw2";
 
         SolrQueryRequest req = req("q", q,
@@ -339,27 +337,6 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
 
 
         req.close();
-    }
-
-    @Test
-    public void testSolrResponseContainsDebugInformationOfRulesRewriter() throws Exception {
-        String q = "a b";
-
-        String debugQueryRuleForA = "Action [instructions=[[FilterInstruction [filterQuery=RawQuery [queryString=f2:c]]]], " +
-                "terms=[TermMatch{queryTerm=*:a, isPrefix=false, wildcardMatch=null}], startPosition=0, endPosition=1]";
-
-        SolrQueryRequest requestWithDebugQueryEnabled = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                "defType", "querqy",
-                "debugQuery", "on"
-        );
-
-        assertQ("Rules debug information not included in debug field of Solr response",
-                requestWithDebugQueryEnabled,
-                "//lst[@name='debug']/arr[@name='querqy.rewrite']/str[text() = '" + debugQueryRuleForA + "']"
-        );
-
-        requestWithDebugQueryEnabled.close();
     }
 
 }

@@ -11,6 +11,7 @@ import querqy.ComparableCharSequence;
 import querqy.model.*;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 /**
  * @author René Kriegler, @renekrie
@@ -56,7 +57,7 @@ public class BoostInstruction implements Instruction {
     @Override
     public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
                       final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
-                      final Map<String, Object> context) {
+                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         // TODO: we might not need to clone here, if we already cloned all queries in the constructor
         final QuerqyQuery<?> q = (hasPlaceHolder)

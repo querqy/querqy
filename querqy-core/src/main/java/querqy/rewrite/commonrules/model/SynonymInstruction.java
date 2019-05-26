@@ -14,6 +14,7 @@ import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 /**
  * @author René Kriegler, @renekrie
@@ -40,7 +41,7 @@ public class SynonymInstruction implements Instruction {
     @Override
     public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
                       final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
-                      final Map<String, Object> context) {
+                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         
         switch (termMatches.size()) {
             

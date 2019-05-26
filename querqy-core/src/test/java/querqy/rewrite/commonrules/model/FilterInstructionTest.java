@@ -1,16 +1,13 @@
 package querqy.rewrite.commonrules.model;
 
-import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import querqy.model.*;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -20,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import static querqy.QuerqyMatchers.*;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
+import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 /**
  * Created by rene on 08/12/2015.
@@ -33,13 +31,14 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a b").getUserQuery());
 
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) filterInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -62,16 +61,16 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("-ab").getUserQuery());
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
-                new Instructions(Collections.singletonList((Instruction) filterInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
 
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
 
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getFilterQueries();
 
         assertNotNull(filterQueries);
         assertEquals(1, filterQueries.size());
@@ -98,13 +97,14 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
 
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) filterInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
-        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, EMPTY_CONTEXT).getFilterQueries();
+        Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -125,13 +125,14 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
 
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false), new Instructions(Arrays.asList((Instruction) filterInstruction)));
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules);
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
-        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, EMPTY_CONTEXT).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
         assertFalse(mainQuery.isGenerated());
 
     }
