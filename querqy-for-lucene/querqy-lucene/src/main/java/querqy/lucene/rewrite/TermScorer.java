@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.LeafSimScorer;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.Similarity;
@@ -15,7 +16,7 @@ import org.apache.lucene.search.similarities.Similarity;
  */
 final class TermScorer extends Scorer {
   private final PostingsEnum postingsEnum;
-  private final Similarity.SimScorer docScorer;
+  private final LeafSimScorer docScorer;
 
   /**
    * Construct a <code>TermScorer</code>.
@@ -28,7 +29,7 @@ final class TermScorer extends Scorer {
    *          The </code>Similarity.SimScorer</code> implementation
    *          to be used for score computations.
    */
-  TermScorer(Weight weight, PostingsEnum td, Similarity.SimScorer docScorer) {
+  TermScorer(final Weight weight, final PostingsEnum td, final LeafSimScorer docScorer) {
     super(weight);
     this.docScorer = docScorer;
     this.postingsEnum = td;
@@ -60,13 +61,13 @@ final class TermScorer extends Scorer {
     return maxScore;
   }
 
-  @Override
-  public float score() throws IOException {
-    assert docID() != DocIdSetIterator.NO_MORE_DOCS;
-    return docScorer.score(postingsEnum.docID(), postingsEnum.freq());
-  }
+    @Override
+    public float score() throws IOException {
+        assert docID() != DocIdSetIterator.NO_MORE_DOCS; // FIXME  - Wrong arguments
+        return docScorer.score(postingsEnum.docID(), postingsEnum.freq());
+    }
 
-  public Similarity.SimScorer getDocScorer() {
+    public LeafSimScorer getDocScorer() {
         return docScorer;
     }
 

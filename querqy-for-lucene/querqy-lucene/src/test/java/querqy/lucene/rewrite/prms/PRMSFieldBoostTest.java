@@ -34,6 +34,7 @@ import querqy.lucene.rewrite.TestUtil;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class PRMSFieldBoostTest extends LuceneTestCase {
 
@@ -91,8 +92,10 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
 
         ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
-        Mockito.when(similarity.scorer(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
-        ArgumentMatchers.<TermStatistics>any())).thenReturn(simScorer);
+        when(similarity.scorer(
+                computeWeightBoostCaptor.capture(),
+                any(CollectionStatistics.class),
+                ArgumentMatchers.<TermStatistics>any())).thenReturn(simScorer);
 
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher =  new IndexSearcher(indexReader);

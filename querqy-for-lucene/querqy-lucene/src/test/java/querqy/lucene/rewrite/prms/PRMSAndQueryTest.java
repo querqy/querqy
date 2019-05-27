@@ -34,6 +34,8 @@ import querqy.lucene.rewrite.TestUtil;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PRMSAndQueryTest extends LuceneTestCase {
 
@@ -113,12 +115,14 @@ public class PRMSAndQueryTest extends LuceneTestCase {
 
         BooleanQuery bq2 = (BooleanQuery) disjunct2;
 
-        Similarity similarity = Mockito.mock(Similarity.class);
-        Similarity.SimScorer simScorer = Mockito.mock(Similarity.SimScorer.class);
+        Similarity similarity = mock(Similarity.class);
+        Similarity.SimScorer simScorer = mock(Similarity.SimScorer.class);
 
         ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
-        Mockito.when(similarity.scorer(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
+        when(similarity.scorer(
+                computeWeightBoostCaptor.capture(),
+                any(CollectionStatistics.class),
                 ArgumentMatchers.<TermStatistics>any())).thenReturn(simScorer);
 
 
@@ -134,7 +138,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         // capturedBoosts = boosts of [bq1.term1, bq1.term2, bq2.term1, bq2.term2 ]
         assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);
         assertEquals(capturedBoosts.get(2), capturedBoosts.get(3), 0.00001);
-        assertEquals(1f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
+        assertEquals(2f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
 
         indexReader.close();
         directory.close();

@@ -172,7 +172,7 @@ public class DependentTermQueryBuilderTest extends LuceneTestCase {
 
         String explainText = explain.toString();
 
-        assertTrue(explainText.contains("4.5 = boost")); // 4.5 (query) * 2.0 (field)
+        assertTrue(explainText.contains("9.0 = boost")); // 4.5 (query) * 2.0 (field)
         assertTrue(explainText.contains("4 = docFreq")); // 4 * df of f1:v1
         assertTrue(explainText.contains("2.0 = termFreq=2.0")); // don't use tf
 

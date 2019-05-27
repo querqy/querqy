@@ -12,6 +12,7 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.CollectionStatistics;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.LeafSimScorer;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TermQuery;
@@ -155,7 +156,7 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
             private final TermStates termStates;
             private final ScoreMode scoreMode;
 
-            public TermWeight(IndexSearcher searcher, ScoreMode scoreMode,
+            public TermWeight(final IndexSearcher searcher, final ScoreMode scoreMode,
                               float boost, TermStates termStates) throws IOException {
                 super(DependentTermQuery.this);
                 if (scoreMode.needsScores() && termStates == null) {
@@ -177,10 +178,16 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
                     termStats = new TermStatistics(term.bytes(), 1, 1);
                 }
 
+
+
                 if (termStats == null) {
                     this.simScorer = null; // term doesn't exist in any segment, we won't use similarity at all
                 } else {
-                    this.simScorer = similarity.scorer(boost, collectionStats, termStats);
+                    // We've modelled field boosting in a FieldBoost implementation so that for example
+                    // field boosts can also depend on the term distribution over fields. Calculate the field boost
+                    // using that FieldBoost model and multiply with the general boost
+                    final float fieldBoostFactor = fieldBoost.getBoost(term.field(), searcher.getIndexReader());
+                    this.simScorer = similarity.scorer(boost * fieldBoostFactor, collectionStats, termStats);
                 }
             }
 
@@ -201,10 +208,20 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
                 if (termsEnum == null) {
                     return null;
                 }
-                final PostingsEnum docs = termsEnum.postings(null, scoreMode.needsScores() ? PostingsEnum.FREQS : PostingsEnum.NONE);
-                assert docs != null;
 
-                return new TermScorer(this, docs, simScorer);
+                LeafSimScorer scorer = new LeafSimScorer(simScorer, context.reader(), getTerm().field(), scoreMode.needsScores());
+                if (scoreMode == ScoreMode.TOP_SCORES) {
+                    return new TermScorer(this, termsEnum.impacts(PostingsEnum.FREQS), scorer);
+                } else {
+                    return new TermScorer(this, termsEnum.postings(null, scoreMode.needsScores() ? PostingsEnum.FREQS : PostingsEnum.NONE), scorer);
+                }
+
+
+
+//                final PostingsEnum docs = termsEnum.postings(null, scoreMode.needsScores() ? PostingsEnum.FREQS : PostingsEnum.NONE);
+//                assert docs != null;
+//
+//                return new TermScorer(this, docs, simScorer);
             }
 
             /**
@@ -258,7 +275,7 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
                         //Similarity.SimScorer docScorer = similarity.simScorer(stats, context);
                         Explanation freqExplanation = Explanation.match(freq, "termFreq=" + freq);
                         long norm = 1; // similarity.computeNorm(fieldInvertState);
-                        Explanation scoreExplanation = scorer.getDocScorer().explain(freqExplanation, norm);//docScorer.explain(doc, freqExplanation);
+                        Explanation scoreExplanation = scorer.getDocScorer().explain(doc, freqExplanation);//docScorer.explain(doc, freqExplanation);
                         return Explanation.match(
                                 scoreExplanation.getValue(),
                                 "weight(" + getQuery() + " in " + doc + ") ["
