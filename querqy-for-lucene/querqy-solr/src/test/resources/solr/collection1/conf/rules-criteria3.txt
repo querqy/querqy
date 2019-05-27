@@ -1,0 +1,70 @@
+input5 =>
+   SYNONYM: syn1
+   @{
+        "_id": "id5",
+        "_log": "log for id5",
+        "tenant": [
+            {
+                "id": 1,
+                "enabled": false
+
+            },
+            {
+                "id": 2,
+                "enabled": true
+
+            }
+        ],
+        "priority": 10
+   }@
+
+input6 =>
+   SYNONYM: syn3
+   @{
+        "_id": "id6",
+        "_log": "log for id6",
+        "tenant": [
+            {
+                "id": 1,
+                "enabled": false
+
+            },
+            {
+                "id": 2,
+                "enabled": false
+
+            }
+        ],
+        "tt": ["a", "b"]
+   }@
+
+input6 =>
+   SYNONYM: syn4
+   @{
+        "_id": "id6a",
+        "_log": "log for id6a"
+   }@
+
+
+input5 =>
+   SYNONYM: syn2
+   @{
+        "_id": "id7",
+        "_log": "log for id7",
+        "tenant": [
+            {
+                "id": 1,
+                "enabled": false
+
+            },
+            {
+                "id": 2,
+                "enabled": true
+
+            }
+        ],
+        "priority": 5
+   }@
+
+
+

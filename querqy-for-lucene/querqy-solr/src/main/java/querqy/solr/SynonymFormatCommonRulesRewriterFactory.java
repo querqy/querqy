@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
@@ -23,6 +24,7 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
@@ -31,27 +33,28 @@ import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.SelectionStrategyFactory;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
  * @author René Kriegler, @renekrie
  *
- * 
+ *
  */
 @Deprecated
 public class SynonymFormatCommonRulesRewriterFactory implements
-      RewriterFactoryAdapter {
+        FactoryAdapter<RewriterFactory> {
 
    /*
     * (non-Javadoc)
-    * 
+    *
     * @see
-    * querqy.solr.RewriterFactoryAdapter#createRewriterFactory(org.apache.solr
+    * querqy.solr.FactoryAdapter#createRewriterFactory(org.apache.solr
     * .common.util.NamedList, org.apache.lucene.analysis.util.ResourceLoader)
     */
    @Override
-   public RewriterFactory createRewriterFactory(NamedList<?> args,
-         ResourceLoader resourceLoader) throws IOException {
+   public RewriterFactory createFactory(final String id, final NamedList<?> args, final ResourceLoader resourceLoader)
+           throws IOException {
 
       String boostUp = (String) args.get("boostUp");
       String boostDown = (String) args.get("boostDown");
@@ -72,16 +75,23 @@ public class SynonymFormatCommonRulesRewriterFactory implements
          addBoostInstructions(builder, BoostDirection.DOWN, 1f, resourceLoader, boostDown);
       }
 
-      return new RulesRewriterFactory(builder.build());
+      return new RulesRewriterFactory(id, builder.build());
    }
 
-   void addBoostInstructions(RulesCollectionBuilder builder, BoostDirection direction, float boost,
-         ResourceLoader resourceLoader, String resourceName) throws IOException {
+    @Override
+    public Class<?> getCreatedClass() {
+        return CommonRulesRewriter.class;
+    }
+
+    void addBoostInstructions(RulesCollectionBuilder builder, BoostDirection direction, float boost,
+                              ResourceLoader resourceLoader, String resourceName) throws IOException {
 
       try (
             BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.openResource(resourceName)))) {
 
          String line;
+
+         int ord = 0;
 
          while ((line = reader.readLine()) != null) {
 
@@ -115,7 +125,9 @@ public class SynonymFormatCommonRulesRewriterFactory implements
                                  if (!query.getClauses().isEmpty()) {
                                     for (Input input : inputs) {
                                        BoostInstruction bi = new BoostInstruction(query, direction, boost);
-                                       builder.addRule(input, new Instructions(Collections.singletonList((Instruction) bi)));
+                                       ord++;
+                                       builder.addRule(input, new Instructions(ord, Integer.toString(ord),
+                                               Collections.singletonList(bi)));
                                     }
                                  }
                               }
@@ -151,7 +163,9 @@ public class SynonymFormatCommonRulesRewriterFactory implements
             }
 
             if (!terms.isEmpty()) {
-               result.add(new Input(terms));
+                result.add(new Input(terms, terms.stream()
+                        .map(querqy.rewrite.commonrules.model.Term::toString)
+                        .collect(Collectors.joining(" "))));
             }
          }
       }
@@ -180,28 +194,31 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
    }
 
-   public static class RulesRewriterFactory implements RewriterFactory {
+   public static class RulesRewriterFactory extends RewriterFactory {
 
-      final RulesCollection rules;
+        final RulesCollection rules;
 
-      public RulesRewriterFactory(RulesCollection rules) {
-         this.rules = rules;
-      }
-
-      @Override
-      public QueryRewriter createRewriter(ExpandedQuery input,
-            Map<String, ?> context) {
-         return new CommonRulesRewriter(rules);
-      }
-
-    @Override
-    public Set<Term> getGenerableTerms() {
-        Set<Term> result = new HashSet<>();
-        for (Instruction instruction: rules.getInstructions()) {
-            result.addAll(instruction.getGenerableTerms());
+        public RulesRewriterFactory(final String rewriterId, RulesCollection rules) {
+            super(rewriterId);
+            this.rules = rules;
         }
-        return result;
-    }
+
+        @Override
+        public QueryRewriter createRewriter(final ExpandedQuery input,
+                                            final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+            return new CommonRulesRewriter(rules, SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
+        }
+
+        @Override
+        public Set<Term> getGenerableTerms() {
+            Set<Term> result = new HashSet<>();
+            for (Instruction instruction: rules.getInstructions()) {
+                result.addAll(instruction.getGenerableTerms());
+            }
+            return result;
+        }
+
+
 
    }
 

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package querqy.model;
 
@@ -8,9 +8,9 @@ import java.util.LinkedList;
 
 /**
  *
- * 
+ *
  * @author René Kriegler, @renekrie
- * 
+ *
  *         Note: this class does not synchronize access to filterQueries and
  *         boostQueries.
  *

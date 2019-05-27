@@ -20,12 +20,12 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|7.7.0| 4.3.lucene720.x||
-|7.6.0| 4.3.lucene720.x||
-|7.5.0| 4.3.lucene720.x||
-|7.4.0| 4.3.lucene720.x||
-|7.3.x| 4.3.lucene720.x||
-|7.2.x| 4.3.lucene720.x||
+|7.7.0| 4.4.lucene720.x||
+|7.6.0| 4.4.lucene720.x||
+|7.5.0| 4.4.lucene720.x||
+|7.4.0| 4.4.lucene720.x||
+|7.3.x| 4.4.lucene720.x||
+|7.2.x| 4.4.lucene720.x||
 |7.1.0| 4.1.lucene700.x||
 |7.0.x| 4.1.lucene700.x|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
 |6.6.x| 3.5.x||
@@ -124,7 +124,7 @@ Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/
                 to the user query. This query parser parses the
                 additional queries from the rules file:
             -->
-            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+            <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
         </lst>
        
         <!--
@@ -336,7 +336,7 @@ The right-hand side of the synonym expression will be parsed by the parser that 
             <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
             <str name="rules">rules.txt</str>
             ..
-            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+            <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
         </lst>
 
 ~~~
@@ -493,12 +493,186 @@ The Solr response will then contain an array 'querqy_decorations' with the right
 
 Querqy does not inspect the right-hand side of the decorate instruction ('redirect, /service/faq') but returns the configured value 'as is'. You could even configure a JSON-formatted value in this place but you have to assure that the value does not contain any line break.
 
+#### Rule properties, rule ordering and rule filtering
+(from version Querqy 4.4.lucene720.0, Querqy core 3.3.0)
 
-#### Rule ordering
+##### Defining properties
+Properties can be defined for each set of rules that share an input declaration (```input =>```) in the rules.txt file. These properties are used in a number of features, such as rule selection and ordering and [info logging](#advanced-configuration-info-logging).
 
-There is no defined order for the application of rules in Querqy's Common Rules rewriter. When the rewriter sees a query it first tries to find all rules that match the input and then it applies these rules. If you want to make the output of one rule the input for matching another rule, you can split your rules across multiple rewriters, each with its own rules file. 
+There are two ways to define properties in the rules.txt file, both using the `@` character. The first syntax declares one property per line:
 
-For example, it is often handy to first apply delete rules before applying further rule types:
+~~~
+notebook =>
+    SYNONYM: laptop
+    DOWN(100): case
+    @_id: "ID1"
+    @_log: "notebook,modified 2019-04-03"
+    @group: "electronics"
+    @enabled: true
+    @priority: 100
+    @tenant: ["t1", "t2", "t3"]
+    @culture: {"lang": "en", "country": ["gb", "us"]}
+
+~~~
+
+The format of this syntax is 
+
+~~~
+ @<property name>: <property value> (on a single line)
+~~~
+
+where the property value allows all value formats that are known in JSON. 
+
+The second format represents the properties as a JSON object. It can span over multiple lines. The beginning is marked by ```@{``` and the end by ```}@```:
+
+~~~
+notebook =>
+    SYNONYM: laptop
+    DOWN(100): case
+    @{
+        _id: "ID1",
+        _log: "notebook,modified 2019-04-03",
+        group: "electronics",
+        enabled: true,
+        priority: 100,
+        tenant: ["t1", 	"t2", "t3"],
+        culture: {
+            "lang": "en", 
+            "country": ["gb", "us"]
+        }
+    }@
+
+~~~ 
+
+Property names can also be put in quotes. Both, single quotes and double quotes, can be used.
+
+Property names starting with ```_``` (such as ```_id``` and ```_log```) have a specific meaning in Querqy (see for example: [Advanced configuration: Info Logging](#advanced-configuration-info-logging))
+
+Both formats can be mixed, however, the JSON object format must be used only once per input declaration:
+
+~~~
+notebook =>
+    SYNONYM: laptop
+    DOWN(100): case
+    @_id: "ID1"
+    @_log: "notebook,modified 2019-04-03"
+    @enabled: true
+    @{
+        group: "electronics",
+        priority: 100,
+        tenant: ["t1", 	"t2", "t3"],
+        culture: {
+            "lang": "en", 
+            "country": ["gb", "us"]
+        }
+    }@
+
+~~~ 
+
+##### Using properties for rule ordering and selection
+
+We will use the following example to explain the use of properties for rule ordering and selection:
+
+~~~
+
+notebook =>
+    DOWN(100): bag
+    @enabled: false
+    @{
+        _id: "ID1",
+        priority: 5,
+        group: "electronics",
+        tenant: ["t1", "t3"]
+    }@
+    
+    
+notebook bag =>
+    UP(100): backbag
+    @enabled: true
+    @{
+        _id: "ID2",
+        priority: 10,
+        group: "accessories in electronics",
+        tenant: ["t2", "t3"],
+        culture: {
+            "lang": "en", 
+            "country": ["gb", "us"]
+        }
+    }@
+~~~ 
+
+The first rule ('ID1') defines a down boost for all documents containing 'bag' if the query contains 'notebook'. This makes sense as users probably are less interested in notebook bags when they search for a notebook. Except, if they search for 'notebook bag' - in this case we would not want to apply rule ID1. Properties will help us solve this problem by ordering and selecting rules depending on the context.
+
+In order to enable rule selection and ordering we have do define a SelectionStrategy for the Common Rules rewriter in solrconfig.xml:
+
+~~~xml
+
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	
+		<lst name="rewriteChain">
+            <lst name="rewriter">
+<!-- 
+	Note the rewriter ID: 
+-->            
+                <str name="id">common1</str>
+                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+                <str name="rules">rules.txt</str>
+                <!-- ... -->
+                           
+<!--
+   Define a selection strategy, named 'expr': 
+ -->                  
+                <lst name="rules.selectionStrategy">
+                    <lst name="strategy">
+                        <str name="id">expr</str>
+<!-- 
+	This selection strategy implementation allows us to select and order rules by properties: 
+-->                        
+                        <str name="class">querqy.solr.ExpressionSelectionStrategyFactory</str>
+                    </lst>
+                 </lst>
+            </lst>
+     	 </lst>  
+
+~~~
+
+We can now order the rules by the value of the ```priority``` property in descending order and tell Querqy that it should only apply the rule with the highest ```priority``` using the following request parameters:
+
+~~~
+querqy.common1.criteria.strategy=expr
+querqy.common1.criteria.sort=priority desc
+querqy.common1.criteria.limit=1
+~~~
+
+These parameters have a common prefix ```querqy.common1.criteria``` in which ```common1``` matches the rewriter ID that was configured in solrconfig.xml. This allows us to scope the rule selection and ordering per rewriter.  The ```.strategy``` parameter selects the strategy ```expr``` that was defined in solrconfig.xml. This strategy interprets ```.sort=priority desc``` so that rules are ordered by property ```priority``` in descending order and then only the top rule will be applied because of (```.limit=1```).
+
+In the example, both rules match the input 'notebook bag'. Sorting them by descending value of the ```priority``` property puts the rule with 'ID2' first and the rule with 'ID1' second, and finally only rule 'ID1' will be selected due to limit=1.
+
+Rules can also be filtered by properties using [JsonPath](https://github.com/json-path/JsonPath) expressions, where the general parameter syntax is:
+
+~~~
+querqy.common1.criteria.filter=<JsonPath expression>
+~~~
+
+The properties that where defined for a single set of rules are considered a JSON document and a rule filter matches the rule if the JsonPath expression matches this JSON document. What follows is a list of examples that relate to the above rules:
+
+ - `$[?(@.enabled == true)]` matches ID2 but not ID1
+ - `$[?(@.group == 'electronics')]` matches ID1 but not ID2
+ - `$[?(@.priority > 5)]` matches ID2 but not ID1 
+ - `$[?('t1' in @.tenant)]` matches ID1 but not ID2 
+ - `$[?(@.priority > 1 && @.culture)].culture[?(@.lang=='en)]` matches ID2 but not ID1. The expression ```[?(@.priority > 1 && @.culture)]``` first tests for priority > 1 (both rules matching) and then for the existence of 'culture', which only matches ID2. Then the 'lang' property of 'culture' is tested for matching 'en'.
+
+If more than one filter parameters are passed to a Common Rules rewriter, a rule must match all filters before it will be applied. 
+
+#### Rewriter ordering
+
+While properties can be used to define the ordering and selection of rules within a Common Rules rewriter, the rewrite chain defines the overall order of the query rewriters. Thus, the order of the rewriters will have priority over the order of rules within Common Rules rewriters.
+
+When a rewriter sees a query it tries to find all operations that match the input, possibly - like in the case of the Common Rules rewriter - orders and selects these operations and finally applies them. The output of the first rewriter becomes the input of the second rewriter, which will then try to find all applicable rewrite operations, rewrite the query and so on until the last rewriter of the chain has been applied.
+
+For Common Rules rewriters it is often useful to split rules across multiple rewriters, each with its own rules file. 
+
+For example, it seems handy to first apply delete rules before applying further rule types:
 
 ~~~xml
 
@@ -521,7 +695,7 @@ For example, it is often handy to first apply delete rules before applying furth
             -->
             <str name="rules">delete-rules.txt</str>
             <bool name="ignoreCase">true</bool>
-            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+            <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
         </lst>
         <!-- 
         	The rewritten query of the above rewriter becomes
@@ -534,7 +708,7 @@ For example, it is often handy to first apply delete rules before applying furth
             -->
             <str name="rules">rules.txt</str>
             <bool name="ignoreCase">true</bool>
-            <str name="querqyParser">querqy.parser.WhiteSpaceQuerqyParserFactory</str>
+            <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
         </lst>
 
    </lst>
@@ -629,6 +803,142 @@ Cache configuration (solrconfig.xml):
 </queryParser>          
 ~~~
 
+### Advanced configuration: Info Logging
+
+(from version Querqy 4.4.lucene720.0, Querqy core 3.3.0)
+
+Querqy rewriters can return logging information together with the request
+response or send this information to other receivers. Currently only the
+common rules rewriter emits this information and it can be returned together
+with the Solr response.
+
+Configuration:
+
+~~~xml
+<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
+		<lst name="rewriteChain">
+            <lst name="rewriter">
+
+<!--
+    Note the rewriter id 'common1':
+-->
+                <str name="id">common1</str>
+                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+                <str name="rules">rules1.txt</str>
+                <!-- ... -->
+            </lst>
+            <lst name="rewriter">
+                <str name="id">common2</str>
+                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+                <str name="rules">rules2.txt</str>
+                <!-- ... -->
+            </lst>
+        </lst>
+     	<!-- ... -->
+
+        <lst name="infoLogging">
+<!--
+    Define a 'sink' named 'responseSink' to which the logging information will be sent:
+-->
+
+            <lst name="sink">
+                <str name="id">responseSink</str>
+                <str name="class">querqy.solr.ResponseSink</str>
+            </lst>
+ <!--
+     Direct the logging information from rewriter 'common1' to sink 'responseSink':
+ -->
+            <lst name="mapping">
+                <str name="rewriter">common1</str>
+                <str name="sink">responseSink</str>
+            </lst>
+ <!--
+     Direct the logging information from rewriter 'common2' to sink 'responseSink' too:
+ -->
+            <lst name="mapping">
+                <str name="rewriter">common2</str>
+                <str name="sink">responseSink</str>
+            </lst>
+
+        </lst>
+
+</queryParser>
+~~~
+
+The logging output must be enabled per request, using the request parameter ```querqy.infoLogging```:
+
+~~~
+querqy.infoLogging=on (default: off)
+~~~
+
+This will add a section 'querqy.infoLog' to the Solr response:
+
+~~~xml
+<lst name="querqy.infoLog">
+    <arr name="common1">
+        <lst>
+            <arr name="APPLIED_RULES">
+                <str>(message for rule 1.1)</str>
+                <str>(message for rule 1.2)</str>
+            </arr>
+        </lst>
+    </arr>
+    <arr name="common2">
+        <lst>
+            <arr name="APPLIED_RULES">
+                <str>(message for rule 2.1)</str>
+                <str>(message for rule 2.2)</str>
+            </arr>
+        </lst>
+    </arr>
+</lst>    
+~~~
+Each rewriter can emit a list of log objects. In this case CommonRulesRewriter 'common1' emitted just a single log object (```lst```), which holds an array ```APPLIED_RULES``` that contains a log message for each rule that the rewriter has applied  (```<str>(message for rule 1.1)</str>``` etc).
+
+The log message can be defined in ```rules.txt``` using the ```_log``` property:
+
+~~~
+notebook => 
+	SYNONYM: laptop
+	DELETE: cheap
+	@_id: "ID1"
+	@_log: "Log message for notebook"
+		
+samusng =>
+   SYNONYM: samsung
+   @{
+       "_id": "ID2",
+       "_log": "Log message for samusng typo",
+        
+   }
+   
+32g =>
+  SYNONYM: 32gb
+  @_id: "ID3"   
+
+~~~
+
+The query ```samusng notebook 32g``` will now produce the following log output:
+
+~~~xml
+<lst name="querqy.infoLog">
+    <arr name="common1">
+        <lst>
+            <arr name="APPLIED_RULES">
+                <str>Log message for notebook</str>
+                <str>Log message for samusng typo</str>
+                <str>ID3</str>
+            </arr>
+        </lst>
+    </arr>
+    
+</lst>    
+~~~
+
+As the third rule doesn't have a ```_log``` property, the ```_id``` property will be used as the message. If both, the ```_log```and the ```_id``` property are missing, a default message will be created based on the input expression of the rule and a rule counter (```samusng#1```, ```32g#2``` etc.) 
+
+Custom info logging sinks can be created by implementing the ```querqy.infologging.Sink``` interface.   
 
 
 ## License
@@ -652,10 +962,11 @@ Please base development on the branch for the corresponding Solr version. querqy
 ### Contributors
 
  - [Anton Dumler](https://github.com/jagile)
+ - [Lucky Sharma](https://github.com/MighTguY)
  - [Markus Heiden](https://github.com/markus-s24)
  - [Markus Müllenborn](https://github.com/muellenborn)
  - [Martin Grotzke](https://github.com/magro)
- - [Matthias Krüger](https://github.com/mkr)
+ - [Matthias Krüger](https://github.com/mkr), Committer
  - [René Kriegler](https://github.com/renekrie), Committer/Maintainer
  - [Robert Giacinto](https://github.com/lichtsprung)
  - [Tobias Kässmann](https://github.com/tkaessmann)

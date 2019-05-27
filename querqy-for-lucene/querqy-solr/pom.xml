@@ -4,7 +4,7 @@
     <parent>
         <groupId>querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
-        <version>5.0.lucene810.0-SNAPSHOT</version>
+        <version>4.4.lucene800.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,6 +33,16 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>querqy-lucene</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <!--
+                    This is provided by Solr - we don't want to package it
+                -->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+
+            </exclusions>
         </dependency>
 
         <dependency>

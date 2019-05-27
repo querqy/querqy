@@ -1,0 +1,28 @@
+a =>
+    SYNONYM: b
+    @_log: "log msg 1 of input a"
+
+c =>
+    UP: b
+    @_id: "ID 1"
+
+d =>
+    UP: b
+
+k =>
+    SYNONYM: m
+    @_id: "RULE for k"
+    @_log: "LOG for k"
+
+
+m =>
+    SYNONYM: z
+    @_id: "RULE 1 for m"
+    @_log: "LOG 1 for m"
+
+m =>
+    SYNONYM: w
+    @_id: "RULE 2 for m"
+    @_log: "LOG 2 for m"
+
+

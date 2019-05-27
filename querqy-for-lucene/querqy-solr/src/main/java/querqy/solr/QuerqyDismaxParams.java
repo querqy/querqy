@@ -180,4 +180,9 @@ public interface QuerqyDismaxParams {
      * A multiplicative boost query.
      */
     String MULT_BOOST = "boost";
+
+    /**
+     * Turn info logging on/off. Default = 'off'
+     */
+    String INFO_LOGGING = "querqy.infoLogging";
 }

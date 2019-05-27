@@ -1,0 +1,26 @@
+input1 =>
+   SYNONYM: syn1
+   @priority: 2
+   @group: 1
+   @id: 1
+
+input2 =>
+   SYNONYM: syn2
+   @priority: 1
+   @group: 1
+   @id: 2
+
+input1 =>
+   SYNONYM: syn3
+   @priority: 1
+   @group: 2
+   @id: 3
+
+input4 =>
+   SYNONYM: syn3
+   @priority: 1
+   @group: 4
+   @id: 4
+
+
+

@@ -13,8 +13,8 @@ import org.apache.solr.handler.component.QueryComponent;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.search.QParser;
 
-import querqy.rewrite.ContextAwareQueryRewriter;
-import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.infologging.InfoLoggingContext;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 
 /**
@@ -27,8 +27,8 @@ public class QuerqyQueryComponent extends QueryComponent {
      * @see org.apache.solr.handler.component.SearchComponent#prepare(org.apache.solr.handler.component.ResponseBuilder)
      */
     @Override
-    public void prepare(ResponseBuilder rb) throws IOException {
-        
+    public void prepare(final ResponseBuilder rb) throws IOException {
+
         super.prepare(rb);
         
         QParser parser = rb.getQparser();
@@ -44,7 +44,7 @@ public class QuerqyQueryComponent extends QueryComponent {
                     filters.addAll(filterQueries);
                 }
             }
-            
+
         }
     }
 
@@ -52,15 +52,18 @@ public class QuerqyQueryComponent extends QueryComponent {
      * @see org.apache.solr.handler.component.SearchComponent#process(org.apache.solr.handler.component.ResponseBuilder)
      */
     @Override
-    public void process(ResponseBuilder rb) throws IOException {
+    public void process(final ResponseBuilder rb) throws IOException {
         
         super.process(rb);
         
         QParser parser = rb.getQparser();
         
         if (parser instanceof QuerqyDismaxQParser) {
-            
-            Map<String, Object> context = ((QuerqyDismaxQParser) parser).getContext();
+
+            final SearchEngineRequestAdapter searchEngineRequestAdapter =
+                    ((QuerqyDismaxQParser) parser).getSearchEngineRequestAdapter();
+
+            final Map<String, Object> context = searchEngineRequestAdapter.getContext();
             if (context != null) {
 
                 @SuppressWarnings("unchecked")
@@ -68,8 +71,9 @@ public class QuerqyQueryComponent extends QueryComponent {
                 if (decorations != null) {
                     rb.rsp.add("querqy_decorations", decorations);
                 }
-                
             }
+
+            searchEngineRequestAdapter.getInfoLoggingContext().ifPresent(InfoLoggingContext::endOfRequest);
         }
 
     }
