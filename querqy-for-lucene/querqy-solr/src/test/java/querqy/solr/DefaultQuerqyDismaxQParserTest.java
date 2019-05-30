@@ -715,13 +715,14 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", "aaa",
                 DisMaxParams.QF, "f1",
-                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87^100",
                 "defType", "querqy",
                 "debugQuery", "true");
 
         assertQ("bq not applied",
                 req,
-                "//str[@name='parsedquery'][contains(.,'BoostedQuery(boost(+f1:aaa,query(f2:w87,def=1.0)))')]",
+                "//lst[@name='explain']/str[@name='8'][contains(.,'weight(FunctionScoreQuery(f1:aaa, " +
+                        "scored by boost(score((f2:w87)^100.0))))')]",
                 "//doc[1]/str[@name='id'][text()='8']"
 
         );

@@ -50,12 +50,8 @@ public class UserQueryWithSimilarityOnTest extends SolrTestCaseJ4 {
         assertQ("Ranking",
                 req,
                 "//doc[1]/str[@name='id'][contains(.,'3')]",
-                "//doc[2]/str[@name='id'][contains(.,'1')]",
-                "//doc[3]/str[@name='id'][contains(.,'2')]",
-                "//doc[4]/str[@name='id'][contains(.,'5')]",
-                "//doc[5]/str[@name='id'][contains(.,'4')]",
-                "//str[@name=3][contains(.,'1.0 = docFreq')]",
-                "//str[@name=4][not(contains(.,'1.0 = fieldNorm'))]"
+                "//doc[2]/str[@name='id'][contains(.,'4')]",
+                "//lst[@name='explain']/str[@name='3'][contains(.,'idf, computed as')]"
         );
 
         req.close();

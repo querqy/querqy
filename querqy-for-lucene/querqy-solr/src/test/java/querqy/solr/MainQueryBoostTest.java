@@ -84,10 +84,10 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
         String q = "qup";
 
         SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1^10 f2^2",
+                DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
                 USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
-                USER_QUERY_BOOST, "60.0",
+                USER_QUERY_BOOST, "217.3",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
@@ -95,15 +95,10 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
         assertQ("uq.boost failed with uq.similarityScore=off",
                 req,
                 "//result[@name='response'][@numFound='2']",
-                "//str[@name='1'][not(contains(.,'idf'))]",
-                "//str[@name='1'][contains(.,'600.0 = product of:')]",
-                "//str[@name='1'][contains(.,'60.0 = queryBoost')]",
-                "//str[@name='1'][contains(.,'10.0 = fieldBoost')]",
-                "//str[@name='2'][contains(.,'600.0 = product of:')]",
-                "//str[@name='2'][contains(.,'60.0 = queryBoost')]",
-                "//str[@name='2'][contains(.,'10.0 = fieldBoost')]",
-                "//str[@name='2'][contains(.,'idf')]", // due to the u100 boost up rule
-                "//str[@name='2'][contains(.,'200.0 = boost')]"); // UP(100) * 2 (field weight)
+                "//doc[1]/str[@name='id'][contains(.,'2')]",
+                "//doc[2]/str[@name='id'][contains(.,'1')]",
+                "//str[@name='1'][contains(.,'217.3 = weight(f1:qup')]",
+                "//str[@name='2'][contains(.,'217.3 = weight(f1:qup')]");
         req.close();
     }
 
@@ -124,10 +119,11 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='1'][contains(.,'idf')]",
-                "//str[@name='1'][contains(.,'700.0 = boost')]", // uq.boost=70 * f1^10
+                // uq.boost=70 * f1^10 * (1.2 + 1) // BM25Similarity.k1 +1:
+                "//str[@name='1'][contains(.,'1540.0 = boost')]",
                 "//str[@name='2'][contains(.,'idf')]",
-                "//str[@name='2'][contains(.,'700.0 = boost')]", // uq.boost=70 * f1^10
-                "//str[@name='2'][contains(.,'200.0 = boost')]"); // UP(100)* f2^2
+                "//str[@name='2'][contains(.,'1540.0 = boost')]", // uq.boost=70 * f1^10 * (1.2 + 1)
+                "//str[@name='2'][contains(.,'440.0 = boost')]"); // UP(100)* f2^2 * (1.2 + 1)
         req.close();
     }
 
@@ -149,10 +145,10 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='1'][contains(.,'idf')]",
-                "//str[@name='1'][contains(.,'800.0 = boost')]", // uq.boost=80 * f1^10
+                "//str[@name='1'][contains(.,'1760.0 = boost')]", // uq.boost=80 * f1^10 * (1.2 + 1) (BM25.k1 + 1)
                 "//str[@name='2'][contains(.,'idf')]",
-                "//str[@name='2'][contains(.,'800.0 = boost')]", // uq.boost=80 * f1^10
-                "//str[@name='2'][contains(.,'600.0 = boost')]"); // UP(100)* f2^2 * qboost.weight=3
+                "//str[@name='2'][contains(.,'1760.0 = boost')]", // uq.boost=80 * f1^10 * (1.2 + 1)
+                "//str[@name='2'][contains(.,'1320.0 = boost')]"); // UP(100)* f2^2 * qboost.weight=3 * (1.2 + 1)
         req.close();
     }
 
@@ -181,13 +177,17 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 "//str[@name='2'][contains(.,'800.0 = product of')]",
                 "//str[@name='2'][contains(.,'80.0 = queryBoost')]", // uq.boost=80
                 "//str[@name='2'][contains(.,'10.0 = fieldBoost')]", // f1^10
-                "//str[@name='2'][contains(.,'600.0 = boost')]"); // UP(100)* f2^2 * qboost.weight=3
+                // (1.2 + 1 // As of org.apache.lucene.search.similarity.LegacyBM25Similarity.scorer()
+                //       * UP(100)* f2^2 * qboost.weight=3 :
+                "//str[@name='2'][contains(.,'1320.0 = boost')]");
         req.close();
     }
 
     @Test
     public void testThatNegBoostIsAppliedIfSimilarityIsDFC() {
-        String q = "m";
+        String q = "m u100";
+//        m =>
+//        DOWN(200000): d
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1^10 f2^2",
@@ -201,18 +201,21 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
 
         assertQ("qboost.negWeight failed with uq.similarityScore=dfc",
                 req,
-                "//result[@name='response'][@numFound='1']",
-                "//str[@name='3'][contains(.,'idf')]",
-                "//str[@name='3'][contains(.,'-1200000.0 = boost')]"); // qboost.negWeight=3*DOWN(200000) * f2^2
+                "//result[@name='response'][@numFound='2']",
+                "//str[1][@name='2'][contains(.,'idf')]",
+                "//str[1][@name='2'][contains(.,'600000.0 = FunctionQuery')]", // qboost.negWeight=3*DOWN(200000) added
+
+                "//str[2][@name='3'][contains(.,'idf')]",
+                "//str[2][@name='3'][not(contains(.,'600000.0 = FunctionQuery'))]");
         req.close();
     }
 
     @Test
     public void testThatNegBoostIsAppliedIfSimilarityIsOff() {
-        String q = "m";
+        String q = "m u100";
 
         SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1^10 f2^2",
+                DisMaxParams.QF, "f1^100 f2^2",
                 QueryParsing.OP, "OR",
                 USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
                 USER_QUERY_BOOST, "80.0",
@@ -223,9 +226,17 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
 
         assertQ("qboost.negWeight failed with uq.similarityScore=off",
                 req,
-                "//result[@name='response'][@numFound='1']",
-                "//str[@name='3'][contains(.,'idf')]",
-                "//str[@name='3'][contains(.,'-1200000.0 = boost')]"); // qboost.negWeight=3*DOWN(200000) * f2^2
+                "//result[@name='response'][@numFound='2']",
+                "//doc[1]/str[@name='id'][contains(.,'2')]",
+                "//doc[2]/str[@name='id'][contains(.,'3')]",
+                // (qboost.negWeight=3) * DOWN(200000) = 60000 -> default if doc doesn't match the down query
+                "//str[@name='2'][contains(.,'600000.0 = FunctionQuery(query(+(f1:d^100.0 f2:d^2.0),def=600000.0))')]",
+                "//str[@name='2'][contains(.,'80.0 = queryBoost')]",
+                "//str[@name='2'][contains(.,'2.0 = fieldBoost')]",
+                "//str[@name='3'][contains(.,'query(+(f1:d^100.0 f2:d^2.0),def=600000.0)')]",
+                "//str[@name='3'][contains(.,'80.0 = queryBoost')]",
+                "//str[@name='3'][contains(.,'100.0 = fieldBoost')]"
+ )      ;
         req.close();
     }
 

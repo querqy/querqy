@@ -11,6 +11,7 @@ import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.IndexSearcher;
 
 /**
  * Created by rene on 10/09/2016.
@@ -23,18 +24,19 @@ public class DocumentFrequencyCorrection {
     }
 
     protected final List<Integer> clauseOffsets = new ArrayList<>();
-    TermStats termStats = null;
+    private TermStats termStats = null;
     protected int endUserQuery = -1;
     protected Status status = Status.USER_QUERY;
     protected int maxInClause = -1;
     protected int maxInUserQuery = -1;
+    protected long maxTotalTermFreqInUserQuery = -1;
     int termIndex = -1;
 
 
-    protected TermStats doCalculateTermContexts(final IndexReaderContext indexReaderContext)
-            throws IOException {
+    protected TermStats doCalculateTermContexts(final IndexReaderContext indexReaderContext) throws IOException {
 
         final int[] dfs = new int[terms.size()];
+        final long[] totalTermFrequencies = new long[dfs.length];
         final TermStates[] states = new TermStates[dfs.length];
 
         for (int i = 0; i < dfs.length; i++) {
@@ -50,9 +52,10 @@ public class DocumentFrequencyCorrection {
                     final TermsEnum termsEnum = terms.iterator();
                     if (termsEnum.seekExact(term.bytes())) {
                         final TermState termState = termsEnum.termState();
-                        final int df = termsEnum.docFreq();
-                        dfs[i] = dfs[i] + df;
-                        states[i].register(termState, ctx.ord, df, df);
+                        dfs[i] = dfs[i] + termsEnum.docFreq();
+                        totalTermFrequencies[i] = totalTermFrequencies[i] + termsEnum.totalTermFreq();
+                        // we'll update df and ttf later, just register the ord
+                        states[i].register(termState, ctx.ord, 0, 0L);
                     }
                 }
 
@@ -64,25 +67,31 @@ public class DocumentFrequencyCorrection {
             final int end = (i == last) ? terms.size() : clauseOffsets.get(i + 1);
             int pos = start;
             if (pos < end) {
-                int max = dfs[pos++];
+                int maxDfInClause = dfs[pos];
+                long maxTotalTermFreqInClause = totalTermFrequencies[pos++];
                 while (pos < end) {
-                    max = Math.max(max, dfs[pos++]);
+                    maxDfInClause = Math.max(maxDfInClause, dfs[pos]);
+                    maxTotalTermFreqInClause = Math.max(maxTotalTermFreqInClause, totalTermFrequencies[pos++]);
                 }
-                if (start < endUserQuery) {
-                    if (max > maxInUserQuery) {
-                        maxInUserQuery = max;
+                if (endUserQuery < 0 || start < endUserQuery) {
+                    if (maxDfInClause > maxInUserQuery) {
+                        maxInUserQuery = maxDfInClause;
                     }
+
+                    if (maxTotalTermFreqInClause > maxTotalTermFreqInUserQuery) {
+                        maxTotalTermFreqInUserQuery = maxTotalTermFreqInClause;
+                    }
+
+
                 } else {
-                    max += (maxInUserQuery - 1);
+                    maxDfInClause += (maxInUserQuery - 1);
+                    maxTotalTermFreqInClause += (maxTotalTermFreqInUserQuery - 1);
                 }
                 pos = start;
 
                 while (pos < end) {
                     if (dfs[pos] > 0) {
-                        int delta = max - dfs[pos];
-                        if (delta > 0) {
-                            states[pos].accumulateStatistics(delta, delta);
-                        }
+                        states[pos].accumulateStatistics(maxDfInClause, maxTotalTermFreqInClause);
                     }
                     pos++;
                 }
@@ -109,10 +118,6 @@ public class DocumentFrequencyCorrection {
     }
 
 
-    /* (non-Javadoc)
-         * @see querqy.lucene.rewrite.DocumentFrequencyAndTermContextProvider#getDocumentFrequencyAndTermContext(int,
-         * org.apache.lucene.search.IndexReaderContext)
-         */
     public DocumentFrequencyAndTermContext getDocumentFrequencyAndTermContext(final int tqIndex,
                                                                               final IndexReaderContext indexReaderContext)
             throws IOException {
@@ -139,15 +144,15 @@ public class DocumentFrequencyCorrection {
 
     public void newClause() {
        if (status == Status.USER_QUERY) {
-          maxInUserQuery = Math.max(maxInClause, maxInUserQuery);
+          maxInUserQuery = Math.max(maxInClause, maxInUserQuery); // TODO: do we need this?
        }
-       maxInClause = -1;
+       maxInClause = -1; // TODO: do we need this?
        clauseOffsets.add(terms.size());
     }
 
     public void finishedUserQuery() {
        status = Status.OTHER_QUERY;
-       maxInUserQuery = Math.max(maxInClause, maxInUserQuery);
+       maxInUserQuery = Math.max(maxInClause, maxInUserQuery); // TODO: do we need this?
 
        endUserQuery = terms.size();
     }
