@@ -3,6 +3,8 @@ package querqy.solr;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_OPT;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_SIMILARITY_SCORE;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -107,5 +109,6 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
         req.close();
 
     }
+
 
 }

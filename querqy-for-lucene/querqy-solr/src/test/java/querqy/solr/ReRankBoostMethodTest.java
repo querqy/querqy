@@ -3,6 +3,8 @@ package querqy.solr;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_RERANK_NUMDOCS;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_SIMILARITY_SCORE;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -18,10 +20,12 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
 
-    public void index() throws Exception {
+    public void index() {
 
         assertU(adoc("id", "1", "f1", "qup"));
         assertU(adoc("id", "2", "f1", "qup other", "f2", "u100"));
+        assertU(adoc("id", "3", "f1", "qdown1 d2"));
+        assertU(adoc("id", "4", "f1", "qdown2 d1"));
         assertU(commit());
     }
 
@@ -39,7 +43,7 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatReRankBringsBoostedDocToTop() throws Exception {
+    public void testThatReRankBringsBoostedDocToTop() {
 
         String q = "qup";
 
@@ -129,4 +133,38 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
         );
         req2.close();
     }
+
+
+    @Test
+    public void testThatReRankWorksForNegativeBoostWithSimilarityOff() {
+        String q = "qdown1 qdown2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                QueryParsing.OP, "OR",
+                QBOOST_METHOD, QBOOST_METHOD_RERANK,
+                QBOOST_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
+                "defType", "querqy",
+                "debugQuery", "true"
+
+        );
+
+        assertQ("Rerank does not work with negative boost'",
+                req,
+                "//result[@name='response'][@numFound='2']",
+                // the parsed query must contain not the boost terms:
+                "//str[@name='parsedquery'][not(contains(.,'f1:d1'))]",
+                "//str[@name='parsedquery'][not(contains(.,'f1:d2'))]",
+                // debug output must contain 'QuerqyReRankQuery'
+                "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]",
+                "//doc[1]/str[@name='id'][contains(.,'4')]",
+                "//doc[2]/str[@name='id'][contains(.,'3')]",
+                "//str[@name='4'][contains(.,'0.2 = FunctionQuery(0.2/(0.2*float(query(+f1:d2,def=0.0))+1.0))')]",
+                "//str[@name='3'][contains(.,'0.1 = FunctionQuery(0.1/(0.1*float(query(+f1:d1,def=0.0))+1.0))')]"
+
+        );
+        req.close();
+
+    }
+
 }

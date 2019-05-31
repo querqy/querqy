@@ -5,6 +5,7 @@ import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.queries.function.valuesource.QueryValueSource;
+import org.apache.lucene.queries.function.valuesource.ReciprocalFloatFunction;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ConstantScoreQuery;
@@ -375,7 +376,11 @@ public class QueryParsingController {
                     final float boost = bq.getBoost() * factor;
                     if (boost != 1f) {
                         if (boost < 0) {
-                            result.add(new FunctionQuery(new QueryValueSource(luceneQuery, -boost)));
+
+                            final QueryValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+
+                            result.add(new FunctionQuery(new ReciprocalFloatFunction(queryValueSource, -boost, -boost, 1f)));
+                            
                         } else {
                             result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, boost));
                         }

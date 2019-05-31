@@ -75,6 +75,7 @@ public class QuerqyDismaxQParser extends QParser {
             luceneQueries = controller.process();
 
             if (luceneQueries.querqyBoostQueries != null && luceneQueries.querqyBoostQueries.size() > 0) {
+                // add as rerank query
                 final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
                 for (final Query q : luceneQueries.querqyBoostQueries) {

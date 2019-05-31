@@ -35,7 +35,8 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
     }
 
     /**
-     * A term query that scores by query queryBoost and {@link FieldBoost} but not by {@link org.apache.lucene.search.similarities.Similarity} or {@link DocumentFrequencyCorrection}.
+     * A term query that scores by query queryBoost and {@link FieldBoost} but not by
+     * {@link org.apache.lucene.search.similarities.Similarity} or {@link DocumentFrequencyCorrection}.
      *
      * Created by rene on 11/09/2016.
      */

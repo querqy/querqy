@@ -18,13 +18,13 @@ import java.util.Set;
  */
 public class QuerqyReRankQuery extends RankQuery {
 
-    protected static final Query DEFAULT_MAIN_QUERY = new MatchAllDocsQuery();
+    private static final Query DEFAULT_MAIN_QUERY = new MatchAllDocsQuery();
 
-    protected Query mainQuery = DEFAULT_MAIN_QUERY;
+    private Query mainQuery = DEFAULT_MAIN_QUERY;
 
-    protected final Query reRankQuery;
-    protected final int reRankNumDocs;
-    protected final double reRankWeight;
+    private final Query reRankQuery;
+    private final int reRankNumDocs;
+    private final double reRankWeight;
 
     public QuerqyReRankQuery(final Query mainQuery, final Query reRankQuery, final int reRankNumDocs,
                              final double reRankWeight) {
@@ -159,6 +159,7 @@ public class QuerqyReRankQuery extends RankQuery {
         private int reRankNumDocs;
         private int length;
         private double reRankWeight;
+        final private Sort sort;
 
 
         public ReRankCollector(final int reRankNumDocs,
@@ -177,9 +178,10 @@ public class QuerqyReRankQuery extends RankQuery {
             final int max = Math.max(reRankNumDocs, length);
             if (sort == null) {
                 this.mainCollector = TopScoreDocCollector.create(max, max);
+                this.sort = null;
             } else {
-                sort = sort.rewrite(searcher);
-                this.mainCollector = TopFieldCollector.create(sort, max, max);
+                this.sort = sort.rewrite(searcher);
+                this.mainCollector = TopFieldCollector.create(this.sort, max, max);
             }
             this.searcher = searcher;
             this.reRankWeight = reRankWeight;
@@ -197,7 +199,7 @@ public class QuerqyReRankQuery extends RankQuery {
 
         @Override
         public ScoreMode scoreMode() {
-            return ScoreMode.TOP_SCORES;
+            return sort == null || sort.needsScores() ? ScoreMode.COMPLETE : ScoreMode.COMPLETE_NO_SCORES;
         }
 
         public TopDocs topDocs(final int start, int howMany) {
@@ -209,7 +211,6 @@ public class QuerqyReRankQuery extends RankQuery {
                 if (mainDocs.totalHits.value == 0 || mainDocs.scoreDocs.length == 0) {
                     return mainDocs;
                 }
-
 
                 final ScoreDoc[] mainScoreDocs = mainDocs.scoreDocs;
 

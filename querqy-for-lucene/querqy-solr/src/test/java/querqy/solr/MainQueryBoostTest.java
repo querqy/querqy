@@ -1,9 +1,11 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyDismaxParams.QBOOST_NEG_WEIGHT;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_SIMILARITY_SCORE;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_WEIGHT;
 import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_DFC;
 import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
+import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_ON;
 import static querqy.solr.QuerqyDismaxParams.USER_QUERY_BOOST;
 import static querqy.solr.QuerqyDismaxParams.USER_QUERY_SIMILARITY_SCORE;
 
@@ -23,6 +25,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "1", "f1", "qup"));
         assertU(adoc("id", "2", "f1", "qup other", "f2", "u100"));
         assertU(adoc("id", "3", "f1", "m", "f2", "d"));
+        assertU(adoc("id", "4", "f1", "qdown1 d2"));
+        assertU(adoc("id", "5", "f1", "qdown2 d1"));
         assertU(commit());
     }
 
@@ -206,7 +210,7 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 "//str[1][@name='2'][contains(.,'600000.0 = FunctionQuery')]", // qboost.negWeight=3*DOWN(200000) added
 
                 "//str[2][@name='3'][contains(.,'idf')]",
-                "//str[2][@name='3'][not(contains(.,'600000.0 = FunctionQuery'))]");
+                "//str[2][@name='3'][not(contains(.,'60000.0 = FunctionQuery'))]");
         req.close();
     }
 
@@ -230,13 +234,107 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 "//doc[1]/str[@name='id'][contains(.,'2')]",
                 "//doc[2]/str[@name='id'][contains(.,'3')]",
                 // (qboost.negWeight=3) * DOWN(200000) = 60000 -> default if doc doesn't match the down query
-                "//str[@name='2'][contains(.,'600000.0 = FunctionQuery(query(+(f1:d^100.0 f2:d^2.0),def=600000.0))')]",
+                "//str[@name='2'][contains(.,'600000.0 = FunctionQuery(600000.0/(600000.0*float(query(+(f1:d^100.0 " +
+                        "f2:d^2.0),def=0.0))+1.0))')]",
                 "//str[@name='2'][contains(.,'80.0 = queryBoost')]",
                 "//str[@name='2'][contains(.,'2.0 = fieldBoost')]",
-                "//str[@name='3'][contains(.,'query(+(f1:d^100.0 f2:d^2.0),def=600000.0)')]",
+                "//str[@name='3'][contains(.,'FunctionQuery(600000.0/(600000.0*float(query(+(f1:d^100.0 f2:d^2.0)," +
+                        "def=0.0))+1.0))')]",
+                "//str[@name='3'][not(contains(.,'600000.0 = FunctionQuery'))]",
                 "//str[@name='3'][contains(.,'80.0 = queryBoost')]",
-                "//str[@name='3'][contains(.,'100.0 = fieldBoost')]"
- )      ;
+                "//str[@name='3'][contains(.,'100.0 = fieldBoost')]");
+        req.close();
+    }
+
+    @Test
+    public void testThatNegBoostIsGradedIfSimilarityIsOff() {
+        String q = "qdown1 qdown2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                QueryParsing.OP, "OR",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("graded down failed with uq.similarityScore=off",
+                req,
+                "//result[@name='response'][@numFound='2']",
+                "//doc[1]/str[@name='id'][contains(.,'5')]",
+                "//doc[2]/str[@name='id'][contains(.,'4')]",
+                "//str[@name='5'][contains(.,'0.2 = FunctionQuery(0.2/(0.2*float(query(+f1:d2,def=0.0))+1.0))')]",
+                "//str[@name='4'][contains(.,'0.1 = FunctionQuery(0.1/(0.1*float(query(+f1:d1,def=0.0))+1.0))')]"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testThatNegBoostIsGradedIfSimilarityIsOn() {
+        String q = "qdown1 qdown2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                QueryParsing.OP, "OR",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_ON,
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("graded down failed with uq.similarityScore=off",
+                req,
+                "//result[@name='response'][@numFound='2']",
+                "//doc[1]/str[@name='id'][contains(.,'5')]",
+                "//doc[2]/str[@name='id'][contains(.,'4')]",
+                "//str[@name='5'][contains(.,'0.2 = FunctionQuery(0.2/(0.2*float(query(+f1:d2,def=0.0))+1.0))')]",
+                "//str[@name='4'][contains(.,'0.1 = FunctionQuery(0.1/(0.1*float(query(+f1:d1,def=0.0))+1.0))')]"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testThatNegBoostIsGradedIfSimilarityIsDfc() {
+        String q = "qdown1 qdown2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                QueryParsing.OP, "OR",
+                USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("graded down failed with uq.similarityScore=off",
+                req,
+                "//result[@name='response'][@numFound='2']",
+                "//doc[1]/str[@name='id'][contains(.,'5')]",
+                "//doc[2]/str[@name='id'][contains(.,'4')]",
+                "//str[@name='5'][contains(.,'0.2 = FunctionQuery(0.2/(0.2*float(query(+f1:d2,def=0.0))+1.0))')]",
+                "//str[@name='4'][contains(.,'0.1 = FunctionQuery(0.1/(0.1*float(query(+f1:d1,def=0.0))+1.0))')]"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testThatNegBoostIsGradedIfBoostSimilarityIsOff() {
+        String q = "qdown1 qdown2";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                QueryParsing.OP, "OR",
+                QBOOST_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("graded down failed with qboost.similarityScore=off",
+                req,
+                "//result[@name='response'][@numFound='2']",
+                "//doc[1]/str[@name='id'][contains(.,'5')]",
+                "//doc[2]/str[@name='id'][contains(.,'4')]",
+                "//str[@name='5'][contains(.,'0.2 = FunctionQuery(0.2/(0.2*float(query(+f1:d2,def=0.0))+1.0))')]",
+                "//str[@name='4'][contains(.,'0.1 = FunctionQuery(0.1/(0.1*float(query(+f1:d1,def=0.0))+1.0))')]"
+        );
         req.close();
     }
 
