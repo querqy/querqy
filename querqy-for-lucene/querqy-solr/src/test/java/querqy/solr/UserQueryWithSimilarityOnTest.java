@@ -6,6 +6,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 @SolrTestCaseJ4.SuppressSSL
 public class UserQueryWithSimilarityOnTest extends SolrTestCaseJ4 {
@@ -36,6 +37,7 @@ public class UserQueryWithSimilarityOnTest extends SolrTestCaseJ4 {
         index();
     }
 
+    @Test
     public void testThatDfAndDfAreUsedForRanking() {
         String q = "a";
 
