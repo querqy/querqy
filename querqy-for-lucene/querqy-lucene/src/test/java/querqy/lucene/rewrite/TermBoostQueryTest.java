@@ -13,11 +13,12 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -148,9 +149,9 @@ public class TermBoostQueryTest extends LuceneTestCase {
         indexSearcher.search(termBoostQuery, 10);
 
         verify(similarity, never()).computeWeight(
-                Matchers.anyFloat(),
-                Matchers.any(CollectionStatistics.class),
-                Matchers.<TermStatistics>anyVararg()
+                anyFloat(),
+                any(CollectionStatistics.class),
+                ArgumentMatchers.<TermStatistics>any()
                 );
 
 

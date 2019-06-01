@@ -1,7 +1,6 @@
 package querqy.solr;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,11 +13,10 @@ import org.apache.solr.search.QParser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import querqy.infologging.InfoLogging;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.infologging.InfoLoggingContext;
 
 /**
  * Created by rene on 04/05/2017.

@@ -22,7 +22,7 @@ import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
@@ -64,7 +64,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         Query query = queryBuilder.createQuery(parser.parse("abc"));
         dfc.finishedUserQuery();
-        //query.createWeight(indexSearcher, true);
+        
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
@@ -87,7 +87,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
         Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
-        Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+        ArgumentMatchers.<TermStatistics>any())).thenReturn(simWeight);
 
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher =  new IndexSearcher(indexReader);

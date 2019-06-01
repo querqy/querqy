@@ -22,7 +22,7 @@ import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
@@ -114,7 +114,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
         Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
-                Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+                ArgumentMatchers.<TermStatistics>any())).thenReturn(simWeight);
 
 
         IndexReader indexReader = DirectoryReader.open(directory);
