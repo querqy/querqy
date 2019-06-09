@@ -159,8 +159,10 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
                 "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]",
                 "//doc[1]/str[@name='id'][contains(.,'4')]",
                 "//doc[2]/str[@name='id'][contains(.,'3')]",
-                "//str[@name='4'][contains(.,'0.2 = FunctionQuery(0.2/(0.2*float(query(+f1:d2,def=0.0))+1.0))')]",
-                "//str[@name='3'][contains(.,'0.1 = FunctionQuery(0.1/(0.1*float(query(+f1:d1,def=0.0))+1.0))')]"
+                "//str[@name='4'][contains(.,'0.2 = AdditiveBoostFunction(-0.2,query(+f1:d2,def=0.0)=0.0)')]",
+                "//str[@name='4'][contains(.,'0.05 = AdditiveBoostFunction(-0.1,query(+f1:d1,def=0.0)=1.0)')]",
+                "//str[@name='3'][contains(.,'0.1 = AdditiveBoostFunction(-0.2,query(+f1:d2,def=0.0)=1.0)')]",
+                "//str[@name='3'][contains(.,'0.1 = AdditiveBoostFunction(-0.1,query(+f1:d1,def=0.0)=0.0)')]"
 
         );
         req.close();

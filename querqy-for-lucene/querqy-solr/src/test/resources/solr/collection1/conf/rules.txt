@@ -37,6 +37,10 @@ d1 =>
 d2 =>
 	DECORATE: deco 2
 
+qx1 =>
+    UP(10): 1u10
+    DOWN(10): 1d10
+
 
 	
 	

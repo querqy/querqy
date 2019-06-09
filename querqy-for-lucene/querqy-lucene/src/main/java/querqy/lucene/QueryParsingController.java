@@ -5,7 +5,6 @@ import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.queries.function.valuesource.QueryValueSource;
-import org.apache.lucene.queries.function.valuesource.ReciprocalFloatFunction;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ConstantScoreQuery;
@@ -17,6 +16,7 @@ import querqy.lucene.LuceneSearchEngineRequestAdapter.SyntaxException;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.LuceneTermQueryBuilder;
+import querqy.lucene.rewrite.AdditiveBoostFunction;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.TermQueryBuilder;
@@ -375,15 +375,10 @@ public class QueryParsingController {
                 if (luceneQuery != null) {
                     final float boost = bq.getBoost() * factor;
                     if (boost != 1f) {
-                        if (boost < 0) {
 
-                            final QueryValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+                        final QueryValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+                        result.add(new FunctionQuery(new AdditiveBoostFunction(queryValueSource, boost)));
 
-                            result.add(new FunctionQuery(new ReciprocalFloatFunction(queryValueSource, -boost, -boost, 1f)));
-                            
-                        } else {
-                            result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, boost));
-                        }
                     } else {
                         result.add(luceneQuery);
 
