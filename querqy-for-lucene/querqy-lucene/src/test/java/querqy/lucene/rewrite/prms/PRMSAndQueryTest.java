@@ -125,7 +125,6 @@ public class PRMSAndQueryTest extends LuceneTestCase {
                 any(CollectionStatistics.class),
                 ArgumentMatchers.<TermStatistics>any())).thenReturn(simScorer);
 
-
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
         indexSearcher.setSimilarity(similarity);

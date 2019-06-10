@@ -1,7 +1,6 @@
 package querqy.lucene.contrib.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.when;
 import static querqy.QuerqyMatchers.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -23,8 +22,6 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
-
-import java.util.HashMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LuceneSynonymsRewriterTest {
@@ -68,7 +65,7 @@ public class LuceneSynonymsRewriterTest {
    }
 
    @Test
-   public void testThatGeneratedTermIsNotExpanded() throws Exception {
+   public void testThatGeneratedTermIsNotExpanded() {
       Query query = new Query();
 
       DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Occur.SHOULD, false);
@@ -118,7 +115,7 @@ public class LuceneSynonymsRewriterTest {
    }
 
    @Test
-   public void testThatPartialMatchDoesntGetExpanded() throws Exception {
+   public void testThatPartialMatchDoesntGetExpanded() {
       // abc => ...
       // is in the synonym dict
       ExpandedQuery q = makeQuery("ab c");
@@ -150,7 +147,7 @@ public class LuceneSynonymsRewriterTest {
    }
 
    @Test
-   public void testTwoClausesToOne() throws Exception {
+   public void testTwoClausesToOne() {
       ExpandedQuery q = makeQuery("b c");
       assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
@@ -182,7 +179,7 @@ public class LuceneSynonymsRewriterTest {
    }
 
    @Test
-   public void testThreeClausesToTwo() throws Exception {
+   public void testThreeClausesToTwo() {
       ExpandedQuery q = makeQuery("bb cc dd");
       assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(
@@ -255,7 +252,7 @@ public class LuceneSynonymsRewriterTest {
     * 
     */
    @Test
-   public void test08() throws Exception {
+   public void test08() {
       ExpandedQuery q = makeQuery("b c d");
       assertThat((Query) rewriter.rewrite(q).getUserQuery(),
             bq(

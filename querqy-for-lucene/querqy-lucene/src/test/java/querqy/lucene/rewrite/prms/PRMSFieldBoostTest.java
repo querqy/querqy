@@ -70,7 +70,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         
         Query query = queryBuilder.createQuery(parser.parse("abc"));
         dfc.finishedUserQuery();
-        //query.createWeight(indexSearcher, true);
+        
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
