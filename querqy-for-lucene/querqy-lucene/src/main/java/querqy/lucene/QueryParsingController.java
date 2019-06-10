@@ -1,8 +1,10 @@
 package querqy.lucene;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.queries.function.BoostedQuery;
+import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
+import org.apache.lucene.queries.function.valuesource.QueryValueSource;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ConstantScoreQuery;
@@ -14,6 +16,7 @@ import querqy.lucene.LuceneSearchEngineRequestAdapter.SyntaxException;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.LuceneTermQueryBuilder;
+import querqy.lucene.rewrite.AdditiveBoostFunction;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.TermQueryBuilder;
@@ -28,7 +31,6 @@ import querqy.rewrite.ContextAwareQueryRewriter;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -246,9 +248,9 @@ public class QueryParsingController {
                                     .stream()
                                     .map(LuceneQueryUtil::queryToValueSource)
                                     .toArray());
-                    mainQuery = new BoostedQuery(bq, prod);
+                    mainQuery = FunctionScoreQuery.boostByValue(bq, prod.asDoubleValuesSource());
                 } else {
-                    mainQuery = new BoostedQuery(bq, LuceneQueryUtil.queryToValueSource(multiplicativeBoosts.get(0)));
+                    mainQuery = FunctionScoreQuery.boostByValue(bq, LuceneQueryUtil.queryToDoubleValueSource(multiplicativeBoosts.get(0)));
                 }
             } else {
                 mainQuery = bq;
@@ -373,7 +375,10 @@ public class QueryParsingController {
                 if (luceneQuery != null) {
                     final float boost = bq.getBoost() * factor;
                     if (boost != 1f) {
-                        result.add(new org.apache.lucene.search.BoostQuery(luceneQuery, boost));
+
+                        final QueryValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+                        result.add(new FunctionQuery(new AdditiveBoostFunction(queryValueSource, boost)));
+
                     } else {
                         result.add(luceneQuery);
 

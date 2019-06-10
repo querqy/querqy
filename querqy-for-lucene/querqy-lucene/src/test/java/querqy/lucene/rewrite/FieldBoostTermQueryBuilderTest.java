@@ -9,6 +9,7 @@ import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
@@ -88,7 +89,7 @@ public class FieldBoostTermQueryBuilderTest extends LuceneTestCase {
 
         TopDocs topDocs = indexSearcher.search(query, 10);
 
-        assertEquals(1, topDocs.totalHits);
+        assertEquals(1, topDocs.totalHits.value);
         Document resultDoc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
         assertEquals("v1", resultDoc.get("f1"));
 
@@ -122,7 +123,7 @@ public class FieldBoostTermQueryBuilderTest extends LuceneTestCase {
         FieldBoostTermQueryBuilder.FieldBoostTermQuery query = new FieldBoostTermQueryBuilder().createTermQuery(term, fieldBoost2);
 
         TopDocs topDocs = indexSearcher.search(query, 10);
-        final Weight weight = query.createWeight(indexSearcher, true, 4.5f);
+        final Weight weight = query.createWeight(indexSearcher, ScoreMode.COMPLETE, 4.5f);
         final Explanation explain = weight.explain(indexReader.getContext().leaves().get(0), topDocs.scoreDocs[0].doc);
 
         String explainText = explain.toString();

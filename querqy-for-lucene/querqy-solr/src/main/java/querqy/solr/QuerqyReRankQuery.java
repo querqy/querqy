@@ -18,13 +18,13 @@ import java.util.Set;
  */
 public class QuerqyReRankQuery extends RankQuery {
 
-    protected static final Query DEFAULT_MAIN_QUERY = new MatchAllDocsQuery();
+    private static final Query DEFAULT_MAIN_QUERY = new MatchAllDocsQuery();
 
-    protected Query mainQuery = DEFAULT_MAIN_QUERY;
+    private Query mainQuery = DEFAULT_MAIN_QUERY;
 
-    protected final Query reRankQuery;
-    protected final int reRankNumDocs;
-    protected final double reRankWeight;
+    private final Query reRankQuery;
+    private final int reRankNumDocs;
+    private final double reRankWeight;
 
     public QuerqyReRankQuery(final Query mainQuery, final Query reRankQuery, final int reRankNumDocs,
                              final double reRankWeight) {
@@ -67,9 +67,9 @@ public class QuerqyReRankQuery extends RankQuery {
     }
 
     @Override
-    public Weight createWeight(final IndexSearcher searcher, final boolean needsScores, final float boost)
+    public Weight createWeight(final IndexSearcher searcher, final ScoreMode scoreMode, final float boost)
             throws IOException {
-        return new ReRankWeight(mainQuery, reRankQuery, reRankWeight, searcher, needsScores, boost);
+        return new ReRankWeight(mainQuery, reRankQuery, reRankWeight, searcher, scoreMode, boost);
     }
 
     @Override
@@ -110,14 +110,14 @@ public class QuerqyReRankQuery extends RankQuery {
         private double reRankWeight;
 
         public ReRankWeight(final Query mainQuery, final Query reRankQuery, final double reRankWeight,
-                            final IndexSearcher searcher, final boolean needsScores, final float boost)
+                            final IndexSearcher searcher, final ScoreMode scoreMode, final float boost)
                 throws IOException {
             super(mainQuery);
             this.reRankQuery = reRankQuery;
             this.searcher = searcher;
             this.reRankWeight = reRankWeight;
-            this.mainWeight = mainQuery.createWeight(searcher, needsScores, boost);
-            this.rankWeight = reRankQuery.createWeight(searcher, needsScores, boost);
+            this.mainWeight = mainQuery.createWeight(searcher, scoreMode, boost);
+            this.rankWeight = reRankQuery.createWeight(searcher, scoreMode, boost);
         }
 
         @Override
@@ -159,6 +159,7 @@ public class QuerqyReRankQuery extends RankQuery {
         private int reRankNumDocs;
         private int length;
         private double reRankWeight;
+        final private Sort sort;
 
 
         public ReRankCollector(final int reRankNumDocs,
@@ -174,12 +175,13 @@ public class QuerqyReRankQuery extends RankQuery {
             this.reRankNumDocs = reRankNumDocs;
             this.length = length;
             Sort sort = cmd.getSort();
+            final int max = Math.max(reRankNumDocs, length);
             if (sort == null) {
-                this.mainCollector = TopScoreDocCollector.create(Math.max(reRankNumDocs, length));
+                this.mainCollector = TopScoreDocCollector.create(max, max);
+                this.sort = null;
             } else {
-                sort = sort.rewrite(searcher);
-                this.mainCollector = TopFieldCollector.create(sort, Math.max(reRankNumDocs, length), false, true, true,
-                        true);
+                this.sort = sort.rewrite(searcher);
+                this.mainCollector = TopFieldCollector.create(this.sort, max, max);
             }
             this.searcher = searcher;
             this.reRankWeight = reRankWeight;
@@ -196,8 +198,8 @@ public class QuerqyReRankQuery extends RankQuery {
         }
 
         @Override
-        public boolean needsScores() {
-            return true;
+        public ScoreMode scoreMode() {
+            return sort == null || sort.needsScores() ? ScoreMode.COMPLETE : ScoreMode.COMPLETE_NO_SCORES;
         }
 
         public TopDocs topDocs(final int start, int howMany) {
@@ -206,10 +208,9 @@ public class QuerqyReRankQuery extends RankQuery {
 
                 final TopDocs mainDocs = mainCollector.topDocs(0, Math.max(reRankNumDocs, length));
 
-                if (mainDocs.totalHits == 0 || mainDocs.scoreDocs.length == 0) {
+                if (mainDocs.totalHits.value == 0 || mainDocs.scoreDocs.length == 0) {
                     return mainDocs;
                 }
-
 
                 final ScoreDoc[] mainScoreDocs = mainDocs.scoreDocs;
 

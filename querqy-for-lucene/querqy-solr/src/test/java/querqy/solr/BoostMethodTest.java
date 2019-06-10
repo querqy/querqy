@@ -108,4 +108,5 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
 
     }
 
+
 }

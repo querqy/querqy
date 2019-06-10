@@ -2,7 +2,6 @@ package querqy.lucene.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
