@@ -37,8 +37,8 @@ public class AdditiveBoostFunction extends ValueSource {
 
                 final float score = scoringFunctionValues.floatVal(doc);
                 return isNegBoost
-                        ? boostValue - (1f - 1f/(score + 1f)) * boostValue
-                        : boostValue - (1f/(score + 1f)) * boostValue;
+                        ? boostValue * (1f - (1f - 1f/(score + 1f)))
+                        : boostValue * (1f - (     1f/(score + 1f)));
 
             }
 
