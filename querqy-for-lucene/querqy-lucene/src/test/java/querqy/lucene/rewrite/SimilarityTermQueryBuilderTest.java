@@ -16,8 +16,8 @@ import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 import querqy.lucene.rewrite.SimilarityTermQueryBuilder.SimilarityTermQuery;
@@ -109,7 +109,7 @@ public class SimilarityTermQueryBuilderTest extends LuceneTestCase {
 
         Analyzer analyzer = new StandardAnalyzer();
 
-        Directory directory = new RAMDirectory();
+        Directory directory = new ByteBuffersDirectory();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setSimilarity(new ClassicSimilarity());
         IndexWriter indexWriter = new IndexWriter(directory, config);
