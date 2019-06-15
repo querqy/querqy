@@ -10,7 +10,9 @@ jdk:
   - oraclejdk8
 branches:
   only:
+    - master
     - solr6_6
     - solr7_0
     - solr7_2
     - solr8_0
+    - solr8_1
