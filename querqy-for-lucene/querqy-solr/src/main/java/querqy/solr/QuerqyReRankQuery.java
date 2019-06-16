@@ -122,8 +122,9 @@ public class QuerqyReRankQuery extends RankQuery {
 
         @Override
         public void extractTerms(final Set<Term> terms) {
-            this.mainWeight.extractTerms(terms);
-            this.rankWeight.extractTerms(terms);
+            final QueryVisitor visitor = QueryVisitor.termCollector(terms);
+            parentQuery.visit(visitor);
+            reRankQuery.visit(visitor);
         }
 
         public Scorer scorer(final LeafReaderContext context) throws IOException {

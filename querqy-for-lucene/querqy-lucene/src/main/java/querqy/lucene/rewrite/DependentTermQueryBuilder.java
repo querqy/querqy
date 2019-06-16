@@ -13,6 +13,7 @@ import org.apache.lucene.search.CollectionStatistics;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.LeafSimScorer;
+import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TermQuery;
@@ -102,6 +103,14 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
         }
 
         @Override
+        public void visit(final QueryVisitor visitor) {
+            final Term term = getTerm();
+            if (visitor.acceptField(term.field())) {
+                visitor.consumeTerms(this, term);
+            }
+        }
+
+        @Override
         public int hashCode() {
             final int prime = 31;
             int result = prime  + tqIndex;
@@ -113,17 +122,25 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
         @Override
         public boolean equals(final Object obj) {
 
-            if (!super.equals(obj)) {
+            if (obj == null) {
+                return false;
+            }
+
+            if (!(obj instanceof DependentTermQuery)) {
                 return false;
             }
 
             final DependentTermQuery other = (DependentTermQuery) obj;
+            final Term term = getTerm();
+
+            if (!term.equals(other.getTerm())) {
+                return false;
+            }
+
             if (tqIndex != other.tqIndex)
                 return false;
-            if (!fieldBoost.equals(other.fieldBoost))
-                return false;
 
-            return true; // getTerm().equals(other.getTerm());  already assured in super class
+            return fieldBoost.equals(other.fieldBoost);
 
         }
 
