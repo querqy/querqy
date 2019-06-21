@@ -593,13 +593,13 @@ notebook bag =>
 
 The first rule ('ID1') defines a down boost for all documents containing 'bag' if the query contains 'notebook'. This makes sense as users probably are less interested in notebook bags when they search for a notebook. Except, if they search for 'notebook bag' - in this case we would not want to apply rule ID1. Properties will help us solve this problem by ordering and selecting rules depending on the context.
 
-In order to enable rule selection and ordering we have do define a SelectionStrategy for the Common Rules rewriter in solrconfig.xml:
+In order to enable rule selection and ordering we have to define a SelectionStrategy for the Common Rules rewriter in solrconfig.xml:
 
 ~~~xml
 
 <queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 	
-		<lst name="rewriteChain">
+	<lst name="rewriteChain">
             <lst name="rewriter">
 <!-- 
 	Note the rewriter ID: 
