@@ -35,7 +35,7 @@ public class TrieMapRulesCollection implements RulesCollection {
     }
 
     /* (non-Javadoc)
-     * @see querqy.rewrite.commonrules.model.RulesCollection#collectRewriteActions(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TopRewritingActionCollector)
+     * @see querqy.rewrite.commonrules.model.RulesCollection#collectRewriteActions(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.FlatTopRewritingActionCollector)
      */
     @Override
     public void collectRewriteActions(final PositionSequence<InputSequenceElement> sequence,

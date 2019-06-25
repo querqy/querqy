@@ -1,6 +1,5 @@
 package querqy.rewrite.commonrules.model;
 
-import java.util.List;
 import java.util.Set;
 
 import querqy.model.InputSequenceElement;

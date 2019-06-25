@@ -2,15 +2,17 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 public class ConfigurationOrderSelectionStrategy implements SelectionStrategy {
 
-    public static final Comparator<Instructions> COMPARATOR = Comparator.comparingInt(o -> o.ord);
+    public static final List<Comparator<Instructions>> COMPARATORS = Collections.singletonList(
+            Sorting.DEFAULT_COMPARATOR);
 
 
     @Override
-    public TopRewritingActionCollector createTopRewritingActionCollector() {
-        return new TopRewritingActionCollector(COMPARATOR, -1, Collections.emptyList());
+    public FlatTopRewritingActionCollector createTopRewritingActionCollector() {
+        return new FlatTopRewritingActionCollector(COMPARATORS, -1, Collections.emptyList());
     }
 
 

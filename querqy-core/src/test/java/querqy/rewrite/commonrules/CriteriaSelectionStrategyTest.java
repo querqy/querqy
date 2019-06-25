@@ -1,54 +1,51 @@
 package querqy.rewrite.commonrules;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static querqy.rewrite.commonrules.PrimitiveValueSelectionStrategyFactory.criteriaToJsonPathExpressionCriterion;
-import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
+import static org.junit.Assert.assertTrue;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import querqy.rewrite.commonrules.model.Criteria;
 import querqy.rewrite.commonrules.model.CriteriaSelectionStrategy;
-import querqy.rewrite.commonrules.model.FilterCriterion;
-import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.FlatTopRewritingActionCollector;
+import querqy.rewrite.commonrules.model.Limit;
+import querqy.rewrite.commonrules.model.PropertySorting;
 import querqy.rewrite.commonrules.model.Sorting;
+import querqy.rewrite.commonrules.model.TopLevelRewritingActionCollector;
 import querqy.rewrite.commonrules.model.TopRewritingActionCollector;
 
 import java.util.Collections;
-import java.util.Comparator;
 
 public class CriteriaSelectionStrategyTest {
 
     @Test
-    public void testThatInstructionsOrdIsDefaultSortOrder() {
-        final CriteriaSelectionStrategy strategy =
-                new CriteriaSelectionStrategy(new Criteria(null, 1, Collections.emptyList()));
-
-        final Comparator<Instructions> comparator = strategy.getSortingComparator();
-
-        final Instructions instructions1 = instructions(1);
-        final Instructions instructions2 = instructions(2);
-
-        assertEquals(0, comparator.compare(instructions1, instructions1));
-        assertEquals(0, comparator.compare(instructions2, instructions2));
-        assertThat(comparator.compare(instructions1, instructions2), Matchers.lessThan(0));
-        assertThat(comparator.compare(instructions2, instructions1), Matchers.greaterThan(0));
-
+    public void testThatFlatCollectorIsUsedIfThereIsNotMaxCount() {
+        final CriteriaSelectionStrategy strategy = new CriteriaSelectionStrategy(new Criteria(new PropertySorting("f1",
+                Sorting.SortOrder.ASC), new Limit(-1, true), Collections.emptyList()));
+        final TopRewritingActionCollector topRewritingActionCollector = strategy.createTopRewritingActionCollector();
+        assertTrue(topRewritingActionCollector instanceof FlatTopRewritingActionCollector);
     }
 
     @Test
-    public void testThatComparatorLimitAndFiltersArePassedToTopRewritingActionCollector() {
-        final Sorting sorting = new Sorting("name1", Sorting.SortOrder.DESC);
-        final FilterCriterion filter = criteriaToJsonPathExpressionCriterion("f1:v1");
-        final CriteriaSelectionStrategy strategy =
-                new CriteriaSelectionStrategy(new Criteria(sorting, 17, Collections.singletonList(filter)));
+    public void testThatFlatCollectorIsUsedIfCountIsZero() {
+        final CriteriaSelectionStrategy strategy = new CriteriaSelectionStrategy(new Criteria(new PropertySorting("f1",
+                Sorting.SortOrder.ASC), new Limit(0, true), Collections.emptyList()));
+        final TopRewritingActionCollector topRewritingActionCollector = strategy.createTopRewritingActionCollector();
+        assertTrue(topRewritingActionCollector instanceof FlatTopRewritingActionCollector);
+    }
 
-        final TopRewritingActionCollector collector = strategy.createTopRewritingActionCollector();
+    @Test
+    public void testThatFlatCollectorIsUsedIfLevelsNotSetInLimit() {
+        final CriteriaSelectionStrategy strategy = new CriteriaSelectionStrategy(new Criteria(new PropertySorting("f1",
+                Sorting.SortOrder.ASC), new Limit(1, false), Collections.emptyList()));
+        final TopRewritingActionCollector topRewritingActionCollector = strategy.createTopRewritingActionCollector();
+        assertTrue(topRewritingActionCollector instanceof FlatTopRewritingActionCollector);
+    }
 
-        assertEquals(sorting, collector.getComparator());
-        assertEquals(17, collector.getLimit());
-        assertThat(collector.getFilters(), contains(filter));
+    @Test
+    public void testThatLevelCollectorIsUsedIfLevelsSetInLimit() {
+        final CriteriaSelectionStrategy strategy = new CriteriaSelectionStrategy(new Criteria(new PropertySorting("f1",
+                Sorting.SortOrder.ASC), new Limit(1, true), Collections.emptyList()));
+        final TopRewritingActionCollector topRewritingActionCollector = strategy.createTopRewritingActionCollector();
+        assertTrue(topRewritingActionCollector instanceof TopLevelRewritingActionCollector);
     }
 
 }

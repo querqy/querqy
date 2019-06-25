@@ -7,38 +7,23 @@ import java.util.Optional;
 
 public class Criteria {
 
+
+
     private final Sorting sorting;
-    private final int limit;
+    private final Limit limit;
     private final List<FilterCriterion> filters;
 
-
-    public Criteria(final Sorting sorting, final int limit, final List<FilterCriterion> filters) {
-        this.sorting = sorting;
-        this.limit = (limit < 0) ? -1 : limit;
+    public Criteria(final Sorting sorting, final Limit limit, final List<FilterCriterion> filters) {
+        this.sorting = Objects.requireNonNull(sorting);
+        this.limit = Objects.requireNonNull(limit);
         this.filters = Objects.requireNonNull(filters);
     }
 
-    public Criteria(final Sorting sorting, final List<FilterCriterion> filters) {
-        this(sorting, -1, filters);
+    public Sorting getSorting() {
+        return sorting;
     }
 
-    public Criteria(final List<FilterCriterion> filters) {
-        this(null, -1, filters);
-    }
-
-    public Criteria(final int limit, final List<FilterCriterion> filters) {
-        this(null, limit, filters);
-    }
-
-    public boolean isEmpty() {
-        return sorting == null && limit == -1 && filters.isEmpty();
-    }
-
-    public Optional<Sorting> getSorting() {
-        return Optional.ofNullable(sorting);
-    }
-
-    public int getLimit() {
+    public Limit getLimit() {
         return limit;
     }
 

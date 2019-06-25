@@ -1,16 +1,20 @@
 package querqy.rewrite.commonrules.model;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
-public class Sorting implements Comparator<Instructions> {
+/**
+ * @author René Kriegler, @renekrie
+ */
+public interface Sorting {
 
-    public enum SortOrder {
+    enum SortOrder {
 
         ASC(1), DESC(-1);
 
-        private final int factor;
+        public final int factor;
 
         SortOrder(final int factor) {
             this.factor = factor;
@@ -31,50 +35,51 @@ public class Sorting implements Comparator<Instructions> {
         }
     }
 
-    private String name;
-    private SortOrder order;
 
-    public Sorting(final String name, final SortOrder order) {
-        this.name = name;
-        this.order = order;
+    Comparator<Instructions> DEFAULT_COMPARATOR = new Sorting.ConfigOrderComparator(SortOrder.ASC);
+
+    Sorting DEFAULT_SORTING = new Sorting() {
+
+        private final List<Comparator<Instructions>> comparators = Collections.singletonList(DEFAULT_COMPARATOR);
+
+        @Override
+        public List<Comparator<Instructions>> getComparators() {
+            return comparators;
+        }
+
+    };
+
+
+    List<Comparator<Instructions>> getComparators();
+
+
+    class ConfigOrderComparator implements Comparator<Instructions> {
+
+        private final int factor;
+
+        ConfigOrderComparator(final SortOrder sortOrder) {
+            this.factor = sortOrder.factor;
+        }
+
+
+        @Override
+        public int compare(final Instructions instructions1, final Instructions instructions2) {
+            return (instructions1.getOrd() - instructions2.getOrd()) * factor;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ConfigOrderComparator)) return false;
+            ConfigOrderComparator that = (ConfigOrderComparator) o;
+            return factor == that.factor;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(factor);
+        }
+
     }
 
-    @Override
-    public int compare(final Instructions instructions1, final Instructions instructions2) {
-
-        final Optional<Object> property1 = instructions1.getProperty(name);
-        final Optional<Object> property2 = instructions2.getProperty(name);
-
-        // p1 exist, p2 doesn't -> sort p1 before p2,  TODO: always sort missing last?
-        final int c = property1.map(o1Value ->
-                property2.map(o2Value -> ((Comparable) o1Value).compareTo( o2Value) * order.factor)
-                        .orElse(-1)
-        ).orElseGet(() -> property2.isPresent() ? 1 : 0);
-
-        // The contract is that we can only return 0 if both params are equal. Use Instructions.ord to ensure this:
-        return (c == 0) ? (instructions1.ord - instructions2.ord) * order.factor : c;
-
-    }
-
-    @Override
-    public String toString() {
-        return "Sorting{" +
-                "field='" + name + '\'' +
-                ", order='" + order + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final Sorting sorting = (Sorting) o;
-        return Objects.equals(name, sorting.name) &&
-                order == sorting.order;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, order);
-    }
 }

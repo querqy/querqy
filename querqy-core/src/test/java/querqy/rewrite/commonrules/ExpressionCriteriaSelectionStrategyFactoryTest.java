@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -16,12 +15,15 @@ import org.mockito.Mock;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.CriteriaSelectionStrategy;
 import querqy.rewrite.commonrules.model.ExpressionFilterCriterion;
-import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.FilterCriterion;
+import querqy.rewrite.commonrules.model.FlatTopRewritingActionCollector;
+import querqy.rewrite.commonrules.model.Limit;
+import querqy.rewrite.commonrules.model.PropertySorting;
 import querqy.rewrite.commonrules.model.SelectionStrategy;
 import querqy.rewrite.commonrules.model.Sorting;
+import querqy.rewrite.commonrules.model.TopLevelRewritingActionCollector;
 import querqy.rewrite.commonrules.model.TopRewritingActionCollector;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,15 +42,122 @@ public class ExpressionCriteriaSelectionStrategyFactoryTest {
     }
 
     @Test
-    public void testThatDefaultSelectionStrategyIsUsedIfNoParamsAreSet() {
+    public void testThatDefaultSortOrderIsUsedIfNoParamsAreSet() {
 
         when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
         when(requestAdapter.getRequestParams(any())).thenReturn(new String[] {});
 
         final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
-        assertEquals(DEFAULT_SELECTION_STRATEGY, strategy);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final CriteriaSelectionStrategy criteriaSelectionStrategy = (CriteriaSelectionStrategy) strategy;
+
+        assertEquals(Sorting.DEFAULT_SORTING, criteriaSelectionStrategy.getSorting());
 
     }
+
+    @Test
+    public void testThatDefaultLimitIsUsedIfNoParamsAreSet() {
+
+        when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
+        when(requestAdapter.getRequestParams(any())).thenReturn(new String[] {});
+
+
+        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final CriteriaSelectionStrategy criteriaSelectionStrategy = (CriteriaSelectionStrategy) strategy;
+
+        assertEquals(new Limit(-1, false), criteriaSelectionStrategy.getLimit());
+
+    }
+
+    @Test
+    public void testThatEmptyFiltersAreUsedIfNoParamsAreSet() {
+
+        when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
+        when(requestAdapter.getRequestParams(any())).thenReturn(new String[] {});
+
+
+        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final CriteriaSelectionStrategy criteriaSelectionStrategy = (CriteriaSelectionStrategy) strategy;
+        final List<FilterCriterion> filters = criteriaSelectionStrategy.getFilters();
+        assertNotNull(filters);
+        assertTrue(filters.isEmpty());
+
+    }
+
+
+    @Test
+    public void testThatSortingIsTakenFromRequestParams() {
+
+        when(requestAdapter.getRequestParam(eq("querqy.rules1.criteria.sort"))).thenReturn(Optional.of("x desc"));
+        when(requestAdapter.getIntegerRequestParam(any())).thenReturn(Optional.empty());
+        when(requestAdapter.getRequestParams(eq("querqy.rules1.criteria.filter"))).thenReturn(new String[] {});
+
+        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final CriteriaSelectionStrategy criteriaSelectionStrategy = (CriteriaSelectionStrategy) strategy;
+        assertEquals(new PropertySorting("x", Sorting.SortOrder.DESC), criteriaSelectionStrategy.getSorting());
+
+    }
+
+    @Test
+    public void testThatLimitWithoutLevelsIsTakenFromRequestParams() {
+
+        when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
+        when(requestAdapter.getIntegerRequestParam(eq("querqy.rules1.criteria.limit"))).thenReturn(Optional.of(12));
+        when(requestAdapter.getRequestParams(eq("querqy.rules1.criteria.filter")))
+                .thenReturn(new String[] {});
+
+        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final TopRewritingActionCollector collector = strategy.createTopRewritingActionCollector();
+        assertTrue(collector instanceof FlatTopRewritingActionCollector);
+        assertEquals(collector.getLimit(), 12);
+
+    }
+
+    @Test
+    public void testThatLimitWithoutLevelIsTakenFromRequestParamsIfUseLevelsIsFalse() {
+
+        when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
+        when(requestAdapter.getIntegerRequestParam(eq("querqy.rules1.criteria.limit"))).thenReturn(Optional.of(12));
+        when(requestAdapter.getBooleanRequestParam(eq("querqy.rules1.criteria.limitByLevel")))
+                .thenReturn(Optional.of(false));
+        when(requestAdapter.getRequestParams(eq("querqy.rules1.criteria.filter"))).thenReturn(new String[] {});
+
+        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final TopRewritingActionCollector collector = strategy.createTopRewritingActionCollector();
+        assertTrue(collector instanceof FlatTopRewritingActionCollector);
+        assertEquals(collector.getLimit(), 12);
+
+    }
+
+    @Test
+    public void testThatLimitWithLevelIsTakenFromRequestParamsIfUseLevelsIsFalse() {
+
+        when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
+        when(requestAdapter.getIntegerRequestParam(eq("querqy.rules1.criteria.limit"))).thenReturn(Optional.of(1));
+        when(requestAdapter.getBooleanRequestParam(eq("querqy.rules1.criteria.limitByLevel")))
+                .thenReturn(Optional.of(true));
+        when(requestAdapter.getRequestParams(eq("querqy.rules1.criteria.filter"))).thenReturn(new String[] {});
+
+        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
+        assertTrue(strategy instanceof CriteriaSelectionStrategy);
+
+        final TopRewritingActionCollector collector = strategy.createTopRewritingActionCollector();
+        assertTrue(collector instanceof TopLevelRewritingActionCollector);
+        assertEquals(collector.getLimit(), 1);
+
+    }
+
 
     @Test
     public void testThatFiltersAreTurnedIntoExpressions() {
@@ -64,39 +173,6 @@ public class ExpressionCriteriaSelectionStrategyFactoryTest {
         assertThat((List<ExpressionFilterCriterion>) collector.getFilters(),
                 containsInAnyOrder(filter("expr1"), filter("expr2")));
 
-
-    }
-
-    @Test
-    public void testThatSortingIsTakenFromRequestParams() {
-
-        when(requestAdapter.getRequestParam(eq("querqy.rules1.criteria.sort"))).thenReturn(Optional.of("x desc"));
-        when(requestAdapter.getIntegerRequestParam(any())).thenReturn(Optional.empty());
-        when(requestAdapter.getRequestParams(eq("querqy.rules1.criteria.filter")))
-                .thenReturn(new String[] {});
-
-        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
-        assertTrue(strategy instanceof CriteriaSelectionStrategy);
-
-        final TopRewritingActionCollector collector = strategy.createTopRewritingActionCollector();
-        final Comparator<Instructions> comparator = collector.getComparator();
-        assertEquals(new Sorting("x", Sorting.SortOrder.DESC), comparator);
-
-    }
-
-    @Test
-    public void testThatLimitIsTakenFromRequestParams() {
-
-        when(requestAdapter.getRequestParam(any())).thenReturn(Optional.empty());
-        when(requestAdapter.getIntegerRequestParam(eq("querqy.rules1.criteria.limit"))).thenReturn(Optional.of(12));
-        when(requestAdapter.getRequestParams(eq("querqy.rules1.criteria.filter")))
-                .thenReturn(new String[] {});
-
-        final SelectionStrategy strategy = factory.createSelectionStrategy("rules1", requestAdapter);
-        assertTrue(strategy instanceof CriteriaSelectionStrategy);
-
-        final TopRewritingActionCollector collector = strategy.createTopRewritingActionCollector();
-        assertEquals(collector.getLimit(), 12);
 
     }
 

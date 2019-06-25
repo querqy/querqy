@@ -2,7 +2,7 @@ package querqy.rewrite.commonrules.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static querqy.rewrite.commonrules.model.ConfigurationOrderSelectionStrategy.COMPARATOR;
+import static querqy.rewrite.commonrules.model.ConfigurationOrderSelectionStrategy.COMPARATORS;
 import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.junit.Assert;
@@ -13,13 +13,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class TopRewritingActionCollectorTest {
+public class FlatTopRewritingActionCollectorTest {
 
     @Test
     public void testThatNegativeLimitAcceptsAllInstructions() {
 
         final TopRewritingActionCollector collector
-                = new TopRewritingActionCollector(COMPARATOR, -1, Collections.emptyList());
+                = new FlatTopRewritingActionCollector(COMPARATORS, -1, Collections.emptyList());
 
         final int numActions = 5 + new Random().nextInt(30);
 
@@ -42,7 +42,7 @@ public class TopRewritingActionCollectorTest {
         final int numActions = 5;// + new Random().nextInt(30);
         final int limit = numActions - 3;
         final TopRewritingActionCollector collector
-                = new TopRewritingActionCollector(COMPARATOR, limit, Collections.emptyList());
+                = new FlatTopRewritingActionCollector(COMPARATORS, limit, Collections.emptyList());
 
         for (int i = 0; i < numActions; i++) {
             final int pos = i;
@@ -56,7 +56,7 @@ public class TopRewritingActionCollectorTest {
         final List<Action> actions = collector.createActions();
         assertEquals(limit, actions.size());
         for (int i = 0; i < limit; i++) {
-            assertEquals(i, actions.get(i).getInstructions().ord);
+            assertEquals(i, actions.get(i).getInstructions().getOrd());
         }
 
 
@@ -67,7 +67,7 @@ public class TopRewritingActionCollectorTest {
     public void testThatNegativeLimitAcceptsNoInstructions() {
 
         final TopRewritingActionCollector collector
-                = new TopRewritingActionCollector(COMPARATOR, 0, Collections.emptyList());
+                = new FlatTopRewritingActionCollector(COMPARATORS, 0, Collections.emptyList());
 
         final int numActions = 5 + new Random().nextInt(30);
 
@@ -87,9 +87,9 @@ public class TopRewritingActionCollectorTest {
     @Test
     public void testThatFiltersAreAppliedAsBooleanAnd() {
         final TopRewritingActionCollector collector
-                = new TopRewritingActionCollector(COMPARATOR, -1, Arrays.asList(
-                        instructions -> instructions.ord % 2 == 0,
-                        instructions -> instructions.ord % 3 == 0));
+                = new FlatTopRewritingActionCollector(COMPARATORS, -1, Arrays.asList(
+                        instructions -> instructions.getOrd() % 2 == 0,
+                        instructions -> instructions.getOrd() % 3 == 0));
 
         final int numActions = 10;
 
@@ -102,7 +102,7 @@ public class TopRewritingActionCollectorTest {
         }
 
         final int[] ords = collector.createActions().stream()
-                .mapToInt(action -> action.getInstructions().ord).toArray();
+                .mapToInt(action -> action.getInstructions().getOrd()).toArray();
 
         assertTrue(Arrays.equals(new int[] {0, 6}, ords));
 

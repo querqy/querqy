@@ -21,6 +21,9 @@ import querqy.rewrite.commonrules.model.SelectionStrategy;
  */
 public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
+    private final SelectionStrategyFactory DEFAULT_SELECTION_STRATEGY_FACTORY =
+            new ExpressionCriteriaSelectionStrategyFactory();
+
     final RulesCollection rules;
     final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
     final String strategyParam;
@@ -71,9 +74,9 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                     if (factory == null) {
                         throw new IllegalArgumentException("No selection strategy for name " + name);
                     }
-                    return factory.createSelectionStrategy(getRewriterId(), searchEngineRequestAdapter);
-                })
-                .orElse(SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY); // strategy not specified in params
+                    return factory;
+                }).orElse(DEFAULT_SELECTION_STRATEGY_FACTORY) // strategy not specified in params
+                .createSelectionStrategy(getRewriterId(), searchEngineRequestAdapter);
 
         return new CommonRulesRewriter(rules, selectionStrategy);
     }
