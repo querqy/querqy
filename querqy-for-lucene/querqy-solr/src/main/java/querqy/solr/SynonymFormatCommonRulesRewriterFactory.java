@@ -211,11 +211,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
         @Override
         public Set<Term> getGenerableTerms() {
-            Set<Term> result = new HashSet<>();
-            for (Instruction instruction: rules.getInstructions()) {
-                result.addAll(instruction.getGenerableTerms());
-            }
-            return result;
+            return rules.getGenerableTerms();
         }
 
 

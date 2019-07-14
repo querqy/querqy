@@ -13,6 +13,7 @@ import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
 import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.commonrules.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.SelectionStrategyFactory;
@@ -21,6 +22,9 @@ import querqy.rewrite.commonrules.SelectionStrategyFactory;
  * @author René Kriegler, @renekrie
  */
 public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<RewriterFactory> {
+
+    private static final SelectionStrategyFactory DEFAULT_SELECTION_STRATEGY_FACTORY =
+            new ExpressionCriteriaSelectionStrategyFactory();
 
     /*
      * (non-Javadoc)
@@ -45,7 +49,9 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
         if (selectionStrategyConfiguration != null) {
 
             @SuppressWarnings("unchecked")
-            final List<NamedList<?>> strategyConfigs = (List<NamedList<?>>) selectionStrategyConfiguration.getAll("strategy");
+            final List<NamedList<?>> strategyConfigs = (List<NamedList<?>>) selectionStrategyConfiguration
+                    .getAll("strategy");
+
             if (strategyConfigs != null) {
                 for (NamedList<?> config : strategyConfigs) {
                     @SuppressWarnings("unchecked")
@@ -80,7 +86,7 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
 
         return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(id,
                 new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"), querqyParser,
-                ignoreCase == null || ignoreCase, selectionStrategyFactories);
+                ignoreCase == null || ignoreCase, selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY);
     }
 
     @Override
