@@ -12,11 +12,12 @@ import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 import querqy.lucene.rewrite.SimilarityTermQueryBuilder.SimilarityTermQuery;
@@ -93,7 +94,7 @@ public class SimilarityTermQueryBuilderTest extends LuceneTestCase {
 
         TopDocs topDocs = indexSearcher.search(query, 10);
 
-        assertEquals(1, topDocs.totalHits);
+        assertEquals(1, topDocs.totalHits.value);
         Document resultDoc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
         assertEquals("v1", resultDoc.get("f1"));
 
@@ -108,7 +109,7 @@ public class SimilarityTermQueryBuilderTest extends LuceneTestCase {
 
         Analyzer analyzer = new StandardAnalyzer();
 
-        Directory directory = new RAMDirectory();
+        Directory directory = new ByteBuffersDirectory();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setSimilarity(new ClassicSimilarity());
         IndexWriter indexWriter = new IndexWriter(directory, config);
@@ -130,14 +131,14 @@ public class SimilarityTermQueryBuilderTest extends LuceneTestCase {
 
         TopDocs topDocs = indexSearcher.search(query, 10);
 
-        final Weight weight = query.createWeight(indexSearcher, true, 4.5f);
+        final Weight weight = query.createWeight(indexSearcher, ScoreMode.COMPLETE, 4.5f);
         final Explanation explain = weight.explain(indexReader.getContext().leaves().get(0), topDocs.scoreDocs[0].doc);
 
         String explainText = explain.toString();
 
         assertTrue(explainText.contains("9.0 = boost")); // 4.5 (query) * 2.0 (field)
-        assertTrue(explainText.contains("4.0 = docFreq")); // 4 * v1
-        assertTrue(explainText.contains("termFreq=2.0")); // 2 * v1 in field
+        assertTrue(explainText.contains("4 = docFreq")); // 4 * v1
+        assertTrue(explainText.contains("2.0 = freq")); // 2 * v1 in field
 
         indexReader.close();
         directory.close();

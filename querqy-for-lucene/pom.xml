@@ -1,16 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>querqy</groupId>
-        <artifactId>querqy-parent</artifactId>
-        <version>3.2.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
     <groupId>querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>4.4.lucene720.0-SNAPSHOT</version>
+    <version>4.5.lucene810.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
@@ -20,11 +13,33 @@
         <tag>HEAD</tag>
     </scm>
 
+    <prerequisites>
+        <maven>3.3.0</maven>
+    </prerequisites>
+
     <properties>
-        <querqy.core.version>3.3.0-SNAPSHOT</querqy.core.version>
+
+        <maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <junit.version>4.12</junit.version>
+        <hamcrest.version>2.1</hamcrest.version>
+        <mockito.version>2.27.0</mockito.version>
+
+        <querqy.core.version>3.4.0-SNAPSHOT</querqy.core.version>
         <querqy.antlr.version>3.0.2</querqy.antlr.version>
-        <lucene.version>7.2.0</lucene.version>
+        <lucene.version>8.1.0</lucene.version>
+        <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>
+        <slf4j.version>1.7.26</slf4j.version>
+
     </properties>
 
     <modules>
@@ -44,14 +59,26 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -64,7 +91,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene70</tests.codec>
+                        <tests.codec>Lucene80</tests.codec>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

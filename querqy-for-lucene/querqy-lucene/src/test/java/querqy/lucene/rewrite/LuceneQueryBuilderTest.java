@@ -2,7 +2,6 @@ package querqy.lucene.rewrite;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,7 +22,7 @@ import org.junit.Test;
 
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import querqy.antlr.ANTLRQueryParser;
 import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;

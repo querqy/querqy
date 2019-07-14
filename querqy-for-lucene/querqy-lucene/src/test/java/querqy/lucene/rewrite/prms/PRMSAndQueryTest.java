@@ -22,13 +22,20 @@ import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import querqy.lucene.rewrite.*;
+
+import querqy.lucene.rewrite.DependentTermQueryBuilder;
+import querqy.lucene.rewrite.DocumentFrequencyCorrection;
+import querqy.lucene.rewrite.LuceneQueryBuilder;
+import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
+import querqy.lucene.rewrite.TestUtil;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PRMSAndQueryTest extends LuceneTestCase {
 
@@ -108,21 +115,22 @@ public class PRMSAndQueryTest extends LuceneTestCase {
 
         BooleanQuery bq2 = (BooleanQuery) disjunct2;
 
-        Similarity similarity = Mockito.mock(Similarity.class);
-        Similarity.SimWeight simWeight = Mockito.mock(Similarity.SimWeight.class);
+        Similarity similarity = mock(Similarity.class);
+        Similarity.SimScorer simScorer = mock(Similarity.SimScorer.class);
 
         ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
-        Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
-                Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
-
+        when(similarity.scorer(
+                computeWeightBoostCaptor.capture(),
+                any(CollectionStatistics.class),
+                ArgumentMatchers.<TermStatistics>any())).thenReturn(simScorer);
 
         IndexReader indexReader = DirectoryReader.open(directory);
         IndexSearcher indexSearcher =  new IndexSearcher(indexReader);
         indexSearcher.setSimilarity(similarity);
 
-        Weight weight1 = indexSearcher.createWeight(bq1, true, 1.0f);
-        Weight weight2 = indexSearcher.createWeight(bq2, true, 1.0f);
+        Weight weight1 = indexSearcher.createWeight(bq1, ScoreMode.COMPLETE, 1.0f);
+        Weight weight2 = indexSearcher.createWeight(bq2, ScoreMode.COMPLETE, 1.0f);
 
         final List<Float> capturedBoosts = computeWeightBoostCaptor.getAllValues();
 

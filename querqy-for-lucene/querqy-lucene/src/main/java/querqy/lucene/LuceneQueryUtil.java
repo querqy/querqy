@@ -1,9 +1,11 @@
 package querqy.lucene;
 
 import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queries.function.ValueSource;
 import org.apache.lucene.queries.function.valuesource.QueryValueSource;
 import org.apache.lucene.search.BoostQuery;
+import org.apache.lucene.search.DoubleValuesSource;
 import org.apache.lucene.search.Query;
 
 /**
@@ -26,5 +28,11 @@ public class LuceneQueryUtil {
         return (query instanceof FunctionQuery)
                 ? ((FunctionQuery)query).getValueSource()
                 : new QueryValueSource(query, 1.0f);
+    }
+
+    public static DoubleValuesSource queryToDoubleValueSource(final Query query) {
+        return (query instanceof FunctionScoreQuery)
+                ? ((FunctionScoreQuery)query).getSource()
+                : DoubleValuesSource.fromQuery(query);
     }
 }

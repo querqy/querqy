@@ -22,7 +22,7 @@ import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import querqy.lucene.rewrite.*;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
@@ -37,12 +37,12 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
     public void testGetThatFieldProbabilityRatioIsReflectedInBoost() throws Exception {
 
         Similarity similarity = Mockito.mock(Similarity.class);
-        Similarity.SimWeight simWeight = Mockito.mock(Similarity.SimWeight.class);
+        Similarity.SimScorer simWeight = Mockito.mock(Similarity.SimScorer.class);
 
         ArgumentCaptor<Float> computeWeightBoostCaptor = ArgumentCaptor.forClass(Float.class);
 
-        Mockito.when(similarity.computeWeight(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
-                Matchers.<TermStatistics>anyVararg())).thenReturn(simWeight);
+        Mockito.when(similarity.scorer(computeWeightBoostCaptor.capture(), any(CollectionStatistics.class),
+                ArgumentMatchers.<TermStatistics>any())).thenReturn(simWeight);
 
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
@@ -114,7 +114,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         Query query = queryBuilder.createQuery(parser.parse("abc"));
         dfc.finishedUserQuery();
-        query.createWeight(indexSearcher, true, 1f);
+        query.createWeight(indexSearcher, ScoreMode.COMPLETE, 1f);
         
         assertTrue(query instanceof DisjunctionMaxQuery);
         
@@ -138,8 +138,8 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         }
 
 
-        Weight weight1 = dmq1.createWeight(indexSearcher, true, 1f);
-        Weight weight2 = dmq2.createWeight(indexSearcher, true, 1f);
+        Weight weight1 = dmq1.createWeight(indexSearcher, ScoreMode.COMPLETE, 1f);
+        Weight weight2 = dmq2.createWeight(indexSearcher, ScoreMode.COMPLETE, 1f);
 
         final List<Float> capturedBoosts = computeWeightBoostCaptor.getAllValues();
 

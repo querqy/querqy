@@ -2,6 +2,7 @@ package querqy.lucene.rewrite;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Weight;
 
@@ -33,9 +34,8 @@ public class SimilarityTermQueryBuilder implements TermQueryBuilder {
         }
 
         @Override
-        public Weight createWeight(final IndexSearcher searcher, final boolean needsScores, final float boost)
-                throws IOException {
-            return super.createWeight(searcher, needsScores,
+        public Weight createWeight(IndexSearcher searcher, ScoreMode scoreMode, float boost) throws IOException {
+            return super.createWeight(searcher, scoreMode,
                     boost * fieldBoost.getBoost(getTerm().field(), searcher.getIndexReader()));
         }
 
