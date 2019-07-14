@@ -1,17 +1,21 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static querqy.rewrite.commonrules.model.ConfigurationOrderSelectionStrategy.COMPARATORS;
+import static querqy.rewrite.commonrules.select.ConfigurationOrderSelectionStrategy.COMPARATORS;
 import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.InstructionsProperties;
+import querqy.rewrite.commonrules.model.TermMatches;
 
 import java.util.Arrays;
 import java.util.Collections;

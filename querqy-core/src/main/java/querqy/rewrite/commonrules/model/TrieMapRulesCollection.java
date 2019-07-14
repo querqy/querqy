@@ -11,6 +11,7 @@ import java.util.Set;
 import querqy.CompoundCharSequence;
 import querqy.model.InputSequenceElement;
 import querqy.model.Term;
+import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -35,7 +36,7 @@ public class TrieMapRulesCollection implements RulesCollection {
     }
 
     /* (non-Javadoc)
-     * @see querqy.rewrite.commonrules.model.RulesCollection#collectRewriteActions(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.FlatTopRewritingActionCollector)
+     * @see querqy.rewrite.commonrules.model.RulesCollection#collectRewriteActions(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.select.FlatTopRewritingActionCollector)
      */
     @Override
     public void collectRewriteActions(final PositionSequence<InputSequenceElement> sequence,

@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
 
 public interface SelectionStrategy {
 

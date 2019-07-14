@@ -1,10 +1,10 @@
 package querqy.solr;
 
 
-import static querqy.rewrite.commonrules.RuleSelectionParams.getFilterParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getLimitParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getSortParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getStrategyParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getFilterParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getLimitParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getSortParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getStrategyParamName;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -12,10 +12,11 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 
 /**
  * Different from the {@link CriteriaSelectionTest}, this test uses the {@link ExpressionSelectionStrategyFactory}
- * as the default {@link querqy.rewrite.commonrules.SelectionStrategyFactory} instead of configuring it in
+ * as the default {@link SelectionStrategyFactory} instead of configuring it in
  * solrconfig-commonrules-criteria-defaults.xml.
  */
 @SolrTestCaseJ4.SuppressSSL

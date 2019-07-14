@@ -1,6 +1,8 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
 
 import querqy.PriorityComparator;
+import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.Instructions;
 
 import java.util.Comparator;
 import java.util.List;

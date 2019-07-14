@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.select;
 
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.*;
@@ -13,16 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewrite.commonrules.model.CriteriaSelectionStrategy;
-import querqy.rewrite.commonrules.model.ExpressionFilterCriterion;
-import querqy.rewrite.commonrules.model.FilterCriterion;
-import querqy.rewrite.commonrules.model.FlatTopRewritingActionCollector;
 import querqy.rewrite.commonrules.model.Limit;
-import querqy.rewrite.commonrules.model.PropertySorting;
-import querqy.rewrite.commonrules.model.SelectionStrategy;
-import querqy.rewrite.commonrules.model.Sorting;
-import querqy.rewrite.commonrules.model.TopLevelRewritingActionCollector;
-import querqy.rewrite.commonrules.model.TopRewritingActionCollector;
 
 import java.util.List;
 import java.util.Objects;

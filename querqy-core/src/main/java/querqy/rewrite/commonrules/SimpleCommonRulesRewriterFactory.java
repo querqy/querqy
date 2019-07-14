@@ -3,7 +3,6 @@ package querqy.rewrite.commonrules;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -13,9 +12,10 @@ import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.SelectionStrategy;
+import querqy.rewrite.commonrules.select.SelectionStrategy;
+import querqy.rewrite.commonrules.select.RuleSelectionParams;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 
 /**
  * @author René Kriegler, @renekrie

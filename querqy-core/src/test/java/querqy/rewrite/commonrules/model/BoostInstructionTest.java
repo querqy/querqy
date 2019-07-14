@@ -9,7 +9,7 @@ import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.must;
 import static querqy.QuerqyMatchers.mustNot;
 import static querqy.QuerqyMatchers.term;
-import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
+import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.*;
 

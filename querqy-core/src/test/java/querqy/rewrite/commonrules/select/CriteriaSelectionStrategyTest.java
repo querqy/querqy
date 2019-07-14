@@ -1,16 +1,9 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.select;
 
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import querqy.rewrite.commonrules.model.Criteria;
-import querqy.rewrite.commonrules.model.CriteriaSelectionStrategy;
-import querqy.rewrite.commonrules.model.FlatTopRewritingActionCollector;
 import querqy.rewrite.commonrules.model.Limit;
-import querqy.rewrite.commonrules.model.PropertySorting;
-import querqy.rewrite.commonrules.model.Sorting;
-import querqy.rewrite.commonrules.model.TopLevelRewritingActionCollector;
-import querqy.rewrite.commonrules.model.TopRewritingActionCollector;
 
 import java.util.Collections;
 

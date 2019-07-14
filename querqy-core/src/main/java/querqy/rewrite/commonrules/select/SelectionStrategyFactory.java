@@ -1,8 +1,6 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.select;
 
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewrite.commonrules.model.ConfigurationOrderSelectionStrategy;
-import querqy.rewrite.commonrules.model.SelectionStrategy;
 
 public interface SelectionStrategyFactory {
 

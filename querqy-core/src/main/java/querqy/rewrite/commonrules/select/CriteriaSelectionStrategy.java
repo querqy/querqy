@@ -1,4 +1,6 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
+
+import querqy.rewrite.commonrules.model.Limit;
 
 import java.util.List;
 

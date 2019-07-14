@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.select;
 
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.*;

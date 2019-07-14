@@ -13,10 +13,10 @@ import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 
 import querqy.rewrite.RewriterFactory;
-import querqy.rewrite.commonrules.ExpressionCriteriaSelectionStrategyFactory;
+import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
-import querqy.rewrite.commonrules.SelectionStrategyFactory;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 
 /**
  * @author René Kriegler, @renekrie

@@ -1,13 +1,12 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
 
+
+import querqy.rewrite.commonrules.model.Limit;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Criteria {
-
-
 
     private final Sorting sorting;
     private final Limit limit;

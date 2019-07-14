@@ -1,11 +1,11 @@
 package querqy.solr;
 
 
-import static querqy.rewrite.commonrules.RuleSelectionParams.getFilterParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getIsUseLevelsForLimitParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getLimitParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getSortParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getStrategyParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getFilterParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getIsUseLevelsForLimitParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getLimitParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getSortParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getStrategyParamName;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;

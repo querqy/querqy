@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import querqy.model.InputSequenceElement;
+import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
 public interface RulesCollection {
 

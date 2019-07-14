@@ -1,12 +1,14 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static querqy.rewrite.commonrules.model.ConfigurationOrderSelectionStrategy.COMPARATORS;
+import static querqy.rewrite.commonrules.select.ConfigurationOrderSelectionStrategy.COMPARATORS;
 import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.junit.Assert;
 import org.junit.Test;
+import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.TermMatches;
 
 import java.util.Arrays;
 import java.util.Collections;

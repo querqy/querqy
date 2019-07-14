@@ -8,7 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
-import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
+import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.Arrays;
 import java.util.Collections;

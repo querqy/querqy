@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -11,7 +11,9 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import querqy.PriorityComparator;
-import querqy.rewrite.commonrules.model.Sorting.SortOrder;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.InstructionsTestSupport;
+import querqy.rewrite.commonrules.select.Sorting.SortOrder;
 
 import java.util.Comparator;
 
