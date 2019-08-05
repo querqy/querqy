@@ -274,20 +274,20 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
 
             @Override
             public Explanation explain(final LeafReaderContext context, final int doc) throws IOException {
-                final TermScorer scorer = scorer(context);
+
+                TermScorer scorer = scorer(context);
                 if (scorer != null) {
-                    final int newDoc = scorer.iterator().advance(doc);
+                    int newDoc = scorer.iterator().advance(doc);
                     if (newDoc == doc) {
                         float freq = scorer.freq();
-                        //Similarity.SimScorer docScorer = similarity.simScorer(stats, context);
-                        Explanation freqExplanation = Explanation.match(freq, "termFreq=" + freq);
-                        long norm = 1; // similarity.computeNorm(fieldInvertState);
-                        Explanation scoreExplanation = scorer.getDocScorer().explain(doc, freqExplanation);
+                        LeafSimScorer docScorer = new LeafSimScorer(simScorer, context.reader(), getTerm().field(), true);
+                        Explanation freqExplanation = Explanation.match(freq, "freq, occurrences of term within document");
+                        Explanation scoreExplanation = docScorer.explain(doc, freqExplanation);
                         return Explanation.match(
                                 scoreExplanation.getValue(),
                                 "weight(" + getQuery() + " in " + doc + ") ["
-                                        + similarity.getClass().getSimpleName() + ", " + fieldBoost.getClass().getSimpleName() + "], result of:",
-                                scoreExplanation );
+                                        + similarity.getClass().getSimpleName() + "], result of:",
+                                scoreExplanation);
                     }
                 }
                 return Explanation.noMatch("no matching term");
