@@ -171,6 +171,28 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
     }
 
     @Test
+    public void testMMTurningAllOptionalClausesIntoMust() throws Exception {
+
+        String q = "aaa bbb";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                "defType", "querqy",
+                DisMaxParams.MM, "2",
+               "uq.similarityScore", "dfc"
+        );
+
+
+        assertQ("MM all should clauses doesn't work",
+                req,
+                "//result[@numFound='1']");
+
+        req.close();
+
+
+    }
+
+    @Test
     public void testThatPfIsAppliedOnlyToExistingField() {
 
         String q = "a b c d";

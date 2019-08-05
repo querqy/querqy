@@ -8,11 +8,16 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
+import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
@@ -171,14 +176,67 @@ public class DependentTermQueryBuilderTest extends LuceneTestCase {
         final Explanation explain = weight2.explain(indexReader.leaves().get(0), topDocs.scoreDocs[0].doc);
 
         String explainText = explain.toString();
-
         assertTrue(explainText.contains("9.0 = boost")); // 4.5 (query) * 2.0 (field)
         assertTrue(explainText.contains("4 = docFreq")); // 4 * df of f1:v1
-        assertTrue(explainText.contains("2.0 = termFreq=2.0")); // don't use tf
+        assertTrue(explainText.contains("2.0 = freq")); // don't use tf
 
         indexReader.close();
         directory.close();
         analyzer.close();
+
+    }
+
+    @Test
+    public void testPostingsVsMaxScore() throws Exception {
+
+        Analyzer analyzer = new StandardAnalyzer();
+
+        Directory directory = new ByteBuffersDirectory();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setSimilarity(new ClassicSimilarity());
+        IndexWriter indexWriter = new IndexWriter(directory, config);
+
+        TestUtil.addNumDocsWithTextField("f1", "v1", indexWriter, 1);
+        TestUtil.addNumDocsWithTextField("f2", "v1 v2", indexWriter, 1);
+
+
+        indexWriter.close();
+
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(new ClassicSimilarity());
+
+
+        DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
+
+        Term qTerm1 = new Term("f2", "v1");
+        Term qTerm2 = new Term("f2", "v2");
+        dfc.newClause();
+        dfc.prepareTerm(qTerm1);
+        dfc.newClause();
+        dfc.prepareTerm(qTerm2);
+        dfc.finishedUserQuery();
+
+
+        DependentTermQueryBuilder.DependentTermQuery query1 = new DependentTermQueryBuilder(dfc)
+                .createTermQuery(qTerm1, fieldBoost1);
+        DependentTermQueryBuilder.DependentTermQuery query2 = new DependentTermQueryBuilder(dfc)
+                .createTermQuery(qTerm2, fieldBoost2);
+
+
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        builder.add(query1, BooleanClause.Occur.SHOULD);
+        builder.add(query2, BooleanClause.Occur.SHOULD);
+        builder.setMinimumNumberShouldMatch(2);
+
+        BooleanQuery bq = builder.build();
+
+        // Query execution will call org.apache.lucene.search.Scorer.getMaxScore which might consume
+        // the postingsEnum so that we don't get any hit
+        TopDocs topDocs = indexSearcher.search(bq, 10);
+        assertEquals(1, topDocs.scoreDocs.length);
+
+
 
     }
 
