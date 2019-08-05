@@ -1,7 +1,4 @@
-package querqy.rewrite.commonrules;
-
-import querqy.rewrite.commonrules.model.FilterCriterion;
-import querqy.rewrite.commonrules.model.ExpressionFilterCriterion;
+package querqy.rewrite.commonrules.select;
 
 /**
  * This class allows to select rules by using filter expressions for primitive values. Syntax: &quot;name:value&quot;

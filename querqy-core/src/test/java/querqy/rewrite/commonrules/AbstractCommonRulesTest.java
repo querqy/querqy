@@ -1,6 +1,6 @@
 package querqy.rewrite.commonrules;
 
-import static querqy.rewrite.commonrules.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
+import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.PositionSequence;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.Term;
-import querqy.rewrite.commonrules.model.TopRewritingActionCollector;
+import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
 public abstract class AbstractCommonRulesTest {
     

@@ -33,7 +33,7 @@
         <hamcrest.version>2.1</hamcrest.version>
         <mockito.version>2.27.0</mockito.version>
 
-        <querqy.core.version>3.3.0</querqy.core.version>
+        <querqy.core.version>3.4.0-SNAPSHOT</querqy.core.version>
         <querqy.antlr.version>3.0.2</querqy.antlr.version>
         <lucene.version>8.1.0</lucene.version>
         <minidev.json-smart.version>2.3</minidev.json-smart.version>

@@ -10,6 +10,8 @@ import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.InputBoundary.Type;
+import querqy.rewrite.commonrules.select.SelectionStrategy;
+import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
 import java.util.*;
 
