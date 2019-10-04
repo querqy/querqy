@@ -12,7 +12,6 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.trie.State;
-import querqy.trie.States;
 import querqy.trie.TrieMap;
 
 import java.util.LinkedList;
@@ -21,8 +20,6 @@ import java.util.List;
 import static querqy.rewrite.contrib.ReplaceRewriterParser.TOKEN_SEPARATOR;
 
 public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
-
-    // lowercase?
 
     private final TrieMap<List<ComparableCharSequence>> replaceRules;
     private final boolean ignoreCase;

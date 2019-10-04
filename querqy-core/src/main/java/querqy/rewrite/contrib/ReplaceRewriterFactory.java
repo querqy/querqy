@@ -1,7 +1,6 @@
 package querqy.rewrite.contrib;
 
 import querqy.ComparableCharSequence;
-import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
