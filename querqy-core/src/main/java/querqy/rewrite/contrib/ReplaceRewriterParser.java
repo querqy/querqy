@@ -22,25 +22,23 @@ public class ReplaceRewriterParser {
 
     private final InputStreamReader inputStreamReader;
     private final boolean ignoreCase;
+    private final String inputDelimiter;
     private final QuerqyParser querqyParser;
 
-    // enhance
-    private static final String ERROR_MESSAGE = "ReplaceRule not properly configured.";
+    private static final String ERROR_MESSAGE = "ReplaceRule not properly configured. Each non-empty line must either " +
+            "start with # or contain a rule, e. g. a => b";
 
     private static final String OPERATOR = "=>";
     public static final String TOKEN_SEPARATOR = " ";
 
-
-    // make delimiter configurable
-    private static final String DEFAULT_INPUT_DELIMITER = "\t";
-
-
     public ReplaceRewriterParser(final InputStreamReader inputStreamReader,
                                  final boolean ignoreCase,
+                                 final String inputDelimiter,
                                  final QuerqyParser querqyParser) {
 
         this.inputStreamReader = inputStreamReader;
         this.ignoreCase = ignoreCase;
+        this.inputDelimiter = inputDelimiter;
         this.querqyParser = querqyParser;
     }
 
@@ -65,7 +63,7 @@ public class ReplaceRewriterParser {
 
                 final String fullInput = lineSplit[0].trim();
                 final String output = lineSplit[1].trim();
-                final List<String> inputs = Arrays.stream(fullInput.split(DEFAULT_INPUT_DELIMITER))
+                final List<String> inputs = Arrays.stream(fullInput.split(this.inputDelimiter))
                         .map(String::trim)
                         .filter(term -> !term.isEmpty())
                         .collect(Collectors.toList());

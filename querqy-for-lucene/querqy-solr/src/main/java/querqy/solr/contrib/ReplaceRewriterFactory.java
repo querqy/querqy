@@ -2,9 +2,11 @@ package querqy.solr.contrib;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
+import querqy.model.BooleanQuery;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.contrib.ReplaceRewriter;
 import querqy.solr.FactoryAdapter;
 
 import java.io.IOException;
@@ -12,6 +14,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class ReplaceRewriterFactory implements FactoryAdapter<RewriterFactory> {
+
+    private static final Boolean DEFAULT_IGNORE_CASE = true;
+    private static final String DEFAULT_INPUT_DELIMITER = "\t";
+
     @Override
     public RewriterFactory createFactory(String id, NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
 
@@ -24,8 +30,9 @@ public class ReplaceRewriterFactory implements FactoryAdapter<RewriterFactory> {
 
         final Boolean ignoreCase = args.getBooleanArg("ignoreCase");
 
-        // querqy parser for queries that are part of the instructions in the
-        // rules
+        final String inputDelimiter = (String) args.get("inputDelimiter");
+
+        // querqy parser for queries that are part of the instructions in the rules
         String rulesQuerqyParser = (String) args.get("querqyParser");
         QuerqyParserFactory querqyParser = null;
         if (rulesQuerqyParser != null) {
@@ -40,11 +47,14 @@ public class ReplaceRewriterFactory implements FactoryAdapter<RewriterFactory> {
         }
 
 
-        return new querqy.rewrite.contrib.ReplaceRewriterFactory(id, reader, ignoreCase, querqyParser.createParser());
+        return new querqy.rewrite.contrib.ReplaceRewriterFactory(id, reader,
+                ignoreCase != null ? ignoreCase : DEFAULT_IGNORE_CASE,
+                inputDelimiter != null ? inputDelimiter : DEFAULT_INPUT_DELIMITER,
+                querqyParser.createParser());
     }
 
     @Override
     public Class<?> getCreatedClass() {
-        return null;
+        return ReplaceRewriter.class;
     }
 }

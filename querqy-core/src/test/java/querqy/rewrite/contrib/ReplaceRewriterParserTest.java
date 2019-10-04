@@ -21,7 +21,17 @@ import static org.junit.Assert.assertTrue;
 
 public class ReplaceRewriterParserTest {
 
-    // tests for wrong configurations
+    @Test(expected = IOException.class)
+    public void testWrongConfiguration() throws IOException {
+        String rules = "# comment\n"
+                + "something wrong \n"
+                + " FG => hi jk  \n ";
+
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
+                input, true, "\t", new WhiteSpaceQuerqyParser());
+        replaceRewriterParser.parseConfig();
+    }
 
     @Test
     public void testMappingCaseInsensitive() throws IOException {
@@ -32,7 +42,7 @@ public class ReplaceRewriterParserTest {
 
         InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, true, new WhiteSpaceQuerqyParser());
+                input, true, "\t", new WhiteSpaceQuerqyParser());
 
         TrieMap<List<ComparableCharSequence>> trieMap = replaceRewriterParser.parseConfig();
 
@@ -75,7 +85,7 @@ public class ReplaceRewriterParserTest {
 
         InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, false, new WhiteSpaceQuerqyParser());
+                input, false, "\t", new WhiteSpaceQuerqyParser());
 
         TrieMap<List<ComparableCharSequence>> trieMap = replaceRewriterParser.parseConfig();
 

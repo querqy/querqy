@@ -53,8 +53,6 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        System.out.println(querySeq);
-
         return hasReplacement ? buildQueryFromSeqList(querySeq) : query;
     }
 

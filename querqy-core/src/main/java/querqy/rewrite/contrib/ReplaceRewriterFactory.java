@@ -23,10 +23,11 @@ public class ReplaceRewriterFactory extends RewriterFactory {
     public ReplaceRewriterFactory(final String id,
                                   final InputStreamReader reader,
                                   final boolean ignoreCase,
+                                  final String inputDelimiter,
                                   final QuerqyParser querqyParser) throws IOException {
         super(id);
         this.ignoreCase = ignoreCase;
-        replaceRules = new ReplaceRewriterParser(reader, this.ignoreCase, querqyParser).parseConfig();
+        replaceRules = new ReplaceRewriterParser(reader, this.ignoreCase, inputDelimiter, querqyParser).parseConfig();
     }
 
     @Override
