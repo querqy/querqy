@@ -4,16 +4,19 @@ import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
+import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Node;
+import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.trie.State;
 import querqy.trie.TrieMap;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,23 +24,23 @@ import static querqy.rewrite.contrib.ReplaceRewriterParser.TOKEN_SEPARATOR;
 
 public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private final TrieMap<List<ComparableCharSequence>> replaceRules;
+    private final TrieMap<List<CharSequence>> replaceRules;
     private final boolean ignoreCase;
 
-    public ReplaceRewriter(TrieMap<List<ComparableCharSequence>> replaceRules, boolean ignoreCase) {
+    public ReplaceRewriter(TrieMap<List<CharSequence>> replaceRules, boolean ignoreCase) {
         this.replaceRules = replaceRules;
         this.ignoreCase = ignoreCase;
     }
 
-    private LinkedList<ComparableCharSequence> querySeq = new LinkedList<>();
-    private LinkedList<ComparableCharSequence> matchSeq = new LinkedList<>();
-    private State<List<ComparableCharSequence>> priorMatch = new State<>(false, null, null);
+    private LinkedList<CharSequence> querySeq;
+    private LinkedList<CharSequence> matchSeq;
+    private State<List<CharSequence>> priorMatch = new State<>(false, null, null);
     private boolean hasReplacement = false;
 
     @Override
     public ExpandedQuery rewrite(ExpandedQuery query) {
-        querySeq.clear();
-        matchSeq.clear();
+        querySeq = new LinkedList<>();
+        matchSeq = new LinkedList<>();
 
         visit((Query) query.getUserQuery());
 
@@ -50,10 +53,10 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        return hasReplacement ? buildQueryFromSeqList(querySeq) : query;
+        return hasReplacement ? buildQueryFromSeqList(query, querySeq) : query;
     }
 
-    private ExpandedQuery buildQueryFromSeqList(LinkedList<ComparableCharSequence> tokens) {
+    private ExpandedQuery buildQueryFromSeqList(ExpandedQuery oldQuery, LinkedList<CharSequence> tokens) {
         Query query = new Query();
         tokens.forEach(token -> {
             DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, false);
@@ -62,7 +65,24 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             dmq.addClause(term);
         });
 
-        return new ExpandedQuery(query);
+        ExpandedQuery newQuery = new ExpandedQuery(query);
+
+        Collection<BoostQuery> boostDownQueries = oldQuery.getBoostDownQueries();
+        if (boostDownQueries != null) {
+            boostDownQueries.forEach(newQuery::addBoostDownQuery);
+        }
+
+        Collection<BoostQuery> boostUpQueries = oldQuery.getBoostUpQueries();
+        if (boostUpQueries != null) {
+            boostUpQueries.forEach(newQuery::addBoostUpQuery);
+        }
+
+        Collection<QuerqyQuery<?>> filterQueries = oldQuery.getFilterQueries();
+        if (filterQueries != null) {
+            filterQueries.forEach(newQuery::addFilterQuery);
+        }
+
+        return newQuery;
     }
 
     @Override
@@ -77,7 +97,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         matchSeq.addLast(token);
 
         ComparableCharSequence seqForMatching = new CompoundCharSequence(TOKEN_SEPARATOR, matchSeq);
-        State<List<ComparableCharSequence>> match = replaceRules.get(
+        State<List<CharSequence>> match = replaceRules.get(
                 ignoreCase ? new LowerCaseCharSequence(seqForMatching) : seqForMatching).getStateForCompleteSequence();
 
         if (!match.isKnown) {

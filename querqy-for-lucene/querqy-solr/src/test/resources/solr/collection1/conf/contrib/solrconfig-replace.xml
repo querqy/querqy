@@ -2,7 +2,7 @@
 
 <config>
 
-	<luceneMatchVersion>5.0.0</luceneMatchVersion>
+	<luceneMatchVersion>7.0.0</luceneMatchVersion>
 	<directoryFactory name="DirectoryFactory" class="solr.RAMDirectoryFactory" />
 
 	<dataDir>${solr.core0.data.dir:}</dataDir>
@@ -35,7 +35,7 @@
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 
-	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	<queryParser name="querqy_defaults" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
            <lst name="rewriter">
                <str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
@@ -48,6 +48,31 @@
      	 </lst>
      	 
 	</queryParser>
+
+	<queryParser name="querqy_synonyms" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+		<lst name="rewriteChain">
+			<lst name="rewriter">
+				<str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
+				<str name="rules">contrib/replace-rules-before-synonyms.txt</str>
+				<bool name="ignoreCase">true</bool>
+				<str name="inputDelimiter">;</str>
+				<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+			</lst>
+			<lst name="rewriter">
+				<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+				<str name="rules">contrib/common-rules-after-replace.txt</str>
+				<bool name="ignoreCase">true</bool>
+				<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+			</lst>
+
+		</lst>
+		<lst name="parser">
+			<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+			<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+		</lst>
+
+	</queryParser>
+
 
 	<admin>
 		<defaultQuery>solr</defaultQuery>

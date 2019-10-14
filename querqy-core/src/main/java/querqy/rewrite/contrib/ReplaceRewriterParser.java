@@ -14,8 +14,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ReplaceRewriterParser {
@@ -42,9 +44,10 @@ public class ReplaceRewriterParser {
         this.querqyParser = querqyParser;
     }
 
-    public TrieMap<List<ComparableCharSequence>> parseConfig() throws IOException {
+    public TrieMap<List<CharSequence>> parseConfig() throws IOException {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
+        Set<CharSequence> checkForDuplicateInput = new HashSet<>();
 
         try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
@@ -72,13 +75,13 @@ public class ReplaceRewriterParser {
                     throw new RuleParseException(ERROR_MESSAGE);
                 }
 
-                final List<ComparableCharSequence> outputList = this.querqyParser.parse(output).getClauses().stream()
+                final List<CharSequence> outputList = this.querqyParser.parse(output).getClauses().stream()
                         .map(booleanClause -> (DisjunctionMaxQuery) booleanClause)
                         .flatMap(disjunctionMaxQuery -> disjunctionMaxQuery.getTerms().stream())
                         .map(Term::getValue)
                         .collect(Collectors.toCollection(LinkedList::new));
 
-                final List<ComparableCharSequence> inputList = inputs.stream()
+                final List<CharSequence> inputList = inputs.stream()
                         .map(this.querqyParser::parse)
                         .map(query -> query.getClauses().stream()
                                 .map(booleanClause -> (DisjunctionMaxQuery) booleanClause)
@@ -90,7 +93,14 @@ public class ReplaceRewriterParser {
                         .map(sequenceList -> new CompoundCharSequence(TOKEN_SEPARATOR, sequenceList))
                         .collect(Collectors.toList());
 
-                inputList.forEach(seq -> trieMap.put(seq, outputList));
+                for (CharSequence seq : inputList) {
+                    if (checkForDuplicateInput.contains(seq)) {
+                        throw new RuleParseException(String.format("Duplicate input: %s", seq));
+                    } else {
+                        checkForDuplicateInput.add(seq);
+                    }
+                    trieMap.put(seq, outputList);
+                }
             }
 
         } catch (RuleParseException e) {

@@ -1,8 +1,8 @@
 package querqy.rewrite.contrib;
 
 import org.junit.Test;
-import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
+import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
@@ -23,8 +24,28 @@ import static querqy.QuerqyMatchers.term;
 public class ReplaceRewriterTest {
 
     @Test
+    public void testReplacementKeepBoostAndFilterQueries() {
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
+        trieMap.put("a", getCharSeqs(Collections.singletonList("b")));
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(trieMap, true);
+
+        ExpandedQuery expandedQuery = getQuery(Collections.singletonList("a"));
+
+        expandedQuery.addBoostDownQuery(new BoostQuery(null, 1.0f));
+        expandedQuery.addBoostUpQuery(new BoostQuery(null, 1.0f));
+        expandedQuery.addFilterQuery(null);
+
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+
+        assertEquals(1, newExpandedQuery.getBoostDownQueries().size());
+        assertEquals(1, newExpandedQuery.getBoostUpQueries().size());
+        assertEquals(1, newExpandedQuery.getFilterQueries().size());
+    }
+
+    @Test
     public void testReplacementCaseSensitive() {
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
         trieMap.put("b c", getCharSeqs(Collections.singletonList("f")));
 
@@ -58,7 +79,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysIntersect() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
         trieMap.put("b c", getCharSeqs(Collections.singletonList("f")));
 
@@ -78,7 +99,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysSubset() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
         trieMap.put("a b c", getCharSeqs(Collections.singletonList("f")));
 
@@ -110,7 +131,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementInTheMiddle() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(trieMap, true);
@@ -131,7 +152,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementAtBeginning() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(trieMap, true);
@@ -152,7 +173,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementAtEnd() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(trieMap, true);
@@ -173,7 +194,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementRemoveGeneratedIfMatch() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(trieMap, true);
@@ -200,7 +221,7 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementKeepGeneratedIfUnmatched() {
 
-        TrieMap<List<ComparableCharSequence>> trieMap = new TrieMap<>();
+        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
         trieMap.put("a b", getCharSeqs(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(trieMap, true);
@@ -231,7 +252,7 @@ public class ReplaceRewriterTest {
         return new ExpandedQuery(query);
     }
 
-    private List<ComparableCharSequence> getCharSeqs(List<String> strings) {
+    private List<CharSequence> getCharSeqs(List<String> strings) {
         return strings.stream().map(ComparableCharSequenceWrapper::new).collect(Collectors.toList());
     }
 

@@ -16,7 +16,7 @@ import java.util.Set;
 
 public class ReplaceRewriterFactory extends RewriterFactory {
 
-    private final TrieMap<List<ComparableCharSequence>> replaceRules;
+    private final TrieMap<List<CharSequence>> replaceRules;
     private final boolean ignoreCase;
 
     public ReplaceRewriterFactory(final String id,

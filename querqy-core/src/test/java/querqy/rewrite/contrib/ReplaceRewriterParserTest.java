@@ -1,7 +1,6 @@
 package querqy.rewrite.contrib;
 
 import org.junit.Test;
-import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
 import querqy.CompoundCharSequence;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -20,6 +19,32 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class ReplaceRewriterParserTest {
+
+    @Test(expected = IOException.class)
+    public void testWrongConfigurationDuplicateInputStringCaseInsensitive() throws IOException {
+        String rules = "# comment\n"
+                + "c => d \n"
+                + " a   B => b \n"
+                + "e d \t a b => c";
+
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
+                input, true, "\t", new WhiteSpaceQuerqyParser());
+        replaceRewriterParser.parseConfig();
+    }
+
+    @Test
+    public void testWrongConfigurationDuplicateInputStringCaseSensitive() throws IOException {
+        String rules = "# comment\n"
+                + "c => d \n"
+                + " a   B => b \n"
+                + "e d \t a b => c";
+
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
+                input, false, "\t", new WhiteSpaceQuerqyParser());
+        replaceRewriterParser.parseConfig();
+    }
 
     @Test(expected = IOException.class)
     public void testWrongConfiguration() throws IOException {
@@ -44,9 +69,9 @@ public class ReplaceRewriterParserTest {
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
                 input, true, "\t", new WhiteSpaceQuerqyParser());
 
-        TrieMap<List<ComparableCharSequence>> trieMap = replaceRewriterParser.parseConfig();
+        TrieMap<List<CharSequence>> trieMap = replaceRewriterParser.parseConfig();
 
-        States<List<ComparableCharSequence>> match = trieMap.get("ab");
+        States<List<CharSequence>> match = trieMap.get("ab");
         assertTrue(match.getStateForCompleteSequence().isKnown);
         assertTrue(match.getStateForCompleteSequence().isFinal());
         assertEquals(new ComparableCharSequenceWrapper("e"),
@@ -87,9 +112,9 @@ public class ReplaceRewriterParserTest {
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
                 input, false, "\t", new WhiteSpaceQuerqyParser());
 
-        TrieMap<List<ComparableCharSequence>> trieMap = replaceRewriterParser.parseConfig();
+        TrieMap<List<CharSequence>> trieMap = replaceRewriterParser.parseConfig();
 
-        States<List<ComparableCharSequence>> match = trieMap.get("ab");
+        States<List<CharSequence>> match = trieMap.get("ab");
         assertFalse(match.getStateForCompleteSequence().isKnown);
 
         match = trieMap.get("AB");
