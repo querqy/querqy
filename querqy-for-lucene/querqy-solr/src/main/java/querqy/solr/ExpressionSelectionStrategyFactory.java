@@ -2,8 +2,9 @@ package querqy.solr;
 
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
-import querqy.rewrite.commonrules.SelectionStrategyFactory;
-import querqy.rewrite.commonrules.model.SelectionStrategy;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.commonrules.select.SelectionStrategy;
+import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 
 public class ExpressionSelectionStrategyFactory implements FactoryAdapter<SelectionStrategyFactory> {
 
@@ -11,7 +12,7 @@ public class ExpressionSelectionStrategyFactory implements FactoryAdapter<Select
     public SelectionStrategyFactory createFactory(final String strategyId, final NamedList<?> args,
                                                   final ResourceLoader resourceLoader) {
         // TODO: pass strategyId
-        return new querqy.rewrite.commonrules.ExpressionCriteriaSelectionStrategyFactory();
+        return new ExpressionCriteriaSelectionStrategyFactory();
     }
 
     @Override

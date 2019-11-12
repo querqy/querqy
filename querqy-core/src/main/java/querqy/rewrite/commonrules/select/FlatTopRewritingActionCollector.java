@@ -1,4 +1,8 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules.select;
+
+import querqy.PriorityComparator;
+import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.Instructions;
 
 import java.util.Comparator;
 import java.util.List;
@@ -6,22 +10,23 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class TopRewritingActionCollector {
+public class FlatTopRewritingActionCollector implements TopRewritingActionCollector {
 
     private final TreeMap<Instructions, Function<Instructions, Action>> topN;
     private final int limit;
     private List<? extends FilterCriterion> filters;
     private final Comparator<Instructions> comparator;
 
-    public TopRewritingActionCollector(final Comparator<Instructions> comparator, final int limit,
-                                       final List<? extends FilterCriterion> filters) {
+    public FlatTopRewritingActionCollector(final List<Comparator<Instructions>> comparators, final int limit,
+                                           final List<? extends FilterCriterion> filters) {
+        comparator = new PriorityComparator<>(comparators);
         topN = new TreeMap<>(comparator);
         this.limit = limit;
         this.filters = filters;
-        this.comparator = comparator;
     }
 
 
+    @Override
     public void offer(final List<Instructions> instructions, final Function<Instructions, Action> actionCreator) {
 
         if (limit == 0) {
@@ -43,7 +48,7 @@ public class TopRewritingActionCollector {
             } else if (topN.size() < limit) {
                 topN.put(instr, actionCreator);
             } else {
-                 final Instructions lastInstructions = topN.lastKey();
+                final Instructions lastInstructions = topN.lastKey();
                 if (comparator.compare(lastInstructions, instr) > 0) {
                     topN.put(instr, actionCreator);
                     if (topN.size() > limit) {
@@ -56,6 +61,7 @@ public class TopRewritingActionCollector {
 
     }
 
+    @Override
     public List<Action> createActions() {
 
         return topN.entrySet().stream()
@@ -64,15 +70,14 @@ public class TopRewritingActionCollector {
 
     }
 
+    @Override
     public int getLimit() {
         return limit;
     }
 
+    @Override
     public List<? extends FilterCriterion> getFilters() {
         return filters;
     }
 
-    public Comparator<Instructions> getComparator() {
-        return comparator;
-    }
 }
