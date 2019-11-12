@@ -6,7 +6,7 @@ Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.
 
 Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
 
-**Querqy is now available for Solr/Lucene 8.0. You will have to re-test your search result orders due to changes in Lucene.** See [Release Notes](https://github.com/renekrie/querqy/wiki#15-june-2019---querqy-44lucene8000) for details.
+**Querqy is now available for Solr/Lucene 8.x. You will have to re-test your search result orders due to changes in Lucene if you are migrating from an earlier Solr/Lucene version.** See [Release Notes](https://github.com/renekrie/querqy/wiki#15-june-2019---querqy-44lucene8000) for details.
 
 **NEW: There is now a web UI for managing common query rewriting rules with Querqy. Make sure you check out [SMUI](https://github.com/pbartusch/smui)!**
 
@@ -21,7 +21,9 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|8.0.0| 4.4.lucene800.x|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#15-june-2019---querqy-44lucene8000). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
+|8.2.x| 4.4.lucene810.x||
+|8.1.x| 4.4.lucene810.x|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
+|8.0.0| 4.4.lucene800.x|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
 |7.7.0| 4.4.lucene720.x||
 |7.6.0| 4.4.lucene720.x||
 |7.5.0| 4.4.lucene720.x||
@@ -592,13 +594,13 @@ notebook bag =>
 
 The first rule ('ID1') defines a down boost for all documents containing 'bag' if the query contains 'notebook'. This makes sense as users probably are less interested in notebook bags when they search for a notebook. Except, if they search for 'notebook bag' - in this case we would not want to apply rule ID1. Properties will help us solve this problem by ordering and selecting rules depending on the context.
 
-In order to enable rule selection and ordering we have do define a SelectionStrategy for the Common Rules rewriter in solrconfig.xml:
+In order to enable rule selection and ordering we have to define a SelectionStrategy for the Common Rules rewriter in solrconfig.xml:
 
 ~~~xml
 
 <queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 	
-		<lst name="rewriteChain">
+	<lst name="rewriteChain">
             <lst name="rewriter">
 <!-- 
 	Note the rewriter ID: 
@@ -951,6 +953,7 @@ Please base development on the branch for the corresponding Solr version. querqy
 ### Contributors
 
  - [Anton Dumler](https://github.com/jagile)
+ - [Johannes Peter](https://github.com/JohannesDaniel)
  - [Lucky Sharma](https://github.com/MighTguY)
  - [Markus Heiden](https://github.com/markus-s24)
  - [Markus Müllenborn](https://github.com/muellenborn)

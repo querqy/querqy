@@ -1,11 +1,10 @@
-package querqy.rewrite.commonrules;
+package querqy.rewrite.commonrules.select;
 
 import static org.junit.Assert.*;
-import static querqy.rewrite.commonrules.PrimitiveValueSelectionStrategyFactory.criteriaToJsonPathExpressionCriterion;
+import static querqy.rewrite.commonrules.select.PrimitiveValueSelectionStrategyFactory.criteriaToJsonPathExpressionCriterion;
 import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 import org.junit.Test;
-import querqy.rewrite.commonrules.model.FilterCriterion;
 import querqy.rewrite.commonrules.model.Instructions;
 
 public class PrimitiveValueSelectionStrategyFactoryTest {

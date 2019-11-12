@@ -2,7 +2,6 @@ package querqy.solr;
 
 
 import static querqy.rewrite.commonrules.select.RuleSelectionParams.getFilterParamName;
-import static querqy.rewrite.commonrules.select.RuleSelectionParams.getIsUseLevelsForLimitParamName;
 import static querqy.rewrite.commonrules.select.RuleSelectionParams.getLimitParamName;
 import static querqy.rewrite.commonrules.select.RuleSelectionParams.getSortParamName;
 import static querqy.rewrite.commonrules.select.RuleSelectionParams.getStrategyParamName;
@@ -13,9 +12,15 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 
+/**
+ * Different from the {@link CriteriaSelectionTest}, this test uses the {@link ExpressionSelectionStrategyFactory}
+ * as the default {@link SelectionStrategyFactory} instead of configuring it in
+ * solrconfig-commonrules-criteria-defaults.xml.
+ */
 @SolrTestCaseJ4.SuppressSSL
-public class CriteriaSelectionTest extends SolrTestCaseJ4 {
+public class CriteriaSelectionDefaultsTest extends SolrTestCaseJ4 {
 
     // matching CommonRulesRewriter in solrconfig-commonrules-criteria.xml:
     private static final String REWRITER_ID_1 = "rules1";
@@ -34,7 +39,7 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules-criteria.xml", "schema.xml");
+        initCore("solrconfig-commonrules-criteria-defaults.xml", "schema.xml");
     }
 
     @Override
@@ -134,6 +139,7 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 getStrategyParamName(REWRITER_ID_1), "criteria",
+                getFilterParamName(REWRITER_ID_1), "group:1",
                 getSortParamName(REWRITER_ID_1), "priority asc",
                 getLimitParamName(REWRITER_ID_1), "1",
                 "defType", "querqy",
@@ -144,28 +150,6 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response' and @numFound='1']",
                 "//result/doc/str[@name='id'][text()='2']"
-        );
-
-        req.close();
-    }
-
-    @Test
-    public void testSortingAndLimitingWithLevel() {
-        SolrQueryRequest req = req("q", "input1 input2",
-                DisMaxParams.QF, "f1",
-                DisMaxParams.MM, "1",
-                getSortParamName(REWRITER_ID_1), "priority asc",
-                getLimitParamName(REWRITER_ID_1), "1",
-                getIsUseLevelsForLimitParamName(REWRITER_ID_1), "true",
-                "defType", "querqy",
-                "debugQuery", "true"
-        );
-
-        assertQ("PropertySorting/limit not working",
-                req,
-                "//result[@name='response' and @numFound='2']",
-                "//result/doc/str[@name='id'][text()='2']",
-                "//result/doc/str[@name='id'][text()='3']"
         );
 
         req.close();
@@ -218,7 +202,6 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input5 input6",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getStrategyParamName(REWRITER_ID_3), "criteria",
                 getFilterParamName(REWRITER_ID_3), "$[?(@.tenant)].tenant[?(@.enabled == true)]",
                 "defType", "querqy",
                 "debugQuery", "true"
@@ -239,7 +222,6 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input5 input6",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getStrategyParamName(REWRITER_ID_3), "criteria",
                 getFilterParamName(REWRITER_ID_3), "$[?('a' in @.tt)]",
                 "defType", "querqy",
                 "debugQuery", "true"
@@ -258,7 +240,6 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input5 input6",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getStrategyParamName(REWRITER_ID_3), "criteria",
                 getFilterParamName(REWRITER_ID_3), "$[?(@.tenant && @.priority > 5)].tenant[?(@.enabled == true)]",
                 "defType", "querqy",
                 "debugQuery", "true"
@@ -273,5 +254,22 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
         req.close();
     }
 
+    @Test(expected = Exception.class)
+    public void testThatStrategyParamThrowsException() {
+        SolrQueryRequest req = req("q", "input5 input6",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getStrategyParamName(REWRITER_ID_3), "criteria",
+                getFilterParamName(REWRITER_ID_3), "$[?(@.tenant && @.priority > 5)].tenant[?(@.enabled == true)]",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("Exception expected",
+                req
+        );
+
+        req.close();
+    }
 
 }
