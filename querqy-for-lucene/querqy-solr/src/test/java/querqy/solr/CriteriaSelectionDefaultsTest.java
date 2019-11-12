@@ -265,10 +265,8 @@ public class CriteriaSelectionDefaultsTest extends SolrTestCaseJ4 {
                 "debugQuery", "true"
         );
 
-        assertQ("Json eq and gt filter criterion doesn't work",
-                req,
-                "//result[@name='response' and @numFound='1']",
-                "//result/doc/str[@name='id'][text()='1']"
+        assertQ("Exception expected",
+                req
         );
 
         req.close();
