@@ -23,7 +23,7 @@ Detailed Solr version mapping:
 |----|-----------|-------------|
 |8.3.x| 4.5.lucene810.x||
 |8.2.x| 4.5.lucene810.x||
-|8.1.x| 4.5.lucene810.x|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
+|8.1.x| 4.5.lucene810.x|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
 |8.0.0| 4.4.lucene800.x|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
 |7.7.0| 4.4.lucene720.x||
 |7.6.0| 4.4.lucene720.x||
