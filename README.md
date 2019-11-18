@@ -963,6 +963,7 @@ Please base development on the branch for the corresponding Solr version. querqy
  - [Matthias Krüger](https://github.com/mkr), Committer
  - [René Kriegler](https://github.com/renekrie), Committer/Maintainer
  - [Robert Giacinto](https://github.com/lichtsprung)
+ - [Thomas Wünsche](https://github.com/bzrk)
  - [Tobias Kässmann](https://github.com/tkaessmann)
  - [Torsten Bøgh Köster](https://github.com/tboeghk)
 
