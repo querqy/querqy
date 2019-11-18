@@ -244,10 +244,11 @@ public class QueryParsingController {
 
                 if (multiplicativeBoosts.size() > 1) {
                     final ValueSource prod = new ProductFloatFunction(
-                            (ValueSource[]) multiplicativeBoosts
-                                    .stream()
-                                    .map(LuceneQueryUtil::queryToValueSource)
-                                    .toArray());
+                            multiplicativeBoosts
+                                .stream()
+                                .map(LuceneQueryUtil::queryToValueSource)
+                                .toArray(ValueSource[]::new)
+                    );
                     mainQuery = FunctionScoreQuery.boostByValue(bq, prod.asDoubleValuesSource());
                 } else {
                     mainQuery = FunctionScoreQuery.boostByValue(bq, LuceneQueryUtil.queryToDoubleValueSource(multiplicativeBoosts.get(0)));
