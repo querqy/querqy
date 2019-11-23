@@ -752,6 +752,26 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
     }
 
+    @Test
+    public void testThatSeveralBoostParamsAreApplied() {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87^100",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87^200",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied",
+                req,
+                "//lst[@name='explain']/str[@name='8'][contains(.,'weight(FunctionScoreQuery(f1:aaa, " +
+                        "scored by boost(product(query((f2:w87)^100.0,def=1.0),query((f2:w87)^200.0,def=1.0)))))')]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
+    }
+
 
     public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
