@@ -21,18 +21,18 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|8.3.x| 4.5.lucene810.x||
-|8.2.x| 4.5.lucene810.x||
-|8.1.x| 4.5.lucene810.x|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
-|8.0.0| 4.5.lucene800.x|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
-|7.7.0| 4.4.lucene720.x||
-|7.6.0| 4.4.lucene720.x||
-|7.5.0| 4.4.lucene720.x||
-|7.4.0| 4.4.lucene720.x||
-|7.3.x| 4.4.lucene720.x||
-|7.2.x| 4.4.lucene720.x||
-|7.1.0| 4.1.lucene700.x||
-|7.0.x| 4.1.lucene700.x|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
+|8.3.x| 4.5.lucene810.2||
+|8.2.x| 4.5.lucene810.2||
+|8.1.x| 4.5.lucene810.2|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
+|8.0.0| 4.5.lucene800.1|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
+|7.7.0| 4.4.lucene720.0||
+|7.6.0| 4.4.lucene720.0||
+|7.5.0| 4.4.lucene720.0||
+|7.4.0| 4.4.lucene720.0||
+|7.3.x| 4.4.lucene720.0||
+|7.2.x| 4.4.lucene720.0||
+|7.1.0| 4.1.lucene700.0||
+|7.0.x| 4.1.lucene700.0|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
 
 For older Solr versions, please see [here](https://github.com/renekrie/querqy/wiki/Older-Querqy-versions).
 
