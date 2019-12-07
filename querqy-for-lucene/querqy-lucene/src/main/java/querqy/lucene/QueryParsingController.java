@@ -374,14 +374,55 @@ public class QueryParsingController {
                 }
 
                 if (luceneQuery != null) {
-                    final float boost = bq.getBoost() * factor;
+
+                    final Query queryToAdd;
+                    final float boost;
+
+                    if (luceneQuery instanceof BooleanQuery) {
+
+                        final BooleanQuery booleanQuery = ((BooleanQuery) luceneQuery);
+                        final List<BooleanClause> clauses = booleanQuery.clauses();
+
+                        final List<BooleanClause> mustNotClauses = clauses.stream()
+                                .filter(clause -> clause.getOccur() == BooleanClause.Occur.MUST_NOT)
+                                .collect(Collectors.toList());
+
+                        if (mustNotClauses.size() == clauses.size()) {
+
+                            // boosting on purely negative query, apply negated boost on the negated query
+                            final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+                            builder.setMinimumNumberShouldMatch(booleanQuery.getMinimumNumberShouldMatch());
+                            mustNotClauses.forEach(q -> builder.add(q.getQuery(), BooleanClause.Occur.MUST));
+
+                            queryToAdd = builder.build();
+
+                            boost = -bq.getBoost() * factor;
+                            if (boost != 1f) {
+
+                                final QueryValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+                                result.add(new FunctionQuery(new AdditiveBoostFunction(queryValueSource, boost)));
+
+                            } else {
+                                result.add(luceneQuery);
+
+                            }
+                        } else {
+                            queryToAdd = luceneQuery;
+                            boost = bq.getBoost() * factor;
+                        }
+
+                    } else {
+                        queryToAdd = luceneQuery;
+                        boost = bq.getBoost() * factor;
+                    }
+
                     if (boost != 1f) {
 
-                        final QueryValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+                        final QueryValueSource queryValueSource = new QueryValueSource(queryToAdd, 0f);
                         result.add(new FunctionQuery(new AdditiveBoostFunction(queryValueSource, boost)));
 
                     } else {
-                        result.add(luceneQuery);
+                        result.add(queryToAdd);
 
                     }
 
