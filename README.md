@@ -4,11 +4,13 @@
 Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/querqy/users)
 # Querqy
 
-Querqy is a framework for query preprocessing in Java-based search engines. It comes with a powerful, rule-based preprocessor named 'Common Rules Preprocessor', which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. While the Common Rules Preprocessor is not specific to any search engine, Querqy provides a plugin to run it within the Solr search engine.
+Querqy is a framework for query preprocessing in Java-based search engines. This is the repository for Querqy Core (search engine independent) and for the Lucene/Solr version. Querqy for Elasticsearch can be found [here](https://github.com/renekrie/querqy-elasticsearch).
+
+Querqy comes with a powerful, rule-based preprocessor named 'Common Rules' rewriter, which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. In this README we will explain how to install Querqy under Solr and how to configure rules for the Common Rules rewriter.
 
 **Querqy is now available for Solr/Lucene 8.x. You will have to re-test your search result orders due to changes in Lucene if you are migrating from an earlier Solr/Lucene version.** See [Release Notes](https://github.com/renekrie/querqy/wiki#15-june-2019---querqy-44lucene8000) for details.
 
-**NEW: There is now a web UI for managing common query rewriting rules with Querqy. Make sure you check out [SMUI](https://github.com/pbartusch/smui)!**
+**There is now a web UI for managing common query rewriting rules with Querqy. Make sure you check out [SMUI](https://github.com/pbartusch/smui)!**
 
 
 ## Getting started: setting up Common Rules under Solr
