@@ -33,20 +33,22 @@ import java.util.Set;
 @SolrTestCaseJ4.SuppressSSL
 public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
-   public void index() {
+    public void index() {
 
-      assertU(adoc("id", "1", "f1", "a"));
-      assertU(adoc("id", "2", "f1", "a"));
-      assertU(adoc("id", "3", "f2", "a"));
-      assertU(adoc("id", "4", "f1", "b"));
-      assertU(adoc("id", "5", "f1", "spellcheck", "f2", "test"));
-      assertU(adoc("id", "6", "f1", "spellcheck filtered", "f2", "test"));
-      assertU(adoc("id", "7", "f1", "aaa"));
-      assertU(adoc("id", "8", "f1", "aaa bbb ccc", "f2", "w87"));
-      assertU(adoc("id", "9", "f1", "ignore o u s"));
+        assertU(adoc("id", "1", "f1", "a"));
+        assertU(adoc("id", "2", "f1", "a"));
+        assertU(adoc("id", "3", "f2", "a"));
+        assertU(adoc("id", "4", "f1", "b"));
+        assertU(adoc("id", "5", "f1", "spellcheck", "f2", "test"));
+        assertU(adoc("id", "6", "f1", "spellcheck filtered", "f2", "test"));
+        assertU(adoc("id", "7", "f1", "aaa"));
+        assertU(adoc("id", "8", "f1", "aaa bbb ccc", "f2", "w87"));
+        assertU(adoc("id", "9", "f1", "ignore o u s"));
+        assertU(adoc("id", "10", "f1", "vv uu tt ss xx ff gg hh"));
+        assertU(adoc("id", "11", "f1", "xx yy zz tt ll ff gg hh"));
 
-      assertU(commit());
-   }
+        assertU(commit());
+    }
 
     @BeforeClass
     public static void beforeTests() throws Exception {
@@ -232,7 +234,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
       assertQ("Matchall fails",
             req,
             "//str[@name='parsedquery'][contains(.,'*:*')]",
-            "//result[@name='response' and @numFound='9']"
+            "//result[@name='response' and @numFound='11']"
 
       );
 
@@ -545,6 +547,74 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
    }
 
     @Test
+    public void testThatBoostUpInPurelyNegativeSingleTokenQueryIsApplied() {
+        SolrQueryRequest req = req("q", "xx uu",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("UP on negative single query not working",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc[1]/str[@name='id'][text()='11']"
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBoostDownInPurelyNegativeMultiTokenQueryIsApplied() {
+        SolrQueryRequest req = req("q", "gg ss",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("UP on negative multi-token query not working",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc[1]/str[@name='id'][text()='11']"
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBoostDownInPurelyNegativeSingleTokenQueryIsApplied() {
+        SolrQueryRequest req = req("q", "ff uu",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("UP on negative single query not working",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc[1]/str[@name='id'][text()='11']"
+        );
+        req.close();
+
+    }
+
+    @Test
+    public void testThatBoostUpMixedQueryIsApplied() {
+        SolrQueryRequest req = req("q", "hh uu",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("UP on negative single query not working",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc[1]/str[@name='id'][text()='11']"
+        );
+        req.close();
+
+    }
+
+    @Test
     public void testThatUpRuleCanPickUpPlaceHolder() {
 
         SolrQueryRequest req = req("q", "aaa",
@@ -700,7 +770,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
         assertQ("bq not applied to MatchAll",
                 req,
-                "//result[@numFound='9']",
+                "//result[@numFound='11']",
                 "//str[@name='parsedquery'][contains(.,'f2:w87')]",
                 "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
                 "//doc[1]/str[@name='id'][text()='8']"
@@ -722,7 +792,7 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
 
         assertQ("bq not applied to MatchAll",
                 req,
-                "//result[@numFound='9']",
+                "//result[@numFound='11']",
                 "//str[@name='parsedquery'][contains(.,'f2:w87')]",
                 "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
                 "//doc[1]/str[@name='id'][text()='8']"
@@ -750,6 +820,26 @@ public class DefaultQuerqyDismaxQParserTest extends SolrTestCaseJ4 {
         );
         req.close();
 
+    }
+
+    @Test
+    public void testThatSeveralBoostParamsAreApplied() {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87^100",
+                QuerqyDismaxParams.MULT_BOOST, "{!lucene}f2:w87^200",
+                "defType", "querqy",
+                "debugQuery", "true");
+
+        assertQ("bq not applied",
+                req,
+                "//lst[@name='explain']/str[@name='8'][contains(.,'weight(FunctionScoreQuery(f1:aaa, " +
+                        "scored by boost(product(query((f2:w87)^100.0,def=1.0),query((f2:w87)^200.0,def=1.0)))))')]",
+                "//doc[1]/str[@name='id'][text()='8']"
+
+        );
+        req.close();
     }
 
 

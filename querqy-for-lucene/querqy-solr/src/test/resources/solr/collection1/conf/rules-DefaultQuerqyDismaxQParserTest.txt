@@ -39,4 +39,21 @@ o =>
    UP(100): u
    SYNONYM: s
 
+xx =>
+   UP(1000): -vv
+
+tt =>
+   UP(1000): -uu -vv
+
+ff =>
+   DOWN(1000): -yy
+
+gg =>
+   DOWN(1000): -ll -yy
+
+hh =>
+   UP(1000): xx -vv
+
+
+
 

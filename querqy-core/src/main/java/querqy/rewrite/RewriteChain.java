@@ -22,6 +22,8 @@ import querqy.infologging.InfoLoggingContext;
 public class RewriteChain {
 
     final List<RewriterFactory> factories;
+
+    @Deprecated
     final Map<String, RewriterFactory> factoriesByName;
 
     public RewriteChain() {
@@ -71,11 +73,13 @@ public class RewriteChain {
 
         return work;
     }
-    
+
+    @Deprecated
     public List<RewriterFactory> getRewriterFactories() {
         return factories;
     }
 
+    @Deprecated
     public RewriterFactory getFactory(final String rewriterId) {
         return factoriesByName.get(rewriterId);
     }

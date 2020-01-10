@@ -68,7 +68,7 @@ public class PhraseBoosting {
     /**
      * <p>Make a phrase boost query.</p>
      * <p>Unlike in Solr, the scores of the queries from the (sub-)phrase levels, such as bi-grams, tri-grams and
-     * complete phrase, are not simply adds up but combined using a
+     * complete phrase, are not simply added up but combined using a
      * {@link org.apache.lucene.search.DisjunctionMaxQuery}. The phraseBoostTiebreaker parameter defines how
      * the scores for these levels are aggregated: a value of 1.0 will add up the scores, a value of 0.0 will pick the
      * highest score.</p>
