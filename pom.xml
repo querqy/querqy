@@ -38,7 +38,6 @@
 
     <modules>
         <module>querqy-core</module>
-        <module>querqy-antlr</module>
         <module>querqy-for-lucene</module>
     </modules>
 
