@@ -45,7 +45,7 @@
 		</lst>
 		<lst name="parser">
          <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-         <str name="class">querqy.antlr.ANTLRQueryParser</str>
+         <str name="class">querqy.parser.FieldAwareWhiteSpaceQuerqyParser</str>
       </lst>
 	</queryParser>
 	<admin>
