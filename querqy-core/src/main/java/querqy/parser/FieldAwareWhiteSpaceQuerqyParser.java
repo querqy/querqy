@@ -11,10 +11,12 @@ import querqy.model.Term;
 /**
  * <p>A {@link QuerqyParser} similar to {@link WhiteSpaceQuerqyParser}. In addition, the query string can
  * include field names, which must be prefixed to the value using a colon:
+ * </p>
+ *
  * <pre>
  *     field:value
  * </pre>
- * </p>
+ *
  *
  * @author René Kriegler, @renekrie
  *
