@@ -28,7 +28,7 @@ public class PositionSequence<T> extends LinkedList<List<T>> {
     * 
     * Adds an element at the current position
     * 
-    * @param element
+    * @param element The element to be added.
     */
    public void addElement(T element) {
       getLast().add(element);

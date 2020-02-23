@@ -28,7 +28,14 @@ public interface ContextAwareQueryRewriter extends QueryRewriter {
     String CONTEXT_KEY_DEBUG_DATA = "querqy.debug.rewrite.data";
 
     /**
+     * <p>Rewrite the query.</p>
+     * <p>Rewriters may or may not modify and return input query or work an a copy.</p>
+     *
      * @deprecated Use {@link #rewrite(ExpandedQuery, SearchEngineRequestAdapter)} instead.
+     *
+     * @param query The query to be rewritten
+     * @param context A map for passing information within the request context
+     * @return The rewritten query.
      */
     @Deprecated
     ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context);

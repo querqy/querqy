@@ -20,10 +20,12 @@ public class InstructionHelper {
 
     /**
      * Currently applies mm=100%
-     * @param query
-     * @return
+     * @param query The query on which mm should be applied
+     * @return The query with mm applied
      */
     public static BooleanQuery applyMinShouldMatchAndGeneratedToBooleanQuery(final BooleanQuery query) {
+
+        // TODO: avoid creating new query for single clause BQ
 
         final List<BooleanClause> clauses = query.getClauses();
 

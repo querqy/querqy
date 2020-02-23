@@ -23,12 +23,12 @@ public interface Instruction {
     
    /**
     * 
-    * @param sequence
-    * @param termMatches
-    * @param startPosition
-    * @param endPosition
-    * @param expandedQuery
-    * @param searchEngineRequestAdapter
+    * @param sequence The input flattened to a list where one element contains a lists of terms at the given position
+    * @param termMatches The terms that match the input condition of the rule
+    * @param startPosition The start position of the match in the sequence
+    * @param endPosition The end position of the match in the sequence
+    * @param expandedQuery The query to rewrite
+    * @param searchEngineRequestAdapter Access to the request context
     */
    void apply(PositionSequence<Term> sequence, TermMatches termMatches, int startPosition, int endPosition,
          ExpandedQuery expandedQuery,  SearchEngineRequestAdapter searchEngineRequestAdapter);
