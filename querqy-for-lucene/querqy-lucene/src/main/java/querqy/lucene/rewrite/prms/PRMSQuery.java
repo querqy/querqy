@@ -18,7 +18,7 @@ public interface PRMSQuery {
     /**
      * Calculate the probability of this query for a given index
      *
-     * @param indexReader The TndexReader
+     * @param indexReader The IndexReader
      * @return The probability of this query
      */
     double calculateLikelihood(IndexReader indexReader) throws IOException;
