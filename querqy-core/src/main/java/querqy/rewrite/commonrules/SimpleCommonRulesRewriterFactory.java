@@ -30,14 +30,14 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
     /**
      *
-     * @param rewriterId
-     * @param reader
-     * @param querqyParserFactory
-     * @param ignoreCase
-     * @param selectionStrategyFactories
+     * @param rewriterId The id of this rewriter
+     * @param reader The reader to access the rewriter configuration
+     * @param querqyParserFactory A parser for the right-hand side of rules
+     * @param ignoreCase Iff true, rule input matching is case insensitive.
+     * @param selectionStrategyFactories A mapping between names of rule selection strategies and their factories.
      * @param defaultSelectionStrategyFactory The default {@link SelectionStrategyFactory} to be used if no strategy is
      *                                       specified as a request parameter
-     * @throws IOException
+     * @throws IOException if rules cannot be read or parsed
      */
     public SimpleCommonRulesRewriterFactory(final String rewriterId,
                                             final Reader reader, final QuerqyParserFactory querqyParserFactory,

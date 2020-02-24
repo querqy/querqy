@@ -172,7 +172,7 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
     /**
      * Get the weight to be multiplied with the main Querqy query (the query entered by the user).
      *
-     * @return
+     * @return An optional weight of the main query.
      */
     Optional<Float> getUserQueryWeight();
 

@@ -15,9 +15,9 @@ public class PrefixTerm extends Term {
     /**
      * 
      * @param value The prefix (just the prefix characters, without any prefix marker)
-     * @param start
-     * @param length
-     * @param fieldNames
+     * @param start The offset into the value array
+     * @param length The number of characters in the prefix
+     * @param fieldNames The field names of this term
      */
     public PrefixTerm(char[] value, int start, int length, List<String> fieldNames) {
         super(value, start, length, fieldNames);
