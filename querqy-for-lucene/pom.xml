@@ -72,7 +72,7 @@
         <hamcrest.version>2.1</hamcrest.version>
         <mockito.version>2.27.0</mockito.version>
 
-        <querqy.core.version>3.5.0-SNAPSHOT</querqy.core.version>
+        <querqy.core.version>3.5.0</querqy.core.version>
         <lucene.version>8.1.0</lucene.version>
         <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>
@@ -86,6 +86,7 @@
     </modules>
 
     <repositories>
+        <!-- TODO: remove once we are at Maven Central. For now we use the released querqy-core from Bintray. -->
         <repository>
             <id>querqy-repo</id>
             <name>Querqy repo</name>
