@@ -59,13 +59,13 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final boolean verifyDecompoundCollation;
 
     /**
-     * @param wordBreakSpellChecker
-     * @param indexReader
-     * @param dictionaryField
-     * @param lowerCaseInput
-     * @param alwaysAddReverseCompounds
-     * @param reverseCompoundTriggerWords
-     * @param maxDecompoundExpansions
+     * @param wordBreakSpellChecker A WordBreakSpellChecker instance
+     * @param indexReader The index reader
+     * @param dictionaryField The dictionary field name
+     * @param lowerCaseInput Iff true, lowercase input before matching it against the dictionary field.
+     * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
+     * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
+     * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
      */
     public WordBreakCompoundRewriter(final WordBreakSpellChecker wordBreakSpellChecker,

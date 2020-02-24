@@ -44,7 +44,12 @@ public class QuerqyDismaxQParser extends QParser {
      * @param qstr        The part of the query string specific to this parser
      * @param localParams The set of parameters that are specific to this QParser.  See http://wiki.apache.org/solr/LocalParams
      * @param params      The rest of the {@link SolrParams}
-     * @param req         The original {@link SolrQueryRequest}.
+     * @param req         The original {@link SolrQueryRequest}
+     * @param querqyParser The Querqy query parser to be applied to the input query string
+     * @param rewriteChain The chain of rewriters to be applied to this request
+     * @param infoLogging The info logging object for this request
+     * @param termQueryCache The term query cache.
+     *
      */
     public QuerqyDismaxQParser(final String qstr, final SolrParams localParams, final SolrParams params,
                                final SolrQueryRequest req, final QuerqyParser querqyParser,
