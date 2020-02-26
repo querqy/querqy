@@ -11,7 +11,7 @@
     <artifactId>querqy-solr</artifactId>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Querqy query rewriting for Solr</description>
+    <description>Querqy library for query rewriting for Solr</description>
 
     <dependencies>
         <!--

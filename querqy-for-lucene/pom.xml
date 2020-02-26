@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Querqy query rewriting for Lucene - parent</description>
+    <description>Querqy library for query rewriting: Lucene parent</description>
     <url>https://querqy.org</url>
 
     <licenses>
@@ -29,6 +29,7 @@
             <id>renekrie</id>
             <name>René Kriegler</name>
             <email>post@rene-kriegler.com</email>
+            <url>https://github.com/renekrie</url>
         </developer>
         <developer>
             <id>mkr</id>
@@ -72,7 +73,7 @@
         <hamcrest.version>2.1</hamcrest.version>
         <mockito.version>2.27.0</mockito.version>
 
-        <querqy.core.version>3.5.0</querqy.core.version>
+        <querqy.core.version>3.5.1</querqy.core.version>
         <lucene.version>8.1.0</lucene.version>
         <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>
@@ -84,15 +85,6 @@
         <module>querqy-lucene</module>
         <module>querqy-solr</module>
     </modules>
-
-    <repositories>
-        <!-- TODO: remove once we are at Maven Central. For now we use the released querqy-core from Bintray. -->
-        <repository>
-            <id>querqy-repo</id>
-            <name>Querqy repo</name>
-            <url>http://dl.bintray.com/renekrie/maven</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -211,6 +203,24 @@
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <keyname>${gpg.keyname}</keyname>
+                                    <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-release-plugin</artifactId>
                         <version>${maven-release-plugin.version}</version>
                         <configuration>
@@ -236,10 +246,13 @@
     </reporting>
 
     <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
         <repository>
-            <id>bintray-rene-maven</id>
-            <name>renekrie-maven-querqy-for-lucene</name>
-            <url>https://api.bintray.com/maven/renekrie/maven/querqy-for-lucene</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 

@@ -10,7 +10,7 @@
     <artifactId>querqy-lucene</artifactId>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Querqy query rewriting for Lucene</description>
+    <description>Querqy library for query rewriting for Lucene</description>
 
     <dependencies>
         <!--
