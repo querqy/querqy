@@ -19,8 +19,8 @@ public class GZIPAwareResourceLoader implements ResourceLoader {
         this.delegate = delegate;
     }
 
-    public InputStream openResource(String resource) throws IOException {
-        InputStream is = delegate.openResource(resource);
+    public InputStream openResource(final String resource) throws IOException {
+        final InputStream is = delegate.openResource(resource);
         if (is == null) {
             return null;
         } else {
@@ -30,12 +30,12 @@ public class GZIPAwareResourceLoader implements ResourceLoader {
 
     // Wraps the InputStream in a GZIPInputStream if the first two bytes match the GZIP magic bytes
     private static InputStream detectGZIPAndWrap(final InputStream is) throws IOException {
-        PushbackInputStream pb = new PushbackInputStream(is, 2);
-        byte[] signature = new byte[2];
+        final PushbackInputStream pb = new PushbackInputStream(is, 2);
+        final byte[] signature = new byte[2];
         int count = 0;
         try {
             while (count < 2) {
-                int readCount = is.read(signature, count, 2 - count);
+                final int readCount = is.read(signature, count, 2 - count);
                 if (readCount < 0) {
                     return pb;
                 }
@@ -44,17 +44,17 @@ public class GZIPAwareResourceLoader implements ResourceLoader {
         } finally {
             pb.unread(signature, 0, count);
         }
-        int head = ((int) signature[0] & 0xff) | ((signature[1] << 8) & 0xff00);
+        final int head = ((int) signature[0] & 0xff) | ((signature[1] << 8) & 0xff00);
         return GZIPInputStream.GZIP_MAGIC == head ? new GZIPInputStream(pb) : pb;
     }
 
     @Override
-    public <T> Class<? extends T> findClass(String cname, Class<T> expectedType) {
+    public <T> Class<? extends T> findClass(final String cname, final Class<T> expectedType) {
         return delegate.findClass(cname, expectedType);
     }
 
     @Override
-    public <T> T newInstance(String cname, Class<T> expectedType) {
+    public <T> T newInstance(final String cname, final Class<T> expectedType) {
         return delegate.newInstance(cname, expectedType);
     }
 }
