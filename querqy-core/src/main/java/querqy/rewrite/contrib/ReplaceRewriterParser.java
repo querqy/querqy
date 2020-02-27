@@ -46,8 +46,8 @@ public class ReplaceRewriterParser {
 
     public TrieMap<List<CharSequence>> parseConfig() throws IOException {
 
-        TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
-        Set<CharSequence> checkForDuplicateInput = new HashSet<>();
+        final TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
+        final Set<CharSequence> checkForDuplicateInput = new HashSet<>();
 
         try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 

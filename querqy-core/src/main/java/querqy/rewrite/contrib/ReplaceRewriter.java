@@ -57,27 +57,27 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
     }
 
     private ExpandedQuery buildQueryFromSeqList(ExpandedQuery oldQuery, LinkedList<CharSequence> tokens) {
-        Query query = new Query();
+        final Query query = new Query();
         tokens.forEach(token -> {
-            DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, false);
+            final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, false);
             query.addClause(dmq);
-            Term term = new Term(dmq, token);
+            final Term term = new Term(dmq, token);
             dmq.addClause(term);
         });
 
-        ExpandedQuery newQuery = new ExpandedQuery(query);
+        final ExpandedQuery newQuery = new ExpandedQuery(query);
 
-        Collection<BoostQuery> boostDownQueries = oldQuery.getBoostDownQueries();
+        final Collection<BoostQuery> boostDownQueries = oldQuery.getBoostDownQueries();
         if (boostDownQueries != null) {
             boostDownQueries.forEach(newQuery::addBoostDownQuery);
         }
 
-        Collection<BoostQuery> boostUpQueries = oldQuery.getBoostUpQueries();
+        final Collection<BoostQuery> boostUpQueries = oldQuery.getBoostUpQueries();
         if (boostUpQueries != null) {
             boostUpQueries.forEach(newQuery::addBoostUpQuery);
         }
 
-        Collection<QuerqyQuery<?>> filterQueries = oldQuery.getFilterQueries();
+        final Collection<QuerqyQuery<?>> filterQueries = oldQuery.getFilterQueries();
         if (filterQueries != null) {
             filterQueries.forEach(newQuery::addFilterQuery);
         }
@@ -92,12 +92,12 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             return null;
         }
 
-        ComparableCharSequence token = term.getValue();
+        final ComparableCharSequence token = term.getValue();
 
         matchSeq.addLast(token);
 
-        ComparableCharSequence seqForMatching = new CompoundCharSequence(TOKEN_SEPARATOR, matchSeq);
-        State<List<CharSequence>> match = replaceRules.get(
+        final ComparableCharSequence seqForMatching = new CompoundCharSequence(TOKEN_SEPARATOR, matchSeq);
+        final State<List<CharSequence>> match = replaceRules.get(
                 ignoreCase ? new LowerCaseCharSequence(seqForMatching) : seqForMatching).getStateForCompleteSequence();
 
         if (!match.isKnown) {

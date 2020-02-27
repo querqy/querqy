@@ -1,11 +1,7 @@
-/**
- * 
- */
 package querqy.rewrite.commonrules;
 
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.rewrite.commonrules.QuerqyParserFactory;
 
 /**
  * This factory creates a {@link WhiteSpaceQuerqyParser}.

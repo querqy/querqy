@@ -52,8 +52,9 @@ public class PropertiesBuilder {
     /**
      * Consumes the next line and returns an optional validation error.
      *
-     * @param line
-     * @return
+     * @param line The next line from the input
+     * @return An optional validation error.
+     * @throws RuleParseException if a JSON property cannot be parsed.
      */
     public Optional<ValidationError> nextLine(final String line) throws RuleParseException {
 

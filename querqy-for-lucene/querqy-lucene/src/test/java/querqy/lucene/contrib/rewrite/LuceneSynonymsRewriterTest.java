@@ -11,15 +11,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import querqy.antlr.QueryTransformerVisitor;
-import querqy.antlr.parser.QueryLexer;
-import querqy.antlr.parser.QueryParser;
-import querqy.antlr.parser.QueryParser.QueryContext;
 import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
@@ -41,14 +38,10 @@ public class LuceneSynonymsRewriterTest {
         rewriter = factory.createRewriter(null, searchEngineRequestAdapter);
    }
 
-   protected ExpandedQuery makeQuery(String input) {
-      QueryLexer lex = new QueryLexer(new ANTLRInputStream(input));
-      CommonTokenStream tokens = new CommonTokenStream(lex);
-      QueryParser parser = new QueryParser(tokens);
-
-      QueryContext t = parser.query();
-      return new ExpandedQuery((Query) t.accept(new QueryTransformerVisitor(input.toCharArray())));
-   }
+    protected ExpandedQuery makeQuery(final String input) {
+        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
+        return new ExpandedQuery(parser.parse(input));
+    }
 
    @Test
    public void testSingleClauseExpansion() {
