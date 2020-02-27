@@ -1,14 +1,15 @@
 ![travis ci build status](https://travis-ci.org/renekrie/querqy.png) 
-[ ![Download Querqy for Lucene/Solr](https://api.bintray.com/packages/renekrie/maven/querqy-for-lucene/images/download.svg) ](https://bintray.com/renekrie/maven/querqy-for-lucene/_latestVersion)
+
+[![Querqy for Solr](https://img.shields.io/maven-central/v/org.querqy/querqy-solr.svg?label=Download Querqy for Solr (Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22) [![Querqy Core](https://img.shields.io/maven-central/v/org.querqy/querqy-core.svg?label=Querqy core (Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-core%22)
 
 Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/querqy/users)
 # Querqy
 
-Querqy is a framework for query preprocessing in Java-based search engines. This is the repository for Querqy Core (search engine independent) and for the Lucene/Solr version. Querqy for Elasticsearch can be found [here](https://github.com/renekrie/querqy-elasticsearch).
+Querqy is a framework for query preprocessing in Java-based search engines. This is the repository for Querqy Core (search engine independent) and for the Lucene/Solr version. Querqy for Elasticsearch can be found [here](https://github.com/querqy/querqy-elasticsearch).
 
 Querqy comes with a powerful, rule-based preprocessor named 'Common Rules' rewriter, which provides query-time synonyms, query-dependent boosting and down-ranking, and query-dependent filters. In this README we will explain how to install Querqy under Solr and how to configure rules for the Common Rules rewriter.
 
-**Querqy is now available for Solr/Lucene 8.x. You will have to re-test your search result orders due to changes in Lucene if you are migrating from an earlier Solr/Lucene version.** See [Release Notes](https://github.com/renekrie/querqy/wiki#15-june-2019---querqy-44lucene8000) for details.
+**Querqy is now available for Solr/Lucene 8.x. You will have to re-test your search result orders due to changes in Lucene if you are migrating from an earlier Solr/Lucene version.** See [Release Notes](https://github.com/querqy/querqy/wiki#15-june-2019---querqy-44lucene8000) for details.
 
 **There is now a web UI for managing common query rewriting rules with Querqy. Make sure you check out [SMUI](https://github.com/pbartusch/smui)!**
 
@@ -23,10 +24,10 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|8.3.x| 4.5.lucene810.2||
-|8.2.x| 4.5.lucene810.2||
-|8.1.x| 4.5.lucene810.2|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
-|8.0.0| 4.5.lucene800.1|Please check out the [Release Notes](https://github.com/renekrie/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
+|8.3.x| 4.7.lucene810.0||
+|8.2.x| 4.7.lucene810.0||
+|8.1.x| 4.7.lucene810.0|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
+|8.0.0| 4.5.lucene800.1|Please check out the [Release Notes](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
 |7.7.0| 4.4.lucene720.0||
 |7.6.0| 4.4.lucene720.0||
 |7.5.0| 4.4.lucene720.0||
@@ -36,9 +37,36 @@ Detailed Solr version mapping:
 |7.1.0| 4.1.lucene700.0||
 |7.0.x| 4.1.lucene700.0|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
 
-For older Solr versions, please see [here](https://github.com/renekrie/querqy/wiki/Older-Querqy-versions).
+For older Solr versions, please see [here](https://github.com/querqy/querqy/wiki/Older-Querqy-versions).
+
+#### Download
+##### Querqy version 4.7.* and above 
+You can download a .jar file that includes Querqy and all required dependencies from [Maven Central](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22): Choose `jar-with-dependencies` from the Download dropdown and put the .jar file into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+
+Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
+
+
+~~~xml
+
+<!-- Add the querqy-solr dependency -->
+<dependencies>
+	<dependency>
+		<groupId>querqy</groupId>
+		<artifactId>querqy-solr</artifactId>
+		<version>...</version>
+	</dependency>
+</dependencies>
+     
+~~~
+
+
+
+##### Querqy versions prior to 4.7.* 
 
 You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+
+
+
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
 
@@ -204,7 +232,7 @@ The rules for the 'Common Rules Rewriter' are maintained in the file that you co
             <str name="rules">rules.txt</str>
 ~~~
 
-Note that the expected character encoding is UTF-8 and that the maximum size of this file is 1 MB if Solr runs as SolrCloud and if you didn't change the maximum file size in Zookeeper (see [this issue](https://github.com/renekrie/querqy/issues/14) on GitHub).
+Note that the expected character encoding is UTF-8 and that the maximum size of this file is 1 MB if Solr runs as SolrCloud and if you didn't change the maximum file size in Zookeeper (see [this issue](https://github.com/querqy/querqy/issues/14) on GitHub).
 
 
 #### Input matching
@@ -411,7 +439,7 @@ iphone =>
 	FILTER: -case
 ~~~
 
-The filter is applied to all fields given in the `gqf` or `qf` parameters. In the case of a required keyword ('apple') the filter matches if the keyword occurs in one or more query fields. The negative filter ('-case') only matches documents where the keyword occurs in none of the query fields. (Note [this issue](https://github.com/renekrie/querqy/issues/16) for purely negative queries.)
+The filter is applied to all fields given in the `gqf` or `qf` parameters. In the case of a required keyword ('apple') the filter matches if the keyword occurs in one or more query fields. The negative filter ('-case') only matches documents where the keyword occurs in none of the query fields. (Note [this issue](https://github.com/querqy/querqy/issues/16) for purely negative queries.)
 
 The right-hand side of filter instructions accepts raw queries. To completely exclude results from category 'accessories' for query 'notebook' you would write:
 
