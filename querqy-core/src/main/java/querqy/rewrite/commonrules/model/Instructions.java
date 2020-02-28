@@ -44,7 +44,7 @@ public class Instructions extends LinkedList<Instruction> {
      * rules.txt.
      *
      */
-    public final int ord;
+    private final int ord;
 
     public Instructions(final int ord, Object id, final Collection<Instruction> instructions,
                         final InstructionsProperties properties) {
@@ -59,6 +59,10 @@ public class Instructions extends LinkedList<Instruction> {
 
     public Instructions(final int ord, final Object id, final Collection<Instruction> instructions) {
         this(ord, id, instructions, new InstructionsProperties(Collections.emptyMap()));
+    }
+
+    public int getOrd() {
+        return ord;
     }
 
     public Object getId() {

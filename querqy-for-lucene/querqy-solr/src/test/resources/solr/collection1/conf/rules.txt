@@ -19,6 +19,12 @@ m =>
 qup =>
 	UP(100): u100
 
+qdown1 =>
+    DOWN(0.2): d2
+
+qdown2 =>
+    DOWN(0.1): d1
+
 t1 t2 =>
 	DELETE: t2
 	
@@ -30,6 +36,10 @@ d1 =>
 	
 d2 =>
 	DECORATE: deco 2
+
+qx1 =>
+    UP(10): 1u10
+    DOWN(10): 1d10
 
 
 	

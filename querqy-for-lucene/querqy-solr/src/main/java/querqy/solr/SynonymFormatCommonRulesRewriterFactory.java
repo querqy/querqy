@@ -9,8 +9,6 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,11 +27,10 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.Input;
-import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
-import querqy.rewrite.commonrules.SelectionStrategyFactory;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 /**
@@ -211,11 +208,7 @@ public class SynonymFormatCommonRulesRewriterFactory implements
 
         @Override
         public Set<Term> getGenerableTerms() {
-            Set<Term> result = new HashSet<>();
-            for (Instruction instruction: rules.getInstructions()) {
-                result.addAll(instruction.getGenerableTerms());
-            }
-            return result;
+            return rules.getGenerableTerms();
         }
 
 

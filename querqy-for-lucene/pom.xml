@@ -1,15 +1,54 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>querqy</groupId>
+    <!--
+       Do not add a <parent>..</parent> here as we want to release querqy-core and querqy-for lucene
+       separately. The pom.xml in the parent directory only serves as a help to run a multi-module build when
+       developing new core and lucene/solr features at the same time.
+    -->
+
+    <groupId>org.querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>4.5.lucene720.0-SNAPSHOT</version>
+    <version>4.7.lucene720.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Querqy library for query rewriting: Lucene parent</description>
+    <url>https://querqy.org</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>renekrie</id>
+            <name>René Kriegler</name>
+            <email>post@rene-kriegler.com</email>
+            <url>https://github.com/renekrie</url>
+        </developer>
+        <developer>
+            <id>mkr</id>
+            <name>Matthias Krüger</name>
+            <url>https://github.com/mkr</url>
+        </developer>
+        <developer>
+            <id>JohannesDaniel</id>
+            <name>Johannes Peter</name>
+            <email>johannesdaniel.peter@gmx.de</email>
+            <url>https://github.com/JohannesDaniel</url>
+        </developer>
+    </developers>
+
+
     <scm>
-        <url>git@github.com:renekrie/querqy.git</url>
-        <connection>scm:git:git@github.com:renekrie/querqy.git</connection>
-        <developerConnection>scm:git:git@github.com:renekrie/querqy.git</developerConnection>
+        <url>git@github.com:querqy/querqy.git</url>
+        <connection>scm:git:git@github.com:querqy/querqy.git</connection>
+        <developerConnection>scm:git:git@github.com:querqy/querqy.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -24,6 +63,7 @@
         <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
 
@@ -33,9 +73,9 @@
         <hamcrest.version>2.1</hamcrest.version>
         <mockito.version>2.27.0</mockito.version>
 
-        <querqy.core.version>3.3.0</querqy.core.version>
-        <querqy.antlr.version>3.0.2</querqy.antlr.version>
+        <querqy.core.version>3.5.1</querqy.core.version>
         <lucene.version>7.2.0</lucene.version>
+        <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>
         <slf4j.version>1.7.26</slf4j.version>
 
@@ -45,14 +85,6 @@
         <module>querqy-lucene</module>
         <module>querqy-solr</module>
     </modules>
-
-    <repositories>
-        <repository>
-            <id>querqy-repo</id>
-            <name>Querqy repo</name>
-            <url>http://dl.bintray.com/renekrie/maven</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -94,32 +126,9 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven-source-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>${maven-release-plugin.version}</version>
-                    <configuration>
-                        <useReleaseProfile>false</useReleaseProfile>
-                        <releaseProfiles>release</releaseProfiles>
-                        <autoVersionSubmodules>true</autoVersionSubmodules>
-                    </configuration>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -152,6 +161,80 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <source>8</source>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <keyname>${gpg.keyname}</keyname>
+                                    <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>${maven-release-plugin.version}</version>
+                        <configuration>
+                            <useReleaseProfile>false</useReleaseProfile>
+                            <releaseProfiles>release</releaseProfiles>
+                            <autoVersionSubmodules>true</autoVersionSubmodules>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
     <reporting>
         <plugins>
             <plugin>
@@ -163,10 +246,14 @@
     </reporting>
 
     <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
         <repository>
-            <id>bintray-rene-maven</id>
-            <name>renekrie-maven-querqy-for-lucene</name>
-            <url>https://api.bintray.com/maven/renekrie/maven/querqy-for-lucene</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
 </project>

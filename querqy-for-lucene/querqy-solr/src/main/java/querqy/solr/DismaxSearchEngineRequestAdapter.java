@@ -437,15 +437,21 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
      *
      * Uses {@link SolrPluginUtils#parseFieldBoosts(String)} with the 'qf'
      * parameter. Falls back to the 'df' parameter.
+     *
+     * @param fieldParamName The name of the request parameter from which to read the query fields and boostings
+     * @param defaultBoost The default field weight
+     * @param useDefaultFieldAsFallback Iff true, search in field {@link CommonParams}.DF if the specified request parameter is empty
+     * @return A mapping between query fields and their boost factor.
+     *
      */
-    protected Map<String, Float> parseQueryFields(final String fieldName, final Float defaultBoost,
-                                                      final boolean useDfFallback) {
+    protected Map<String, Float> parseQueryFields(final String fieldParamName, final Float defaultBoost,
+                                                      final boolean useDefaultFieldAsFallback) {
 
-        final Map<String, Float> queryFields = parseFieldBoosts(getRequestParams(fieldName), defaultBoost);
-        if (queryFields.isEmpty() && useDfFallback) {
+        final Map<String, Float> queryFields = parseFieldBoosts(getRequestParams(fieldParamName), defaultBoost);
+        if (queryFields.isEmpty() && useDefaultFieldAsFallback) {
             final String df = solrParams.get(CommonParams.DF);
             if (df == null) {
-                throw new RuntimeException("Neither " + fieldName + ", " + CommonParams.DF + ", nor the default " +
+                throw new RuntimeException("Neither " + fieldParamName + ", " + CommonParams.DF + ", nor the default " +
                         "search field are present.");
             }
             queryFields.put(df, defaultBoost);

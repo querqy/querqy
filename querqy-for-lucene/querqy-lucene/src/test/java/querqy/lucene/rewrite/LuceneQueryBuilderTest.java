@@ -24,10 +24,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import querqy.antlr.ANTLRQueryParser;
 import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.model.ExpandedQuery;
+import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -91,7 +91,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
                 new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
-        ANTLRQueryParser parser = new ANTLRQueryParser();
+        FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
         return builder.createQuery(q);
     }
@@ -104,7 +104,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
                 new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, null);
 
-        ANTLRQueryParser parser = new ANTLRQueryParser();
+        FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
         LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory("LuceneSynonymsRewriter", true, true);
         factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
@@ -125,8 +125,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
                 new DocumentFrequencyCorrection()), new StandardAnalyzer(new CharArraySet(stopWords, true)),
                 searchFieldsAndBoosting, tie, null);
-       
-        ANTLRQueryParser parser = new ANTLRQueryParser();
+
+        FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
         return builder.createQuery(q);
     }

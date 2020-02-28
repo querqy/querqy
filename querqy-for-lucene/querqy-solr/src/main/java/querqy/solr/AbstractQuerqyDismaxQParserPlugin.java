@@ -2,7 +2,6 @@ package querqy.solr;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,17 +28,18 @@ import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 import querqy.infologging.InfoLogging;
 import querqy.infologging.Sink;
+import querqy.lucene.GZIPAwareResourceLoader;
 
 /**
  * Abstract superclass for QuerqyDismaxQParserPlugins.
  */
 public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
-    
+
     public static final String CONF_CACHE_NAME = "termQueryCache.name";
     public static final String CONF_CACHE_UPDATE = "termQueryCache.update";
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
-    
+
     protected NamedList<?> initArgs = null;
     protected RewriteChain rewriteChain = null;
 
@@ -47,7 +47,7 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
     protected String termQueryCacheName = null;
     protected boolean ignoreTermQueryCacheUpdates = true;
     protected InfoLogging infoLogging;
-    
+
     public abstract QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req,
                                          InfoLogging tracking, TermQueryCache termQueryCache);
 
@@ -57,7 +57,8 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
     }
 
     @Override
-    public void inform(final ResourceLoader loader) throws IOException {
+    public void inform(final ResourceLoader solrResourceLoader) throws IOException {
+        ResourceLoader loader = new GZIPAwareResourceLoader(solrResourceLoader);
 
         rewriteChain = loadRewriteChain(loader);
         infoLogging = loadInfoLogging(loader);
@@ -71,7 +72,7 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
         }
 
         ignoreTermQueryCacheUpdates = (updateCache != null) && !updateCache;
-        
+
         this.querqyParserFactory = loadSolrQuerqyParserFactory(loader, initArgs);
     }
 
@@ -229,7 +230,7 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
         if (termQueryCacheName == null) {
             return createParser(qstr, localParams, params, req, infoLogging, null);
         } else {
-       
+
             @SuppressWarnings("unchecked")
             final SolrCache<CacheKey, TermQueryCacheValue> solrCache = req.getSearcher().getCache(termQueryCacheName);
             if (solrCache == null) {
@@ -239,12 +240,12 @@ public abstract class AbstractQuerqyDismaxQParserPlugin extends QParserPlugin im
                 return createParser(qstr, localParams, params, req, infoLogging,
                         new SolrTermQueryCacheAdapter(ignoreTermQueryCacheUpdates, solrCache));
             }
-           
+
         }
     }
-   
 
-   
+
+
     public RewriteChain getRewriteChain() {
         return rewriteChain;
     }

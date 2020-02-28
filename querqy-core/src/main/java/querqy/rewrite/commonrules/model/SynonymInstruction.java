@@ -25,7 +25,7 @@ public class SynonymInstruction implements Instruction {
     final List<querqy.rewrite.commonrules.model.Term> synonym;
 
     /**
-     * 
+     * @param synonym The terms of the synonym expansion.
      */
     public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym) {
         if (synonym == null || synonym.isEmpty()) {

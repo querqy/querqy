@@ -1,10 +1,11 @@
 package querqy.solr;
 
 
-import static querqy.rewrite.commonrules.RuleSelectionParams.getFilterParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getLimitParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getSortParamName;
-import static querqy.rewrite.commonrules.RuleSelectionParams.getStrategyParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getFilterParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getIsUseLevelsForLimitParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getLimitParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getSortParamName;
+import static querqy.rewrite.commonrules.select.RuleSelectionParams.getStrategyParamName;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -45,8 +46,9 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testDefaultSelectionStrategy() {
-        SolrQueryRequest req = req("q", "input1 input2",
+    public void testDefaultBehaviourAppliesAllRules() {
+        // definition order, no constraints expected
+        SolrQueryRequest req = req("q", "input1 input2 input3 input4",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 "defType", "querqy",
@@ -55,28 +57,35 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
 
         assertQ("default SelectionStrategy doesn't work",
                 req,
-                "//result[@name='response' and @numFound='3']"
+                "//result[@name='response' and @numFound='4']"
         );
 
         req.close();
     }
 
     @Test
-    public void testDefaultSelectionStrategyIsUsedRegardlessOfCriteria() {
-        SolrQueryRequest req = req("q", "input1 input2",
+    public void testThatExpressionStrategyIsTheDefaultSelectionStrategy() {
+        SolrQueryRequest req = req("q", "input1 input2 input3 input4 input5 input6",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 // we set the criteria but don't enable the strategy
-                getFilterParamName(REWRITER_ID_1), "group:1",
-                getFilterParamName(REWRITER_ID_1), "priority asc",
+                getFilterParamName(REWRITER_ID_1), "$[?(@.priority == 2)]",
+                getFilterParamName(REWRITER_ID_2), "$[?(@.group == 44)]",
+                getFilterParamName(REWRITER_ID_3), "$[?(@._id == 'id6')]",
+
                 getLimitParamName(REWRITER_ID_1), "1",
+                getLimitParamName(REWRITER_ID_2), "1",
+                getLimitParamName(REWRITER_ID_3), "1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
 
-        assertQ("default SelectionStrategy doesn't work",
+        assertQ("default SelectionStrategy=ExpressionStrategy doesn't work",
                 req,
-                "//result[@name='response' and @numFound='3']"
+                "//result[@name='response' and @numFound='3']",
+                "//result/doc/str[@name='id'][text()='1']",
+                "//result/doc/str[@name='id'][text()='3']",
+                "//result/doc/str[@name='id'][text()='4']"
         );
 
         req.close();
@@ -125,17 +134,38 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 getStrategyParamName(REWRITER_ID_1), "criteria",
-                getFilterParamName(REWRITER_ID_1), "group:1",
                 getSortParamName(REWRITER_ID_1), "priority asc",
                 getLimitParamName(REWRITER_ID_1), "1",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
 
-        assertQ("Sorting/limit not working",
+        assertQ("PropertySorting/limit not working",
                 req,
                 "//result[@name='response' and @numFound='1']",
                 "//result/doc/str[@name='id'][text()='2']"
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testSortingAndLimitingWithLevel() {
+        SolrQueryRequest req = req("q", "input1 input2",
+                DisMaxParams.QF, "f1",
+                DisMaxParams.MM, "1",
+                getSortParamName(REWRITER_ID_1), "priority asc",
+                getLimitParamName(REWRITER_ID_1), "1",
+                getIsUseLevelsForLimitParamName(REWRITER_ID_1), "true",
+                "defType", "querqy",
+                "debugQuery", "true"
+        );
+
+        assertQ("PropertySorting/limit not working",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result/doc/str[@name='id'][text()='2']",
+                "//result/doc/str[@name='id'][text()='3']"
         );
 
         req.close();

@@ -7,19 +7,12 @@ before_install:
 
 language: java
 jdk:
-  - oraclejdk8
+  - openjdk8
 branches:
   only:
-    - solr4
-    - solr5_1
-    - solr5_3
-    - solr5_4
-    - solr5_5
-    - solr6_0
-    - solr6_1
-    - solr6_2
-    - solr6_4
-    - solr6_4_1
+    - master
     - solr6_6
     - solr7_0
     - solr7_2
+    - solr8_0
+    - solr8_1

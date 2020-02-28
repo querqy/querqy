@@ -2,12 +2,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>querqy</groupId>
+        <groupId>org.querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
-        <version>4.5.lucene720.0-SNAPSHOT</version>
+        <version>4.7.lucene720.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>querqy-solr</artifactId>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Querqy library for query rewriting for Solr</description>
 
     <dependencies>
         <!--
@@ -45,9 +49,13 @@
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>querqy-antlr</artifactId>
-            <version>${querqy.antlr.version}</version>
+            <!--
+            Solr provides com.jayway.jsonpath:json-path but not net.minidev:json-smart
+            on which some classes of json-path depend
+            -->
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>${minidev.json-smart.version}</version>
         </dependency>
 
         <dependency>
@@ -78,20 +86,6 @@
 
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven-source-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

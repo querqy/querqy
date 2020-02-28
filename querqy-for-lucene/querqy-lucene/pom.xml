@@ -2,11 +2,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>querqy</groupId>
+        <groupId>org.querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
-        <version>4.5.lucene720.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+        <version>4.7.lucene720.0-SNAPSHOT</version>
     </parent>
     <artifactId>querqy-lucene</artifactId>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Querqy library for query rewriting for Lucene</description>
 
     <dependencies>
         <!--
@@ -42,13 +46,6 @@
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>querqy-antlr</artifactId>
-            <version>${querqy.antlr.version}</version>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-analyzers-common</artifactId>
             <version>${lucene.version}</version>
@@ -71,25 +68,5 @@
 
     </dependencies>
 
-    <build>
 
-        <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven-source-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-        </plugins>
-
-    </build>
 </project>
