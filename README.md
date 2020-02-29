@@ -26,20 +26,18 @@ Detailed Solr version mapping:
 |8.2.x| 4.7.lucene810.0||
 |8.1.x| 4.7.lucene810.0|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
 |8.0.0| 4.7.lucene800.0|Please check out the [Release Notes](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
-|7.7.0| 4.4.lucene720.0||
-|7.6.0| 4.4.lucene720.0||
-|7.5.0| 4.4.lucene720.0||
-|7.4.0| 4.4.lucene720.0||
-|7.3.x| 4.4.lucene720.0||
-|7.2.x| 4.4.lucene720.0||
-|7.1.0| 4.1.lucene700.0||
-|7.0.x| 4.1.lucene700.0|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
+|7.7.0| 4.7.lucene720.0||
+|7.6.0| 4.7.lucene720.0||
+|7.5.0| 4.7.lucene720.0||
+|7.4.0| 4.7.lucene720.0||
+|7.3.x| 4.7.lucene720.0||
+|7.2.x| 4.7.lucene720.0||
 
 For older Solr versions, please see [here](https://github.com/querqy/querqy/wiki/Older-Querqy-versions).
 
 #### Download
-##### Querqy version 4.7.* and above 
-You can download a .jar file that includes Querqy and all required dependencies from [Maven Central](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22): Choose `jar-with-dependencies` from the Download dropdown and put the .jar file into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+
+You can download a .jar file that includes Querqy and all required dependencies by following this link to [Maven Central](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22): Choose `jar-with-dependencies` from the Download dropdown and put the .jar file into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
 
@@ -58,35 +56,6 @@ Alternatively, if you already have a Maven build for your Solr plugins, you can 
 ~~~
 
 
-
-##### Querqy versions prior to 4.7.* 
-
-You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
-
-
-
-
-Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
-
-
-~~~xml
-<!-- Add the Querqy repository URL -->
-<repository>
-    <id>querqy-repo</id>
-    <name>Querqy repo</name>
-    <url>http://dl.bintray.com/renekrie/maven</url>
-</repository>
-
-<!-- Add the querqy-solr dependency -->
-<dependencies>
-	<dependency>
-		<groupId>querqy</groupId>
-		<artifactId>querqy-solr</artifactId>
-		<version>...</version>
-	</dependency>
-</dependencies>
-     
-~~~
 
 ### Configuring Solr for Querqy
 Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
