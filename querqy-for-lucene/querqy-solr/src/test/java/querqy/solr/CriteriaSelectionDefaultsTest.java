@@ -222,7 +222,7 @@ public class CriteriaSelectionDefaultsTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", "input5 input6",
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
-                getFilterParamName(REWRITER_ID_3), "$[?('a' in @.tt)]",
+                getFilterParamName(REWRITER_ID_3), "$[?('a' IN @.tt)]",
                 "defType", "querqy",
                 "debugQuery", "true"
         );
