@@ -15,6 +15,21 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
     }
 
     @Test
+    public void testMatchAllQuery() {
+        String q = "*:*";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                "defType", "querqy_defaults",
+                "debugQuery", "on"
+        );
+
+        assertQ("", req, "//result[@name='response' and @numFound='0']");
+        req.close();
+    }
+
+
+    @Test
     public void testDefaults() throws Exception {
         String q = "a b d";
 
