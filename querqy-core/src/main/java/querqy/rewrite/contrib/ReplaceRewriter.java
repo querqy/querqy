@@ -38,11 +38,18 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
     private boolean hasReplacement = false;
 
     @Override
-    public ExpandedQuery rewrite(ExpandedQuery query) {
+    public ExpandedQuery rewrite(ExpandedQuery expandedQuery) {
+
+        final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
+
+        if (!(querqyQuery instanceof Query)) {
+            return expandedQuery;
+        }
+
         querySeq = new LinkedList<>();
         matchSeq = new LinkedList<>();
 
-        visit((Query) query.getUserQuery());
+        visit((Query) querqyQuery);
 
         if (priorMatch.isFinal()) {
             hasReplacement = true;
@@ -53,7 +60,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        return hasReplacement ? buildQueryFromSeqList(query, querySeq) : query;
+        return hasReplacement ? buildQueryFromSeqList(expandedQuery, querySeq) : expandedQuery;
     }
 
     private ExpandedQuery buildQueryFromSeqList(ExpandedQuery oldQuery, LinkedList<CharSequence> tokens) {
