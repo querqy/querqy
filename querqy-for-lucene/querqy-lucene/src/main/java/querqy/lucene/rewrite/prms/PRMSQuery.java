@@ -13,18 +13,13 @@ import org.apache.lucene.index.IndexReader;
 
 public interface PRMSQuery {
     
-    public static PRMSQuery NEVER_MATCH_PRMS_QUERY = new PRMSQuery() {
-        @Override
-        public double calculateLikelihood(IndexReader indexReader)
-                throws IOException {
-            return 0.0;
-        }
-    };
+    PRMSQuery NEVER_MATCH_PRMS_QUERY = indexReader -> 0.0;
     
     /**
-     * Calculate the probability of the query for a given index
-     * @param indexReader
-     * @return
+     * Calculate the probability of this query for a given index
+     *
+     * @param indexReader The IndexReader
+     * @return The probability of this query
      */
     double calculateLikelihood(IndexReader indexReader) throws IOException;
 

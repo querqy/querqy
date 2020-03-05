@@ -36,15 +36,16 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final boolean verifyDecompundCollation;
 
     /**
-     * @param indexReaderSupplier
-     * @param dictionaryField
-     * @param lowerCaseInput
-     * @param minSuggestionFreq
-     * @param maxCombineLength
-     * @param minBreakLength
-     * @param reverseCompoundTriggerWords
-     * @param alwaysAddReverseCompounds
-     * @param maxDecompoundExpansions
+     * @param rewriterId The id of the rewriter
+     * @param indexReaderSupplier Access to an IndexReader
+     * @param dictionaryField The dictionary field name
+     * @param lowerCaseInput Iff true, lowercase input before matching it against the dictionary field.
+     * @param minSuggestionFreq The minimum frequency of a suggestion in the dictionary field (see {@link WordBreakSpellChecker}.setMinSuggestionFrequency())
+     * @param maxCombineLength The maximum length of a suggestion when combining tokens (see {@link WordBreakSpellChecker}.setMaxCombineWordLength())
+     * @param minBreakLength The minimum word part length for decompounding (see {@link WordBreakSpellChecker}.setMinBreakWordLength())
+     * @param reverseCompoundTriggerWords Query tokens in this list will trigger the creation of a reverse compound of the surrounding tokens.
+     * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
+     * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
      */
     public WordBreakCompoundRewriterFactory(final String rewriterId,

@@ -23,7 +23,7 @@ public class DeleteInstruction implements Instruction {
     protected final List<PrefixTerm> prefixesToDeleted;
 
     /**
-      * 
+      * @param termsToDelete The terms to delete from the query
       */
     public DeleteInstruction(final List<? extends Term> termsToDelete) {
         this.termsToDelete = termsToDelete;
