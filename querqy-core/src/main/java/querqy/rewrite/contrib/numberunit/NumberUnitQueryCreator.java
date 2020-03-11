@@ -30,7 +30,7 @@ public abstract class NumberUnitQueryCreator {
         return ROUNDING_MODE;
     }
 
-    protected LinearFunction createLinearFunctionParameters(BigDecimal x1, BigDecimal y1,
+    public LinearFunction createLinearFunctionParameters(BigDecimal x1, BigDecimal y1,
                                                             BigDecimal x2, BigDecimal y2) {
         BigDecimal x = x1.subtract(x2);
         BigDecimal y = y1.subtract(y2);
@@ -41,15 +41,15 @@ public abstract class NumberUnitQueryCreator {
         return new LinearFunction(m, b);
     }
 
-    protected BigDecimal calculatePercentageChange(BigDecimal number, BigDecimal percentage) {
+    public BigDecimal calculatePercentageChange(BigDecimal number, BigDecimal percentage) {
         return number.multiply(percentage).divide(n100, this.scale, ROUNDING_MODE);
     }
 
-    protected BigDecimal subtractPercentage(BigDecimal number, BigDecimal percentage) {
+    public BigDecimal subtractPercentage(BigDecimal number, BigDecimal percentage) {
         return number.subtract(calculatePercentageChange(number, percentage)).setScale(this.scale, ROUNDING_MODE);
     }
 
-    protected BigDecimal addPercentage(BigDecimal number, BigDecimal percentage) {
+    public BigDecimal addPercentage(BigDecimal number, BigDecimal percentage) {
         return number.add(calculatePercentageChange(number, percentage)).setScale(this.scale, ROUNDING_MODE);
     }
 

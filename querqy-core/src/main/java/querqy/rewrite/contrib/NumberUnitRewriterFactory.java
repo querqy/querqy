@@ -7,7 +7,7 @@ import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreatorSolr;
+import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
 
@@ -20,12 +20,14 @@ import java.util.Set;
 public class NumberUnitRewriterFactory extends RewriterFactory {
 
     private final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap;
-    private final int scale;
+    private final NumberUnitQueryCreator numberUnitQueryCreator;
 
-    public NumberUnitRewriterFactory(final String id, final List<NumberUnitDefinition> numberUnitDefinitions, int scale) {
+    public NumberUnitRewriterFactory(final String id,
+                                     final List<NumberUnitDefinition> numberUnitDefinitions,
+                                     final NumberUnitQueryCreator numberUnitQueryCreator) {
         super(id);
         this.numberUnitMap = createNumberUnitMap(numberUnitDefinitions);
-        this.scale = scale;
+        this.numberUnitQueryCreator = numberUnitQueryCreator;
     }
 
     private Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> createNumberUnitMap(
@@ -45,7 +47,7 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
 
     @Override
     public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return new NumberUnitRewriter(numberUnitMap, new NumberUnitQueryCreatorSolr(this.scale));
+        return new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
     }
 
     @Override

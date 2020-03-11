@@ -9,36 +9,50 @@ import java.util.Objects;
 public class NumberUnitDefinition {
     public final List<UnitDefinition> unitDefinitions;
     public final List<FieldDefinition> fields;
-    public final BigDecimal maxScore;
-    public final BigDecimal scoreUp;
-    public final BigDecimal scoreDown;
-    public final BigDecimal addScoreExactMatch;
-    public final BigDecimal boostPercentageUp;
-    public final BigDecimal boostPercentageDown;
-    public final BigDecimal filterPercentageUp;
-    public final BigDecimal filterPercentageDown;
+    public final BigDecimal maxScoreForExactMatch;
+    public final BigDecimal minScoreAtUpperBoundary;
+    public final BigDecimal minScoreAtLowerBoundary;
+    public final BigDecimal additionalScoreForExactMatch;
+
+    public final BigDecimal boostPercentageUpperBoundary;
+    public final BigDecimal boostPercentageLowerBoundary;
+    public final BigDecimal boostPercentageUpperBoundaryExactMatch;
+    public final BigDecimal boostPercentageLowerBoundaryExactMatch;
+
+    public final BigDecimal filterPercentageUpperBoundary;
+    public final BigDecimal filterPercentageLowerBoundary;
 
     private NumberUnitDefinition(final List<UnitDefinition> unitDefinitions,
                                  final List<FieldDefinition> fields,
-                                 final BigDecimal maxScore,
-                                 final BigDecimal scoreUp,
-                                 final BigDecimal scoreDown,
-                                 final BigDecimal addScoreExactMatch,
-                                 final BigDecimal boostPercentageUp,
-                                 final BigDecimal boostPercentageDown,
-                                 final BigDecimal filterPercentageUp,
-                                 final BigDecimal filterPercentageDown) {
+
+                                 final BigDecimal maxScoreForExactMatch,
+                                 final BigDecimal minScoreAtUpperBoundary,
+                                 final BigDecimal minScoreAtLowerBoundary,
+                                 final BigDecimal additionalScoreForExactMatch,
+
+                                 final BigDecimal boostPercentageUpperBoundary,
+                                 final BigDecimal boostPercentageLowerBoundary,
+                                 final BigDecimal boostPercentageUpperBoundaryExactMatch,
+                                 final BigDecimal boostPercentageLowerBoundaryExactMatch,
+
+                                 final BigDecimal filterPercentageUpperBoundary,
+                                 final BigDecimal filterPercentageLowerBoundary) {
 
         this.unitDefinitions = unitDefinitions;
         this.fields = fields;
-        this.maxScore = maxScore;
-        this.scoreUp = scoreUp;
-        this.scoreDown = scoreDown;
-        this.addScoreExactMatch = addScoreExactMatch;
-        this.boostPercentageUp = boostPercentageUp;
-        this.boostPercentageDown = boostPercentageDown;
-        this.filterPercentageUp = filterPercentageUp;
-        this.filterPercentageDown = filterPercentageDown;
+
+        this.maxScoreForExactMatch = maxScoreForExactMatch;
+        this.minScoreAtUpperBoundary = minScoreAtUpperBoundary;
+        this.minScoreAtLowerBoundary = minScoreAtLowerBoundary;
+        this.additionalScoreForExactMatch = additionalScoreForExactMatch;
+
+        this.boostPercentageUpperBoundary = boostPercentageUpperBoundary;
+        this.boostPercentageLowerBoundary = boostPercentageLowerBoundary;
+        this.boostPercentageUpperBoundaryExactMatch = boostPercentageUpperBoundaryExactMatch;
+        this.boostPercentageLowerBoundaryExactMatch = boostPercentageLowerBoundaryExactMatch;
+
+        this.filterPercentageUpperBoundary = filterPercentageUpperBoundary;
+        this.filterPercentageLowerBoundary = filterPercentageLowerBoundary;
     }
 
 
@@ -49,67 +63,81 @@ public class NumberUnitDefinition {
     public static class Builder {
         private final List<UnitDefinition> unitDefinitions;
         private final List<FieldDefinition> fields;
-        private BigDecimal maxScore;
-        private BigDecimal scoreUp;
-        private BigDecimal scoreDown;
-        private BigDecimal addScoreExactMatch;
-        private BigDecimal boostPercentageUp;
-        private BigDecimal boostPercentageDown;
-        private BigDecimal filterPercentageUp;
-        private BigDecimal filterPercentageDown;
+        private BigDecimal maxScoreForExactMatch;
+        private BigDecimal minScoreAtUpperBoundary;
+        private BigDecimal minScoreAtLowerBoundary;
+        private BigDecimal additionalScoreForExactMatch;
+
+        private BigDecimal boostPercentageUpperBoundary;
+        private BigDecimal boostPercentageLowerBoundary;
+        private BigDecimal boostPercentageUpperBoundaryExactMatch;
+        private BigDecimal boostPercentageLowerBoundaryExactMatch;
+
+        private BigDecimal filterPercentageUpperBoundary;
+        private BigDecimal filterPercentageLowerBoundary;
 
         private Builder() {
             this.unitDefinitions = new ArrayList<>();
             this.fields = new ArrayList<>();
         }
 
-        public Builder addUnitDefinitions(final List<UnitDefinition> unitDefinitions) {
+        public Builder addUnits(List<UnitDefinition> unitDefinitions) {
             this.unitDefinitions.addAll(unitDefinitions);
             return this;
         }
 
-        public Builder addFields(List<FieldDefinition> fields) {
-            this.fields.addAll(fields);
+        public Builder addFields(List<FieldDefinition> fieldDefinitions) {
+            this.fields.addAll(fieldDefinitions);
             return this;
         }
 
-        public Builder setBoostMaxScore(BigDecimal maxScore) {
-            this.maxScore = maxScore;
+        public Builder setMaxScoreForExactMatch(BigDecimal maxScoreForExactMatch) {
+            this.maxScoreForExactMatch = maxScoreForExactMatch;
             return this;
         }
 
-        public Builder setBoostScoreUp(BigDecimal scoreUp) {
-            this.scoreUp = scoreUp;
+        public Builder setMinScoreAtUpperBoundary(BigDecimal minScoreAtUpperBoundary) {
+            this.minScoreAtUpperBoundary = minScoreAtUpperBoundary;
             return this;
         }
 
-        public Builder setBoostScoreDown(BigDecimal scoreDown) {
-            this.scoreDown = scoreDown;
+        public Builder setMinScoreAtLowerBoundary(BigDecimal minScoreAtLowerBoundary) {
+            this.minScoreAtLowerBoundary = minScoreAtLowerBoundary;
             return this;
         }
 
-        public Builder setBoostAddScoreExactMatch(BigDecimal addScoreExactMatch) {
-            this.addScoreExactMatch = addScoreExactMatch;
+        public Builder setAdditionalScoreForExactMatch(BigDecimal additionalScoreForExactMatch) {
+            this.additionalScoreForExactMatch = additionalScoreForExactMatch;
             return this;
         }
 
-        public Builder setBoostPercentageUp(BigDecimal boostPercentageUp) {
-            this.boostPercentageUp = boostPercentageUp;
+        public Builder setBoostPercentageUpperBoundary(BigDecimal boostPercentageUpperBoundary) {
+            this.boostPercentageUpperBoundary = boostPercentageUpperBoundary;
             return this;
         }
 
-        public Builder setBoostPercentageDown(BigDecimal boostPercentageDown) {
-            this.boostPercentageDown = boostPercentageDown;
+        public Builder setBoostPercentageLowerBoundary(BigDecimal boostPercentageLowerBoundary) {
+            this.boostPercentageLowerBoundary = boostPercentageLowerBoundary;
             return this;
         }
 
-        public Builder setFilterPercentageUp(BigDecimal filterPercentageUp) {
-            this.filterPercentageUp = filterPercentageUp;
+        public Builder setBoostPercentageUpperBoundaryExactMatch(BigDecimal boostPercentageUpperBoundaryExactMatch) {
+            this.boostPercentageUpperBoundaryExactMatch = boostPercentageUpperBoundaryExactMatch;
             return this;
         }
 
-        public Builder setFilterPercentageDown(BigDecimal filterPercentageDown) {
-            this.filterPercentageDown = filterPercentageDown;
+        public Builder setBoostPercentageLowerBoundaryExactMatch(BigDecimal boostPercentageLowerBoundaryExactMatch) {
+            this.boostPercentageLowerBoundaryExactMatch = boostPercentageLowerBoundaryExactMatch;
+            return this;
+        }
+
+        public Builder setFilterPercentageUpperBoundary(BigDecimal filterPercentageUpperBoundary) {
+            this.filterPercentageUpperBoundary = filterPercentageUpperBoundary;
+            return this;
+        }
+
+        public Builder setFilterPercentageLowerBoundary(BigDecimal filterPercentageLowerBoundary) {
+            this.filterPercentageLowerBoundary = filterPercentageLowerBoundary;
             return this;
         }
 
@@ -117,14 +145,16 @@ public class NumberUnitDefinition {
             return new NumberUnitDefinition(
                     Collections.unmodifiableList(this.unitDefinitions),
                     Collections.unmodifiableList(this.fields),
-                    Objects.requireNonNull(maxScore),
-                    Objects.requireNonNull(scoreUp),
-                    Objects.requireNonNull(scoreDown),
-                    Objects.requireNonNull(addScoreExactMatch),
-                    Objects.requireNonNull(boostPercentageUp),
-                    Objects.requireNonNull(boostPercentageDown),
-                    Objects.requireNonNull(filterPercentageUp),
-                    Objects.requireNonNull(filterPercentageDown)
+                    Objects.requireNonNull(maxScoreForExactMatch),
+                    Objects.requireNonNull(minScoreAtUpperBoundary),
+                    Objects.requireNonNull(minScoreAtLowerBoundary),
+                    Objects.requireNonNull(additionalScoreForExactMatch),
+                    Objects.requireNonNull(boostPercentageUpperBoundary),
+                    Objects.requireNonNull(boostPercentageLowerBoundary),
+                    Objects.requireNonNull(boostPercentageUpperBoundaryExactMatch),
+                    Objects.requireNonNull(boostPercentageLowerBoundaryExactMatch),
+                    Objects.requireNonNull(filterPercentageUpperBoundary),
+                    Objects.requireNonNull(filterPercentageLowerBoundary)
             );
         }
     }

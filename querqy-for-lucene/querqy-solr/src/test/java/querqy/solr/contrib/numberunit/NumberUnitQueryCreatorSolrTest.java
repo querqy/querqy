@@ -1,4 +1,4 @@
-package querqy.rewrite.contrib.numberunit;
+package querqy.solr.contrib.numberunit;
 
 import org.junit.Test;
 import querqy.model.RawQuery;
@@ -19,7 +19,7 @@ public class NumberUnitQueryCreatorSolrTest {
     private NumberUnitQueryCreatorSolr numberUnitQueryCreator = new NumberUnitQueryCreatorSolr(3);
 
     @Test
-    public void testCreateBoostQuery() {
+    public void testCreateBoostQueryWithExactMatchRange() {
         RawQuery rawBoostQuery;
 
         rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
@@ -27,12 +27,13 @@ public class NumberUnitQueryCreatorSolrTest {
                 Collections.singletonList(
                         createPerUnitNumberUnitDefinitionForBoosts(
                                 Collections.singletonList(new FieldDefinition("screen_size", 2)),
-                                20, 20, 20, 10, 1.0)));
+                                20, 20, 5, 5,
+                                20, 10, 1.0)));
 
         assertThat(rawBoostQuery.getQueryString()).isEqualTo(
                 "{!func}if(query({!frange l=40.00 u=50.00 incu='false' v='screen_size'})," +
                         "rint(linear(screen_size,1.000,-30.000))," +
-                        "if(query({!term f=screen_size v=50.00}),30," +
+                        "if(query({!frange l=47.50 u=52.50 v='screen_size'}),30," +
                         "if(query({!frange l=50.00 u=60.00 incl='false' v='screen_size'})," +
                         "rint(linear(screen_size,-1.000,70.000)),0)))");
 
@@ -41,12 +42,48 @@ public class NumberUnitQueryCreatorSolrTest {
                 Collections.singletonList(
                         createPerUnitNumberUnitDefinitionForBoosts(
                                 Collections.singletonList(new FieldDefinition("screen_size", 0)),
-                                20, 20, 20, 10, 1.0)));
+                                20, 20, 5, 5,
+                                20, 10, 1.0)));
 
         assertThat(rawBoostQuery.getQueryString()).isEqualTo(
                 "{!func}if(query({!frange l=40 u=50 incu='false' v='screen_size'})," +
                         "rint(linear(screen_size,1.000,-30.000))," +
-                        "if(query({!term f=screen_size v=50}),30," +
+                        "if(query({!frange l=48 u=53 v='screen_size'}),30," +
+                        "if(query({!frange l=50 u=60 incl='false' v='screen_size'})," +
+                        "rint(linear(screen_size,-1.000,70.000)),0)))");
+    }
+
+    @Test
+    public void testCreateBoostQuery() {
+        RawQuery rawBoostQuery;
+
+        rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
+                BigDecimal.valueOf(50),
+                Collections.singletonList(
+                        createPerUnitNumberUnitDefinitionForBoosts(
+                                Collections.singletonList(new FieldDefinition("screen_size", 2)),
+                                20, 20, 0, 0,
+                                20, 10, 1.0)));
+
+        assertThat(rawBoostQuery.getQueryString()).isEqualTo(
+                "{!func}if(query({!frange l=40.00 u=50.00 incu='false' v='screen_size'})," +
+                        "rint(linear(screen_size,1.000,-30.000))," +
+                        "if(query({!frange l=50.00 u=50.00 v='screen_size'}),30," +
+                        "if(query({!frange l=50.00 u=60.00 incl='false' v='screen_size'})," +
+                        "rint(linear(screen_size,-1.000,70.000)),0)))");
+
+        rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
+                BigDecimal.valueOf(50),
+                Collections.singletonList(
+                        createPerUnitNumberUnitDefinitionForBoosts(
+                                Collections.singletonList(new FieldDefinition("screen_size", 0)),
+                                20, 20, 0, 0,
+                                20, 10, 1.0)));
+
+        assertThat(rawBoostQuery.getQueryString()).isEqualTo(
+                "{!func}if(query({!frange l=40 u=50 incu='false' v='screen_size'})," +
+                        "rint(linear(screen_size,1.000,-30.000))," +
+                        "if(query({!frange l=50 u=50 v='screen_size'}),30," +
                         "if(query({!frange l=50 u=60 incl='false' v='screen_size'})," +
                         "rint(linear(screen_size,-1.000,70.000)),0)))");
 
@@ -55,26 +92,28 @@ public class NumberUnitQueryCreatorSolrTest {
                 Arrays.asList(
                         createPerUnitNumberUnitDefinitionForBoosts(
                                 Arrays.asList(new FieldDefinition("f1", 2), new FieldDefinition("f2", 2)),
-                                        20, 20, 20, 10, 1.0),
+                                20, 20, 0, 0,
+                                20, 10, 1.0),
                         createPerUnitNumberUnitDefinitionForBoosts(
                                 Collections.singletonList(new FieldDefinition("f3", 2)),
-                                20, 20, 20, 10, 1.0)));
+                                20, 20, 0, 0,
+                                20, 10, 1.0)));
 
         assertThat(rawBoostQuery.getQueryString()).isEqualTo(
                 "{!func}max(" +
                         "if(query({!frange l=40.00 u=50.00 incu='false' v='f1'})," +
                         "rint(linear(f1,1.000,-30.000))," +
-                        "if(query({!term f=f1 v=50.00}),30," +
+                        "if(query({!frange l=50.00 u=50.00 v='f1'}),30," +
                         "if(query({!frange l=50.00 u=60.00 incl='false' v='f1'})," +
                         "rint(linear(f1,-1.000,70.000)),0)))," +
                         "if(query({!frange l=40.00 u=50.00 incu='false' v='f2'})," +
                         "rint(linear(f2,1.000,-30.000))," +
-                        "if(query({!term f=f2 v=50.00}),30," +
+                        "if(query({!frange l=50.00 u=50.00 v='f2'}),30," +
                         "if(query({!frange l=50.00 u=60.00 incl='false' v='f2'})," +
                         "rint(linear(f2,-1.000,70.000)),0)))," +
                         "if(query({!frange l=40.00 u=50.00 incu='false' v='f3'})," +
                         "rint(linear(f3,1.000,-30.000))," +
-                        "if(query({!term f=f3 v=50.00}),30," +
+                        "if(query({!frange l=50.00 u=50.00 v='f3'}),30," +
                         "if(query({!frange l=50.00 u=60.00 incl='false' v='f3'})," +
                         "rint(linear(f3,-1.000,70.000)),0))))");
     }
@@ -144,35 +183,39 @@ public class NumberUnitQueryCreatorSolrTest {
             List<FieldDefinition> fields, double percentageUp, double percentageDown, double multiplier) {
         return new PerUnitNumberUnitDefinition(
                 NumberUnitDefinition.builder()
-                        .addUnitDefinitions(Collections.emptyList())
+                        .addUnits(Collections.emptyList())
                         .addFields(fields)
-                        .setFilterPercentageUp(BigDecimal.valueOf(percentageUp))
-                        .setFilterPercentageDown(BigDecimal.valueOf(percentageDown))
-                        .setBoostMaxScore(BigDecimal.ONE)
-                        .setBoostAddScoreExactMatch(BigDecimal.ONE)
-                        .setBoostScoreUp(BigDecimal.ONE)
-                        .setBoostScoreDown(BigDecimal.ONE)
-                        .setBoostPercentageUp(BigDecimal.ONE)
-                        .setBoostPercentageDown(BigDecimal.ONE)
+                        .setFilterPercentageUpperBoundary(BigDecimal.valueOf(percentageUp))
+                        .setFilterPercentageLowerBoundary(BigDecimal.valueOf(percentageDown))
+                        .setMaxScoreForExactMatch(BigDecimal.ONE)
+                        .setAdditionalScoreForExactMatch(BigDecimal.ONE)
+                        .setMinScoreAtUpperBoundary(BigDecimal.ONE)
+                        .setMinScoreAtLowerBoundary(BigDecimal.ONE)
+                        .setBoostPercentageUpperBoundary(BigDecimal.ONE)
+                        .setBoostPercentageLowerBoundary(BigDecimal.ONE)
+                        .setBoostPercentageUpperBoundaryExactMatch(BigDecimal.ONE)
+                        .setBoostPercentageLowerBoundaryExactMatch(BigDecimal.ONE)
                         .build(),
                 BigDecimal.valueOf(multiplier));
     }
 
     private PerUnitNumberUnitDefinition createPerUnitNumberUnitDefinitionForBoosts(
-            List<FieldDefinition> fields, double percentageUp, double percentageDown,
+            List<FieldDefinition> fields, double percentageUp, double percentageDown, double percentageUpExact, double percentageDownExact,
             double maxScore, double minScore, double multiplier) {
         return new PerUnitNumberUnitDefinition(
                 NumberUnitDefinition.builder()
-                        .addUnitDefinitions(Collections.emptyList())
+                        .addUnits(Collections.emptyList())
                         .addFields(fields)
-                        .setBoostMaxScore(BigDecimal.valueOf(maxScore))
-                        .setBoostAddScoreExactMatch(BigDecimal.valueOf(10))
-                        .setBoostScoreUp(BigDecimal.valueOf(minScore))
-                        .setBoostScoreDown(BigDecimal.valueOf(minScore))
-                        .setBoostPercentageUp(BigDecimal.valueOf(percentageUp))
-                        .setBoostPercentageDown(BigDecimal.valueOf(percentageDown))
-                        .setFilterPercentageUp(BigDecimal.ONE)
-                        .setFilterPercentageDown(BigDecimal.ONE)
+                        .setMaxScoreForExactMatch(BigDecimal.valueOf(maxScore))
+                        .setAdditionalScoreForExactMatch(BigDecimal.valueOf(10))
+                        .setMinScoreAtUpperBoundary(BigDecimal.valueOf(minScore))
+                        .setMinScoreAtLowerBoundary(BigDecimal.valueOf(minScore))
+                        .setBoostPercentageUpperBoundary(BigDecimal.valueOf(percentageUp))
+                        .setBoostPercentageLowerBoundary(BigDecimal.valueOf(percentageDown))
+                        .setBoostPercentageUpperBoundaryExactMatch(BigDecimal.valueOf(percentageUpExact))
+                        .setBoostPercentageLowerBoundaryExactMatch(BigDecimal.valueOf(percentageDownExact))
+                        .setFilterPercentageUpperBoundary(BigDecimal.ONE)
+                        .setFilterPercentageLowerBoundary(BigDecimal.ONE)
                         .build(),
                 BigDecimal.valueOf(multiplier));
     }

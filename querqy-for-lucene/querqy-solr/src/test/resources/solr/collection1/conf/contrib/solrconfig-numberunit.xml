@@ -35,126 +35,30 @@
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 
-	<queryParser name="querqy_defaults" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	<queryParser name="querqy_standard" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
            <lst name="rewriter">
                <str name="class">querqy.solr.contrib.NumberUnitRewriterFactory</str>
-               <str name="floatingPointNumbersForLinearFunctions">5</str>
-			   <lst name="numberUnitDefinitions">
-
-
-				   <lst name="numberUnitDefinition">
-					   <lst name="units">
-						   <lst name="unit">
-							   <str name="term">&quot;</str>
-							   <str name="multiplier">1</str>
-						   </lst>
-						   <lst name="unit">
-							   <str name="term">zoll</str>
-							   <str name="multiplier">1</str>
-						   </lst>
-						   <lst name="unit">
-							   <str name="term">inch</str>
-							   <str name="multiplier">1</str>
-						   </lst>
-						   <lst name="unit">
-							   <str name="term">cm</str>
-							   <str name="multiplier">0.393701</str>
-						   </lst>
-					   </lst>
-					   <lst name="fields">
-						   <lst name="field">
-							   <str name="fieldName">screen_size</str>
-							   <str name="floatingPointNumbers">2</str>
-						   </lst>
-					   </lst>
-                       <str name="boostMaxScore">20</str>
-                       <str name="boostAddScoreExactMatch">5</str>
-                       <str name="boostScoreUp">10</str>
-                       <str name="boostScoreDown">10</str>
-                       <str name="boostPercentageUp">20</str>
-                       <str name="boostPercentageDown">20</str>
-                       <str name="filterPercentageUp">20</str>
-                       <str name="filterPercentageDown">20</str>
-				   </lst>
-
-
-				   <lst name="numberUnitDefinition">
-					   <lst name="units">
-						   <lst name="unit">
-							   <str name="term">tb</str>
-							   <str name="multiplier">1000</str>
-						   </lst>
-						   <lst name="unit">
-							   <str name="term">gb</str>
-						   </lst>
-					   </lst>
-					   <lst name="fields">
-						   <lst name="field">
-							   <str name="fieldName">disk</str>
-							   <str name="floatingPointNumbers">0</str>
-						   </lst>
-					   </lst>
-                       <str name="boostMaxScore">5</str>
-                       <str name="boostAddScoreExactMatch">0</str>
-                       <str name="boostScoreUp">0</str>
-                       <str name="boostScoreDown">0</str>
-                       <str name="boostPercentageUp">20</str>
-                       <str name="boostPercentageDown">20</str>
-                       <str name="filterPercentageUp">30</str>
-                       <str name="filterPercentageDown">30</str>
-				   </lst>
-
-
-                   <lst name="numberUnitDefinition">
-                       <lst name="units">
-                           <lst name="unit">
-                               <str name="term">cm</str>
-                               <str name="multiplier">1</str>
-                           </lst>
-                           <lst name="unit">
-                               <str name="term">mm</str>
-                               <str name="multiplier">0.1</str>
-                           </lst>
-                       </lst>
-                       <lst name="fields">
-                           <lst name="field">
-                               <str name="fieldName">height</str>
-                           </lst>
-                           <lst name="field">
-                               <str name="fieldName">depth</str>
-                           </lst>
-                           <lst name="field">
-                               <str name="fieldName">width</str>
-                           </lst>
-                       </lst>
-                   </lst>
-
-
-                   <lst name="numberUnitDefinition">
-                       <lst name="units">
-                           <lst name="unit">
-                               <str name="term">unitUnlimited</str>
-                           </lst>
-                       </lst>
-                       <lst name="fields">
-                           <lst name="field">
-                               <str name="fieldName">fieldUnlimited</str>
-                           </lst>
-                       </lst>
-                       <str name="filterPercentageUp">-1</str>
-                       <str name="filterPercentageDown">-1</str>
-                   </lst>
-
-
-			   </lst>
+               <str name="config">contrib/numberunit/number-unit-config.json</str>
 		   </lst>
      	 </lst>
 		 <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
      	 </lst>
-     	 
+	</queryParser>
+
+	<queryParser name="querqy_exact_match_range" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+		<lst name="rewriteChain">
+           <lst name="rewriter">
+               <str name="class">querqy.solr.contrib.NumberUnitRewriterFactory</str>
+               <str name="config">contrib/numberunit/number-unit-exact-range-config.json</str>
+		   </lst>
+     	 </lst>
+		 <lst name="parser">
+         	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+         	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+     	 </lst>
 	</queryParser>
 
 	<queryParser name="querqy_no_rw" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">

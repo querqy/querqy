@@ -16,69 +16,76 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
     }
 
     private static void addDocs() {
-        assertU(adoc("id", "1",
-                "f1", "tv",
-                "f2", "tele",
-                "depth", "2",
-                "width", "200",
-                "screen_size", "55"));
-        assertU(adoc("id", "2",
-                "f1", "tv",
-                "height", "130",
-                "depth", "2",
-                "width", "190",
-                "screen_size", "54.6"));
-        assertU(adoc("id", "3",
-                "f1", "tv",
-                "height", "110",
-                "depth", "10",
-                "width", "160",
-                "screen_size", "50"));
-        assertU(adoc("id", "4",
-                "f1", "tv",
-                "height", "80",
-                "depth", "2",
-                "width", "120",
-                "screen_size", "35.7"));
-        assertU(adoc("id", "5",
-                "f1", "tv",
-                "fieldUnlimited", "100000"));
+        assertU(adoc("id", "1", "f1", "tv", "f2", "tele", "depth", "2", "width", "200", "screen_size", "55"));
+        assertU(adoc("id", "2", "f1", "tv", "height", "130", "depth", "2", "width", "190", "screen_size", "54.6"));
+        assertU(adoc("id", "3", "f1", "tv", "height", "110", "depth", "10", "width", "160", "screen_size", "50"));
+        assertU(adoc("id", "4", "f1", "tv", "height", "80", "depth", "2", "width", "120", "screen_size", "35.7"));
+        assertU(adoc("id", "5", "f1", "tv", "fieldUnlimited", "100000"));
 
-        assertU(adoc("id", "6",
-                "f1", "notebook",
-                "disk", "1150",
-                "screen_size", "14.8",
-                "fieldUnlimited", "0"));
-        assertU(adoc("id", "7",
-                "f1", "notebook",
-                "disk", "1000",
-                "screen_size", "15"));
-        assertU(adoc("id", "8",
-                "f1", "notebook",
-                "disk", "1199",
-                "screen_size", "14.3"));
-        assertU(adoc("id", "9",
-                "f1", "notebook",
-                "disk", "1201",
-                "screen_size", "17"));
-        assertU(adoc("id", "10",
-                "f1", "notebook",
-                "disk", "800",
-                "screen_size", "11.7"));
-        assertU(adoc("id", "11",
-                "f1", "notebook",
-                "disk", "1000",
-                "screen_size", "11.7"));
+        assertU(adoc("id", "6", "f1", "notebook", "disk", "1150", "screen_size", "14.8", "fieldUnlimited", "0"));
+        assertU(adoc("id", "7", "f1", "notebook", "disk", "1000", "screen_size", "15"));
+        assertU(adoc("id", "8", "f1", "notebook", "disk", "1199", "screen_size", "14.3"));
+        assertU(adoc("id", "9", "f1", "notebook", "disk", "1201", "screen_size", "17"));
+        assertU(adoc("id", "10", "f1", "notebook", "disk", "800", "screen_size", "11.7"));
+        assertU(adoc("id", "11", "f1", "notebook", "disk", "1000", "screen_size", "11.7"));
 
-        assertU(adoc("id", "20",
-                "f1", "10 zoll",
-                "screen_size", "48.7",
-                "fieldUnlimited", "-100000"));
+        assertU(adoc("id", "12", "f1", "smartphone", "disk", "1000", "screen_size", "9"));
+        assertU(adoc("id", "13", "f1", "smartphone", "disk", "1001", "screen_size", "9.1"));
+        assertU(adoc("id", "14", "f1", "smartphone", "disk", "1500", "screen_size", "11.7"));
+
+        assertU(adoc("id", "20", "f1", "10 zoll", "screen_size", "48.7", "fieldUnlimited", "-100000"));
         assertU(commit());
     }
 
     @Test
-    public void testUnlimited() {
+    public void testBoostingForExactMatchRange() {
+        String q = "smartphone 9 zoll";
+
+        SolrQueryRequest req = req("q", q,
+                "sort", "id desc",
+                DisMaxParams.QF, "f1",
+                "fl", "id,score",
+                DisMaxParams.MM, "100%",
+                "uq.similarityScore", "off",
+                "debugQuery", "on",
+                "defType", "querqy_exact_match_range");
+
+        assertQ("",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result[@name='response']/doc[1]/str[@name='id'][text()='13']",
+                "//result[@name='response']/doc[1]/float[@name='score'][text()='31.0']",
+                "//result[@name='response']/doc[2]/str[@name='id'][text()='12']",
+                "//result[@name='response']/doc[2]/float[@name='score'][text()='31.0']"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testBoostingForExactMatchRangeAcrossUnits() {
+        String q = "smartphone 9 zoll 1000gb";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "fl", "id,score",
+                DisMaxParams.MM, "100%",
+                "uq.similarityScore", "off",
+                "debugQuery", "on",
+                "defType", "querqy_exact_match_range");
+
+        assertQ("",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//result[@name='response']/doc[1]/str[@name='id'][text()='12']",
+                "//result[@name='response']/doc[1]/float[@name='score'][text()='61.0']",
+                "//result[@name='response']/doc[2]/str[@name='id'][text()='13']",
+                "//result[@name='response']/doc[2]/float[@name='score'][text()='51.0']"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testUnlimitedRange() {
         String q = "55unitUnlimited";
 
         SolrQueryRequest req = req("q", q,
@@ -86,8 +93,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id,score",
                 DisMaxParams.MM, "100%",
                 "uq.similarityScore", "off",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("", req,
                 "//result[@name='response' and @numFound='3']",
@@ -108,8 +115,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id,score",
                 DisMaxParams.MM, "100%",
                 "uq.similarityScore", "off",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("", req, "//result[@name='response' and @numFound='4']");
         req.close();
@@ -119,10 +126,9 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
     public void testMatchAllQuery() {
         String q = "*:*";
         SolrQueryRequest req = req("q", q);
-        assertQ("", req, "//result[@name='response' and @numFound='12']");
+        assertQ("", req, "//result[@name='response' and @numFound='15']");
         req.close();
     }
-
 
     @Test
     public void testBoostingForMultipleNumberUnitInputs() {
@@ -133,8 +139,7 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id,score",
                 DisMaxParams.MM, "100%",
                 "uq.similarityScore", "off",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
 
         assertQ("",
                 req,
@@ -155,9 +160,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id,score",
                 DisMaxParams.MM, "100%",
                 "uq.similarityScore", "off",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
-
+                "defType", "querqy_standard");
+                
         assertQ("",
                 req,
                 "//result[@name='response']/doc[1]/str[@name='id'][text()='7']",
@@ -183,8 +187,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id,score",
                 DisMaxParams.MM, "100%",
                 "uq.similarityScore", "off",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("",
                 req,
@@ -209,8 +213,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id",
                 DisMaxParams.MM, "100%",
                 "echoParams", "all",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("",
                 req,
@@ -231,8 +235,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id",
                 DisMaxParams.MM, "100%",
                 "echoParams", "all",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("",
                 req,
@@ -254,8 +258,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id",
                 DisMaxParams.MM, "100%",
                 "echoParams", "all",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("",
                 req,
@@ -270,8 +274,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 "fl", "id",
                 DisMaxParams.MM, "100%",
                 "echoParams", "all",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("",
                 req,
@@ -290,8 +294,8 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "100%",
                 "echoParams", "all",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
+                
 
         assertQ("",
                 req,
@@ -310,8 +314,7 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "100%",
                 "echoParams", "all",
-                "defType", "querqy_defaults",
-                "debugQuery", "on");
+                "defType", "querqy_standard");
 
         assertQ("",
                 req,

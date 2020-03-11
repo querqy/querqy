@@ -1,8 +1,9 @@
-package querqy.rewrite.contrib.numberunit;
+package querqy.solr.contrib.numberunit;
 
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.RawQuery;
+import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.LinearFunction;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
@@ -23,6 +24,7 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
     private static final String QUERY = "query(%s)";
     private static final String LINEAR_FUNCTION = "rint(linear(%s,%s,%s))";
 
+    private static final String RANGE_QUERY = "{!frange l=%s u=%s v='%s'}";
     private static final String RANGE_QUERY_EXCLUDE_UPPER = "{!frange l=%s u=%s incu='false' v='%s'}";
     private static final String RANGE_QUERY_EXCLUDE_LOWER = "{!frange l=%s u=%s incl='false' v='%s'}";
     private static final String EXACT_MATCH_QUERY_TEMPLATE= "{!term f=%s v=%s}";
@@ -38,16 +40,19 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
 
             BigDecimal multipliedValue = value.multiply(perUnitDef.multiplier);
 
-            BigDecimal lowerBound = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageDown);
-            BigDecimal upperBound = addPercentage(multipliedValue, numberUnitDef.boostPercentageUp);
+            BigDecimal upperBound = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundary);
+            BigDecimal lowerBound = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundary);
+
+            BigDecimal upperBoundExactMatch = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundaryExactMatch);
+            BigDecimal lowerBoundExactMatch = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundaryExactMatch);
 
             LinearFunction linearFunctionLower = super.createLinearFunctionParameters(
-                    lowerBound, numberUnitDef.scoreDown,
-                    multipliedValue, numberUnitDef.maxScore);
+                    lowerBound, numberUnitDef.minScoreAtLowerBoundary,
+                    multipliedValue, numberUnitDef.maxScoreForExactMatch);
 
             LinearFunction linearFunctionUpper = super.createLinearFunctionParameters(
-                    upperBound, numberUnitDef.scoreUp,
-                    multipliedValue, numberUnitDef.maxScore);
+                    upperBound, numberUnitDef.minScoreAtUpperBoundary,
+                    multipliedValue, numberUnitDef.maxScoreForExactMatch);
 
             perUnitDef.numberUnitDefinition.fields.forEach(field -> queryParts.add(
                     String.format(
@@ -69,10 +74,11 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
                                     String.format(
                                             QUERY,
                                             String.format(
-                                                    EXACT_MATCH_QUERY_TEMPLATE,
-                                                    field.fieldName,
-                                                    multipliedValue.setScale(field.scale, super.getRoundingMode()))),
-                                    numberUnitDef.maxScore.add(numberUnitDef.addScoreExactMatch).intValue(),
+                                                    RANGE_QUERY,
+                                                    lowerBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
+                                                    upperBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
+                                                    field.fieldName)),
+                                    numberUnitDef.maxScoreForExactMatch.add(numberUnitDef.additionalScoreForExactMatch).intValue(),
                                     String.format(
                                             IF,
                                             String.format(
@@ -104,13 +110,13 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
         perUnitNumberUnitDefinitions.forEach(def -> {
             BigDecimal multipliedValue = value.multiply(def.multiplier);
 
-            BigDecimal lowerBound = def.numberUnitDefinition.filterPercentageDown.compareTo(BigDecimal.ZERO) >= 0
-                    ? subtractPercentage(multipliedValue, def.numberUnitDefinition.filterPercentageDown)
-                    : def.numberUnitDefinition.filterPercentageDown;
+            BigDecimal lowerBound = def.numberUnitDefinition.filterPercentageLowerBoundary.compareTo(BigDecimal.ZERO) >= 0
+                    ? subtractPercentage(multipliedValue, def.numberUnitDefinition.filterPercentageLowerBoundary)
+                    : def.numberUnitDefinition.filterPercentageLowerBoundary;
 
-            BigDecimal upperBound = def.numberUnitDefinition.filterPercentageUp.compareTo(BigDecimal.ZERO) >= 0
-                    ? addPercentage(multipliedValue, def.numberUnitDefinition.filterPercentageUp)
-                    : def.numberUnitDefinition.filterPercentageUp;
+            BigDecimal upperBound = def.numberUnitDefinition.filterPercentageUpperBoundary.compareTo(BigDecimal.ZERO) >= 0
+                    ? addPercentage(multipliedValue, def.numberUnitDefinition.filterPercentageUpperBoundary)
+                    : def.numberUnitDefinition.filterPercentageUpperBoundary;
 
             def.numberUnitDefinition.fields.forEach(field ->
                     queryParts.add(String.format(
