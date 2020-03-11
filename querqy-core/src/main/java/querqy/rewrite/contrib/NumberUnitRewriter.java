@@ -46,7 +46,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             return expandedQuery;
         }
 
-        Query query = (Query) userQuery;
+        final Query query = (Query) userQuery;
 
         visit(query);
 

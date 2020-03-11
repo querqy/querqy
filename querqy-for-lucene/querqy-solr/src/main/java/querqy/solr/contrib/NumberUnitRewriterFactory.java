@@ -36,25 +36,25 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
             "  ]\n" +
             "}\n";
 
-    private static int defaultUnitMultiplier = 1;
+    private static final int defaultUnitMultiplier = 1;
 
-    private static int defaultFloatingPointNumbersForLinearFunctions = 5;
-    private static int defaultFieldFloatingPointNumbers = 0;
+    private static final int defaultFloatingPointNumbersForLinearFunctions = 5;
+    private static final int defaultFieldFloatingPointNumbers = 0;
 
-    private static float defaultBoostMaxScoreForExactMatch = 200;
-    private static float defaultBoostMinScoreAtUpperBoundary = 100;
-    private static float defaultBoostMinScoreAtLowerBoundary = 100;
-    private static float defaultBoostAdditionalScoreForExactMatch = 100;
+    private static final float defaultBoostMaxScoreForExactMatch = 200;
+    private static final float defaultBoostMinScoreAtUpperBoundary = 100;
+    private static final float defaultBoostMinScoreAtLowerBoundary = 100;
+    private static final float defaultBoostAdditionalScoreForExactMatch = 100;
 
-    private static float defaultBoostPercentageUpperBoundary = 20;
-    private static float defaultBoostPercentageLowerBoundary = 20;
-    private static float defaultBoostPercentageUpperBoundaryExactMatch = 5;
-    private static float defaultBoostPercentageLowerBoundaryExactMatch = 5;
+    private static final float defaultBoostPercentageUpperBoundary = 20;
+    private static final float defaultBoostPercentageLowerBoundary = 20;
+    private static final float defaultBoostPercentageUpperBoundaryExactMatch = 5;
+    private static final float defaultBoostPercentageLowerBoundaryExactMatch = 5;
 
-    private static float defaultFilterPercentageLowerBoundary = 20;
-    private static float defaultFilterPercentageUpperBoundary = 20;
+    private static final float defaultFilterPercentageLowerBoundary = 20;
+    private static final float defaultFilterPercentageUpperBoundary = 20;
 
-    private static String keyForConfigFile = "config";
+    private static final String keyForConfigFile = "config";
 
     @Override
     public RewriterFactory createFactory(String id, NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
@@ -82,7 +82,7 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
     }
 
     protected boolean numberUnitDefinitionHasDuplicateUnitDefinition(NumberUnitDefinition numberUnitDefinition) {
-        Set<String> observedUnits = new HashSet<>();
+        final Set<String> observedUnits = new HashSet<>();
         for (UnitDefinition unitDefinition : numberUnitDefinition.unitDefinitions) {
             if (observedUnits.contains(unitDefinition.term)) {
                 return true;
@@ -93,12 +93,12 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
     }
 
     protected List<NumberUnitDefinition> parseConfig(final NumberUnitConfigObject numberUnitConfigObject) {
-        List<NumberUnitConfigObject.NumberUnitDefinitionObject> numberUnitDefinitionObjects = numberUnitConfigObject.getNumberUnitDefinitions();
+        final List<NumberUnitConfigObject.NumberUnitDefinitionObject> numberUnitDefinitionObjects = numberUnitConfigObject.getNumberUnitDefinitions();
         if (numberUnitDefinitionObjects == null || numberUnitDefinitionObjects.isEmpty()) {
             throw new IllegalArgumentException(EXCEPTION_MESSAGE);
         }
 
-        List<NumberUnitDefinition> numberUnitDefinitions = new ArrayList<>();
+        final List<NumberUnitDefinition> numberUnitDefinitions = new ArrayList<>();
         for (NumberUnitConfigObject.NumberUnitDefinitionObject defObj : numberUnitDefinitionObjects) {
             NumberUnitDefinition.Builder builder = NumberUnitDefinition.builder()
                     .addUnits(this.parseUnitDefinitions(defObj))
@@ -140,7 +140,7 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
 
 
     private List<UnitDefinition> parseUnitDefinitions(NumberUnitConfigObject.NumberUnitDefinitionObject numberUnitDefinitionObject) {
-        List<NumberUnitConfigObject.UnitObject> unitObjects = numberUnitDefinitionObject.getUnits();
+        final List<NumberUnitConfigObject.UnitObject> unitObjects = numberUnitDefinitionObject.getUnits();
         if (unitObjects == null || unitObjects.isEmpty()) {
             throw new IllegalArgumentException(EXCEPTION_MESSAGE);
         }
@@ -157,7 +157,7 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
     }
 
     private List<FieldDefinition> parseFieldDefinitions(NumberUnitConfigObject.NumberUnitDefinitionObject numberUnitDefinitionObject) {
-        List<NumberUnitConfigObject.FieldObject> fieldObjects = numberUnitDefinitionObject.getFields();
+        final List<NumberUnitConfigObject.FieldObject> fieldObjects = numberUnitDefinitionObject.getFields();
         if (fieldObjects == null || fieldObjects.isEmpty()) {
             throw new IllegalArgumentException(EXCEPTION_MESSAGE);
         }
@@ -174,12 +174,12 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
     }
 
     private BigDecimal getOrDefaultBigDecimalForFloat(Supplier<Float> supplier, float defaultValue) {
-        Float value = supplier.get();
+        final Float value = supplier.get();
         return value != null ? BigDecimal.valueOf(value) : BigDecimal.valueOf(defaultValue);
     }
 
     private int getOrDefaultInt(Supplier<Integer> supplier, int defaultValue) {
-        Integer value = supplier.get();
+        final Integer value = supplier.get();
         return value != null ? value : defaultValue;
     }
 

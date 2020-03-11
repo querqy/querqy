@@ -32,11 +32,11 @@ public abstract class NumberUnitQueryCreator {
 
     public LinearFunction createLinearFunctionParameters(BigDecimal x1, BigDecimal y1,
                                                             BigDecimal x2, BigDecimal y2) {
-        BigDecimal x = x1.subtract(x2);
-        BigDecimal y = y1.subtract(y2);
+        final BigDecimal x = x1.subtract(x2);
+        final BigDecimal y = y1.subtract(y2);
 
-        BigDecimal m = x.compareTo(n0) != 0 ? y.divide(x, this.scale, ROUNDING_MODE) : n0;
-        BigDecimal b = y1.subtract(x1.multiply(m)).setScale(this.scale, ROUNDING_MODE);
+        final BigDecimal m = x.compareTo(n0) != 0 ? y.divide(x, this.scale, ROUNDING_MODE) : n0;
+        final BigDecimal b = y1.subtract(x1.multiply(m)).setScale(this.scale, ROUNDING_MODE);
 
         return new LinearFunction(m, b);
     }

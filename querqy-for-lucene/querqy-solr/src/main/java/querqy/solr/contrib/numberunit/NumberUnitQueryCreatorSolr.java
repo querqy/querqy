@@ -33,24 +33,24 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
     private static final String BOOLEAN_STRING_CONCATENATION_OR = " OR ";
 
     protected RawQuery createRawBoostQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
-        List<String> queryParts = new ArrayList<>();
+        final List<String> queryParts = new ArrayList<>();
 
         perUnitNumberUnitDefinitions.forEach(perUnitDef -> {
-            NumberUnitDefinition numberUnitDef = perUnitDef.numberUnitDefinition;
+            final NumberUnitDefinition numberUnitDef = perUnitDef.numberUnitDefinition;
 
-            BigDecimal multipliedValue = value.multiply(perUnitDef.multiplier);
+            final BigDecimal multipliedValue = value.multiply(perUnitDef.multiplier);
 
-            BigDecimal upperBound = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundary);
-            BigDecimal lowerBound = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundary);
+            final BigDecimal upperBound = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundary);
+            final BigDecimal lowerBound = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundary);
 
-            BigDecimal upperBoundExactMatch = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundaryExactMatch);
-            BigDecimal lowerBoundExactMatch = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundaryExactMatch);
+            final BigDecimal upperBoundExactMatch = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundaryExactMatch);
+            final BigDecimal lowerBoundExactMatch = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundaryExactMatch);
 
-            LinearFunction linearFunctionLower = super.createLinearFunctionParameters(
+            final LinearFunction linearFunctionLower = super.createLinearFunctionParameters(
                     lowerBound, numberUnitDef.minScoreAtLowerBoundary,
                     multipliedValue, numberUnitDef.maxScoreForExactMatch);
 
-            LinearFunction linearFunctionUpper = super.createLinearFunctionParameters(
+            final LinearFunction linearFunctionUpper = super.createLinearFunctionParameters(
                     upperBound, numberUnitDef.minScoreAtUpperBoundary,
                     multipliedValue, numberUnitDef.maxScoreForExactMatch);
 
@@ -95,7 +95,7 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
                                                     linearFunctionUpper.b),
                                             "0"))))); });
 
-        String queryString = queryParts.size() == 1 ? queryParts.get(0) : String.format(MAX, String.join(",", queryParts));
+        final String queryString = queryParts.size() == 1 ? queryParts.get(0) : String.format(MAX, String.join(",", queryParts));
         return new RawQuery(null, FUNC + queryString, Clause.Occur.MUST, true);
     }
 
@@ -105,7 +105,7 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
 
 
     public RawQuery createFilterQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
-        List<String> queryParts = new ArrayList<>();
+        final List<String> queryParts = new ArrayList<>();
 
         perUnitNumberUnitDefinitions.forEach(def -> {
             BigDecimal multipliedValue = value.multiply(def.multiplier);
