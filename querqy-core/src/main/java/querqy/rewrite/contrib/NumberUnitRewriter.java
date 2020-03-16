@@ -19,12 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
-
-    private static final Set<Character> FLOAT_DELIMITERS = Stream.of('.', ',').collect(Collectors.toSet());
 
     private final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap;
     private final NumberUnitQueryCreator numberUnitQueryCreator;
@@ -32,7 +28,12 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
     private final Set<NumberUnitQueryInput> numberUnitQueryInputs = new HashSet<>();
     private NumberUnitQueryInput incompleteNumberUnitQueryInput = null;
 
-    public NumberUnitRewriter(Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap, NumberUnitQueryCreator numberUnitQueryCreator) {
+    public static boolean isFloatDelimiter(final char ch) {
+        return ch == ',' || ch == '.';
+    }
+
+    public NumberUnitRewriter(final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap,
+                              final NumberUnitQueryCreator numberUnitQueryCreator) {
         this.numberUnitMap = numberUnitMap;
         this.numberUnitQueryCreator = numberUnitQueryCreator;
     }
@@ -117,7 +118,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             if (Character.isDigit(c)) {
                 isNumber = true;
 
-            } else if (FLOAT_DELIMITERS.contains(c)) {
+            } else if (isFloatDelimiter(c)) {
                 if (floatDelimiter > -1) {
                     return Optional.empty();
                 }

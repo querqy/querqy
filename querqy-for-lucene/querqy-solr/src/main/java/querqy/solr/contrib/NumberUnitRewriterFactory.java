@@ -11,12 +11,11 @@ import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.UnitDefinition;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.contrib.numberunit.NumberUnitConfigObject;
+import querqy.solr.contrib.numberunit.NumberUnitConfigObject.NumberUnitDefinitionObject;
 import querqy.solr.contrib.numberunit.NumberUnitQueryCreatorSolr;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,40 +35,45 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
             "  ]\n" +
             "}\n";
 
-    private static final int defaultUnitMultiplier = 1;
+    private static final int DEFAULT_UNIT_MULTIPLIER = 1;
 
-    private static final int defaultFloatingPointNumbersForLinearFunctions = 5;
-    private static final int defaultFieldFloatingPointNumbers = 0;
+    private static final int DEFAULT_FLOATING_POINT_NUMBERS_FOR_LINEAR_FUNCTIONS = 5;
+    private static final int DEFAULT_FIELD_FLOATING_POINT_NUMBERS = 0;
 
-    private static final float defaultBoostMaxScoreForExactMatch = 200;
-    private static final float defaultBoostMinScoreAtUpperBoundary = 100;
-    private static final float defaultBoostMinScoreAtLowerBoundary = 100;
-    private static final float defaultBoostAdditionalScoreForExactMatch = 100;
+    private static final float DEFAULT_BOOST_MAX_SCORE_FOR_EXACT_MATCH = 200;
+    private static final float DEFAULT_BOOST_MIN_SCORE_AT_UPPER_BOUNDARY = 100;
+    private static final float DEFAULT_BOOST_MIN_SCORE_AT_LOWER_BOUNDARY = 100;
+    private static final float DEFAULT_BOOST_ADDITIONAL_SCORE_FOR_EXACT_MATCH = 100;
 
-    private static final float defaultBoostPercentageUpperBoundary = 20;
-    private static final float defaultBoostPercentageLowerBoundary = 20;
-    private static final float defaultBoostPercentageUpperBoundaryExactMatch = 5;
-    private static final float defaultBoostPercentageLowerBoundaryExactMatch = 5;
+    private static final float DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY = 20;
+    private static final float DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY = 20;
+    private static final float DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY_EXACT_MATCH = 5;
+    private static final float DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY_EXACT_MATCH = 5;
 
-    private static final float defaultFilterPercentageLowerBoundary = 20;
-    private static final float defaultFilterPercentageUpperBoundary = 20;
+    private static final float DEFAULT_FILTER_PERCENTAGE_LOWER_BOUNDARY = 20;
+    private static final float DEFAULT_FILTER_PERCENTAGE_UPPER_BOUNDARY = 20;
 
-    private static final String keyForConfigFile = "config";
+    private static final String KEY_CONFIG_FILE = "config";
+
+    private static final ObjectMapper JSON_DEFAULT_OBJECT_MAPPER = new ObjectMapper();
 
     @Override
-    public RewriterFactory createFactory(String id, NamedList<?> args, ResourceLoader resourceLoader) throws IOException {
-        final Object obj = args.get(keyForConfigFile);
+    public RewriterFactory createFactory(final String id, final NamedList<?> args, final ResourceLoader resourceLoader)
+            throws IOException {
+
+        final Object obj = args.get(KEY_CONFIG_FILE);
         if (!(obj instanceof String)) {
             throw new IllegalArgumentException("Property 'config' not or not properly configured");
         }
 
         final String rulesResourceName = (String) obj;
-        final InputStream is = resourceLoader.openResource(rulesResourceName);
 
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final NumberUnitConfigObject numberUnitConfigObject = objectMapper.readValue(is, NumberUnitConfigObject.class);
+        // resource InputStream will be closed by Jackson Json Parser
+        final NumberUnitConfigObject numberUnitConfigObject = JSON_DEFAULT_OBJECT_MAPPER.readValue(
+                resourceLoader.openResource(rulesResourceName), NumberUnitConfigObject.class);
 
-        final int scale = getOrDefaultInt(numberUnitConfigObject::getFloatingPointNumbersForLinearFunctions, defaultFloatingPointNumbersForLinearFunctions);
+        final int scale = getOrDefaultInt(numberUnitConfigObject::getFloatingPointNumbersForLinearFunctions,
+                DEFAULT_FLOATING_POINT_NUMBERS_FOR_LINEAR_FUNCTIONS);
         final List<NumberUnitDefinition> numberUnitDefinitions = parseConfig(numberUnitConfigObject);
 
         numberUnitDefinitions.stream()
@@ -78,68 +82,76 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
                 .ifPresent(numberUnitDefinition -> {
                     throw new IllegalArgumentException("Units must only defined once per NumberUnitDefinition");});
 
-        return new querqy.rewrite.contrib.NumberUnitRewriterFactory(id, numberUnitDefinitions, new NumberUnitQueryCreatorSolr(scale));
+        return new querqy.rewrite.contrib.NumberUnitRewriterFactory(id, numberUnitDefinitions,
+                new NumberUnitQueryCreatorSolr(scale));
     }
 
-    protected boolean numberUnitDefinitionHasDuplicateUnitDefinition(NumberUnitDefinition numberUnitDefinition) {
+    protected boolean numberUnitDefinitionHasDuplicateUnitDefinition(final NumberUnitDefinition numberUnitDefinition) {
         final Set<String> observedUnits = new HashSet<>();
-        for (UnitDefinition unitDefinition : numberUnitDefinition.unitDefinitions) {
-            if (observedUnits.contains(unitDefinition.term)) {
+        for (final UnitDefinition unitDefinition : numberUnitDefinition.unitDefinitions) {
+            if (!observedUnits.add(unitDefinition.term)) {
                 return true;
             }
-            observedUnits.add(unitDefinition.term);
         }
         return false;
     }
 
     protected List<NumberUnitDefinition> parseConfig(final NumberUnitConfigObject numberUnitConfigObject) {
-        final List<NumberUnitConfigObject.NumberUnitDefinitionObject> numberUnitDefinitionObjects = numberUnitConfigObject.getNumberUnitDefinitions();
+
+        final List<NumberUnitDefinitionObject> numberUnitDefinitionObjects =
+                numberUnitConfigObject.getNumberUnitDefinitions();
+
         if (numberUnitDefinitionObjects == null || numberUnitDefinitionObjects.isEmpty()) {
             throw new IllegalArgumentException(EXCEPTION_MESSAGE);
         }
 
-        final List<NumberUnitDefinition> numberUnitDefinitions = new ArrayList<>();
-        for (NumberUnitConfigObject.NumberUnitDefinitionObject defObj : numberUnitDefinitionObjects) {
-            NumberUnitDefinition.Builder builder = NumberUnitDefinition.builder()
-                    .addUnits(this.parseUnitDefinitions(defObj))
-                    .addFields(this.parseFieldDefinitions(defObj));
-
-            final NumberUnitConfigObject.BoostObject boost = defObj.getBoost() != null ? defObj.getBoost() : new NumberUnitConfigObject.BoostObject();
-
-            builder
-                    .setMaxScoreForExactMatch(getOrDefaultBigDecimalForFloat(
-                            boost::getMaxScoreForExactMatch, defaultBoostMaxScoreForExactMatch))
-                    .setMinScoreAtUpperBoundary(getOrDefaultBigDecimalForFloat(
-                            boost::getMinScoreAtUpperBoundary, defaultBoostMinScoreAtUpperBoundary))
-                    .setMinScoreAtLowerBoundary(getOrDefaultBigDecimalForFloat(
-                            boost::getMinScoreAtLowerBoundary, defaultBoostMinScoreAtLowerBoundary))
-                    .setAdditionalScoreForExactMatch(getOrDefaultBigDecimalForFloat(
-                            boost::getAdditionalScoreForExactMatch, defaultBoostAdditionalScoreForExactMatch))
-                    .setBoostPercentageUpperBoundary(getOrDefaultBigDecimalForFloat(
-                            boost::getPercentageUpperBoundary, defaultBoostPercentageUpperBoundary))
-                    .setBoostPercentageLowerBoundary(getOrDefaultBigDecimalForFloat(
-                            boost::getPercentageLowerBoundary, defaultBoostPercentageLowerBoundary))
-                    .setBoostPercentageUpperBoundaryExactMatch(getOrDefaultBigDecimalForFloat(
-                            boost::getPercentageUpperBoundaryExactMatch, defaultBoostPercentageUpperBoundaryExactMatch))
-                    .setBoostPercentageLowerBoundaryExactMatch(getOrDefaultBigDecimalForFloat(
-                            boost::getPercentageLowerBoundaryExactMatch, defaultBoostPercentageLowerBoundaryExactMatch));
-
-            final NumberUnitConfigObject.FilterObject filter = defObj.getFilter() != null ? defObj.getFilter() : new NumberUnitConfigObject.FilterObject();
-
-            builder
-                    .setFilterPercentageUpperBoundary(getOrDefaultBigDecimalForFloat(
-                            filter::getPercentageUpperBoundary, defaultFilterPercentageUpperBoundary))
-                    .setFilterPercentageLowerBoundary(getOrDefaultBigDecimalForFloat(
-                            filter::getPercentageLowerBoundary, defaultFilterPercentageLowerBoundary));
-
-            numberUnitDefinitions.add(builder.build());
-        }
-        return numberUnitDefinitions;
+        return numberUnitDefinitionObjects.stream().map(this::parseNumberUnitDefinition).collect(Collectors.toList());
 
     }
 
+    private NumberUnitDefinition parseNumberUnitDefinition(final NumberUnitDefinitionObject defObj) {
 
-    private List<UnitDefinition> parseUnitDefinitions(NumberUnitConfigObject.NumberUnitDefinitionObject numberUnitDefinitionObject) {
+        final NumberUnitDefinition.Builder builder = NumberUnitDefinition.builder()
+                .addUnits(this.parseUnitDefinitions(defObj))
+                .addFields(this.parseFieldDefinitions(defObj));
+
+        final NumberUnitConfigObject.BoostObject boost = defObj.getBoost() != null
+                ? defObj.getBoost()
+                : new NumberUnitConfigObject.BoostObject();
+
+        builder
+                .setMaxScoreForExactMatch(getOrDefaultBigDecimalForFloat(
+                        boost::getMaxScoreForExactMatch, DEFAULT_BOOST_MAX_SCORE_FOR_EXACT_MATCH))
+                .setMinScoreAtUpperBoundary(getOrDefaultBigDecimalForFloat(
+                        boost::getMinScoreAtUpperBoundary, DEFAULT_BOOST_MIN_SCORE_AT_UPPER_BOUNDARY))
+                .setMinScoreAtLowerBoundary(getOrDefaultBigDecimalForFloat(
+                        boost::getMinScoreAtLowerBoundary, DEFAULT_BOOST_MIN_SCORE_AT_LOWER_BOUNDARY))
+                .setAdditionalScoreForExactMatch(getOrDefaultBigDecimalForFloat(
+                        boost::getAdditionalScoreForExactMatch, DEFAULT_BOOST_ADDITIONAL_SCORE_FOR_EXACT_MATCH))
+                .setBoostPercentageUpperBoundary(getOrDefaultBigDecimalForFloat(
+                        boost::getPercentageUpperBoundary, DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY))
+                .setBoostPercentageLowerBoundary(getOrDefaultBigDecimalForFloat(
+                        boost::getPercentageLowerBoundary, DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY))
+                .setBoostPercentageUpperBoundaryExactMatch(getOrDefaultBigDecimalForFloat(
+                        boost::getPercentageUpperBoundaryExactMatch, DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY_EXACT_MATCH))
+                .setBoostPercentageLowerBoundaryExactMatch(getOrDefaultBigDecimalForFloat(
+                        boost::getPercentageLowerBoundaryExactMatch, DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY_EXACT_MATCH));
+
+        final NumberUnitConfigObject.FilterObject filter = defObj.getFilter() != null
+                ? defObj.getFilter()
+                : new NumberUnitConfigObject.FilterObject();
+
+        builder
+                .setFilterPercentageUpperBoundary(getOrDefaultBigDecimalForFloat(
+                        filter::getPercentageUpperBoundary, DEFAULT_FILTER_PERCENTAGE_UPPER_BOUNDARY))
+                .setFilterPercentageLowerBoundary(getOrDefaultBigDecimalForFloat(
+                        filter::getPercentageLowerBoundary, DEFAULT_FILTER_PERCENTAGE_LOWER_BOUNDARY));
+
+        return builder.build();
+    }
+
+
+    private List<UnitDefinition> parseUnitDefinitions(final NumberUnitDefinitionObject numberUnitDefinitionObject) {
         final List<NumberUnitConfigObject.UnitObject> unitObjects = numberUnitDefinitionObject.getUnits();
         if (unitObjects == null || unitObjects.isEmpty()) {
             throw new IllegalArgumentException(EXCEPTION_MESSAGE);
@@ -152,11 +164,11 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
                     }})
                 .map(unitObject -> new UnitDefinition(
                         unitObject.getTerm(),
-                        getOrDefaultBigDecimalForFloat(unitObject::getMultiplier, defaultUnitMultiplier)))
+                        getOrDefaultBigDecimalForFloat(unitObject::getMultiplier, DEFAULT_UNIT_MULTIPLIER)))
                 .collect(Collectors.toList());
     }
 
-    private List<FieldDefinition> parseFieldDefinitions(NumberUnitConfigObject.NumberUnitDefinitionObject numberUnitDefinitionObject) {
+    private List<FieldDefinition> parseFieldDefinitions(final NumberUnitDefinitionObject numberUnitDefinitionObject) {
         final List<NumberUnitConfigObject.FieldObject> fieldObjects = numberUnitDefinitionObject.getFields();
         if (fieldObjects == null || fieldObjects.isEmpty()) {
             throw new IllegalArgumentException(EXCEPTION_MESSAGE);
@@ -169,16 +181,16 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
                     }})
                 .map(fieldObject -> new FieldDefinition(
                         fieldObject.getFieldName(),
-                        getOrDefaultInt(fieldObject::getFloatingPointNumbers, defaultFieldFloatingPointNumbers)))
+                        getOrDefaultInt(fieldObject::getFloatingPointNumbers, DEFAULT_FIELD_FLOATING_POINT_NUMBERS)))
                 .collect(Collectors.toList());
     }
 
-    private BigDecimal getOrDefaultBigDecimalForFloat(Supplier<Float> supplier, float defaultValue) {
+    private BigDecimal getOrDefaultBigDecimalForFloat(final Supplier<Float> supplier, final float defaultValue) {
         final Float value = supplier.get();
         return value != null ? BigDecimal.valueOf(value) : BigDecimal.valueOf(defaultValue);
     }
 
-    private int getOrDefaultInt(Supplier<Integer> supplier, int defaultValue) {
+    private int getOrDefaultInt(final Supplier<Integer> supplier, final int defaultValue) {
         final Integer value = supplier.get();
         return value != null ? value : defaultValue;
     }
