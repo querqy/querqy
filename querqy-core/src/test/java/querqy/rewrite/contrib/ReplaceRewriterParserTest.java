@@ -1,24 +1,143 @@
 package querqy.rewrite.contrib;
 
 import org.junit.Test;
-import querqy.ComparableCharSequenceWrapper;
-import querqy.CompoundCharSequence;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.trie.States;
-import querqy.trie.TrieMap;
+import querqy.trie.RuleExtractor;
+import querqy.trie.model.ExactMatch;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplaceRewriterParserTest {
+
+    // empty?
+
+
+
+    @Test
+    public void testEmptyOutput() throws IOException {
+        String rules = " abc => ";
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        System.out.println(ruleExtractor.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc")));
+        assertThat(ruleExtractor.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
+    }
+
+    @Test
+    public void testEmptyOutputSuffix() throws IOException {
+        String rules = " *abc => ";
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        System.out.println(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("cab", "dabc")));
+        assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("dabc", "cab"))).hasSize(1);
+    }
+
+    @Test
+    public void testDuplicateSuffixCaseSensitive() throws IOException {
+        String rules = "*ab => af \n" +
+                "*AB => ag";
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("cAB", "cab", "dabc"))).hasSize(2);
+    }
+
+    @Test
+    public void testDuplicatePrefixCaseSensitive() throws IOException {
+        String rules = "ab* => af \n" +
+                "AB* => ag";
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        assertThat(ruleExtractor.findRulesBySingleTermPrefixMatch(Arrays.asList("ABc", "abc", "dabc"))).hasSize(2);
+    }
+
+    @Test(expected = IOException.class)
+    public void testDuplicatePrefix() throws IOException {
+        String rules = "ab* => af \n" +
+                "ab* => ag";
+        createParser(rules).parseConfig();
+    }
+
+    @Test(expected = IOException.class)
+    public void testDuplicateSuffix() throws IOException {
+        String rules = "*ab => af \n" +
+                "*ab => ag";
+        createParser(rules).parseConfig();
+    }
+
+    @Test(expected = IOException.class)
+    public void testTwoWildCardsPerTerm() throws IOException {
+        String rules = "*ab* => af";
+        createParser(rules).parseConfig();
+    }
+
+    @Test(expected = IOException.class)
+    public void testWildcardOnly() throws IOException {
+        String rules = "* => af";
+        createParser(rules).parseConfig();
+    }
+
+    @Test(expected = IOException.class)
+    public void testEmptyInput() throws IOException {
+        String rules = " => af";
+        createParser(rules).parseConfig();
+    }
+
+
+    private RuleExtractor<CharSequence, Queue<CharSequence>> createRuleExtractor(String rules) throws IOException {
+        return createParser(rules).parseConfig();
+    }
+
+    private ReplaceRewriterParser createParser(String rules) {
+        return createParser(rules, true);
+    }
+
+    private ReplaceRewriterParser createParser(String rules, boolean ignoreCase) {
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        return new ReplaceRewriterParser(
+                input, ignoreCase, "\t", new WhiteSpaceQuerqyParser());
+    }
+
+    @Test
+    public void testSuffixInput() throws IOException {
+        String rules = "# comment\n"
+                + " *abc => ae \n"
+                + " *ab => af \n";
+
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createRuleExtractor(rules);
+        assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("a", "ab", "dabc"))).hasSize(2);
+    }
+
+    @Test(expected = IOException.class)
+    public void testImproperSuffixInput() throws IOException {
+        String rules = "df *ab => af";
+        createParser(rules).parseConfig();
+    }
+
+    @Test
+    public void testPrefixInput() throws IOException {
+        String rules = "# comment\n"
+                + " abc* => ae \n"
+                + " ab* => af \n";
+
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
+                input, true, "\t", new WhiteSpaceQuerqyParser());
+
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = replaceRewriterParser.parseConfig();
+        assertThat(ruleExtractor.findRulesBySingleTermPrefixMatch(Arrays.asList("a", "ab", "abcd"))).hasSize(2);
+    }
+
+    @Test(expected = IOException.class)
+    public void testImproperPrefixInput() throws IOException {
+        String rules = " ab* df => af \n";
+
+        createParser(rules).parseConfig();
+    }
 
     @Test(expected = IOException.class)
     public void testWrongConfigurationDuplicateInputStringCaseInsensitive() throws IOException {
@@ -27,10 +146,7 @@ public class ReplaceRewriterParserTest {
                 + " a   B => b \n"
                 + "e d \t a b => c";
 
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
-        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, true, "\t", new WhiteSpaceQuerqyParser());
-        replaceRewriterParser.parseConfig();
+        createParser(rules).parseConfig();
     }
 
     @Test
@@ -40,10 +156,7 @@ public class ReplaceRewriterParserTest {
                 + " a   B => b \n"
                 + "e d \t a b => c";
 
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
-        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, false, "\t", new WhiteSpaceQuerqyParser());
-        replaceRewriterParser.parseConfig();
+        createParser(rules, false).parseConfig();
     }
 
     @Test(expected = IOException.class)
@@ -52,10 +165,7 @@ public class ReplaceRewriterParserTest {
                 + "something wrong \n"
                 + " FG => hi jk  \n ";
 
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
-        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, true, "\t", new WhiteSpaceQuerqyParser());
-        replaceRewriterParser.parseConfig();
+        createParser(rules).parseConfig();
     }
 
     @Test
@@ -65,61 +175,52 @@ public class ReplaceRewriterParserTest {
                 + " ab  \t c d => e \n"
                 + " FG => hi jk  \n ";
 
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
-        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, true, "\t", new WhiteSpaceQuerqyParser());
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules).parseConfig();;
 
-        TrieMap<List<CharSequence>> trieMap = replaceRewriterParser.parseConfig();
+        List<ExactMatch<Queue<CharSequence>>> exactMatches;
 
-        States<List<CharSequence>> match = trieMap.get("ab");
-        assertTrue(match.getStateForCompleteSequence().isKnown);
-        assertTrue(match.getStateForCompleteSequence().isFinal());
-        assertEquals(new ComparableCharSequenceWrapper("e"),
-                match.getStateForCompleteSequence().value.get(0));
+        exactMatches = ruleExtractor.findRulesByExactMatch(list("ab"));
+        assertThat(exactMatches).containsExactlyInAnyOrder(
+                new ExactMatch<>(0, 1, queue("e"))
+        );
 
-        match = trieMap.get("c");
-        assertTrue(match.getStateForCompleteSequence().isKnown);
-        assertFalse(match.getStateForCompleteSequence().isFinal());
-        assertNull(match.getStateForCompleteSequence().value);
+        exactMatches = ruleExtractor.findRulesByExactMatch(list("c"));
+        assertThat(exactMatches).isEmpty();
 
-        match = trieMap.get(new CompoundCharSequence(" ", Arrays.asList("c", "d")));
-        assertTrue(match.getStateForCompleteSequence().isKnown);
-        assertTrue(match.getStateForCompleteSequence().isFinal());
-        assertEquals(new ComparableCharSequenceWrapper("e"),
-                match.getStateForCompleteSequence().value.get(0));
+        exactMatches = ruleExtractor.findRulesByExactMatch(list("c", "d"));
+        assertThat(exactMatches).containsExactlyInAnyOrder(
+                new ExactMatch<>(0, 2, queue("e"))
+        );
 
-        match = trieMap.get(new CompoundCharSequence(" ", Arrays.asList("c", "d")));
-        assertTrue(match.getStateForCompleteSequence().isKnown);
-        assertTrue(match.getStateForCompleteSequence().isFinal());
-        assertEquals(new ComparableCharSequenceWrapper("e"),
-                match.getStateForCompleteSequence().value.get(0));
-
-        match = trieMap.get("fg");
-        assertTrue(match.getStateForCompleteSequence().isKnown);
-        assertTrue(match.getStateForCompleteSequence().isFinal());
-        assertEquals(2, match.getStateForCompleteSequence().value.size());
-        assertEquals(new ComparableCharSequenceWrapper("hi"),
-                match.getStateForCompleteSequence().value.get(0));
-        assertEquals(new ComparableCharSequenceWrapper("jk"),
-                match.getStateForCompleteSequence().value.get(1));
+        exactMatches = ruleExtractor.findRulesByExactMatch(list("fg"));
+        assertThat(exactMatches).containsExactlyInAnyOrder(
+                new ExactMatch<>(0, 1, queue("hi", "jk"))
+        );
     }
 
     @Test
     public void testMappingCaseSensitive() throws IOException {
         String rules = "AB => cd";
 
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
-        ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
-                input, false, "\t", new WhiteSpaceQuerqyParser());
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
 
-        TrieMap<List<CharSequence>> trieMap = replaceRewriterParser.parseConfig();
 
-        States<List<CharSequence>> match = trieMap.get("ab");
-        assertFalse(match.getStateForCompleteSequence().isKnown);
+        List<ExactMatch<Queue<CharSequence>>> exactMatches;
 
-        match = trieMap.get("AB");
-        assertTrue(match.getStateForCompleteSequence().isKnown);
-        assertEquals(new ComparableCharSequenceWrapper("cd"),
-                match.getStateForCompleteSequence().value.get(0));
+        exactMatches = ruleExtractor.findRulesByExactMatch(list("AB"));
+        assertThat(exactMatches).containsExactlyInAnyOrder(
+                new ExactMatch<>(0, 1, queue("cd"))
+        );
+
+        exactMatches = ruleExtractor.findRulesByExactMatch(list("ab"));
+        assertThat(exactMatches).isEmpty();
+    }
+
+    private Queue<CharSequence> queue(String... str) {
+        return Arrays.stream(str).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private List<CharSequence> list(String... str) {
+        return Arrays.stream(str).collect(Collectors.toCollection(ArrayList::new));
     }
 }
