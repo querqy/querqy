@@ -48,7 +48,7 @@ public class CompoundCharSequence implements ComparableCharSequence {
 
    }
 
-   /*
+    /*
     * (non-Javadoc)
     * 
     * @see java.lang.CharSequence#length()
