@@ -30,8 +30,8 @@ public abstract class NumberUnitQueryCreator {
         return ROUNDING_MODE;
     }
 
-    public LinearFunction createLinearFunctionParameters(BigDecimal x1, BigDecimal y1,
-                                                            BigDecimal x2, BigDecimal y2) {
+    public LinearFunction createLinearFunctionParameters(final BigDecimal x1, final BigDecimal y1,
+                                                            final BigDecimal x2, final BigDecimal y2) {
         final BigDecimal x = x1.subtract(x2);
         final BigDecimal y = y1.subtract(y2);
 
@@ -53,6 +53,9 @@ public abstract class NumberUnitQueryCreator {
         return number.add(calculatePercentageChange(number, percentage)).setScale(this.scale, ROUNDING_MODE);
     }
 
-    public abstract QuerqyQuery<BooleanParent> createFilterQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions);
-    public abstract BoostQuery createBoostQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions);
+    public abstract QuerqyQuery<BooleanParent> createFilterQuery(
+            BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions);
+
+    public abstract BoostQuery createBoostQuery(
+            BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions);
 }

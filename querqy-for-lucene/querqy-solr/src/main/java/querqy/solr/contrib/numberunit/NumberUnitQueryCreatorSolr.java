@@ -32,7 +32,8 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
     private static final String RANGE_QUERY_TEMPLATE = "%s:[%s TO %s]";
     private static final String BOOLEAN_STRING_CONCATENATION_OR = " OR ";
 
-    protected RawQuery createRawBoostQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
+    protected RawQuery createRawBoostQuery(final BigDecimal value,
+                                           final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
         final List<String> queryParts = new ArrayList<>();
 
         perUnitNumberUnitDefinitions.forEach(perUnitDef -> {
@@ -40,11 +41,15 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
 
             final BigDecimal multipliedValue = value.multiply(perUnitDef.multiplier);
 
-            final BigDecimal upperBound = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundary);
-            final BigDecimal lowerBound = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundary);
+            final BigDecimal upperBound = addPercentage(multipliedValue,
+                    numberUnitDef.boostPercentageUpperBoundary);
+            final BigDecimal lowerBound = subtractPercentage(multipliedValue,
+                    numberUnitDef.boostPercentageLowerBoundary);
 
-            final BigDecimal upperBoundExactMatch = addPercentage(multipliedValue, numberUnitDef.boostPercentageUpperBoundaryExactMatch);
-            final BigDecimal lowerBoundExactMatch = subtractPercentage(multipliedValue, numberUnitDef.boostPercentageLowerBoundaryExactMatch);
+            final BigDecimal upperBoundExactMatch = addPercentage(multipliedValue,
+                    numberUnitDef.boostPercentageUpperBoundaryExactMatch);
+            final BigDecimal lowerBoundExactMatch = subtractPercentage(multipliedValue,
+                    numberUnitDef.boostPercentageLowerBoundaryExactMatch);
 
             final LinearFunction linearFunctionLower = super.createLinearFunctionParameters(
                     lowerBound, numberUnitDef.minScoreAtLowerBoundary,
@@ -78,7 +83,8 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
                                                     lowerBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
                                                     upperBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
                                                     field.fieldName)),
-                                    numberUnitDef.maxScoreForExactMatch.add(numberUnitDef.additionalScoreForExactMatch).intValue(),
+                                    numberUnitDef.maxScoreForExactMatch.add(numberUnitDef.additionalScoreForExactMatch)
+                                            .intValue(),
                                     String.format(
                                             IF,
                                             String.format(
@@ -95,26 +101,29 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
                                                     linearFunctionUpper.b),
                                             "0"))))); });
 
-        final String queryString = queryParts.size() == 1 ? queryParts.get(0) : String.format(MAX, String.join(",", queryParts));
+        final String queryString = queryParts.size() == 1
+                ? queryParts.get(0) : String.format(MAX, String.join(",", queryParts));
         return new RawQuery(null, FUNC + queryString, Clause.Occur.MUST, true);
     }
 
-    public BoostQuery createBoostQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
+    public BoostQuery createBoostQuery(final BigDecimal value,
+                                       final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
         return new BoostQuery(createRawBoostQuery(value, perUnitNumberUnitDefinitions), 1.0f);
     }
 
 
-    public RawQuery createFilterQuery(BigDecimal value, List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
+    public RawQuery createFilterQuery(final BigDecimal value,
+                                      final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
         final List<String> queryParts = new ArrayList<>();
 
         perUnitNumberUnitDefinitions.forEach(def -> {
-            BigDecimal multipliedValue = value.multiply(def.multiplier);
+            final BigDecimal multipliedValue = value.multiply(def.multiplier);
 
-            BigDecimal lowerBound = def.numberUnitDefinition.filterPercentageLowerBoundary.compareTo(BigDecimal.ZERO) >= 0
+            final BigDecimal lowerBound = def.numberUnitDefinition.filterPercentageLowerBoundary.compareTo(BigDecimal.ZERO) >= 0
                     ? subtractPercentage(multipliedValue, def.numberUnitDefinition.filterPercentageLowerBoundary)
                     : def.numberUnitDefinition.filterPercentageLowerBoundary;
 
-            BigDecimal upperBound = def.numberUnitDefinition.filterPercentageUpperBoundary.compareTo(BigDecimal.ZERO) >= 0
+            final BigDecimal upperBound = def.numberUnitDefinition.filterPercentageUpperBoundary.compareTo(BigDecimal.ZERO) >= 0
                     ? addPercentage(multipliedValue, def.numberUnitDefinition.filterPercentageUpperBoundary)
                     : def.numberUnitDefinition.filterPercentageUpperBoundary;
 
@@ -122,8 +131,10 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
                     queryParts.add(String.format(
                             RANGE_QUERY_TEMPLATE,
                             field.fieldName,
-                            lowerBound.compareTo(BigDecimal.ZERO) >= 0 ? lowerBound.setScale(field.scale, super.getRoundingMode()) : "*",
-                            upperBound.compareTo(BigDecimal.ZERO) >= 0 ? upperBound.setScale(field.scale, super.getRoundingMode()) : "*"))); });
+                            lowerBound.compareTo(BigDecimal.ZERO) >= 0
+                                    ? lowerBound.setScale(field.scale, super.getRoundingMode()) : "*",
+                            upperBound.compareTo(BigDecimal.ZERO) >= 0
+                                    ? upperBound.setScale(field.scale, super.getRoundingMode()) : "*"))); });
 
         return new RawQuery(null, String.join(BOOLEAN_STRING_CONCATENATION_OR, queryParts), Clause.Occur.MUST, true);
     }

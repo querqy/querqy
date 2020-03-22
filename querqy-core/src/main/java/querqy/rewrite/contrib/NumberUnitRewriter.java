@@ -91,9 +91,8 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             }
         }
 
-        Optional<NumberUnitQueryInput> numberUnitInputOptional = parseNumberAndUnit(seq);
-        if (numberUnitInputOptional.isPresent()) {
-            final NumberUnitQueryInput numberUnitQueryInput = numberUnitInputOptional.get();
+        parseNumberAndUnit(seq).ifPresent( numberUnitQueryInput -> {
+
             numberUnitQueryInput.addOriginDisjunctionMaxQuery(term.getParent());
 
             if (numberUnitQueryInput.hasUnit()) {
@@ -102,7 +101,8 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             } else {
                 incompleteNumberUnitQueryInput = numberUnitQueryInput;
             }
-        }
+
+        });
 
         return null;
     }
@@ -112,8 +112,9 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
         boolean isNumber = false;
         int floatDelimiter = -1;
 
-        for (int i = 0; i < seq.length(); i++) {
-            char c = seq.charAt(i);
+        for (int i = 0, len = seq.length(); i < len; i++) {
+
+            final char c = seq.charAt(i);
 
             if (Character.isDigit(c)) {
                 isNumber = true;
@@ -132,7 +133,8 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
 
                 final ComparableCharSequence unit = seq.subSequence(i, seq.length());
                 if (isUnit(unit)) {
-                    return Optional.of(new NumberUnitQueryInput(parseNumber(seq.subSequence(0, i), floatDelimiter), unit));
+                    return Optional.of(new NumberUnitQueryInput(parseNumber(seq.subSequence(0, i), floatDelimiter),
+                            unit));
 
                 } else {
                     return Optional.empty();
@@ -161,7 +163,8 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
     }
 
     private BigDecimal createBigDecimal(final String number) {
-        return new BigDecimal(number).setScale(this.numberUnitQueryCreator.getScale(), this.numberUnitQueryCreator.getRoundingMode());
+        return new BigDecimal(number).setScale(numberUnitQueryCreator.getScale(),
+                numberUnitQueryCreator.getRoundingMode());
     }
 
     private boolean isUnit(final ComparableCharSequence seq) {

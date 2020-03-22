@@ -15,11 +15,11 @@ public class NumberUnitQueryInput {
 
     private final Set<DisjunctionMaxQuery> originDisjunctionMaxQueries = new HashSet<>();
 
-    public NumberUnitQueryInput(BigDecimal number) {
+    public NumberUnitQueryInput(final BigDecimal number) {
         this(number, null);
     }
 
-    public NumberUnitQueryInput(BigDecimal number, ComparableCharSequence unit) {
+    public NumberUnitQueryInput(final BigDecimal number, ComparableCharSequence unit) {
         this.number = number;
         this.unit = unit;
     }
@@ -28,7 +28,7 @@ public class NumberUnitQueryInput {
         return this.unit != null;
     }
 
-    public void addOriginDisjunctionMaxQuery(DisjunctionMaxQuery dmq) {
+    public void addOriginDisjunctionMaxQuery(final DisjunctionMaxQuery dmq) {
         this.originDisjunctionMaxQueries.add(dmq);
     }
 
@@ -49,7 +49,7 @@ public class NumberUnitQueryInput {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
 
         if (this == o) {
             return true;
@@ -59,7 +59,7 @@ public class NumberUnitQueryInput {
             return false;
         }
 
-        NumberUnitQueryInput numberUnitQueryInput = (NumberUnitQueryInput) o;
+        final NumberUnitQueryInput numberUnitQueryInput = (NumberUnitQueryInput) o;
         if (this.getNumber().compareTo(numberUnitQueryInput.getNumber()) == 0) {
 
             if (!this.hasUnit()) {

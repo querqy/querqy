@@ -6,7 +6,7 @@ public class UnitDefinition {
     public final String term;
     public final BigDecimal multiplier;
 
-    public UnitDefinition(String term, BigDecimal multiplier) {
+    public UnitDefinition(final String term, final BigDecimal multiplier) {
         this.term = term;
         this.multiplier = multiplier;
     }
