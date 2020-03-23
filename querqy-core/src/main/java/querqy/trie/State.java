@@ -9,7 +9,7 @@ import java.util.Objects;
  * @author René Kriegler, @renekrie
  *
  */
-public class State<T> implements Comparable<State<T>> {
+public class State<T> {
     
     public final T value;
     public final boolean isKnown;
@@ -52,30 +52,4 @@ public class State<T> implements Comparable<State<T>> {
     }
 
 
-    @Override
-    public int compareTo(State<T> o) {
-        return this.index - o.index;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final State<?> state = (State<?>) o;
-        return isKnown == state.isKnown &&
-                index == state.index &&
-                Objects.equals(value, state.value) &&
-                Objects.equals(node, state.node);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(value, isKnown, node, index);
-    }
 }

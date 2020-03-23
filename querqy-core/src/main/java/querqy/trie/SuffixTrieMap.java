@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static querqy.trie.RuleExtractorUtils.COMPARE_STATE_BY_INDEX_DESC;
+
 public class SuffixTrieMap<T> {
 
     private final TrieMap<T> trieMap;
@@ -48,7 +50,7 @@ public class SuffixTrieMap<T> {
 
         List<State<T>> suffixMatches = states.getPrefixes();
         if (suffixMatches != null && !suffixMatches.isEmpty()) {
-            State<T> suffixMaxMatch = Collections.max(states.getPrefixes());
+            State<T> suffixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
             return Optional.of(new SuffixMatch<>(seq.length() - (suffixMaxMatch.index + 1), suffixMaxMatch.value));
         }
 
