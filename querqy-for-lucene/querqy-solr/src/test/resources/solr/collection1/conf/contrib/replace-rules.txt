@@ -1,2 +1,23 @@
-a b => e f
-c	d => g
+
+abcd* => acd
+*def => df
+acdf => cd
+
+prefix1* =>
+*suffix1 =>
+exactmatch1 =>
+
+
+
+ghi* => gh
+gh* => g
+g* =>
+
+*jkl => jk
+*jk => j
+*j =>
+
+mn op qr s => opq
+op qr s t =>
+uv w => tu
+xy z =>

@@ -19,15 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplaceRewriterParserTest {
 
-    // empty?
+    @Test(expected = IOException.class)
+    public void testCombinedInputWIthPrefixAndSuffix() throws IOException {
+        String rules = " ab* \t *bc \t abc => cd";
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+    }
 
-
+    @Test
+    public void testCombinedInputOnlyExactMatch() throws IOException {
+        String rules = " ab \t bc \t abc => cd";
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+    }
 
     @Test
     public void testEmptyOutput() throws IOException {
         String rules = " abc => ";
         RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
-        System.out.println(ruleExtractor.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc")));
         assertThat(ruleExtractor.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
     }
 
@@ -35,7 +42,6 @@ public class ReplaceRewriterParserTest {
     public void testEmptyOutputSuffix() throws IOException {
         String rules = " *abc => ";
         RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
-        System.out.println(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("cab", "dabc")));
         assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("dabc", "cab"))).hasSize(1);
     }
 

@@ -27,14 +27,181 @@ import static querqy.QuerqyMatchers.term;
 
 public class ReplaceRewriterTest {
 
-    // test suffix
-    // test prefix
-    // test combinations
-    // empty input
+
+    // what to do if all terms are removed?
+    // finish
+    @Test
+    public void testEmptyQueryAfterSuffixAndPrefixRule() {
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.putSuffix("suffix1", "");
+        ruleExtractor.putPrefix("prefix1", "");
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery = getQuery(Arrays.asList("suffix1", "prefix1"));
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+
+        assertThat((Query) newExpandedQuery.getUserQuery(),
+                bq()
+        );
+    }
 
     @Test
-    public void testPrefixOnly() {
+    public void testEmptyQueryAfterExactMatchRule() {
         RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("c d"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("d e"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("g h"), getTermQueue(Collections.emptyList()));
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ExpandedQuery expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h")));
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq()
+        );
+    }
+
+    @Test
+    public void testRemoveTerms() {
+
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("c"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("h"), getTermQueue(Collections.singletonList("g")));
+        ruleExtractor.put(tokenListFromString("i j"), getTermQueue(Collections.emptyList()));
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery;
+        expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")));
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(term("d")),
+                        dmq(term("g")),
+                        dmq(term("g"))
+                )
+        );
+    }
+
+    @Test
+    public void testRemoveOverlappingTerms() {
+
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.put(tokenListFromString("a b c"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("c d e"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("e f g"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("f g h"), getTermQueue(Collections.emptyList()));
+        ruleExtractor.put(tokenListFromString("i"), getTermQueue(Collections.emptyList()));
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery;
+        expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")));
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(term("d")),
+                        dmq(term("h")),
+                        dmq(term("j"))
+                )
+        );
+    }
+
+    @Test
+    public void testRuleCombinations() {
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.putSuffix("cde", "dde");
+        ruleExtractor.putPrefix("abd", "ab");
+        ruleExtractor.put(Collections.singletonList("abde"), getTermQueue(Collections.singletonList("fghi")));
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery = getQuery(Collections.singletonList("abcde"));
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+
+        assertThat((Query) newExpandedQuery.getUserQuery(),
+                bq(
+                        dmq(term("fghi"))
+                )
+        );
+    }
+
+    @Test
+    public void testPrefixSuffixCaseSensitive() {
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>(false);
+        ruleExtractor.putPrefix("abc", "a");
+        ruleExtractor.putPrefix("DEF", "d");
+
+        ruleExtractor.putSuffix("abc", "a");
+        ruleExtractor.putSuffix("DEF", "d");
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery = getQuery(Arrays.asList(
+                "abcd", "ABCD", "defg", "DEFG",
+                "dabc", "DABC", "gdef", "GDEF"));
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+
+        assertThat((Query) newExpandedQuery.getUserQuery(),
+                bq(
+                        dmq(term("ad")),
+                        dmq(term("ABCD")),
+                        dmq(term("defg")),
+                        dmq(term("dG")),
+                        dmq(term("da")),
+                        dmq(term("DABC")),
+                        dmq(term("gdef")),
+                        dmq(term("Gd"))
+                )
+        );
+    }
+
+    @Test
+    public void testSuffix() {
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.putSuffix("bc", "ab");
+        ruleExtractor.putSuffix("bcd", "abcd");
+        ruleExtractor.putSuffix("fg", "");
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery = getQuery(Arrays.asList("abc", "bcd", "abcdefg", "cde"));
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+
+        assertThat((Query) newExpandedQuery.getUserQuery(),
+                bq(
+                        dmq(term("aab")),
+                        dmq(term("abcd")),
+                        dmq(term("abcde")),
+                        dmq(term("cde"))
+                )
+        );
+    }
+
+    @Test
+    public void testPrefix() {
+        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
+        ruleExtractor.putPrefix("ab", "bc");
+        ruleExtractor.putPrefix("abc", "bcde");
+        ruleExtractor.putPrefix("fg", "");
+
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+
+        ExpandedQuery expandedQuery = getQuery(Arrays.asList("abc", "abd", "abcdef", "cde", "fghi"));
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+
+        assertThat((Query) newExpandedQuery.getUserQuery(),
+                bq(
+                        dmq(term("bcde")),
+                        dmq(term("bcd")),
+                        dmq(term("bcdedef")),
+                        dmq(term("cde")),
+                        dmq(term("hi"))
+                )
+        );
     }
 
     @Test
@@ -246,7 +413,6 @@ public class ReplaceRewriterTest {
         addTerm(query, "b", false);
         addTerm(query, "c", false);
 
-
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
 
@@ -272,7 +438,6 @@ public class ReplaceRewriterTest {
         addTerm(query, "a", true);
         addTerm(query, "a", false);
         addTerm(query, "c", false);
-
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -322,5 +487,4 @@ public class ReplaceRewriterTest {
         Term term = new Term(dmq, field, value, isGenerated);
         dmq.addClause(term);
     }
-
 }

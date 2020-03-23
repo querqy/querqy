@@ -28,10 +28,13 @@ public class ReplaceRewriterParser {
     private final String inputDelimiter;
     private final QuerqyParser querqyParser;
 
-    // explanation prefix, suffix, * as input not allowed
-    private static final String ERROR_MESSAGE_IMPROPER_INPUT_TEMPLATE = "ReplaceRule not properly configured for rule %s. " +
+    private static final String ERROR_MESSAGE_IMPROPER_INPUT_TEMPLATE = "ReplaceRule not properly configured for rule %s. \n" +
             "Each non-empty line must either start with # or " +
-            "contain a rule with at least one input and one output, e. g. a => b";
+            "contain a rule with at least one input and one output, e. g. a => b\n" +
+            "For suffix and prefix rules, only one input can be defined per output, e. g. a* => b\n" +
+            "The wildcard cannot be defined multiple times in the same rule, a definition like *a* => b is not allowed." +
+            "The wildcard cannot be used as a standalone input, a definition like * => b is not allowed.";
+
     private static final String ERROR_MESSAGE_DUPLICATE_INPUT_TEMPLATE = "Duplicate input: %s";
 
     private static final String OPERATOR = "=>";
