@@ -52,7 +52,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         if (!suffixMatches.isEmpty()) {
             this.hasReplacement = true;
 
-            for (SuffixMatch<CharSequence> suffixMatch : suffixMatches) {
+            for (final SuffixMatch<CharSequence> suffixMatch : suffixMatches) {
                 collectedTerms.set(
                         suffixMatch.getLookupOffset(),
                         new CompoundCharSequence(
@@ -66,7 +66,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         if (!prefixMatches.isEmpty()) {
             this.hasReplacement = true;
 
-            for (PrefixMatch<CharSequence> prefixMatch : prefixMatches) {
+            for (final PrefixMatch<CharSequence> prefixMatch : prefixMatches) {
                 CharSequence replacementTerm = collectedTerms.get(prefixMatch.getLookupOffset());
 
                 collectedTerms.set(
@@ -84,7 +84,6 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        // TODO: Replace this quite complex offset logic by a Queue builder that replaces sequences of terms keeping the original offsets
         final List<ExactMatch<Queue<CharSequence>>> exactMatches = ruleExtractor.findRulesByExactMatch(collectedTerms);
         if (!exactMatches.isEmpty()) {
             this.hasReplacement = true;
@@ -93,7 +92,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
             final List<ExactMatch<Queue<CharSequence>>> exactMatchesFiltered = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
 
-            for (ExactMatch<Queue<CharSequence>> exactMatch : exactMatchesFiltered) {
+            for (final ExactMatch<Queue<CharSequence>> exactMatch : exactMatchesFiltered) {
                 final int numberOfTermsToBeReplaced = exactMatch.lookupExclusiveEnd - exactMatch.lookupStart;
 
                 final int indexStart = exactMatch.lookupStart + indexOffsetAfterReplacement;

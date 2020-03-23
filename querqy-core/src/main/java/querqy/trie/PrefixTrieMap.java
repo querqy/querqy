@@ -37,16 +37,16 @@ public class PrefixTrieMap<T> {
             return Optional.empty();
         }
 
-        States<T> states = trieMap.get(seq);
+        final States<T> states = trieMap.get(seq);
 
-        State<T> fullMatch = states.getStateForCompleteSequence();
+        final State<T> fullMatch = states.getStateForCompleteSequence();
         if (fullMatch.isFinal()) {
             return Optional.of(new PrefixMatch<>(fullMatch.index + 1, fullMatch.value));
         }
 
-        List<State<T>> prefixMatches = states.getPrefixes();
+        final List<State<T>> prefixMatches = states.getPrefixes();
         if (prefixMatches != null && !prefixMatches.isEmpty()) {
-            State<T> prefixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
+            final State<T> prefixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
             return Optional.of(new PrefixMatch<>(prefixMaxMatch.index + 1, prefixMaxMatch.value));
         }
 

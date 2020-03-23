@@ -2,7 +2,6 @@ package querqy.rewrite.contrib;
 
 import org.junit.Test;
 import querqy.ComparableCharSequenceWrapper;
-import querqy.CompoundCharSequence;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -10,7 +9,6 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.trie.RuleExtractor;
-import querqy.trie.State;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,9 +25,6 @@ import static querqy.QuerqyMatchers.term;
 
 public class ReplaceRewriterTest {
 
-
-    // what to do if all terms are removed?
-    // finish
     @Test
     public void testEmptyQueryAfterSuffixAndPrefixRule() {
         RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();

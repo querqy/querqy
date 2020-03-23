@@ -26,7 +26,7 @@ public class SuffixTrieMap<T> {
             throw new IllegalArgumentException("Must not put empty sequence into trie");
         }
 
-        ReverseComparableCharSequence revSeq = new ReverseComparableCharSequence(seq);
+        final ReverseComparableCharSequence revSeq = new ReverseComparableCharSequence(seq);
         trieMap.putPrefix(revSeq, value);
 
         if (includeExactMatch) {
@@ -39,18 +39,18 @@ public class SuffixTrieMap<T> {
             return Optional.empty();
         }
 
-        ReverseComparableCharSequence revSeq = new ReverseComparableCharSequence(seq);
+        final ReverseComparableCharSequence revSeq = new ReverseComparableCharSequence(seq);
 
-        States<T> states = trieMap.get(revSeq);
+        final States<T> states = trieMap.get(revSeq);
 
-        State<T> fullMatch = states.getStateForCompleteSequence();
+        final State<T> fullMatch = states.getStateForCompleteSequence();
         if (fullMatch.isFinal()) {
             return Optional.of(new SuffixMatch<>(seq.length() - (fullMatch.index + 1), fullMatch.value));
         }
 
-        List<State<T>> suffixMatches = states.getPrefixes();
+        final List<State<T>> suffixMatches = states.getPrefixes();
         if (suffixMatches != null && !suffixMatches.isEmpty()) {
-            State<T> suffixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
+            final State<T> suffixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
             return Optional.of(new SuffixMatch<>(seq.length() - (suffixMaxMatch.index + 1), suffixMaxMatch.value));
         }
 

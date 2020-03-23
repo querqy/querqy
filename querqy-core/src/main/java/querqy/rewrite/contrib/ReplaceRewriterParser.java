@@ -73,7 +73,7 @@ public class ReplaceRewriterParser {
 
                 throwIfTrue(!line.contains(OPERATOR), errorMessageImproperInput);
 
-                String[] lineSplit = line.split(OPERATOR);
+                final String[] lineSplit = line.split(OPERATOR);
                 throwIfTrue(lineSplit.length < 1 || lineSplit.length > 2, errorMessageImproperInput);
 
                 final String fullInput = lineSplit[0].trim();
