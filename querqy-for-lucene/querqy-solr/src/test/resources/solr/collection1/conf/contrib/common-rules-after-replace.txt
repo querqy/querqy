@@ -1,5 +1,0 @@
-g g =>
-	SYNONYM: h
-
-b =>
-	SYNONYM: i

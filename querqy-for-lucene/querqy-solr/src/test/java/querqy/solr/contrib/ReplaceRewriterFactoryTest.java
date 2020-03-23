@@ -19,7 +19,7 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
         String q = "*:*";
 
         SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.QF, "f1",
                 "defType", "querqy_defaults",
                 "debugQuery", "on"
         );
@@ -30,44 +30,92 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
 
 
     @Test
-    public void testDefaults() throws Exception {
+    public void testDefaults() {
         String q = "a b d";
 
         SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.QF, "f1",
                 "defType", "querqy_defaults",
                 "debugQuery", "on"
         );
 
-        assertQ("Missing shingles",
+        assertQ("Replace rules",
                 req,
-                "//str[@name='parsedquery'][contains(.,'e')]",
-                "//str[@name='parsedquery'][contains(.,'f')]",
-                "//str[@name='parsedquery'][contains(.,'g')]"
+                "//str[@name='parsedquery_toString'][text() = 'f1:e f1:f f1:g']"
         );
 
         req.close();
     }
 
     @Test
-    public void testSynonymsAfterReplacement() throws Exception {
-        String q = "a b b c d";
+    public void testEmptyQueryAfterRewriting() {
+        String q;
+        SolrQueryRequest req;
 
-        SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                "defType", "querqy_synonyms",
+        q = "prefix1";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy_commonrules",
                 "debugQuery", "on"
         );
 
-        assertQ("Missing shingles",
-                req,
-                "//str[@name='parsedquery'][contains(.,'e')]",
-                "//str[@name='parsedquery'][contains(.,'f')]",
-                "//str[@name='parsedquery'][contains(.,'g')]",
-                "//str[@name='parsedquery'][contains(.,'h')]",
-                "//str[@name='parsedquery'][contains(.,'i')]"
+        assertQ("Replace rules", req, "//str[@name='parsedquery_toString'][text() = 'MatchNoDocsQuery(\"\")']");
+        req.close();
+
+        q = "suffix1";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy_commonrules",
+                "debugQuery", "on"
         );
 
+        assertQ("Replace rules", req, "//str[@name='parsedquery_toString'][text() = 'MatchNoDocsQuery(\"\")']");
+        req.close();
+
+        q = "exactmatch1";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy_commonrules",
+                "debugQuery", "on"
+        );
+
+        assertQ("Replace rules", req, "//str[@name='parsedquery_toString'][text() = 'MatchNoDocsQuery(\"\")']");
+        req.close();
+    }
+
+    @Test
+    public void testOverlaps() {
+        String q;
+        SolrQueryRequest req;
+
+        q = "ghi gh g jkl jk j mn op qr s t uv w xy z";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Replace rules", req,
+                "//str[@name='parsedquery_toString'][text() = 'f1:gh f1:g f1:jk f1:j f1:opq f1:t f1:tu']"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testRuleCombinations() {
+        String q;
+        SolrQueryRequest req;
+
+        q = "abcdef";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Replace rules", req,
+                "//str[@name='parsedquery_toString'][text() = 'f1:cd']"
+        );
         req.close();
     }
 

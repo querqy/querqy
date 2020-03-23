@@ -11,16 +11,19 @@ public class RuleExtractorUtils {
     private RuleExtractorUtils(){}
 
     private static final Comparator<ExactMatch<?>> COMPARE_BY_SIZE_DESC = (o1, o2) -> o2.termSize - o1.termSize;
-    private static final Comparator<ExactMatch<?>> COMPARE_BY_ORDER_ASC = Comparator.comparingInt(o -> o.lookupStart);
+    private static final Comparator<ExactMatch<?>> COMPARE_BY_LOOKUP_START_ASC = Comparator.comparingInt(o -> o.lookupStart);
 
     public static <T> List<ExactMatch<T>> removeSubsetsAndSmallerOverlaps(List<ExactMatch<T>> exactMatches) {
         final List<ExactMatch<T>> exactMatchesFiltered = new ArrayList<>();
+
         exactMatches.stream()
-                .sorted(COMPARE_BY_SIZE_DESC.thenComparing(COMPARE_BY_ORDER_ASC))
+                .sorted(COMPARE_BY_SIZE_DESC.thenComparing(COMPARE_BY_LOOKUP_START_ASC))
                 .filter(current -> exactMatchesFiltered.stream()
                         .allMatch(compared -> coordinatesDoNotOverlap(current.lookupStart, current.lookupExclusiveEnd - 1,
                                 compared.lookupStart, compared.lookupExclusiveEnd - 1)))
                 .forEach(exactMatchesFiltered::add);
+
+        exactMatchesFiltered.sort(COMPARE_BY_LOOKUP_START_ASC);
 
         return exactMatchesFiltered;
     }

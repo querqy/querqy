@@ -48,41 +48,63 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        List<SuffixMatch<CharSequence>> suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(collectedTerms);
+        final List<SuffixMatch<CharSequence>> suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(collectedTerms);
         if (!suffixMatches.isEmpty()) {
             this.hasReplacement = true;
-            suffixMatches.forEach(
-                    suffixMatch ->
-                        collectedTerms.set(
-                                suffixMatch.getLookupOffset(),
-                                new CompoundCharSequence(
-                                        "",
-                                        collectedTerms.get(suffixMatch.getLookupOffset()).subSequence(0, suffixMatch.startSubstring),
-                                        suffixMatch.match)));
+
+            for (SuffixMatch<CharSequence> suffixMatch : suffixMatches) {
+                collectedTerms.set(
+                        suffixMatch.getLookupOffset(),
+                        new CompoundCharSequence(
+                                "",
+                                collectedTerms.get(suffixMatch.getLookupOffset()).subSequence(0, suffixMatch.startSubstring),
+                                suffixMatch.match));
+            }
         }
 
-        List<PrefixMatch<CharSequence>> prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(collectedTerms);
+        final List<PrefixMatch<CharSequence>> prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(collectedTerms);
         if (!prefixMatches.isEmpty()) {
             this.hasReplacement = true;
-            prefixMatches.forEach(
-                    prefixMatch ->
-                        collectedTerms.set(
-                                prefixMatch.getLookupOffset(),
-                                new CompoundCharSequence(
-                                        "",
-                                        collectedTerms.get(prefixMatch.getLookupOffset()).subSequence(0, prefixMatch.exclusiveEnd),
-                                        prefixMatch.match)));
+
+            for (PrefixMatch<CharSequence> prefixMatch : prefixMatches) {
+                CharSequence replacementTerm = collectedTerms.get(prefixMatch.getLookupOffset());
+
+                collectedTerms.set(
+                        prefixMatch.getLookupOffset(),
+                        new CompoundCharSequence(
+                                "",
+                                prefixMatch.match,
+                                replacementTerm.subSequence(prefixMatch.exclusiveEnd, replacementTerm.length())));
+            }
         }
 
-        List<ExactMatch<Queue<CharSequence>>> exactMatches = ruleExtractor.findRulesByExactMatch(collectedTerms);
+        for (int i = collectedTerms.size() - 1; i >= 0; i--) {
+            if (collectedTerms.get(i).length() == 0) {
+                collectedTerms.remove(i);
+            }
+        }
+
+        // TODO: Replace this quite complex offset logic by a Queue builder that replaces sequences of terms keeping the original offsets
+        final List<ExactMatch<Queue<CharSequence>>> exactMatches = ruleExtractor.findRulesByExactMatch(collectedTerms);
         if (!exactMatches.isEmpty()) {
             this.hasReplacement = true;
-            RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(exactMatches)
-                    .forEach(exactMatch -> {
-                        IntStream.range(exactMatch.lookupStart, exactMatch.lookupExclusiveEnd)
-                                .map(i -> exactMatch.lookupExclusiveEnd - i + exactMatch.lookupStart - 1)
-                                .forEach(index -> collectedTerms.remove(index));
-                        collectedTerms.addAll(exactMatch.lookupStart, exactMatch.value); });
+
+            int indexOffsetAfterReplacement = 0;
+
+            final List<ExactMatch<Queue<CharSequence>>> exactMatchesFiltered = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
+
+            for (ExactMatch<Queue<CharSequence>> exactMatch : exactMatchesFiltered) {
+                final int numberOfTermsToBeReplaced = exactMatch.lookupExclusiveEnd - exactMatch.lookupStart;
+
+                final int indexStart = exactMatch.lookupStart + indexOffsetAfterReplacement;
+                final int indexExclusiveEnd = exactMatch.lookupExclusiveEnd + indexOffsetAfterReplacement;
+
+                IntStream.range(0, indexExclusiveEnd - indexStart).forEach(i -> collectedTerms.remove(indexStart));
+                collectedTerms.addAll(indexStart, exactMatch.value);
+
+                final int querySizeDelta = exactMatch.value.size() - numberOfTermsToBeReplaced;
+                indexOffsetAfterReplacement += querySizeDelta;
+            }
         }
 
         return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
@@ -90,12 +112,13 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     private ExpandedQuery buildQueryFromSeqList(ExpandedQuery oldQuery, LinkedList<CharSequence> tokens) {
         final Query query = new Query();
-        tokens.forEach(token -> {
+
+        for (final CharSequence token : tokens) {
             final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, false);
             query.addClause(dmq);
             final Term term = new Term(dmq, token);
             dmq.addClause(term);
-        });
+        }
 
         final ExpandedQuery newQuery = new ExpandedQuery(query);
 
