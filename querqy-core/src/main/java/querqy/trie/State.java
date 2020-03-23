@@ -1,9 +1,7 @@
 /**
- * 
+ *
  */
 package querqy.trie;
-
-import java.util.Objects;
 
 /**
  * @author René Kriegler, @renekrie
