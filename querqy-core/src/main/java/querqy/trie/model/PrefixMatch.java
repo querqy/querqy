@@ -22,10 +22,10 @@ public class PrefixMatch<T> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PrefixMatch<?> that = (PrefixMatch<?>) o;
+        final PrefixMatch<?> that = (PrefixMatch<?>) o;
         return exclusiveEnd == that.exclusiveEnd &&
                 lookupOffset == that.lookupOffset &&
                 Objects.equals(match, that.match);

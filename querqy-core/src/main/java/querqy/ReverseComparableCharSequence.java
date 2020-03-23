@@ -1,6 +1,3 @@
-/**
- * 
- */
 package querqy;
 
 import java.util.stream.Collector;
@@ -12,14 +9,8 @@ public class ReverseComparableCharSequence implements ComparableCharSequence {
     private final int startIndexRev;
     private final int length;
 
-    // considered to support more efficient substring handling
-    private final int startIndex;
-    private final int endIndex;
-
     public ReverseComparableCharSequence(final CharSequence sequence) {
         this.sequence = sequence;
-        this.startIndex = 0;
-        this.endIndex = sequence.length();
         this.startIndexRev = sequence.length() - 1;
         this.length = sequence.length();
     }
