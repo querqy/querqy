@@ -15,6 +15,7 @@ import querqy.model.Term;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitQueryInput;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
+import querqy.trie.TrieMap;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -35,7 +36,7 @@ public class NumberUnitRewriterTest {
     @Mock
     NumberUnitQueryCreator numberUnitQueryCreator;
 
-    private Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap = new HashMap<>();
+    private TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap = new TrieMap<>();
 
     @Before
     public void setup() {
@@ -54,27 +55,27 @@ public class NumberUnitRewriterTest {
 
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("12zoll"));
         assertThat(numberUnitInput).isNotEmpty();
-        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12"), createSeq("zoll"))));
+        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12"), Collections.emptyList())));
 
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("12\""));
         assertThat(numberUnitInput).isNotEmpty();
-        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12"), createSeq("\""))));
+        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12"), Collections.emptyList())));
 
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("12.3zoll"));
         assertThat(numberUnitInput).isNotEmpty();
-        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12.3"), createSeq("zoll"))));
+        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12.3"), Collections.emptyList())));
 
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("12,3zoll"));
         assertThat(numberUnitInput).isNotEmpty();
-        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12.3"), createSeq("zoll"))));
+        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12.3"), Collections.emptyList())));
 
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("12.zoll"));
         assertThat(numberUnitInput).isNotEmpty();
-        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12"), createSeq("zoll"))));
+        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12"), Collections.emptyList())));
 
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq(".12zoll"));
         assertThat(numberUnitInput).isNotEmpty();
-        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("0.12"), createSeq("zoll"))));
+        assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("0.12"), Collections.emptyList())));
     }
 
     @Test

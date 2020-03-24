@@ -10,6 +10,8 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
+import querqy.trie.State;
+import querqy.trie.TrieMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +21,7 @@ import java.util.Set;
 
 public class NumberUnitRewriterFactory extends RewriterFactory {
 
-    private final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap;
+    private final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap;
     private final NumberUnitQueryCreator numberUnitQueryCreator;
 
     public NumberUnitRewriterFactory(final String id,
@@ -30,17 +32,29 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
         this.numberUnitQueryCreator = numberUnitQueryCreator;
     }
 
-    private Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> createNumberUnitMap(
+    private TrieMap<List<PerUnitNumberUnitDefinition>> createNumberUnitMap(
             List<NumberUnitDefinition> numberUnitDefinitions) {
 
-        final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> map = new HashMap<>();
+        final TrieMap<List<PerUnitNumberUnitDefinition>> map = new TrieMap<>();
 
-        numberUnitDefinitions.forEach(
-                numberUnitDefinition -> numberUnitDefinition.unitDefinitions.forEach(
-                        unitDefinition -> map.computeIfAbsent(
-                                new ComparableCharSequenceWrapper(unitDefinition.term),
-                                key -> new ArrayList<>()).add(
-                                        new PerUnitNumberUnitDefinition(numberUnitDefinition, unitDefinition.multiplier))));
+        numberUnitDefinitions.forEach(numberUnitDefinition ->
+                numberUnitDefinition.unitDefinitions.forEach(unitDefinition -> {
+
+                    final State<List<PerUnitNumberUnitDefinition>> state = map.get(unitDefinition.term)
+                            .getStateForCompleteSequence();
+
+                    final PerUnitNumberUnitDefinition def = new PerUnitNumberUnitDefinition(numberUnitDefinition,
+                            unitDefinition.multiplier);
+
+                    if (state.isFinal()) {
+                        state.value.add(def);
+
+                    } else {
+                        List<PerUnitNumberUnitDefinition> newList = new ArrayList<>();
+                        newList.add(def);
+                        map.put(unitDefinition.term, newList);
+                    }
+                }));
 
         return map;
     }

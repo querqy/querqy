@@ -12,17 +12,18 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitQueryInput;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
+import querqy.trie.State;
+import querqy.trie.TrieMap;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap;
+    private final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap;
     private final NumberUnitQueryCreator numberUnitQueryCreator;
 
     private final Set<NumberUnitQueryInput> numberUnitQueryInputs = new HashSet<>();
@@ -32,7 +33,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
         return ch == ',' || ch == '.';
     }
 
-    public NumberUnitRewriter(final Map<ComparableCharSequence, List<PerUnitNumberUnitDefinition>> numberUnitMap,
+    public NumberUnitRewriter(final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap,
                               final NumberUnitQueryCreator numberUnitQueryCreator) {
         this.numberUnitMap = numberUnitMap;
         this.numberUnitQueryCreator = numberUnitQueryCreator;
@@ -53,12 +54,12 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
 
         numberUnitQueryInputs.stream()
                 .map(input -> numberUnitQueryCreator.createFilterQuery(
-                        input.getNumber(), numberUnitMap.get(input.getUnit())))
+                        input.getNumber(), input.getPerUnitNumberUnitDefinitions()))
                 .forEach(expandedQuery::addFilterQuery);
 
         numberUnitQueryInputs.stream()
                 .map(input -> numberUnitQueryCreator.createBoostQuery(
-                        input.getNumber(), numberUnitMap.get(input.getUnit())))
+                        input.getNumber(), input.getPerUnitNumberUnitDefinitions()))
                 .forEach(expandedQuery::addBoostUpQuery);
 
         numberUnitQueryInputs.stream()
@@ -78,12 +79,18 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
         final ComparableCharSequence seq = term.getValue();
 
         if (incompleteNumberUnitQueryInput != null) {
-            if (isUnit(seq)) {
+            final Optional<List<PerUnitNumberUnitDefinition>> unitDefLookup = lookupUnitDef(seq);
+
+            if (unitDefLookup.isPresent()) {
+
                 final NumberUnitQueryInput completeNumberUnitQueryInput = incompleteNumberUnitQueryInput;
-                completeNumberUnitQueryInput.setUnit(seq);
+                completeNumberUnitQueryInput.setPerUnitNumberUnitDefinitions(unitDefLookup.get());
                 completeNumberUnitQueryInput.addOriginDisjunctionMaxQuery(term.getParent());
+
                 numberUnitQueryInputs.add(completeNumberUnitQueryInput);
+
                 incompleteNumberUnitQueryInput = null;
+
                 return null;
 
             } else {
@@ -91,7 +98,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             }
         }
 
-        parseNumberAndUnit(seq).ifPresent( numberUnitQueryInput -> {
+        parseNumberAndUnit(seq).ifPresent(numberUnitQueryInput -> {
 
             numberUnitQueryInput.addOriginDisjunctionMaxQuery(term.getParent());
 
@@ -132,13 +139,14 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
                 }
 
                 final ComparableCharSequence unit = seq.subSequence(i, seq.length());
-                if (isUnit(unit)) {
-                    return Optional.of(new NumberUnitQueryInput(parseNumber(seq.subSequence(0, i), floatDelimiter),
-                            unit));
 
-                } else {
-                    return Optional.empty();
-                }
+                final Optional<List<PerUnitNumberUnitDefinition>> unitDefLookup = lookupUnitDef(unit);
+                return unitDefLookup.isPresent()
+                        ? Optional.of(
+                                new NumberUnitQueryInput(
+                                        parseNumber(seq.subSequence(0, i), floatDelimiter),
+                                        unitDefLookup.get()))
+                        : Optional.empty();
             }
         }
 
@@ -167,7 +175,8 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
                 numberUnitQueryCreator.getRoundingMode());
     }
 
-    private boolean isUnit(final ComparableCharSequence seq) {
-        return numberUnitMap.containsKey(seq);
+    private Optional<List<PerUnitNumberUnitDefinition>> lookupUnitDef(final ComparableCharSequence seq) {
+        State<List<PerUnitNumberUnitDefinition>> state = numberUnitMap.get(seq).getStateForCompleteSequence();
+        return state.isFinal() ? Optional.of(state.value) : Optional.empty();
     }
 }

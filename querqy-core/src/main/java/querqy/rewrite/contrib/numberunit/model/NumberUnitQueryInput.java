@@ -1,17 +1,18 @@
 package querqy.rewrite.contrib.numberunit.model;
 
-import querqy.ComparableCharSequence;
 import querqy.model.DisjunctionMaxQuery;
 
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class NumberUnitQueryInput {
 
     private final BigDecimal number;
-    private ComparableCharSequence unit;
+    private List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions;
 
     private final Set<DisjunctionMaxQuery> originDisjunctionMaxQueries = new HashSet<>();
 
@@ -19,13 +20,14 @@ public class NumberUnitQueryInput {
         this(number, null);
     }
 
-    public NumberUnitQueryInput(final BigDecimal number, ComparableCharSequence unit) {
+    public NumberUnitQueryInput(final BigDecimal number,
+                                final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
         this.number = number;
-        this.unit = unit;
+        this.perUnitNumberUnitDefinitions = perUnitNumberUnitDefinitions;
     }
 
     public boolean hasUnit() {
-        return this.unit != null;
+        return this.perUnitNumberUnitDefinitions != null;
     }
 
     public void addOriginDisjunctionMaxQuery(final DisjunctionMaxQuery dmq) {
@@ -40,49 +42,34 @@ public class NumberUnitQueryInput {
         return this.number;
     }
 
-    public ComparableCharSequence getUnit() {
-        return this.unit;
+    public List<PerUnitNumberUnitDefinition> getPerUnitNumberUnitDefinitions() {
+        return perUnitNumberUnitDefinitions;
     }
 
-    public void setUnit(ComparableCharSequence unit) {
-        this.unit = unit;
+    public void setPerUnitNumberUnitDefinitions(List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
+        this.perUnitNumberUnitDefinitions = perUnitNumberUnitDefinitions;
     }
 
     @Override
-    public boolean equals(final Object o) {
-
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final NumberUnitQueryInput numberUnitQueryInput = (NumberUnitQueryInput) o;
-        if (this.getNumber().compareTo(numberUnitQueryInput.getNumber()) == 0) {
-
-            if (!this.hasUnit()) {
-                return !numberUnitQueryInput.hasUnit();
-
-            } else {
-                return this.getUnit().equals(numberUnitQueryInput.getUnit());
-            }
-
-        } else {
-            return false;
-        }
-
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NumberUnitQueryInput that = (NumberUnitQueryInput) o;
+        return Objects.equals(number.doubleValue(), that.number.doubleValue()) &&
+                Objects.equals(perUnitNumberUnitDefinitions, that.perUnitNumberUnitDefinitions) &&
+                Objects.equals(originDisjunctionMaxQueries, that.originDisjunctionMaxQueries);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hash(number, perUnitNumberUnitDefinitions, originDisjunctionMaxQueries);
     }
 
     @Override
     public String toString() {
-        return this.getNumber() + " " + this.getUnit();
+        return "NumberUnitQueryInput{" +
+                "number=" + number +
+                ", perUnitNumberUnitDefinitions=" + perUnitNumberUnitDefinitions +
+                '}';
     }
-
 }
