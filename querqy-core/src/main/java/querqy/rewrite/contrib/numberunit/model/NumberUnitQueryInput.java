@@ -3,6 +3,7 @@ package querqy.rewrite.contrib.numberunit.model;
 import querqy.model.DisjunctionMaxQuery;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -12,12 +13,12 @@ import java.util.Set;
 public class NumberUnitQueryInput {
 
     private final BigDecimal number;
-    private List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions;
+    private final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions;
 
     private final Set<DisjunctionMaxQuery> originDisjunctionMaxQueries = new HashSet<>();
 
     public NumberUnitQueryInput(final BigDecimal number) {
-        this(number, null);
+        this(number, new ArrayList<>());
     }
 
     public NumberUnitQueryInput(final BigDecimal number,
@@ -27,7 +28,7 @@ public class NumberUnitQueryInput {
     }
 
     public boolean hasUnit() {
-        return this.perUnitNumberUnitDefinitions != null;
+        return !this.perUnitNumberUnitDefinitions.isEmpty();
     }
 
     public void addOriginDisjunctionMaxQuery(final DisjunctionMaxQuery dmq) {
@@ -46,8 +47,8 @@ public class NumberUnitQueryInput {
         return perUnitNumberUnitDefinitions;
     }
 
-    public void setPerUnitNumberUnitDefinitions(List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
-        this.perUnitNumberUnitDefinitions = perUnitNumberUnitDefinitions;
+    public void addPerUnitNumberUnitDefinitions(final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
+        this.perUnitNumberUnitDefinitions.addAll(perUnitNumberUnitDefinitions);
     }
 
     @Override

@@ -1,7 +1,5 @@
 package querqy.rewrite.contrib;
 
-import querqy.ComparableCharSequence;
-import querqy.ComparableCharSequenceWrapper;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -14,9 +12,7 @@ import querqy.trie.State;
 import querqy.trie.TrieMap;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class NumberUnitRewriterFactory extends RewriterFactory {
@@ -50,7 +46,7 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
                         state.value.add(def);
 
                     } else {
-                        List<PerUnitNumberUnitDefinition> newList = new ArrayList<>();
+                        final List<PerUnitNumberUnitDefinition> newList = new ArrayList<>();
                         newList.add(def);
                         map.put(unitDefinition.term, newList);
                     }
@@ -60,7 +56,8 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final ExpandedQuery input,
+                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
     }
 

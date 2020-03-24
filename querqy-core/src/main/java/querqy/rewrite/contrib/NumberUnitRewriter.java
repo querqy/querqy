@@ -84,7 +84,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             if (unitDefLookup.isPresent()) {
 
                 final NumberUnitQueryInput completeNumberUnitQueryInput = incompleteNumberUnitQueryInput;
-                completeNumberUnitQueryInput.setPerUnitNumberUnitDefinitions(unitDefLookup.get());
+                completeNumberUnitQueryInput.addPerUnitNumberUnitDefinitions(unitDefLookup.get());
                 completeNumberUnitQueryInput.addOriginDisjunctionMaxQuery(term.getParent());
 
                 numberUnitQueryInputs.add(completeNumberUnitQueryInput);
@@ -176,7 +176,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
     }
 
     private Optional<List<PerUnitNumberUnitDefinition>> lookupUnitDef(final ComparableCharSequence seq) {
-        State<List<PerUnitNumberUnitDefinition>> state = numberUnitMap.get(seq).getStateForCompleteSequence();
+        final State<List<PerUnitNumberUnitDefinition>> state = numberUnitMap.get(seq).getStateForCompleteSequence();
         return state.isFinal() ? Optional.of(state.value) : Optional.empty();
     }
 }
