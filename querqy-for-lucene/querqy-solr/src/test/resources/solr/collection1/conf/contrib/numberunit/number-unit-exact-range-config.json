@@ -2,7 +2,7 @@
   "numberUnitDefinitions": [
     {
       "units": [ { "term": "zoll", "multiplier": 1 } ],
-      "fields": [ { "fieldName": "screen_size", "floatingPointNumbers": 2 } ],
+      "fields": [ { "fieldName": "screen_size", "scale": 2 } ],
       "boost": {
         "maxScoreForExactMatch": 20,
         "minScoreAtUpperBoundary": 10,
@@ -21,7 +21,7 @@
     },
     {
       "units": [ { "term": "gb", "multiplier": 1 } ],
-      "fields": [ { "fieldName": "disk", "floatingPointNumbers": 0 } ],
+      "fields": [ { "fieldName": "disk", "scale": 0 } ],
       "boost": {
         "maxScoreForExactMatch": 20,
         "minScoreAtUpperBoundary": 10,

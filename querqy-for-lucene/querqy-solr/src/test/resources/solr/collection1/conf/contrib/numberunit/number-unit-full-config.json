@@ -1,9 +1,9 @@
 {
-  "floatingPointNumbersForLinearFunctions": 1001,
+  "scaleForLinearFunctions": 1001,
   "numberUnitDefinitions": [
     {
       "units": [ { "term": "term",     "multiplier": 1002 } ],
-      "fields": [ { "fieldName": "fieldName", "floatingPointNumbers": 1003 } ],
+      "fields": [ { "fieldName": "fieldName", "scale": 1003 } ],
       "boost": {
         "maxScoreForExactMatch": 1004,
         "minScoreAtUpperBoundary": 1005,

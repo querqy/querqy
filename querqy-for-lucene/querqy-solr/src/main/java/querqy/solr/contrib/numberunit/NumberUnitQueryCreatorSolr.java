@@ -27,7 +27,6 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
     private static final String RANGE_QUERY = "{!frange l=%s u=%s v='%s'}";
     private static final String RANGE_QUERY_EXCLUDE_UPPER = "{!frange l=%s u=%s incu='false' v='%s'}";
     private static final String RANGE_QUERY_EXCLUDE_LOWER = "{!frange l=%s u=%s incl='false' v='%s'}";
-    private static final String EXACT_MATCH_QUERY_TEMPLATE= "{!term f=%s v=%s}";
 
     private static final String RANGE_QUERY_TEMPLATE = "%s:[%s TO %s]";
     private static final String BOOLEAN_STRING_CONCATENATION_OR = " OR ";

@@ -37,8 +37,8 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
 
     private static final int DEFAULT_UNIT_MULTIPLIER = 1;
 
-    private static final int DEFAULT_FLOATING_POINT_NUMBERS_FOR_LINEAR_FUNCTIONS = 5;
-    private static final int DEFAULT_FIELD_FLOATING_POINT_NUMBERS = 0;
+    private static final int DEFAULT_SCALE_FOR_LINEAR_FUNCTIONS = 5;
+    private static final int DEFAULT_FIELD_SCALE = 0;
 
     private static final float DEFAULT_BOOST_MAX_SCORE_FOR_EXACT_MATCH = 200;
     private static final float DEFAULT_BOOST_MIN_SCORE_AT_UPPER_BOUNDARY = 100;
@@ -72,8 +72,8 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
         final NumberUnitConfigObject numberUnitConfigObject = JSON_DEFAULT_OBJECT_MAPPER.readValue(
                 resourceLoader.openResource(rulesResourceName), NumberUnitConfigObject.class);
 
-        final int scale = getOrDefaultInt(numberUnitConfigObject::getFloatingPointNumbersForLinearFunctions,
-                DEFAULT_FLOATING_POINT_NUMBERS_FOR_LINEAR_FUNCTIONS);
+        final int scale = getOrDefaultInt(numberUnitConfigObject::getScaleForLinearFunctions,
+                DEFAULT_SCALE_FOR_LINEAR_FUNCTIONS);
         final List<NumberUnitDefinition> numberUnitDefinitions = parseConfig(numberUnitConfigObject);
 
         numberUnitDefinitions.stream()
@@ -181,7 +181,7 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
                     }})
                 .map(fieldObject -> new FieldDefinition(
                         fieldObject.getFieldName(),
-                        getOrDefaultInt(fieldObject::getFloatingPointNumbers, DEFAULT_FIELD_FLOATING_POINT_NUMBERS)))
+                        getOrDefaultInt(fieldObject::getScale, DEFAULT_FIELD_SCALE)))
                 .collect(Collectors.toList());
     }
 

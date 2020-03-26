@@ -18,7 +18,7 @@ public class NumberUnitRewriterParseConfigTest {
     @Test
     public void testFullConfig() throws IOException {
         final NumberUnitConfigObject numberUnitConfigObject = createConfigObjectFromFileName("number-unit-full-config.json");
-        assertThat(numberUnitConfigObject.getFloatingPointNumbersForLinearFunctions()).isEqualTo(1001);
+        assertThat(numberUnitConfigObject.getScaleForLinearFunctions()).isEqualTo(1001);
         assertThat(numberUnitConfigObject.getNumberUnitDefinitions().get(0).getBoost()).isNotNull();
         assertThat(numberUnitConfigObject.getNumberUnitDefinitions().get(0).getFilter()).isNotNull();
 

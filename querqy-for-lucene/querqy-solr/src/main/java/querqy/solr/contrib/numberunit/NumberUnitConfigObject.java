@@ -3,15 +3,15 @@ package querqy.solr.contrib.numberunit;
 import java.util.List;
 
 public class NumberUnitConfigObject {
-    private Integer floatingPointNumbersForLinearFunctions;
+    private Integer scaleForLinearFunctions;
     private List<NumberUnitDefinitionObject> numberUnitDefinitions;
 
-    public Integer getFloatingPointNumbersForLinearFunctions() {
-        return floatingPointNumbersForLinearFunctions;
+    public Integer getScaleForLinearFunctions() {
+        return scaleForLinearFunctions;
     }
 
-    public void setFloatingPointNumbersForLinearFunctions(Integer floatingPointNumbersForLinearFunctions) {
-        this.floatingPointNumbersForLinearFunctions = floatingPointNumbersForLinearFunctions;
+    public void setScaleForLinearFunctions(Integer scaleForLinearFunctions) {
+        this.scaleForLinearFunctions = scaleForLinearFunctions;
     }
 
     public List<NumberUnitDefinitionObject> getNumberUnitDefinitions() {
@@ -84,7 +84,7 @@ public class NumberUnitConfigObject {
 
     public static class FieldObject {
         private String fieldName;
-        private Integer floatingPointNumbers;
+        private Integer scale;
 
         public String getFieldName() {
             return fieldName;
@@ -94,12 +94,12 @@ public class NumberUnitConfigObject {
             this.fieldName = fieldName;
         }
 
-        public Integer getFloatingPointNumbers() {
-            return floatingPointNumbers;
+        public Integer getScale() {
+            return scale;
         }
 
-        public void setFloatingPointNumbers(Integer floatingPointNumbers) {
-            this.floatingPointNumbers = floatingPointNumbers;
+        public void setScale(Integer scale) {
+            this.scale = scale;
         }
     }
 
