@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<schema name="minimal test schema" version="1.5">
+
+    <fieldtype name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+        <analyzer>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        </analyzer>
+    </fieldType>
+    <fieldType name="text_lc" class="solr.TextField" positionIncrementGap="100">
+        <analyzer>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
+    <field name="id" type="string" indexed="true" stored="true" multiValued="false" required="true"/>
+
+    <field name="f1" type="text" indexed="true" stored="true" multiValued="false"/>
+    <field name="f2" type="text" indexed="true" stored="true" multiValued="false"/>
+
+    <field name="screen_size" type="double" indexed="true" stored="true" multiValued="false"/>
+
+    <field name="height" type="long" indexed="true" stored="true" multiValued="false"/>
+    <field name="depth" type="long" indexed="true" stored="true" multiValued="false"/>
+    <field name="width" type="long" indexed="true" stored="true" multiValued="false"/>
+
+    <field name="disk" type="long" indexed="true" stored="true" multiValued="false"/>
+
+    <field name="fieldUnlimited" type="long" indexed="true" stored="true" multiValued="false"/>
+
+    <uniqueKey>id</uniqueKey>
+
+</schema>
+
