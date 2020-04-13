@@ -8,7 +8,7 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
-import querqy.trie.RuleExtractor;
+import querqy.trie.SequenceLookup;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,11 +27,11 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testEmptyQueryAfterSuffixAndPrefixRule() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putSuffix("suffix1", "");
-        ruleExtractor.putPrefix("prefix1", "");
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("suffix1", "");
+        sequenceLookup.putPrefix("prefix1", "");
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("suffix1", "prefix1"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -43,14 +43,14 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testEmptyQueryAfterExactMatchRule() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("c d"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("d e"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("g h"), getTermQueue(Collections.emptyList()));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("c d"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("d e"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("g h"), getTermQueue(Collections.emptyList()));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
         ExpandedQuery expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h")));
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq()
@@ -60,14 +60,14 @@ public class ReplaceRewriterTest {
     @Test
     public void testRemoveTerms() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("c"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("h"), getTermQueue(Collections.singletonList("g")));
-        ruleExtractor.put(tokenListFromString("i j"), getTermQueue(Collections.emptyList()));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("c"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("h"), getTermQueue(Collections.singletonList("g")));
+        sequenceLookup.put(tokenListFromString("i j"), getTermQueue(Collections.emptyList()));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery;
         expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")));
@@ -84,14 +84,14 @@ public class ReplaceRewriterTest {
     @Test
     public void testRemoveOverlappingTerms() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b c"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("c d e"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("e f g"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("f g h"), getTermQueue(Collections.emptyList()));
-        ruleExtractor.put(tokenListFromString("i"), getTermQueue(Collections.emptyList()));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b c"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("c d e"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("e f g"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("f g h"), getTermQueue(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("i"), getTermQueue(Collections.emptyList()));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery;
         expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")));
@@ -107,12 +107,12 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testRuleCombinations() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putSuffix("cde", "dde");
-        ruleExtractor.putPrefix("abd", "ab");
-        ruleExtractor.put(Collections.singletonList("abde"), getTermQueue(Collections.singletonList("fghi")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("cde", "dde");
+        sequenceLookup.putPrefix("abd", "ab");
+        sequenceLookup.put(Collections.singletonList("abde"), getTermQueue(Collections.singletonList("fghi")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Collections.singletonList("abcde"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -126,14 +126,14 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testPrefixSuffixCaseSensitive() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>(false);
-        ruleExtractor.putPrefix("abc", "a");
-        ruleExtractor.putPrefix("DEF", "d");
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.putPrefix("abc", "a");
+        sequenceLookup.putPrefix("DEF", "d");
 
-        ruleExtractor.putSuffix("abc", "a");
-        ruleExtractor.putSuffix("DEF", "d");
+        sequenceLookup.putSuffix("abc", "a");
+        sequenceLookup.putSuffix("DEF", "d");
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList(
                 "abcd", "ABCD", "defg", "DEFG",
@@ -156,12 +156,12 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testSuffix() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putSuffix("bc", "ab");
-        ruleExtractor.putSuffix("bcd", "abcd");
-        ruleExtractor.putSuffix("fg", "");
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("bc", "ab");
+        sequenceLookup.putSuffix("bcd", "abcd");
+        sequenceLookup.putSuffix("fg", "");
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("abc", "bcd", "abcdefg", "cde"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -178,12 +178,12 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testPrefix() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putPrefix("ab", "bc");
-        ruleExtractor.putPrefix("abc", "bcde");
-        ruleExtractor.putPrefix("fg", "");
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putPrefix("ab", "bc");
+        sequenceLookup.putPrefix("abc", "bcde");
+        sequenceLookup.putPrefix("fg", "");
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("abc", "abd", "abcdef", "cde", "fghi"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -201,10 +201,10 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testReplacementKeepBoostAndFilterQueries() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a"), getTermQueue(Collections.singletonList("b")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a"), getTermQueue(Collections.singletonList("b")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Collections.singletonList("a"));
 
@@ -221,11 +221,11 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testReplacementCaseSensitive() {
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>(false);
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "E")));
-        ruleExtractor.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "E")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("A", "b", "C"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -238,10 +238,10 @@ public class ReplaceRewriterTest {
                 )
         );
 
-        ruleExtractor = new RuleExtractor<>(true);
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "E")));
-        ruleExtractor.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
-        replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        sequenceLookup = new SequenceLookup<>(true);
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "E")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
+        replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         expandedQuery = getQuery(Arrays.asList("A", "b", "C"));
         newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -258,11 +258,11 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysIntersect() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
-        ruleExtractor.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "b", "c"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -279,11 +279,11 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysTermsIntersect() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b c d"), getTermQueue(Collections.singletonList("f")));
-        ruleExtractor.put(tokenListFromString("b c e"), getTermQueue(Collections.singletonList("g")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b c d"), getTermQueue(Collections.singletonList("f")));
+        sequenceLookup.put(tokenListFromString("b c e"), getTermQueue(Collections.singletonList("g")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "b", "c", "e", "f"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -300,12 +300,12 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysSubset() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
-        ruleExtractor.put(tokenListFromString("a b c"), getTermQueue(Collections.singletonList("f")));
-        ruleExtractor.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("g")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        sequenceLookup.put(tokenListFromString("a b c"), getTermQueue(Collections.singletonList("f")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("g")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "a", "a", "b", "e"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -334,10 +334,10 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementInTheMiddle() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "a", "b", "c"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -355,10 +355,10 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementAtBeginning() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "b", "b", "c"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -376,10 +376,10 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementAtEnd() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "a", "a", "b"));
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
@@ -397,10 +397,10 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementRemoveGeneratedIfMatch() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         Query query = new Query();
         addTerm(query, "a", false);
@@ -423,10 +423,10 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementKeepGeneratedIfUnmatched() {
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
 
-        ReplaceRewriter replaceRewriter = new ReplaceRewriter(ruleExtractor);
+        ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         Query query = new Query();
         addTerm(query, "a", false);

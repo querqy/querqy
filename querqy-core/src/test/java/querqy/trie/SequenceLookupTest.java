@@ -11,35 +11,35 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuleExtractorTest {
+public class SequenceLookupTest {
 
     @Test
     public void testNoMatch() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>(false);
-        ruleExtractor.putSuffix("suffix", "suffix");
-        ruleExtractor.putPrefix("prefix", "prefix");
-        ruleExtractor.put(createStringList("exact"), "exact");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.putSuffix("suffix", "suffix");
+        sequenceLookup.putPrefix("prefix", "prefix");
+        sequenceLookup.put(createStringList("exact"), "exact");
 
         List<CharSequence> input = createTermSeq("term");
 
-        List<SuffixMatch<String>> suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(input);
+        List<SuffixMatch<String>> suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(input);
         assertThat(suffixMatches).hasSize(0);
 
-        List<PrefixMatch<String>> prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(input);
+        List<PrefixMatch<String>> prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(input);
         assertThat(prefixMatches).hasSize(0);
 
-        List<ExactMatch<String>> exactMatches = ruleExtractor.findRulesByExactMatch(input);
+        List<ExactMatch<String>> exactMatches = sequenceLookup.findRulesByExactMatch(input);
         assertThat(exactMatches).hasSize(0);
     }
 
     @Test
     public void testSuffixIgnoreCase() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>(false);
-        ruleExtractor.putSuffix("1SUFFIX", "upper");
-        ruleExtractor.putSuffix("2suffix", "lower");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.putSuffix("1SUFFIX", "upper");
+        sequenceLookup.putSuffix("2suffix", "lower");
 
         List<SuffixMatch<String>> suffixMatches;
-        suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(createTermSeq(
+        suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(createTermSeq(
                 "prefix1suffix", "PREFIX2SUFFIX", "PREFIX1SUFFIX", "prefix2suffix"));
         assertThat(suffixMatches).hasSize(2);
         assertThat(suffixMatches).containsExactlyInAnyOrder(
@@ -50,11 +50,11 @@ public class RuleExtractorTest {
 
     @Test
     public void testSuffixDuplicate() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putSuffix("1suffix", "value1");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("1suffix", "value1");
 
         List<SuffixMatch<String>> suffixMatches;
-        suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(createTermSeq("prefix1suffix", "prefix1suffix"));
+        suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(createTermSeq("prefix1suffix", "prefix1suffix"));
         assertThat(suffixMatches).hasSize(2);
         assertThat(suffixMatches).containsExactlyInAnyOrder(
                 new SuffixMatch<>(6, "value1").setLookupOffset(0),
@@ -64,13 +64,13 @@ public class RuleExtractorTest {
 
     @Test
     public void testSuffixSubset() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putSuffix("11suffix", "value1");
-        ruleExtractor.putSuffix("fix", "value2");
-        ruleExtractor.putSuffix("suffix", "value3");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("11suffix", "value1");
+        sequenceLookup.putSuffix("fix", "value2");
+        sequenceLookup.putSuffix("suffix", "value3");
 
         List<SuffixMatch<String>> suffixMatches;
-        suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
+        suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
         assertThat(suffixMatches).hasSize(2);
         assertThat(suffixMatches).containsExactlyInAnyOrder(
                 new SuffixMatch<>(7, "value3").setLookupOffset(0),
@@ -80,12 +80,12 @@ public class RuleExtractorTest {
 
     @Test
     public void testSuffixMultipleMatches() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putSuffix("1suffix", "value1");
-        ruleExtractor.putSuffix("11suffix", "value2");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("1suffix", "value1");
+        sequenceLookup.putSuffix("11suffix", "value2");
 
         List<SuffixMatch<String>> suffixMatches;
-        suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
+        suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
         assertThat(suffixMatches).hasSize(2);
         assertThat(suffixMatches).containsExactlyInAnyOrder(
                 new SuffixMatch<>(6, "value1").setLookupOffset(0),
@@ -96,12 +96,12 @@ public class RuleExtractorTest {
 
     @Test
     public void testPrefixIgnoreCase() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>(false);
-        ruleExtractor.putPrefix("PREFIX1", "upper");
-        ruleExtractor.putPrefix("prefix2", "lower");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.putPrefix("PREFIX1", "upper");
+        sequenceLookup.putPrefix("prefix2", "lower");
 
         List<PrefixMatch<String>> prefixMatches;
-        prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(createTermSeq(
+        prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(createTermSeq(
                 "prefix1suffix", "PREFIX2suffix", "PREFIX1suffix", "prefix2suffix"));
         assertThat(prefixMatches).hasSize(2);
         assertThat(prefixMatches).containsExactlyInAnyOrder(
@@ -112,11 +112,11 @@ public class RuleExtractorTest {
 
     @Test
     public void testPrefixDuplicate() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putPrefix("prefix1", "value1");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putPrefix("prefix1", "value1");
 
         List<PrefixMatch<String>> prefixMatches;
-        prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(createTermSeq("prefix1suffix", "prefix1suffix"));
+        prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(createTermSeq("prefix1suffix", "prefix1suffix"));
         assertThat(prefixMatches).hasSize(2);
         assertThat(prefixMatches).containsExactlyInAnyOrder(
                 new PrefixMatch<>(7, "value1").setLookupOffset(0),
@@ -126,13 +126,13 @@ public class RuleExtractorTest {
 
     @Test
     public void testPrefixSubset() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putPrefix("prefix11", "value1");
-        ruleExtractor.putPrefix("pref", "value2");
-        ruleExtractor.putPrefix("prefix", "value3");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putPrefix("prefix11", "value1");
+        sequenceLookup.putPrefix("pref", "value2");
+        sequenceLookup.putPrefix("prefix", "value3");
 
         List<PrefixMatch<String>> prefixMatches;
-        prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
+        prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
         assertThat(prefixMatches).hasSize(2);
         assertThat(prefixMatches).containsExactlyInAnyOrder(
                 new PrefixMatch<>(6, "value3").setLookupOffset(0),
@@ -142,12 +142,12 @@ public class RuleExtractorTest {
 
     @Test
     public void testPrefixMultipleMatches() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.putPrefix("prefix1", "value1");
-        ruleExtractor.putPrefix("prefix11", "value2");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putPrefix("prefix1", "value1");
+        sequenceLookup.putPrefix("prefix11", "value2");
 
         List<PrefixMatch<String>> prefixMatches;
-        prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
+        prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(createTermSeq("prefix1suffix", "term", "prefix11suffix"));
         assertThat(prefixMatches).hasSize(2);
         assertThat(prefixMatches).containsExactlyInAnyOrder(
                 new PrefixMatch<>(7, "value1").setLookupOffset(0),
@@ -157,17 +157,17 @@ public class RuleExtractorTest {
 
     @Test
     public void testMatchingOfMultiTermOverlaps() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(createStringList("term1", "term2", "term3", "term4"), "value1");
-        ruleExtractor.put(createStringList("term2", "term3", "term4"), "value2");
-        ruleExtractor.put(createStringList("term2", "term3"), "value3");
-        ruleExtractor.put(createStringList("term2", "term3", "term4", "term5", "term6"), "value4");
-        ruleExtractor.put(createStringList("term4", "term5", "term6"), "value5");
-        ruleExtractor.put(createStringList("term7", "term8"), "value6");
-        ruleExtractor.put(createStringList("term7", "term8", "term9"), "value7");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(createStringList("term1", "term2", "term3", "term4"), "value1");
+        sequenceLookup.put(createStringList("term2", "term3", "term4"), "value2");
+        sequenceLookup.put(createStringList("term2", "term3"), "value3");
+        sequenceLookup.put(createStringList("term2", "term3", "term4", "term5", "term6"), "value4");
+        sequenceLookup.put(createStringList("term4", "term5", "term6"), "value5");
+        sequenceLookup.put(createStringList("term7", "term8"), "value6");
+        sequenceLookup.put(createStringList("term7", "term8", "term9"), "value7");
 
         List<ExactMatch<String>> exactMatches;
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term2", "term3", "term4", "term5", "term6", "term7"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term2", "term3", "term4", "term5", "term6", "term7"));
         assertThat(exactMatches).hasSize(4);
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 3, "value2"),
@@ -176,10 +176,10 @@ public class RuleExtractorTest {
                 new ExactMatch<>(2, 5, "value5")
         );
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term8", "term9"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term8", "term9"));
         assertThat(exactMatches).hasSize(0);
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term7", "term8", "term9"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term7", "term8", "term9"));
         assertThat(exactMatches).hasSize(2);
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 2, "value6"),
@@ -189,32 +189,32 @@ public class RuleExtractorTest {
 
     @Test
     public void testEmptyInput() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(createStringList("term1", "term2"), "value1");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(createStringList("term1", "term2"), "value1");
 
         List<ExactMatch<String>> exactMatches;
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq());
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq());
         assertThat(exactMatches).isEmpty();
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq(""));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq(""));
         assertThat(exactMatches).isEmpty();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPutEmptyInputString() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(createStringList(""), "value1");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(createStringList(""), "value1");
     }
 
     @Test
     public void testMatchingOfSubsets() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(createStringList("term1", "term2"), "value1");
-        ruleExtractor.put(createStringList("term1", "term2", "term3"), "value2");
-        ruleExtractor.put(createStringList("term2", "term3"), "value3");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(createStringList("term1", "term2"), "value1");
+        sequenceLookup.put(createStringList("term1", "term2", "term3"), "value2");
+        sequenceLookup.put(createStringList("term2", "term3"), "value3");
 
         List<ExactMatch<String>> exactMatches;
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term1", "term2", "term3"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term1", "term2", "term3"));
         assertThat(exactMatches).hasSize(3);
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 2, "value1"),
@@ -225,68 +225,68 @@ public class RuleExtractorTest {
 
     @Test
     public void testBasicMatchingOnSingleTerms() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(createStringList("term1"), "value1");
-        ruleExtractor.put(createStringList("term2"), "value2");
-        ruleExtractor.put(createStringList("term3"), "value3");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(createStringList("term1"), "value1");
+        sequenceLookup.put(createStringList("term2"), "value2");
+        sequenceLookup.put(createStringList("term3"), "value3");
 
         List<ExactMatch<String>> exactMatches;
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term1", "term2"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term1", "term2"));
         assertThat(exactMatches).hasSize(2);
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, "value1"),
                 new ExactMatch<>(1, 2, "value2")
         );
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term3", "-term"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term3", "-term"));
         assertThat(exactMatches).hasSize(1);
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, "value3")
         );
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("-term1", "-term2", "-term3"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("-term1", "-term2", "-term3"));
         assertThat(exactMatches).hasSize(0);
     }
 
     @Test
     public void testBasicMatchingOnMultipleTerms() {
-        RuleExtractor<String, String> ruleExtractor = new RuleExtractor<>();
-        ruleExtractor.put(createStringList("term1", "term2"), "value1");
-        ruleExtractor.put(createStringList("term2", "term1"), "value2");
-        ruleExtractor.put(createStringList("term1", "term2", "term3"), "value3");
+        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(createStringList("term1", "term2"), "value1");
+        sequenceLookup.put(createStringList("term2", "term1"), "value2");
+        sequenceLookup.put(createStringList("term1", "term2", "term3"), "value3");
 
         List<ExactMatch<String>> exactMatches;
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term1", "term2"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term1", "term2"));
         assertThat(exactMatches).hasSize(1);
         assertThat(exactMatches.get(0).lookupStart).isEqualTo(0);
         assertThat(exactMatches.get(0).lookupExclusiveEnd).isEqualTo(2);
         assertThat(exactMatches.get(0).value).isEqualTo("value1");
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term2", "term1"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term2", "term1"));
         assertThat(exactMatches).hasSize(1);
         assertThat(exactMatches.get(0).lookupStart).isEqualTo(0);
         assertThat(exactMatches.get(0).lookupExclusiveEnd).isEqualTo(2);
         assertThat(exactMatches.get(0).value).isEqualTo("value2");
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term1", "term2", "-term"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term1", "term2", "-term"));
         assertThat(exactMatches).hasSize(1);
         assertThat(exactMatches.get(0).lookupStart).isEqualTo(0);
         assertThat(exactMatches.get(0).lookupExclusiveEnd).isEqualTo(2);
         assertThat(exactMatches.get(0).value).isEqualTo("value1");
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term1"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term1"));
         assertThat(exactMatches).hasSize(0);
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term2"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term2"));
         assertThat(exactMatches).hasSize(0);
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term2", "term2"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term2", "term2"));
         assertThat(exactMatches).hasSize(0);
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term2", "term3"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term2", "term3"));
         assertThat(exactMatches).hasSize(0);
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(createTermSeq("term1", "term1"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(createTermSeq("term1", "term1"));
         assertThat(exactMatches).hasSize(0);
     }
 

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class RuleExtractor<T, U> {
+public class SequenceLookup<T, U> {
 
     private static String DELIMITER = " ";
 
@@ -23,11 +23,11 @@ public class RuleExtractor<T, U> {
 
     private final boolean ignoreCase;
 
-    public RuleExtractor() {
+    public SequenceLookup() {
         this(true);
     }
 
-    public RuleExtractor(final boolean ignoreCase) {
+    public SequenceLookup(final boolean ignoreCase) {
         this.trieMap = new TrieMap<>();
         this.prefixTrieMap = new PrefixTrieMap<>();
         this.suffixTrieMap = new SuffixTrieMap<>();
