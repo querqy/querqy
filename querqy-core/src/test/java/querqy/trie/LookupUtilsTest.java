@@ -9,11 +9,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuleExtractorUtilsTest {
+public class LookupUtilsTest {
 
     @Test
     public void testManyOverlappingBoundaries() {
-        List<ExactMatch<String>> exactMatches = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
+        List<ExactMatch<String>> exactMatches = LookupUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
                 exactMatch(1, 3),
                 exactMatch(1, 2),
                 exactMatch(1, 4),
@@ -30,7 +30,7 @@ public class RuleExtractorUtilsTest {
 
     @Test
     public void testOverlappingBoundariesBiggerSequenceOnRightSide() {
-        List<ExactMatch<String>> exactMatches = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
+        List<ExactMatch<String>> exactMatches = LookupUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
                 exactMatch(3, 7),
                 exactMatch(5, 10),
                 exactMatch(3, 6)));
@@ -43,7 +43,7 @@ public class RuleExtractorUtilsTest {
 
     @Test
     public void testOverlappingBoundariesBiggerSequenceOnLeftSide() {
-        List<ExactMatch<String>> exactMatches = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
+        List<ExactMatch<String>> exactMatches = LookupUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
                 exactMatch(3, 7),
                 exactMatch(5, 8),
                 exactMatch(3, 6)));
@@ -56,7 +56,7 @@ public class RuleExtractorUtilsTest {
 
     @Test
     public void testOverlappingBoundariesEquallySized() {
-        List<ExactMatch<String>> exactMatches = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
+        List<ExactMatch<String>> exactMatches = LookupUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
                 exactMatch(0, 3),
                 exactMatch(1, 4),
                 exactMatch(2, 5),
@@ -75,7 +75,7 @@ public class RuleExtractorUtilsTest {
 
     @Test
     public void testNoOverlapWithSmoothCrossover() {
-        List<ExactMatch<String>> exactMatches = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
+        List<ExactMatch<String>> exactMatches = LookupUtils.removeSubsetsAndSmallerOverlaps(Arrays.asList(
                 exactMatch(0, 1),
                 exactMatch(1, 2),
                 exactMatch(2, 3)));

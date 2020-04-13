@@ -8,7 +8,7 @@ import querqy.model.Query;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.RuleParseException;
-import querqy.trie.RuleExtractor;
+import querqy.trie.SequenceLookup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -54,9 +54,9 @@ public class ReplaceRewriterParser {
         this.querqyParser = querqyParser;
     }
 
-    public RuleExtractor<CharSequence, Queue<CharSequence>> parseConfig() throws IOException {
+    public SequenceLookup<CharSequence, Queue<CharSequence>> parseConfig() throws IOException {
 
-        final RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = new RuleExtractor<>(ignoreCase);
+        final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(ignoreCase);
         final Set<CharSequence> checkForDuplicateInput = new HashSet<>();
 
         try (final BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
@@ -98,7 +98,7 @@ public class ReplaceRewriterParser {
                         throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
                         checkForDuplicateInput.add(seq);
 
-                        ruleExtractor.putSuffix(
+                        sequenceLookup.putSuffix(
                                 seq.subSequence(1, seq.length()),
                                 !outputList.isEmpty() ? outputList.peek() : "");
 
@@ -111,7 +111,7 @@ public class ReplaceRewriterParser {
                         throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
                         checkForDuplicateInput.add(seq);
 
-                        ruleExtractor.putPrefix(
+                        sequenceLookup.putPrefix(
                                 seq.subSequence(0, fullInput.length() - 1),
                                 !outputList.isEmpty() ? outputList.peek() : "");
 
@@ -125,7 +125,7 @@ public class ReplaceRewriterParser {
                         throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
                         checkForDuplicateInput.add(seq);
 
-                        ruleExtractor.put(
+                        sequenceLookup.put(
                                 seqList,
                                 outputList.stream()
                                         .map(ComparableCharSequenceWrapper::new)
@@ -138,7 +138,7 @@ public class ReplaceRewriterParser {
             throw new IOException(e);
         }
 
-        return ruleExtractor;
+        return sequenceLookup;
     }
 
     private CharSequence lc(String seq) {

@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class RuleExtractorUtils {
+/**
+ * Utils to handle results or temporary results of TrieMap and SequenceLookup, e. g. to compare, to sort or to filter
+ */
+public class LookupUtils {
 
-    private RuleExtractorUtils(){}
+    private LookupUtils(){}
 
     private static final Comparator<ExactMatch<?>> COMPARE_BY_SIZE_DESC = (o1, o2) -> o2.termSize - o1.termSize;
     private static final Comparator<ExactMatch<?>> COMPARE_BY_LOOKUP_START_ASC = Comparator.comparingInt(o -> o.lookupStart);
@@ -16,12 +19,15 @@ public class RuleExtractorUtils {
     public static final Comparator<State<?>> COMPARE_STATE_BY_INDEX_DESC = Comparator.comparingInt(o -> o.index);
 
     public static <T> List<ExactMatch<T>> removeSubsetsAndSmallerOverlaps(List<ExactMatch<T>> exactMatches) {
+
         final List<ExactMatch<T>> exactMatchesFiltered = new ArrayList<>();
 
-        exactMatches.stream()
-                .sorted(COMPARE_BY_SIZE_DESC.thenComparing(COMPARE_BY_LOOKUP_START_ASC))
+        final List<ExactMatch<T>> exactMatchesSorted = new ArrayList<>(exactMatches);
+        exactMatchesSorted.sort(COMPARE_BY_SIZE_DESC.thenComparing(COMPARE_BY_LOOKUP_START_ASC));
+
+        exactMatchesSorted.stream()
                 .filter(current -> exactMatchesFiltered.stream()
-                        .allMatch(compared -> coordinatesDoNotOverlap(current.lookupStart, current.lookupExclusiveEnd - 1,
+                        .allMatch(compared -> sequencesDoNotOverlap(current.lookupStart, current.lookupExclusiveEnd - 1,
                                 compared.lookupStart, compared.lookupExclusiveEnd - 1)))
                 .forEach(exactMatchesFiltered::add);
 
@@ -30,8 +36,8 @@ public class RuleExtractorUtils {
         return exactMatchesFiltered;
     }
 
-    private static boolean coordinatesDoNotOverlap(int a1, int a2, int b1, int b2) {
-        return a1 < b1 && a2 < b1 || a1 > b2 && a2 > b2;
+    private static boolean sequencesDoNotOverlap(int startSeq1, int endSeq1, int startSeq2, int endSeq2) {
+        return startSeq1 < startSeq2 && endSeq1 < startSeq2 || startSeq1 > endSeq2 && endSeq1 > endSeq2;
     }
 
 

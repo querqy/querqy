@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static querqy.trie.RuleExtractorUtils.COMPARE_STATE_BY_INDEX_DESC;
+import static querqy.trie.LookupUtils.COMPARE_STATE_BY_INDEX_DESC;
 
 public class PrefixTrieMap<T> {
 

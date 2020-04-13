@@ -11,8 +11,8 @@ import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
-import querqy.trie.RuleExtractor;
-import querqy.trie.RuleExtractorUtils;
+import querqy.trie.SequenceLookup;
+import querqy.trie.LookupUtils;
 import querqy.trie.model.ExactMatch;
 import querqy.trie.model.PrefixMatch;
 import querqy.trie.model.SuffixMatch;
@@ -25,11 +25,11 @@ import java.util.stream.IntStream;
 
 public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private final RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor;
+    private final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup;
 
     public ReplaceRewriter(
-            RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor) {
-        this.ruleExtractor= ruleExtractor;
+            SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup) {
+        this.sequenceLookup = sequenceLookup;
     }
 
     private boolean hasReplacement = false;
@@ -48,7 +48,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        final List<SuffixMatch<CharSequence>> suffixMatches = ruleExtractor.findRulesBySingleTermSuffixMatch(collectedTerms);
+        final List<SuffixMatch<CharSequence>> suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(collectedTerms);
         if (!suffixMatches.isEmpty()) {
             this.hasReplacement = true;
 
@@ -62,7 +62,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        final List<PrefixMatch<CharSequence>> prefixMatches = ruleExtractor.findRulesBySingleTermPrefixMatch(collectedTerms);
+        final List<PrefixMatch<CharSequence>> prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(collectedTerms);
         if (!prefixMatches.isEmpty()) {
             this.hasReplacement = true;
 
@@ -84,13 +84,13 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        final List<ExactMatch<Queue<CharSequence>>> exactMatches = ruleExtractor.findRulesByExactMatch(collectedTerms);
+        final List<ExactMatch<Queue<CharSequence>>> exactMatches = sequenceLookup.findRulesByExactMatch(collectedTerms);
         if (!exactMatches.isEmpty()) {
             this.hasReplacement = true;
 
             int indexOffsetAfterReplacement = 0;
 
-            final List<ExactMatch<Queue<CharSequence>>> exactMatchesFiltered = RuleExtractorUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
+            final List<ExactMatch<Queue<CharSequence>>> exactMatchesFiltered = LookupUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
 
             for (final ExactMatch<Queue<CharSequence>> exactMatch : exactMatchesFiltered) {
                 final int numberOfTermsToBeReplaced = exactMatch.lookupExclusiveEnd - exactMatch.lookupStart;

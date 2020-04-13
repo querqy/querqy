@@ -2,7 +2,7 @@ package querqy.rewrite.contrib;
 
 import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.trie.RuleExtractor;
+import querqy.trie.SequenceLookup;
 import querqy.trie.model.ExactMatch;
 
 import java.io.ByteArrayInputStream;
@@ -22,43 +22,43 @@ public class ReplaceRewriterParserTest {
     @Test(expected = IOException.class)
     public void testCombinedInputWIthPrefixAndSuffix() throws IOException {
         String rules = " ab* \t *bc \t abc => cd";
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
     }
 
     @Test
     public void testCombinedInputOnlyExactMatch() throws IOException {
         String rules = " ab \t bc \t abc => cd";
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
     }
 
     @Test
     public void testEmptyOutput() throws IOException {
         String rules = " abc => ";
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
-        assertThat(ruleExtractor.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        assertThat(sequenceLookup.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
     }
 
     @Test
     public void testEmptyOutputSuffix() throws IOException {
         String rules = " *abc => ";
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
-        assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("dabc", "cab"))).hasSize(1);
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        assertThat(sequenceLookup.findRulesBySingleTermSuffixMatch(Arrays.asList("dabc", "cab"))).hasSize(1);
     }
 
     @Test
     public void testDuplicateSuffixCaseSensitive() throws IOException {
         String rules = "*ab => af \n" +
                 "*AB => ag";
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
-        assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("cAB", "cab", "dabc"))).hasSize(2);
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        assertThat(sequenceLookup.findRulesBySingleTermSuffixMatch(Arrays.asList("cAB", "cab", "dabc"))).hasSize(2);
     }
 
     @Test
     public void testDuplicatePrefixCaseSensitive() throws IOException {
         String rules = "ab* => af \n" +
                 "AB* => ag";
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
-        assertThat(ruleExtractor.findRulesBySingleTermPrefixMatch(Arrays.asList("ABc", "abc", "dabc"))).hasSize(2);
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        assertThat(sequenceLookup.findRulesBySingleTermPrefixMatch(Arrays.asList("ABc", "abc", "dabc"))).hasSize(2);
     }
 
     @Test(expected = IOException.class)
@@ -94,7 +94,7 @@ public class ReplaceRewriterParserTest {
     }
 
 
-    private RuleExtractor<CharSequence, Queue<CharSequence>> createRuleExtractor(String rules) throws IOException {
+    private SequenceLookup<CharSequence, Queue<CharSequence>> createRuleExtractor(String rules) throws IOException {
         return createParser(rules).parseConfig();
     }
 
@@ -114,8 +114,8 @@ public class ReplaceRewriterParserTest {
                 + " *abc => ae \n"
                 + " *ab => af \n";
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createRuleExtractor(rules);
-        assertThat(ruleExtractor.findRulesBySingleTermSuffixMatch(Arrays.asList("a", "ab", "dabc"))).hasSize(2);
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createRuleExtractor(rules);
+        assertThat(sequenceLookup.findRulesBySingleTermSuffixMatch(Arrays.asList("a", "ab", "dabc"))).hasSize(2);
     }
 
     @Test(expected = IOException.class)
@@ -134,8 +134,8 @@ public class ReplaceRewriterParserTest {
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
                 input, true, "\t", new WhiteSpaceQuerqyParser());
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = replaceRewriterParser.parseConfig();
-        assertThat(ruleExtractor.findRulesBySingleTermPrefixMatch(Arrays.asList("a", "ab", "abcd"))).hasSize(2);
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = replaceRewriterParser.parseConfig();
+        assertThat(sequenceLookup.findRulesBySingleTermPrefixMatch(Arrays.asList("a", "ab", "abcd"))).hasSize(2);
     }
 
     @Test(expected = IOException.class)
@@ -181,24 +181,24 @@ public class ReplaceRewriterParserTest {
                 + " ab  \t c d => e \n"
                 + " FG => hi jk  \n ";
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules).parseConfig();;
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules).parseConfig();;
 
         List<ExactMatch<Queue<CharSequence>>> exactMatches;
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(list("ab"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(list("ab"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, queue("e"))
         );
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(list("c"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(list("c"));
         assertThat(exactMatches).isEmpty();
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(list("c", "d"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(list("c", "d"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 2, queue("e"))
         );
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(list("fg"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(list("fg"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, queue("hi", "jk"))
         );
@@ -208,17 +208,17 @@ public class ReplaceRewriterParserTest {
     public void testMappingCaseSensitive() throws IOException {
         String rules = "AB => cd";
 
-        RuleExtractor<CharSequence, Queue<CharSequence>> ruleExtractor = createParser(rules, false).parseConfig();
+        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
 
 
         List<ExactMatch<Queue<CharSequence>>> exactMatches;
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(list("AB"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(list("AB"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, queue("cd"))
         );
 
-        exactMatches = ruleExtractor.findRulesByExactMatch(list("ab"));
+        exactMatches = sequenceLookup.findRulesByExactMatch(list("ab"));
         assertThat(exactMatches).isEmpty();
     }
 
