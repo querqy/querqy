@@ -939,7 +939,7 @@ Please base development on the branch for the corresponding Solr version. querqy
 ### Contributors
 
  - [Anton Dumler](https://github.com/jagile)
- - [Johannes Peter](https://github.com/JohannesDaniel)
+ - [Johannes Peter](https://github.com/JohannesDaniel), Committer
  - [Lucky Sharma](https://github.com/MighTguY)
  - [Markus Heiden](https://github.com/markus-s24)
  - [Markus Müllenborn](https://github.com/muellenborn)
