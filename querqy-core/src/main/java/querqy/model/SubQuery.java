@@ -12,7 +12,7 @@ import java.util.List;
  */
 public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P> {
 
-	protected final LinkedList<C> clauses = new LinkedList<>();
+	protected final List<C> clauses = new LinkedList<>();
 	
 	public SubQuery(final P parentQuery, final boolean generated) {
 		this(parentQuery, Occur.SHOULD, generated);
@@ -48,15 +48,6 @@ public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P>
 	    clauses.remove(clause);
 	}
 	
-	public void replaceClause(final C oldClause, final C newClause) {
-	    if (oldClause.getParent() != this) {
-            throw new IllegalArgumentException("This query is not a parent of " + oldClause);
-        }
-        final int index = clauses.indexOf(oldClause);
-	    clauses.remove(index);
-	    clauses.add(index, newClause);
-	}
-
 	public List<C> getClauses() {
 		return clauses;
 	}

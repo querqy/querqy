@@ -1,5 +1,5 @@
 /**
- *
+ * 
  */
 package querqy.trie;
 
@@ -48,6 +48,6 @@ public class State<T> {
     public String toString() {
         return "State [value=" + value + ", isKnown=" + isKnown + ", index=" + index + "]";
     }
-
-
+    
+    
 }
