@@ -17,7 +17,7 @@ import querqy.SimpleComparableCharSequence;
 public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence, InputSequenceElement {
 
    protected final String field;
-   protected ComparableCharSequence value;
+   protected final ComparableCharSequence value;
 
    public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value, final boolean generated) {
       super(parentQuery, generated);
@@ -69,10 +69,6 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
 
    public ComparableCharSequence getValue() {
       return value;
-   }
-
-   public void setValue(ComparableCharSequence value) {
-      this.value = value;
    }
 
    @Override
