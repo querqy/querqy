@@ -38,7 +38,7 @@ public class LuceneTermQueryBuilderTest extends LuceneTestCase {
 
 
         TestUtil.addNumDocsWithTextField("f1", "v1 v1", indexWriter, 4);
-        TestUtil.addNumDocsWithTextField("f1", "v2", indexWriter, 1);
+        TestUtil.addNumDocsWithTextField("f1", "modelv2", indexWriter, 1);
 
         indexWriter.close();
 

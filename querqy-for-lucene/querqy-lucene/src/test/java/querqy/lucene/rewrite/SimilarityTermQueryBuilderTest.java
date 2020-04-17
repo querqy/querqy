@@ -79,7 +79,7 @@ public class SimilarityTermQueryBuilderTest extends LuceneTestCase {
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
         TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
-        TestUtil.addNumDocsWithStringField("f1", "v2", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "modelv2", indexWriter, 1);
 
         indexWriter.close();
 
@@ -116,7 +116,7 @@ public class SimilarityTermQueryBuilderTest extends LuceneTestCase {
 
 
         TestUtil.addNumDocsWithTextField("f1", "v1 v1", indexWriter, 4);
-        TestUtil.addNumDocsWithTextField("f1", "v2", indexWriter, 1);
+        TestUtil.addNumDocsWithTextField("f1", "modelv2", indexWriter, 1);
 
         indexWriter.close();
 

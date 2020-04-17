@@ -146,7 +146,7 @@ public class SortingTest {
     public void testSortAscByProperty() {
 
         final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "v1");
-        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "v2");
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "modelv2");
 
         final Comparator<Instructions> comparator = new PriorityComparator<>(sortAsc.getComparators());
 
@@ -160,7 +160,7 @@ public class SortingTest {
     public void testSortDescByProperty() {
 
         final Instructions instructions1 = InstructionsTestSupport.instructions(10, "f1", "v1");
-        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "v2");
+        final Instructions instructions2 = InstructionsTestSupport.instructions(20, "f1", "modelv2");
 
         final Comparator<Instructions> comparator = new PriorityComparator<>(sortDesc.getComparators());
 

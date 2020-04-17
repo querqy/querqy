@@ -139,7 +139,7 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         final String name = "p1";
         final String value1 = "v1";
-        final String value2 = "v2";
+        final String value2 = "modelv2";
 
         ModifiableSolrParams params = new ModifiableSolrParams();
         params.add(name, value1, value2);

@@ -21,7 +21,7 @@ public class PrimitiveValueSelectionStrategyFactoryTest {
     @Test
     public void testThatInstructionsThatMatchesNameOnlyIsNotAccepted() {
 
-        final Instructions instructions = instructions(1, "n1", "v2");
+        final Instructions instructions = instructions(1, "n1", "modelv2");
 
         final FilterCriterion filter = criteriaToJsonPathExpressionCriterion("n1:v1");
         assertFalse(filter.isValid(instructions));
@@ -51,7 +51,7 @@ public class PrimitiveValueSelectionStrategyFactoryTest {
         assertEquals(criteriaToJsonPathExpressionCriterion("n1:v1"),
                 criteriaToJsonPathExpressionCriterion("n1:v1"));
         assertNotEquals(criteriaToJsonPathExpressionCriterion("n1:v1"),
-                criteriaToJsonPathExpressionCriterion("n1:v2"));
+                criteriaToJsonPathExpressionCriterion("n1:modelv2"));
         assertNotEquals(criteriaToJsonPathExpressionCriterion("n1:v1"),
                 criteriaToJsonPathExpressionCriterion("n2:v1"));
 

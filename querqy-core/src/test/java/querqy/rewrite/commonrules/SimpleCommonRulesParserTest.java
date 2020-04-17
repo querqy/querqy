@@ -69,7 +69,7 @@ public class SimpleCommonRulesParserTest {
 
         final String rules = "input1 => \n" +
                 "SYNONYM: syn1\n" +
-                "@prop1:[\"v1\",\"v2\"]";
+                "@prop1:[\"v1\",\"modelv2\"]";
 
         final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
                 rulesCollectionBuilder);
@@ -80,7 +80,7 @@ public class SimpleCommonRulesParserTest {
         verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
-        assertEquals(Optional.of(Arrays.asList("v1", "v2")), instructions.getProperty("prop1"));
+        assertEquals(Optional.of(Arrays.asList("v1", "modelv2")), instructions.getProperty("prop1"));
 
     }
 
@@ -90,7 +90,7 @@ public class SimpleCommonRulesParserTest {
         final String rules = "input1 => \n" +
                 "SYNONYM: syn1\n" +
                 "@{" +
-                "   prop1:[\"v1\",\"v2\"]," +
+                "   prop1:[\"v1\",\"modelv2\"]," +
                 "   prop2:true" +
                 "}@";
 
@@ -103,7 +103,7 @@ public class SimpleCommonRulesParserTest {
         verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
-        assertEquals(Optional.of(Arrays.asList("v1", "v2")), instructions.getProperty("prop1"));
+        assertEquals(Optional.of(Arrays.asList("v1", "modelv2")), instructions.getProperty("prop1"));
         assertEquals(Optional.of(true), instructions.getProperty("prop2"));
 
     }
@@ -115,7 +115,7 @@ public class SimpleCommonRulesParserTest {
                 "SYNONYM: syn1\n" +
                 "@{" +
                 "   _log:'some message'," +
-                "   prop1:[\"v1\",\"v2\"]," +
+                "   prop1:[\"v1\",\"modelv2\"]," +
                 "   prop2:true" +
                 "}@";
 

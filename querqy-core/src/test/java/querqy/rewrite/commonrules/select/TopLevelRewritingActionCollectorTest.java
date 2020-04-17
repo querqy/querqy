@@ -68,7 +68,7 @@ public class TopLevelRewritingActionCollectorTest {
 
     @Test
     public void testThatReturnAllIsFromFirstLayerOnlyIfLimitIsOne() {
-        when(instruction1.getProperty(eq("p1"))).thenReturn(Optional.of("v2"));
+        when(instruction1.getProperty(eq("p1"))).thenReturn(Optional.of("modelv2"));
         when(instruction1.getOrd()).thenReturn(1);
 
         when(instruction2.getProperty(eq("p1"))).thenReturn(Optional.of("v1"));

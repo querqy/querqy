@@ -107,7 +107,7 @@ public class DependentTermQueryBuilderTest extends LuceneTestCase {
         RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
         TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
-        TestUtil.addNumDocsWithStringField("f1", "v2", indexWriter, 1);
+        TestUtil.addNumDocsWithStringField("f1", "modelv2", indexWriter, 1);
 
         indexWriter.close();
 
@@ -197,7 +197,7 @@ public class DependentTermQueryBuilderTest extends LuceneTestCase {
         IndexWriter indexWriter = new IndexWriter(directory, config);
 
         TestUtil.addNumDocsWithTextField("f1", "v1", indexWriter, 1);
-        TestUtil.addNumDocsWithTextField("f2", "v1 v2", indexWriter, 1);
+        TestUtil.addNumDocsWithTextField("f2", "v1 modelv2", indexWriter, 1);
 
 
         indexWriter.close();
@@ -210,7 +210,7 @@ public class DependentTermQueryBuilderTest extends LuceneTestCase {
         DocumentFrequencyCorrection dfc = new DocumentFrequencyCorrection();
 
         Term qTerm1 = new Term("f2", "v1");
-        Term qTerm2 = new Term("f2", "v2");
+        Term qTerm2 = new Term("f2", "modelv2");
         dfc.newClause();
         dfc.prepareTerm(qTerm1);
         dfc.newClause();
