@@ -46,7 +46,7 @@ public class SequenceLookup<T, U> {
         suffixTrieMap.putSuffix(lc(term), ruleObject, true);
     }
 
-    public List<PrefixMatch<T>> findRulesBySingleTermPrefixMatch(List<CharSequence> terms) {
+    public List<PrefixMatch<T>> findSingleTermPrefixMatches(List<CharSequence> terms) {
         final List<PrefixMatch<T>> prefixMatches = new ArrayList<>();
         final AtomicInteger lookupOffset = new AtomicInteger(0);
 
@@ -58,7 +58,7 @@ public class SequenceLookup<T, U> {
         return prefixMatches;
     }
 
-    public List<SuffixMatch<T>> findRulesBySingleTermSuffixMatch(List<CharSequence> terms) {
+    public List<SuffixMatch<T>> findSingleTermSuffixMatches(List<CharSequence> terms) {
         final List<SuffixMatch<T>> suffixMatches = new ArrayList<>();
         final AtomicInteger lookupOffset = new AtomicInteger(0);
 
@@ -70,7 +70,7 @@ public class SequenceLookup<T, U> {
         return suffixMatches;
     }
 
-    public List<ExactMatch<U>> findRulesByExactMatch(List<CharSequence> terms) {
+    public List<ExactMatch<U>> findExactMatches(List<CharSequence> terms) {
 
         final List<ExactMatch<U>> exactMatches = new ArrayList<>();
         int lookupIndex = 0;

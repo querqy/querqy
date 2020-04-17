@@ -35,14 +35,14 @@ public class ReplaceRewriterParserTest {
     public void testEmptyOutput() throws IOException {
         String rules = " abc => ";
         SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
-        assertThat(sequenceLookup.findRulesByExactMatch(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
+        assertThat(sequenceLookup.findExactMatches(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
     }
 
     @Test
     public void testEmptyOutputSuffix() throws IOException {
         String rules = " *abc => ";
         SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
-        assertThat(sequenceLookup.findRulesBySingleTermSuffixMatch(Arrays.asList("dabc", "cab"))).hasSize(1);
+        assertThat(sequenceLookup.findSingleTermSuffixMatches(Arrays.asList("dabc", "cab"))).hasSize(1);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class ReplaceRewriterParserTest {
         String rules = "*ab => af \n" +
                 "*AB => ag";
         SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
-        assertThat(sequenceLookup.findRulesBySingleTermSuffixMatch(Arrays.asList("cAB", "cab", "dabc"))).hasSize(2);
+        assertThat(sequenceLookup.findSingleTermSuffixMatches(Arrays.asList("cAB", "cab", "dabc"))).hasSize(2);
     }
 
     @Test
@@ -58,7 +58,7 @@ public class ReplaceRewriterParserTest {
         String rules = "ab* => af \n" +
                 "AB* => ag";
         SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
-        assertThat(sequenceLookup.findRulesBySingleTermPrefixMatch(Arrays.asList("ABc", "abc", "dabc"))).hasSize(2);
+        assertThat(sequenceLookup.findSingleTermPrefixMatches(Arrays.asList("ABc", "abc", "dabc"))).hasSize(2);
     }
 
     @Test(expected = IOException.class)
@@ -115,7 +115,7 @@ public class ReplaceRewriterParserTest {
                 + " *ab => af \n";
 
         SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createRuleExtractor(rules);
-        assertThat(sequenceLookup.findRulesBySingleTermSuffixMatch(Arrays.asList("a", "ab", "dabc"))).hasSize(2);
+        assertThat(sequenceLookup.findSingleTermSuffixMatches(Arrays.asList("a", "ab", "dabc"))).hasSize(2);
     }
 
     @Test(expected = IOException.class)
@@ -135,7 +135,7 @@ public class ReplaceRewriterParserTest {
                 input, true, "\t", new WhiteSpaceQuerqyParser());
 
         SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = replaceRewriterParser.parseConfig();
-        assertThat(sequenceLookup.findRulesBySingleTermPrefixMatch(Arrays.asList("a", "ab", "abcd"))).hasSize(2);
+        assertThat(sequenceLookup.findSingleTermPrefixMatches(Arrays.asList("a", "ab", "abcd"))).hasSize(2);
     }
 
     @Test(expected = IOException.class)
@@ -185,20 +185,20 @@ public class ReplaceRewriterParserTest {
 
         List<ExactMatch<Queue<CharSequence>>> exactMatches;
 
-        exactMatches = sequenceLookup.findRulesByExactMatch(list("ab"));
+        exactMatches = sequenceLookup.findExactMatches(list("ab"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, queue("e"))
         );
 
-        exactMatches = sequenceLookup.findRulesByExactMatch(list("c"));
+        exactMatches = sequenceLookup.findExactMatches(list("c"));
         assertThat(exactMatches).isEmpty();
 
-        exactMatches = sequenceLookup.findRulesByExactMatch(list("c", "d"));
+        exactMatches = sequenceLookup.findExactMatches(list("c", "d"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 2, queue("e"))
         );
 
-        exactMatches = sequenceLookup.findRulesByExactMatch(list("fg"));
+        exactMatches = sequenceLookup.findExactMatches(list("fg"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, queue("hi", "jk"))
         );
@@ -213,12 +213,12 @@ public class ReplaceRewriterParserTest {
 
         List<ExactMatch<Queue<CharSequence>>> exactMatches;
 
-        exactMatches = sequenceLookup.findRulesByExactMatch(list("AB"));
+        exactMatches = sequenceLookup.findExactMatches(list("AB"));
         assertThat(exactMatches).containsExactlyInAnyOrder(
                 new ExactMatch<>(0, 1, queue("cd"))
         );
 
-        exactMatches = sequenceLookup.findRulesByExactMatch(list("ab"));
+        exactMatches = sequenceLookup.findExactMatches(list("ab"));
         assertThat(exactMatches).isEmpty();
     }
 

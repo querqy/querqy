@@ -48,7 +48,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        final List<SuffixMatch<CharSequence>> suffixMatches = sequenceLookup.findRulesBySingleTermSuffixMatch(collectedTerms);
+        final List<SuffixMatch<CharSequence>> suffixMatches = sequenceLookup.findSingleTermSuffixMatches(collectedTerms);
         if (!suffixMatches.isEmpty()) {
             this.hasReplacement = true;
 
@@ -62,7 +62,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        final List<PrefixMatch<CharSequence>> prefixMatches = sequenceLookup.findRulesBySingleTermPrefixMatch(collectedTerms);
+        final List<PrefixMatch<CharSequence>> prefixMatches = sequenceLookup.findSingleTermPrefixMatches(collectedTerms);
         if (!prefixMatches.isEmpty()) {
             this.hasReplacement = true;
 
@@ -84,7 +84,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
             }
         }
 
-        final List<ExactMatch<Queue<CharSequence>>> exactMatches = sequenceLookup.findRulesByExactMatch(collectedTerms);
+        final List<ExactMatch<Queue<CharSequence>>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
         if (!exactMatches.isEmpty()) {
             this.hasReplacement = true;
 
