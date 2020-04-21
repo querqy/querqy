@@ -1,0 +1,75 @@
+{
+  "scaleForLinearFunctions": 5,
+  "numberUnitDefinitions": [
+    {
+      "units": [
+        { "term": "\"",     "multiplier": 1 },
+        { "term": "zoll",   "multiplier": 1 },
+        { "term": "inch",   "multiplier": 1 },
+        { "term": "cm",     "multiplier": 0.393701 }
+      ],
+      "fields": [ { "fieldName": "screen_size", "scale": 2 } ],
+      "boost": {
+        "percentageLowerBoundary": 20,
+        "percentageUpperBoundary": 20,
+        "percentageLowerBoundaryExactMatch": 0,
+        "percentageUpperBoundaryExactMatch": 0,
+
+        "minScoreAtLowerBoundary": 10,
+        "minScoreAtUpperBoundary": 10,
+        "maxScoreForExactMatch": 20,
+        "additionalScoreForExactMatch": 5
+      },
+      "filter": {
+        "percentageLowerBoundary": 20,
+        "percentageUpperBoundary": 20
+      }
+    },
+    {
+      "units": [
+        { "term": "tb",     "multiplier": 1000 },
+        { "term": "gb",     "multiplier": 1 }
+      ],
+      "fields": [ { "fieldName": "disk", "scale": 0 } ],
+      "boost": {
+        "percentageLowerBoundary": 20,
+        "percentageUpperBoundary": 20,
+        "percentageLowerBoundaryExactMatch": 0,
+        "percentageUpperBoundaryExactMatch": 0,
+
+        "minScoreAtLowerBoundary": 0,
+        "minScoreAtUpperBoundary": 0,
+        "maxScoreForExactMatch": 5,
+        "additionalScoreForExactMatch": 0
+      },
+      "filter": {
+        "percentageLowerBoundary": 30,
+        "percentageUpperBoundary": 30
+      }
+    },
+    {
+      "units": [
+        { "term": "mm",     "multiplier": 0.1 },
+        { "term": "cm",     "multiplier": 1 }
+      ],
+      "fields": [
+        { "fieldName": "height", "scale": 0 },
+        { "fieldName": "depth",  "scale": 0 },
+        { "fieldName": "width",  "scale": 0 }
+      ]
+    },
+    {
+      "units": [
+        { "term": "unitUnlimited" }
+      ],
+      "fields": [
+        { "fieldName": "fieldUnlimited" }
+      ],
+      "filter": {
+        "percentageLowerBoundary": -1,
+        "percentageUpperBoundary": -1
+      }
+
+    }
+  ]
+}

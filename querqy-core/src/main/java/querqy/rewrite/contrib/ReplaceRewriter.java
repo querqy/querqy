@@ -1,8 +1,6 @@
 package querqy.rewrite.contrib;
 
-import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
-import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
@@ -13,57 +11,113 @@ import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
-import querqy.trie.State;
-import querqy.trie.TrieMap;
+import querqy.trie.SequenceLookup;
+import querqy.trie.LookupUtils;
+import querqy.trie.model.ExactMatch;
+import querqy.trie.model.PrefixMatch;
+import querqy.trie.model.SuffixMatch;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-import static querqy.rewrite.contrib.ReplaceRewriterParser.TOKEN_SEPARATOR;
+import java.util.Queue;
+import java.util.stream.IntStream;
 
 public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private final TrieMap<List<CharSequence>> replaceRules;
-    private final boolean ignoreCase;
+    private final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup;
 
-    public ReplaceRewriter(TrieMap<List<CharSequence>> replaceRules, boolean ignoreCase) {
-        this.replaceRules = replaceRules;
-        this.ignoreCase = ignoreCase;
+    public ReplaceRewriter(
+            SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup) {
+        this.sequenceLookup = sequenceLookup;
     }
 
-    private LinkedList<CharSequence> querySeq;
-    private LinkedList<CharSequence> matchSeq;
-    private State<List<CharSequence>> priorMatch = new State<>(false, null, null);
     private boolean hasReplacement = false;
+    private LinkedList<CharSequence> collectedTerms;
 
     @Override
-    public ExpandedQuery rewrite(ExpandedQuery query) {
-        querySeq = new LinkedList<>();
-        matchSeq = new LinkedList<>();
+    public ExpandedQuery rewrite(ExpandedQuery expandedQuery) {
 
-        visit((Query) query.getUserQuery());
+        final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
-        if (priorMatch.isFinal()) {
-            hasReplacement = true;
-            querySeq.addAll(priorMatch.value);
-        } else {
-            if (!matchSeq.isEmpty()) {
-                querySeq.addAll(matchSeq);
+        if (!(querqyQuery instanceof Query)) {
+            return expandedQuery;
+        }
+
+        collectedTerms = new LinkedList<>();
+
+        visit((Query) querqyQuery);
+
+        final List<SuffixMatch<CharSequence>> suffixMatches = sequenceLookup.findSingleTermSuffixMatches(collectedTerms);
+        if (!suffixMatches.isEmpty()) {
+            this.hasReplacement = true;
+
+            for (final SuffixMatch<CharSequence> suffixMatch : suffixMatches) {
+                collectedTerms.set(
+                        suffixMatch.getLookupOffset(),
+                        new CompoundCharSequence(
+                                "",
+                                collectedTerms.get(suffixMatch.getLookupOffset()).subSequence(0, suffixMatch.startSubstring),
+                                suffixMatch.match));
             }
         }
 
-        return hasReplacement ? buildQueryFromSeqList(query, querySeq) : query;
+        final List<PrefixMatch<CharSequence>> prefixMatches = sequenceLookup.findSingleTermPrefixMatches(collectedTerms);
+        if (!prefixMatches.isEmpty()) {
+            this.hasReplacement = true;
+
+            for (final PrefixMatch<CharSequence> prefixMatch : prefixMatches) {
+                CharSequence replacementTerm = collectedTerms.get(prefixMatch.getLookupOffset());
+
+                collectedTerms.set(
+                        prefixMatch.getLookupOffset(),
+                        new CompoundCharSequence(
+                                "",
+                                prefixMatch.match,
+                                replacementTerm.subSequence(prefixMatch.exclusiveEnd, replacementTerm.length())));
+            }
+        }
+
+        for (int i = collectedTerms.size() - 1; i >= 0; i--) {
+            if (collectedTerms.get(i).length() == 0) {
+                collectedTerms.remove(i);
+            }
+        }
+
+        final List<ExactMatch<Queue<CharSequence>>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
+        if (!exactMatches.isEmpty()) {
+            this.hasReplacement = true;
+
+            int indexOffsetAfterReplacement = 0;
+
+            final List<ExactMatch<Queue<CharSequence>>> exactMatchesFiltered = LookupUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
+
+            for (final ExactMatch<Queue<CharSequence>> exactMatch : exactMatchesFiltered) {
+                final int numberOfTermsToBeReplaced = exactMatch.lookupExclusiveEnd - exactMatch.lookupStart;
+
+                final int indexStart = exactMatch.lookupStart + indexOffsetAfterReplacement;
+                final int indexExclusiveEnd = exactMatch.lookupExclusiveEnd + indexOffsetAfterReplacement;
+
+                IntStream.range(0, indexExclusiveEnd - indexStart).forEach(i -> collectedTerms.remove(indexStart));
+                collectedTerms.addAll(indexStart, exactMatch.value);
+
+                final int querySizeDelta = exactMatch.value.size() - numberOfTermsToBeReplaced;
+                indexOffsetAfterReplacement += querySizeDelta;
+            }
+        }
+
+        return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
     }
 
     private ExpandedQuery buildQueryFromSeqList(ExpandedQuery oldQuery, LinkedList<CharSequence> tokens) {
         final Query query = new Query();
-        tokens.forEach(token -> {
+
+        for (final CharSequence token : tokens) {
             final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, false);
             query.addClause(dmq);
             final Term term = new Term(dmq, token);
             dmq.addClause(term);
-        });
+        }
 
         final ExpandedQuery newQuery = new ExpandedQuery(query);
 
@@ -87,45 +141,10 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     @Override
     public Node visit(final Term term) {
-
-        if (term.isGenerated()) {
-            return null;
+        if (!term.isGenerated()) {
+            collectedTerms.addLast(term.getValue());
         }
-
-        final ComparableCharSequence token = term.getValue();
-
-        matchSeq.addLast(token);
-
-        final ComparableCharSequence seqForMatching = new CompoundCharSequence(TOKEN_SEPARATOR, matchSeq);
-        final State<List<CharSequence>> match = replaceRules.get(
-                ignoreCase ? new LowerCaseCharSequence(seqForMatching) : seqForMatching).getStateForCompleteSequence();
-
-        if (!match.isKnown) {
-            if (priorMatch.isFinal()) {
-                hasReplacement = true;
-                querySeq.addAll(priorMatch.value);
-                matchSeq.clear();
-
-            } else {
-                matchSeq.removeLast();
-
-                if (!matchSeq.isEmpty()) {
-                    querySeq.addAll(matchSeq);
-                    matchSeq.clear();
-                }
-            }
-
-            priorMatch = replaceRules.get(token).getStateForCompleteSequence();
-            if (priorMatch.isKnown) {
-                matchSeq.addLast(token);
-            } else {
-                querySeq.addLast(token);
-            }
-
-        } else {
-            priorMatch = match;
-        }
-
         return null;
     }
+
 }

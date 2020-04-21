@@ -1,2 +1,3 @@
 a b => e f
-c; d => g
+c	d => g
+

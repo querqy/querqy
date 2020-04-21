@@ -9,150 +9,148 @@ import java.util.List;
  * A {@link ComparableCharSequence} that is composed of one or more parts (sub-sequences).
  *
  * @author René Kriegler, @renekrie
+ * @author Johannes Peter, @JohannesDaniel
  *
  */
+
 public class CompoundCharSequence implements ComparableCharSequence {
     
-   final CharSequence[] parts;
-   
-   public CompoundCharSequence(final List<? extends CharSequence> parts) {
+    private final CharSequence[] parts;
+    private final int[] indexOffsets;
+
+    private final int length;
+    private final int seqOffset;
+    private final int partsOffset;
+
+    public CompoundCharSequence(final List<? extends CharSequence> parts) {
        this(null, parts);
-   }
+    }
 
-   public CompoundCharSequence(final CharSequence separator, final List<? extends CharSequence> parts) {
-      this(separator, parts.toArray(new CharSequence[parts.size()]));
-   }
+    public CompoundCharSequence(final CharSequence separator, final List<? extends CharSequence> parts) {
+        this(separator, parts.toArray(new CharSequence[parts.size()]));
+    }
 
-   /**
-    * 
-    * @param separator A separator that is placed between the parts. Can be null.
-    * @param parts The parts to combine.
-    */
-   public CompoundCharSequence(final CharSequence separator, final CharSequence... parts) {
-      if (parts == null || parts.length == 0) {
-         throw new IllegalArgumentException("Excpectinig one or more parts");
-      }
-      if (parts.length == 1 || separator == null || separator.length() == 0) {
-         this.parts = parts;
-      } else {
-         this.parts = new CharSequence[parts.length * 2 - 1];
+    /**
+     *
+     * @param separator A separator that is placed between the parts. Can be null.
+     * @param parts The parts to combine.
+     */
+    public CompoundCharSequence(final CharSequence separator, final CharSequence... parts) {
+        if (parts == null || parts.length == 0) {
+           throw new IllegalArgumentException("Expecting one or more parts");
+        }
 
-         for (int i = 0; i < parts.length; i++) {
-            int pos = i * 2;
-            this.parts[pos] = parts[i];
-            if (i < parts.length - 1) {
-               this.parts[pos + 1] = separator;
+        final int arrayLength;
+
+        if (parts.length == 1 || separator == null || separator.length() == 0) {
+
+            arrayLength = parts.length;
+            indexOffsets = new int[arrayLength];
+            this.parts = parts;
+
+            for (int i = 0; i < arrayLength; i++) {
+                this.indexOffsets[i] = i == 0 ? 0 : this.indexOffsets[i - 1] + this.parts[i - 1].length();
             }
-         }
-      }
 
-   }
+        } else {
 
-   /*
+            arrayLength = parts.length * 2 - 1;
+            indexOffsets = new int[arrayLength];
+            this.parts = new CharSequence[arrayLength];
+
+            for (int i = 0, j = 0, k = 0; i < arrayLength; i++, j += k, k = -k + 1) {
+                this.parts[i] = i % 2 == 0 ? parts[j] : separator;
+                this.indexOffsets[i] = i == 0 ? 0 : this.indexOffsets[i - 1] + this.parts[i - 1].length();
+            }
+        }
+
+        this.length = this.indexOffsets[arrayLength - 1] + this.parts[arrayLength - 1].length();
+        this.partsOffset = 0;
+        this.seqOffset = 0;
+    }
+
+    private CompoundCharSequence(CharSequence[] parts, int[] indexOffsets, int length, int seqOffset, int partsOffset) {
+
+        this.parts = parts;
+        this.indexOffsets = indexOffsets;
+        this.length = length;
+        this.seqOffset = seqOffset;
+        this.partsOffset = partsOffset;
+    }
+
+    /*
     * (non-Javadoc)
     * 
     * @see java.lang.CharSequence#length()
     */
-   @Override
-   public int length() {
+    @Override
+    public int length() {
+      return this.length;
+    }
 
-      int length = parts[0].length();
-
-      if (parts.length > 1) {
-
-         for (int i = 1; i < parts.length; i++) {
-            length += parts[i].length();
-         }
-
-      }
-
-      return length;
-
-   }
-
-   /*
+    /*
     * (non-Javadoc)
-    * 
+    *
     * @see java.lang.CharSequence#charAt(int)
     */
-   @Override
-   public char charAt(final int index) {
+    @Override
+    public char charAt(final int relativeIndex) {
 
-      if (parts.length == 1) {
-         return parts[0].charAt(index);
-      }
+        if (relativeIndex < 0 || relativeIndex >= this.length) {
+            throw new ArrayIndexOutOfBoundsException(relativeIndex);
+        }
 
-      final PartInfo partInfo = getPartInfoForCharIndex(index);
-      return parts[partInfo.partIndex].charAt(index - partInfo.globalStart);
+        final int absoluteIndex = this.seqOffset + relativeIndex;
 
-   }
+        if (parts.length == 1) {
+            return parts[0].charAt(absoluteIndex);
+        }
 
-   PartInfo getPartInfoForCharIndex(final int index) {
-      int globalEnd = 0;
-      for (int i = 0, last = parts.length - 1; i <= last; i++) {
+        final int partsIndex = getPartsIndex(absoluteIndex);
+        final int baseOffset = indexOffsets[partsIndex];
 
-         int globalStart = globalEnd;
-         globalEnd = globalStart + parts[i].length();
-         if (globalEnd > index) {
-            return new PartInfo(i, globalStart);
-         }
+        return parts[partsIndex].charAt(absoluteIndex - baseOffset);
+    }
 
-      }
-      throw new ArrayIndexOutOfBoundsException(index);
-   }
+    private int getPartsIndex(final int index) {
+
+        int partsIndex = 1 + this.partsOffset;
+        while (partsIndex < indexOffsets.length) {
+            if (index >= indexOffsets[partsIndex]) {
+                partsIndex++;
+            } else {
+                break;
+            }
+        }
+
+        return partsIndex - 1;
+    }
 
    /*
     * (non-Javadoc)
     * 
     * @see java.lang.CharSequence#subSequence(int, int)
     */
-   @Override
-   public ComparableCharSequence subSequence(final int start, final int end) {
+    @Override
+    public ComparableCharSequence subSequence(final int start, final int end) {
+        if (start < 0 || start > end) {
+            throw new ArrayIndexOutOfBoundsException(start);
+        }
 
-      if (parts.length == 1) {
-          // TODO: do subsequence as view in wrapper
-         return new ComparableCharSequenceWrapper(parts[0].subSequence(start, end));
-      }
+        if (end > this.length) {
+            throw new ArrayIndexOutOfBoundsException(end);
+        }
 
-      if (start == end) {
-          if (start <= length()) {
-              return ComparableCharSequenceWrapper.EMPTY_SEQUENCE;
-          } else {
-              throw new ArrayIndexOutOfBoundsException(start);
-          }
-      }
+        if (start == end) {
+            return ComparableCharSequenceWrapper.EMPTY_SEQUENCE;
+        }
 
-      final PartInfo partInfoStart = getPartInfoForCharIndex(start);
-      final PartInfo partInfoEnd = getPartInfoForCharIndex(end - 1); // end is exclusive
+        final int newLength = end - start;
+        final int newSeqOffset = this.seqOffset + start;
+        final int newArrayOffset = this.parts.length == 1 ? 0 : getPartsIndex(seqOffset);
 
-      if (partInfoStart.partIndex == partInfoEnd.partIndex) {
-       // TODO: do subsequence as view in wrapper
-         return new ComparableCharSequenceWrapper(
-                 parts[partInfoStart.partIndex]
-                         .subSequence(start - partInfoStart.globalStart, end - partInfoStart.globalStart));
-      }
-
-      final CharSequence[] resParts = new CharSequence[partInfoEnd.partIndex - partInfoStart.partIndex + 1];
-      resParts[0] = parts[partInfoStart.partIndex]
-              .subSequence(start - partInfoStart.globalStart, parts[partInfoStart.partIndex].length());
-
-      for (int i = partInfoStart.partIndex + 1, j = 1; i < partInfoEnd.partIndex; i++) {
-         resParts[j++] = parts[i];
-      }
-      resParts[resParts.length - 1] = parts[partInfoEnd.partIndex].subSequence(0, end - partInfoEnd.globalStart);
-
-      return new CompoundCharSequence(null, resParts);
-   }
-
-   class PartInfo {
-       final int partIndex;
-       final int globalStart;
-
-       public PartInfo(final int partIndex, final int globalStart) {
-           this.partIndex = partIndex;
-           this.globalStart = globalStart;
-       }
-   }
+        return new CompoundCharSequence(this.parts, this.indexOffsets, newLength, newSeqOffset, newArrayOffset);
+    }
 
     @Override
     public int compareTo(final CharSequence other) {
@@ -171,24 +169,24 @@ public class CompoundCharSequence implements ComparableCharSequence {
 
     }
 
-   @Override
-   public int hashCode() {
-      return CharSequenceUtil.hashCode(this);
-   }
+    @Override
+    public int hashCode() {
+        return CharSequenceUtil.hashCode(this);
+    }
 
-   @Override
-   public boolean equals(final Object obj) {
-       return CharSequenceUtil.equals(this, obj);
-   }
+    @Override
+    public boolean equals(final Object obj) {
+        return CharSequenceUtil.equals(this, obj);
+    }
 
-   @Override
-   public String toString() {
-       final StringBuilder buf = new StringBuilder();
-       for (int i = 0; i < parts.length; i++) {
-           buf.append(parts[i].toString());
+    @Override
+    public String toString() {
 
-       }
-       return buf.toString();
-   }
+        final StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < this.length; i ++) {
+            buf.append(this.charAt(i));
+        }
 
+        return buf.toString();
+    }
 }
