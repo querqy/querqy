@@ -35,54 +35,39 @@
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 
-	<queryParser name="querqy_defaults" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	<queryParser name="querqy_standard" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
            <lst name="rewriter">
-               <str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
-               <str name="rules">contrib/replace-rules-defaults.txt</str>
-           </lst>
+               <str name="class">querqy.solr.contrib.NumberUnitRewriterFactory</str>
+               <str name="config">contrib/numberunit/number-unit-config.json</str>
+		   </lst>
      	 </lst>
 		 <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
      	 </lst>
-     	 
 	</queryParser>
 
-	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	<queryParser name="querqy_exact_match_range" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
            <lst name="rewriter">
-               <str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
-               <str name="rules">contrib/replace-rules.txt</str>
-           </lst>
+               <str name="class">querqy.solr.contrib.NumberUnitRewriterFactory</str>
+               <str name="config">contrib/numberunit/number-unit-exact-range-config.json</str>
+		   </lst>
      	 </lst>
 		 <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
      	 </lst>
+	</queryParser>
+
+	<queryParser name="querqy_no_rw" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
 
 	</queryParser>
 
-	<queryParser name="querqy_commonrules" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
-		<lst name="rewriteChain">
-			<lst name="rewriter">
-			   <str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
-			   <str name="rules">contrib/replace-rules.txt</str>
-			</lst>
-			<lst name="rewriter">
-				<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-				<str name="rules">contrib/replace-commonrules.txt</str>
-				<bool name="ignoreCase">true</bool>
-				<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-			</lst>
+    <searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 
-		</lst>
-		 <lst name="parser">
-         	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-         	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
-     	 </lst>
-
-	</queryParser>
 
 	<admin>
 		<defaultQuery>solr</defaultQuery>

@@ -26,7 +26,8 @@ public class LineParser {
 
     static final char RAWQUERY = '*';
 
-    public static Object parse(String line, Input previousInput, QuerqyParserFactory querqyParserFactory) {
+    public static Object parse(final String line, final Input previousInput,
+                               final QuerqyParserFactory querqyParserFactory) {
 
 
         if (line.endsWith("=>")) {
@@ -40,7 +41,7 @@ public class LineParser {
             return new ValidationError("Missing input for instruction");
         }
 
-        String lcLine = line.toLowerCase().trim();
+        final String lcLine = line.toLowerCase(Locale.ROOT).trim();
 
         if (lcLine.startsWith(INSTR_DELETE)) {
 
@@ -58,14 +59,14 @@ public class LineParser {
             }
 
             instructionTerms = instructionTerms.substring(1).trim();
-            Object expr = parseTermExpression(instructionTerms);
+            final Object expr = parseTermExpression(instructionTerms);
             if (expr instanceof ValidationError) {
                 return new ValidationError("Cannot parse line: " + line + " : " + ((ValidationError) expr).getMessage());
             }
             @SuppressWarnings("unchecked")
-            List<Term> deleteTerms = (List<Term>) expr;
-            List<Term> inputTerms = previousInput.getInputTerms();
-            for (Term term : deleteTerms) {
+            final List<Term> deleteTerms = (List<Term>) expr;
+            final List<Term> inputTerms = previousInput.getInputTerms();
+            for (final Term term : deleteTerms) {
                 if (term.findFirstMatch(inputTerms) == null) {
                     return new ValidationError("Condition doesn't contain the term to delete: " + term);
                 }

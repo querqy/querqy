@@ -22,24 +22,24 @@ Detailed Solr version mapping:
 
 |Solr version|Querqy version    |  |
 |----|-----------|-------------|
-|8.3.x| 4.7.lucene810.0||
-|8.2.x| 4.7.lucene810.0||
-|8.1.x| 4.7.lucene810.0|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
-|8.0.0| 4.5.lucene800.1|Please check out the [Release Notes](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
-|7.7.0| 4.4.lucene720.0||
-|7.6.0| 4.4.lucene720.0||
-|7.5.0| 4.4.lucene720.0||
-|7.4.0| 4.4.lucene720.0||
-|7.3.x| 4.4.lucene720.0||
-|7.2.x| 4.4.lucene720.0||
-|7.1.0| 4.1.lucene700.0||
-|7.0.x| 4.1.lucene700.0|Many thanks to [Matthias Krüger](https://github.com/mkr) for major contributions to Querqy for Solr 7|
+|8.5.x| 4.8.lucene810.0||
+|8.4.x| 4.8.lucene810.0||
+|8.3.x| 4.8.lucene810.0||
+|8.2.x| 4.8.lucene810.0||
+|8.1.x| 4.8.lucene810.0|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
+|8.0.0| 4.8.lucene800.0|Please check out the [Release Notes](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
+|7.7.x| 4.7.lucene720.0||
+|7.6.0| 4.7.lucene720.0||
+|7.5.0| 4.7.lucene720.0||
+|7.4.0| 4.7.lucene720.0||
+|7.3.x| 4.7.lucene720.0||
+|7.2.x| 4.7.lucene720.0||
 
 For older Solr versions, please see [here](https://github.com/querqy/querqy/wiki/Older-Querqy-versions).
 
 #### Download
-##### Querqy version 4.7.* and above 
-You can download a .jar file that includes Querqy and all required dependencies from [Maven Central](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22): Choose `jar-with-dependencies` from the Download dropdown and put the .jar file into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
+
+You can download a .jar file that includes Querqy and all required dependencies by following this link to [Maven Central](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22): Choose `jar-with-dependencies` from the Download dropdown and put the .jar file into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
 
 Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
 
@@ -58,35 +58,6 @@ Alternatively, if you already have a Maven build for your Solr plugins, you can 
 ~~~
 
 
-
-##### Querqy versions prior to 4.7.* 
-
-You can download a .jar file that includes Querqy and all required dependencies from Bintray: [https://bintray.com/renekrie/maven/querqy-for-lucene](https://bintray.com/renekrie/maven/querqy-for-lucene) (Files - querqy/querqy-solr/\<version\>/querqy-solr-\<version\>-jar-with-dependencies.jar) and simply put it into [Solr's lib folder](https://cwiki.apache.org/confluence/display/solr/Lib+Directives+in+SolrConfig).
-
-
-
-
-Alternatively, if you already have a Maven build for your Solr plugins, you can add the artifact 'querqy-solr' as a dependency to your pom.xml:
-
-
-~~~xml
-<!-- Add the Querqy repository URL -->
-<repository>
-    <id>querqy-repo</id>
-    <name>Querqy repo</name>
-    <url>http://dl.bintray.com/renekrie/maven</url>
-</repository>
-
-<!-- Add the querqy-solr dependency -->
-<dependencies>
-	<dependency>
-		<groupId>querqy</groupId>
-		<artifactId>querqy-solr</artifactId>
-		<version>...</version>
-	</dependency>
-</dependencies>
-     
-~~~
 
 ### Configuring Solr for Querqy
 Querqy provides a [QParserPlugin](http://lucene.apache.org/solr/5_5_0/solr-core/org/apache/solr/search/QParserPlugin.html) and a [search component](https://cwiki.apache.org/confluence/display/solr/RequestHandlers+and+SearchComponents+in+SolrConfig) that need to be configured in file [solrconfig.xml](https://cwiki.apache.org/confluence/display/solr/Configuring+solrconfig.xml) of your Solr core:
@@ -623,7 +594,7 @@ notebook bag =>
 
 The first rule ('ID1') defines a down boost for all documents containing 'bag' if the query contains 'notebook'. This makes sense as users probably are less interested in notebook bags when they search for a notebook. Except, if they search for 'notebook bag' - in this case we would not want to apply rule ID1. Properties will help us solve this problem by ordering and selecting rules depending on the context.
 
-In order to enable rule selection and ordering we have to define a SelectionStrategy for the Common Rules rewriter in solrconfig.xml:
+In order to enable rule selection we need to make sure that a rewriter ID has been configured for the Common Rules rewriter in solrconfig.xml:
 
 ~~~xml
 
@@ -639,18 +610,7 @@ In order to enable rule selection and ordering we have to define a SelectionStra
                 <str name="rules">rules.txt</str>
                 <!-- ... -->
                            
-<!--
-   Define a selection strategy, named 'expr': 
- -->                  
-                <lst name="rules.selectionStrategy">
-                    <lst name="strategy">
-                        <str name="id">expr</str>
-<!-- 
-	This selection strategy implementation allows us to select and order rules by properties: 
--->                        
-                        <str name="class">querqy.solr.ExpressionSelectionStrategyFactory</str>
-                    </lst>
-                 </lst>
+
             </lst>
      	 </lst>  
 
@@ -659,12 +619,11 @@ In order to enable rule selection and ordering we have to define a SelectionStra
 We can now order the rules by the value of the ```priority``` property in descending order and tell Querqy that it should only apply the rule with the highest ```priority``` using the following request parameters:
 
 ~~~
-querqy.common1.criteria.strategy=expr
 querqy.common1.criteria.sort=priority desc
 querqy.common1.criteria.limit=1
 ~~~
 
-These parameters have a common prefix ```querqy.common1.criteria``` in which ```common1``` matches the rewriter ID that was configured in solrconfig.xml. This allows us to scope the rule selection and ordering per rewriter.  The ```.strategy``` parameter selects the strategy ```expr``` that was defined in solrconfig.xml. This strategy interprets ```.sort=priority desc``` so that rules are ordered by property ```priority``` in descending order and then only the top rule will be applied because of (```.limit=1```).
+These parameters have a common prefix ```querqy.common1.criteria``` in which ```common1``` matches the rewriter ID that was configured in solrconfig.xml. This allows us to scope the rule selection and ordering per rewriter. The default rule selection strategy interprets ```.sort=priority desc``` so that rules are ordered by property ```priority``` in descending order and then only the top rule will be applied because of (```.limit=1```).
 
 In the example, both rules match the input 'notebook bag'. Sorting them by descending value of the ```priority``` property puts the rule with 'ID2' first and the rule with 'ID1' second, and finally only rule 'ID1' will be selected due to limit=1.
 
@@ -982,7 +941,7 @@ Please base development on the branch for the corresponding Solr version. querqy
 ### Contributors
 
  - [Anton Dumler](https://github.com/jagile)
- - [Johannes Peter](https://github.com/JohannesDaniel)
+ - [Johannes Peter](https://github.com/JohannesDaniel), Committer
  - [Lucky Sharma](https://github.com/MighTguY)
  - [Markus Heiden](https://github.com/markus-s24)
  - [Markus Müllenborn](https://github.com/muellenborn)

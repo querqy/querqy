@@ -240,7 +240,7 @@ public class CriteriaSelectionTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 DisMaxParams.MM, "1",
                 getStrategyParamName(REWRITER_ID_3), "criteria",
-                getFilterParamName(REWRITER_ID_3), "$[?('a' in @.tt)]",
+                getFilterParamName(REWRITER_ID_3), "$[?('a' IN @.tt)]",
                 "defType", "querqy",
                 "debugQuery", "true"
         );

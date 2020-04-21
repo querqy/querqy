@@ -1,0 +1,24 @@
+{
+  "scaleForLinearFunctions": 1001,
+  "numberUnitDefinitions": [
+    {
+      "units": [ { "term": "term",     "multiplier": 1002 } ],
+      "fields": [ { "fieldName": "fieldName", "scale": 1003 } ],
+      "boost": {
+        "maxScoreForExactMatch": 1004,
+        "minScoreAtUpperBoundary": 1005,
+        "minScoreAtLowerBoundary": 1006,
+        "additionalScoreForExactMatch": 1007,
+
+        "percentageUpperBoundary": 1008,
+        "percentageLowerBoundary": 1009,
+        "percentageUpperBoundaryExactMatch": 1010,
+        "percentageLowerBoundaryExactMatch": 1011
+      },
+      "filter": {
+        "percentageUpperBoundary": 1012,
+        "percentageLowerBoundary": 1013
+      }
+    }
+  ]
+}

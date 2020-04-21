@@ -1,22 +1,23 @@
 package querqy.rewrite.contrib;
 
-import querqy.ComparableCharSequence;
+import querqy.ComparableCharSequenceWrapper;
 import querqy.CompoundCharSequence;
 import querqy.LowerCaseCharSequence;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.Query;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.RuleParseException;
-import querqy.trie.TrieMap;
+import querqy.trie.SequenceLookup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,11 +28,20 @@ public class ReplaceRewriterParser {
     private final String inputDelimiter;
     private final QuerqyParser querqyParser;
 
-    private static final String ERROR_MESSAGE = "ReplaceRule not properly configured. Each non-empty line must either " +
-            "start with # or contain a rule, e. g. a => b";
+    private static final String ERROR_MESSAGE_IMPROPER_INPUT_TEMPLATE = "ReplaceRule not properly configured for rule %s. \n" +
+            "Each non-empty line must either start with # or " +
+            "contain a rule with at least one input and one output, e. g. a => b\n" +
+            "For suffix and prefix rules, only one input can be defined per output, e. g. a* => b\n" +
+            "The wildcard cannot be defined multiple times in the same rule, a definition like *a* => b is not allowed." +
+            "The wildcard cannot be used as a standalone input, a definition like * => b is not allowed.";
+
+    private static final String ERROR_MESSAGE_DUPLICATE_INPUT_TEMPLATE = "Duplicate input: %s";
 
     private static final String OPERATOR = "=>";
-    public static final String TOKEN_SEPARATOR = " ";
+    private static final String WILDCARD = "*";
+
+    private String errorMessageImproperInput = "";
+    private String errorMessageDuplicateInput = "";
 
     public ReplaceRewriterParser(final InputStreamReader inputStreamReader,
                                  final boolean ignoreCase,
@@ -44,12 +54,12 @@ public class ReplaceRewriterParser {
         this.querqyParser = querqyParser;
     }
 
-    public TrieMap<List<CharSequence>> parseConfig() throws IOException {
+    public SequenceLookup<CharSequence, Queue<CharSequence>> parseConfig() throws IOException {
 
-        final TrieMap<List<CharSequence>> trieMap = new TrieMap<>();
+        final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(ignoreCase);
         final Set<CharSequence> checkForDuplicateInput = new HashSet<>();
 
-        try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+        try (final BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -59,47 +69,68 @@ public class ReplaceRewriterParser {
                     continue;
                 }
 
+                errorMessageImproperInput = String.format(ERROR_MESSAGE_IMPROPER_INPUT_TEMPLATE, line);
+
+                throwIfTrue(!line.contains(OPERATOR), errorMessageImproperInput);
+
                 final String[] lineSplit = line.split(OPERATOR);
-                if (lineSplit.length != 2) {
-                    throw new RuleParseException(ERROR_MESSAGE);
-                }
+                throwIfTrue(lineSplit.length < 1 || lineSplit.length > 2, errorMessageImproperInput);
 
                 final String fullInput = lineSplit[0].trim();
-                final String output = lineSplit[1].trim();
-                final List<String> inputs = Arrays.stream(fullInput.split(this.inputDelimiter))
-                        .map(String::trim)
-                        .filter(term -> !term.isEmpty())
-                        .collect(Collectors.toList());
+                throwIfTrue(fullInput.isEmpty(), errorMessageImproperInput);
 
-                if (output.isEmpty() || inputs.isEmpty()) {
-                    throw new RuleParseException(ERROR_MESSAGE);
-                }
+                final String output = lineSplit.length == 2 ? lineSplit[1].trim() : "";
 
-                final List<CharSequence> outputList = this.querqyParser.parse(output).getClauses().stream()
-                        .map(booleanClause -> (DisjunctionMaxQuery) booleanClause)
-                        .flatMap(disjunctionMaxQuery -> disjunctionMaxQuery.getTerms().stream())
-                        .map(Term::getValue)
-                        .collect(Collectors.toCollection(LinkedList::new));
+                errorMessageDuplicateInput = String.format(ERROR_MESSAGE_DUPLICATE_INPUT_TEMPLATE, fullInput);
 
-                final List<CharSequence> inputList = inputs.stream()
-                        .map(this.querqyParser::parse)
-                        .map(query -> query.getClauses().stream()
-                                .map(booleanClause -> (DisjunctionMaxQuery) booleanClause)
-                                .map(DisjunctionMaxQuery::getTerms)
-                                .flatMap(Collection::stream)
-                                .map(Term::getValue)
-                                .map(seq -> ignoreCase ? new LowerCaseCharSequence(seq) : seq)
-                                .collect(Collectors.toList()))
-                        .map(sequenceList -> new CompoundCharSequence(TOKEN_SEPARATOR, sequenceList))
-                        .collect(Collectors.toList());
+                final List<LinkedList<String>> inputs = parseInput(fullInput);
+                final Queue<String> outputList = parseOutput(output);
 
-                for (CharSequence seq : inputList) {
-                    if (checkForDuplicateInput.contains(seq)) {
-                        throw new RuleParseException(String.format("Duplicate input: %s", seq));
-                    } else {
+                for (final LinkedList<String> input : inputs) {
+
+                    if (fullInput.startsWith(WILDCARD) && fullInput.length() > 1) {
+
+                        throwIfTrue(fullInput.endsWith(WILDCARD), errorMessageImproperInput);
+                        throwIfTrue(input.size() != 1, errorMessageImproperInput);
+                        throwIfTrue(outputList.size() > 1, errorMessageImproperInput);
+
+                        final CharSequence seq = lc(input.get(0));
+                        throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
                         checkForDuplicateInput.add(seq);
+
+                        sequenceLookup.putSuffix(
+                                seq.subSequence(1, seq.length()),
+                                !outputList.isEmpty() ? outputList.peek() : "");
+
+                    } else if (fullInput.endsWith(WILDCARD) && fullInput.length() > 1) {
+
+                        throwIfTrue(input.size() != 1, errorMessageImproperInput);
+                        throwIfTrue(outputList.size() > 1, errorMessageImproperInput);
+
+                        final CharSequence seq = lc(input.get(0));
+                        throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
+                        checkForDuplicateInput.add(seq);
+
+                        sequenceLookup.putPrefix(
+                                seq.subSequence(0, fullInput.length() - 1),
+                                !outputList.isEmpty() ? outputList.peek() : "");
+
+                    } else {
+
+                        throwIfTrue(input.stream().anyMatch(term ->
+                                term.startsWith(WILDCARD) || term.endsWith(WILDCARD)), errorMessageImproperInput);
+                        final List<CharSequence> seqList = lc(input);
+
+                        final CharSequence seq = new CompoundCharSequence(" ", seqList);
+                        throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
+                        checkForDuplicateInput.add(seq);
+
+                        sequenceLookup.put(
+                                seqList,
+                                outputList.stream()
+                                        .map(ComparableCharSequenceWrapper::new)
+                                        .collect(Collectors.toCollection(LinkedList::new)));
                     }
-                    trieMap.put(seq, outputList);
                 }
             }
 
@@ -107,6 +138,47 @@ public class ReplaceRewriterParser {
             throw new IOException(e);
         }
 
-        return trieMap;
+        return sequenceLookup;
+    }
+
+    private CharSequence lc(String seq) {
+        return ignoreCase ? new LowerCaseCharSequence(seq) : seq;
+    }
+
+    private List<CharSequence> lc(List<String> seq) {
+        return seq.stream().map(this::lc).collect(Collectors.toList());
+    }
+
+    private void throwIfTrue(boolean bool, String message) throws RuleParseException {
+        if (bool) {
+            throw new RuleParseException(message);
+        }
+    }
+
+    private Queue<String> parseOutput(String term) {
+        return parseQuery(this.querqyParser.parse(term));
+    }
+
+    private List<LinkedList<String>> parseInput(String fullInput) throws RuleParseException {
+        final List<String> inputs = Arrays.stream(fullInput.split(this.inputDelimiter))
+                .map(String::trim)
+                .filter(term -> !term.isEmpty())
+                .collect(Collectors.toList());
+
+        throwIfTrue(inputs.isEmpty(), errorMessageImproperInput);
+
+        return inputs.stream()
+                .map(this.querqyParser::parse)
+                .map(this::parseQuery)
+                .collect(Collectors.toList());
+    }
+
+    private LinkedList<String> parseQuery(Query query) {
+        return query.getClauses().stream()
+                .map(booleanClause -> (DisjunctionMaxQuery) booleanClause)
+                .flatMap(disjunctionMaxQuery -> disjunctionMaxQuery.getTerms().stream())
+                .map(Term::getValue)
+                .map(CharSequence::toString)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 }

@@ -5,17 +5,56 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
 public class LineParserTest {
+
+    private Locale locale;
+
+    @Before
+    public void saveDefaultLocale() {
+        locale = Locale.getDefault();
+    }
+
+    @After
+    public void restoreDefaultLocale() {
+        Locale.setDefault(locale);
+    }
+
+    @Test
+    public void testPredicatesWithVaryingLocales() {
+
+        final Input input = new Input(Collections.singletonList(new Term("a".toCharArray(), 0, 1, null)), "a");
+        final WhiteSpaceQuerqyParserFactory rhsParserFactory = new WhiteSpaceQuerqyParserFactory();
+
+        for (final Locale locale: Arrays.asList(Locale.ENGLISH, new Locale("tr", "CY"))) {
+
+            Locale.setDefault(locale);
+
+            assertTrue(LineParser.parse("filter: f", input, rhsParserFactory) instanceof FilterInstruction);
+            assertTrue(LineParser.parse("FILTER: f", input, rhsParserFactory) instanceof FilterInstruction);
+            assertTrue(LineParser.parse("up: f", input, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("UP: f", input, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("down: f", input, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("DOWN: f", input, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("delete: a", input, rhsParserFactory) instanceof DeleteInstruction);
+            assertTrue(LineParser.parse("DELETE: a", input, rhsParserFactory) instanceof DeleteInstruction);
+
+        }
+
+    }
 
     @Test
     public void testParseTermValueOnly() {
@@ -27,7 +66,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testParseSingleLetterValue() throws Exception {
+    public void testParseSingleLetterValue() {
         Term term = LineParser.parseTerm("a");
         assertEquals(1, term.length());
         assertArrayEquals(new char[] {'a'},new char[] {term.charAt(0)});
@@ -36,25 +75,25 @@ public class LineParserTest {
     }
     
     @Test
-    public void testParseTermWithFieldName() throws Exception {
+    public void testParseTermWithFieldName() {
         Term term = LineParser.parseTerm("f1:abc");
         assertEquals(3, term.length());
         assertArrayEquals(new char[] {'a', 'b', 'c'},new char[] {term.charAt(0), term.charAt(1), term.charAt(2)});
         assertFalse(term instanceof PrefixTerm);
-        assertEquals(Arrays.asList("f1"), term.getFieldNames());
+        assertEquals(Collections.singletonList("f1"), term.getFieldNames());
     }
     
     @Test
-    public void testParseSingleLetterValueWithFieldName() throws Exception {
+    public void testParseSingleLetterValueWithFieldName() {
         Term term = LineParser.parseTerm("f1:a");
         assertEquals(1, term.length());
         assertArrayEquals(new char[] {'a'},new char[] {term.charAt(0)});
         assertFalse(term instanceof PrefixTerm);
-        assertEquals(Arrays.asList("f1"), term.getFieldNames());
+        assertEquals(Collections.singletonList("f1"), term.getFieldNames());
     }
     
     @Test
-    public void testParseTermWithFieldNames() throws Exception {
+    public void testParseTermWithFieldNames() {
         Term term = LineParser.parseTerm("{f1,f2}:abc");
         assertEquals(3, term.length());
         assertArrayEquals(new char[] {'a', 'b', 'c'},new char[] {term.charAt(0), term.charAt(1), term.charAt(2)});
@@ -63,7 +102,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testParseTermWithFieldNamesContainingSpace() throws Exception {
+    public void testParseTermWithFieldNamesContainingSpace() {
         assertThat(LineParser.parseTerm("{ f1 , f2 }:abc"), term("abc", "f1", "f2"));
     }
     
@@ -77,22 +116,22 @@ public class LineParserTest {
     }
     
     @Test
-    public void testParseSingleLetterPrefix() throws Exception {
+    public void testParseSingleLetterPrefix() {
         assertThat(LineParser.parseTerm("a*"), prefix("a"));
     }
     
     @Test
-    public void testParsePrefixWithFieldName() throws Exception {
+    public void testParsePrefixWithFieldName() {
         assertThat(LineParser.parseTerm("f1:abc*"), prefix("abc", "f1"));
     }
     
     @Test
-    public void testParsePrefixWithFieldNames() throws Exception {
+    public void testParsePrefixWithFieldNames() {
         assertThat(LineParser.parseTerm("{f1,f2}:abc*"), prefix("abc", "f1", "f2"));
     }
     
     @Test
-    public void testThatWildcardOnlyTermIsNotAllowed() throws Exception {
+    public void testThatWildcardOnlyTermIsNotAllowed() {
         try {
             LineParser.parseTerm("*");
             fail("Wildcard-only term must not be allowed");
@@ -102,7 +141,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testThatWildcardOnlyTermIsNotAllowedWithFieldName() throws Exception {
+    public void testThatWildcardOnlyTermIsNotAllowedWithFieldName() {
         try {
             LineParser.parseTerm("f1:*");
             fail("Wildcard-only term must not be allowed with fieldname");
@@ -112,7 +151,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testThatWildcardOnlyTermIsNotAllowedWithFieldNames() throws Exception {
+    public void testThatWildcardOnlyTermIsNotAllowedWithFieldNames() {
         try {
             LineParser.parseTerm("{f1,f2}:*");
             fail("Wildcard-only term must not be allowed with fieldname");
@@ -122,14 +161,14 @@ public class LineParserTest {
     }
     
     @Test
-    public void testThatWildcardCannotBeFollowedByRightBoundary() throws Exception {
+    public void testThatWildcardCannotBeFollowedByRightBoundary() {
         Object parseResult = LineParser.parseInput("a" + LineParser.WILDCARD + LineParser.BOUNDARY);
         assertEquals("Wildcard should not be allowed before right boundary", 
                 new ValidationError(LineParser.WILDCARD + " cannot be combined with right boundary"), parseResult);
     }
     
     @Test
-    public void testThatWildcardCanBeCombinedWithLeftBoundary() throws Exception {
+    public void testThatWildcardCanBeCombinedWithLeftBoundary() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.WILDCARD);
         assertTrue(parseResult instanceof Input);
         Input input = (Input) parseResult;
@@ -138,7 +177,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testThatBoundariesAreParsedInInput() throws Exception {
+    public void testThatBoundariesAreParsedInInput() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.BOUNDARY);
         assertTrue(parseResult instanceof Input);
         Input input = (Input) parseResult;
@@ -147,7 +186,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testThatBoundariesAreParsedInOtherwiseEmptyInput() throws Exception {
+    public void testThatBoundariesAreParsedInOtherwiseEmptyInput() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY);
         assertTrue(parseResult instanceof Input);
         Input input = (Input) parseResult;
@@ -156,7 +195,7 @@ public class LineParserTest {
     }
 
     @Test
-    public void testThatBoostInstructionWithSingleLetterTermIsAccepted() throws Exception {
+    public void testThatBoostInstructionWithSingleLetterTermIsAccepted() {
         String line = "UP: x";
         String lcLine = line.toLowerCase();
         final Object instruction = LineParser
@@ -165,7 +204,7 @@ public class LineParserTest {
     }
 
     @Test
-    public void testThatBoostInstructionWithSingleLetterTermAndBoostFactorIsAccepted() throws Exception {
+    public void testThatBoostInstructionWithSingleLetterTermAndBoostFactorIsAccepted() {
         String line = "UP(5): x";
         String lcLine = line.toLowerCase();
         final Object instruction = LineParser
@@ -174,7 +213,7 @@ public class LineParserTest {
     }
 
     @Test
-    public void testThatPlayholdersAreParsedForBoostInstruction() throws Exception {
+    public void testThatPlayholdersAreParsedForBoostInstruction() {
         String line = "UP(500): 3$1";
         String lcLine = line.toLowerCase();
         final Object instruction = LineParser
@@ -229,7 +268,7 @@ public class LineParserTest {
     }
     
     @Test
-    public void testThatCaseIsPreservedInDecorateInstruction() throws Exception {
+    public void testThatCaseIsPreservedInDecorateInstruction() {
         Input input = (Input) LineParser.parseInput("in");
         assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", input, null));
     }

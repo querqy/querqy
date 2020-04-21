@@ -45,7 +45,6 @@ public class ReplaceRewriterFactory implements FactoryAdapter<RewriterFactory> {
             querqyParser = new WhiteSpaceQuerqyParserFactory();
         }
 
-
         return new querqy.rewrite.contrib.ReplaceRewriterFactory(id, reader,
                 ignoreCase != null ? ignoreCase : DEFAULT_IGNORE_CASE,
                 inputDelimiter != null ? inputDelimiter : DEFAULT_INPUT_DELIMITER,
