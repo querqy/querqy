@@ -1,14 +1,10 @@
 package querqy.v2.model;
 
 import querqy.v2.NodeSeq;
+import querqy.v2.Query;
 
-public abstract class Instruction {
+public interface Instruction {
 
-    public final NodeSeq nodeSeq;
+    void apply(Query query, NodeSeq nodeSeq);
 
-    public Instruction(final NodeSeq nodeSeq) {
-        this.nodeSeq = nodeSeq;
-    }
-
-    public abstract void apply();
 }

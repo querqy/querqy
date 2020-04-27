@@ -1,5 +1,7 @@
 package querqy.v2;
 
+import querqy.v2.model.QueryModification;
+
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,6 +18,7 @@ public class Query {
         this.nodeRegistry = nodeRegistry;
     }
 
+    @Deprecated
     public Query removeNode(Node node) {
         node.removeNodeFromPreviousNodes();
         node.removeNodeFromNextNodes();
@@ -24,6 +27,7 @@ public class Query {
         return this;
     }
 
+    @Deprecated
     public void wireNodes(Collection<Node> previousNodes, Collection<Node> nextNodes) {
         for (Node previousNode : previousNodes) {
             previousNode.addAllNext(nextNodes);
@@ -45,6 +49,8 @@ public class Query {
         }
     }
 
+    // TODO: nodes in NodeSeq original could have been deleted
+    // TODO: ensure that all nodes in original are part of the query (probably introduce flag "deleted" for nodes
     public void addVariant(NodeSeq original, NodeSeq variant) {
         variant.getFirstNode().addAllPrevious(original.getFirstNode().getPrevious());
         variant.getLastNode().addAllNext(original.getLastNode().getNext());
@@ -55,6 +61,7 @@ public class Query {
         nodeRegistry.addAll(variant.getNodes());
     }
 
+    // TODO: node original could have been deleted
     public void addVariant(Node original, Node variant) {
         variant.addAllPrevious(original.getPrevious());
         variant.addAllNext(original.getNext());
@@ -77,6 +84,8 @@ public class Query {
 
 
 
+
+
     @Override
     public String toString() {
 
@@ -88,6 +97,9 @@ public class Query {
         return "[" + String.join("\n ", seqs) + " ]";
     }
 
+    public static Query.Builder builder() {
+        return new Query.Builder();
+    }
 
     public static class Builder {
 

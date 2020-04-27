@@ -54,7 +54,7 @@ public class TestQuery {
         System.out.println();
         System.out.println();
         System.out.println();
-        SequenceHandler<Object> sequenceHandler = state -> {
+        StateHandler<Object> stateHandler = state -> {
             //System.out.println(node.seq);
 
             System.out.println("Seq: " + state.getSequence() + " Term: " + state.getCurrentTerm());
@@ -72,8 +72,8 @@ public class TestQuery {
           G H I E F ]
          */
 
-        StateSeqExtractor<Object> stateSeqExtractor = new StateSeqExtractor<>(sequenceHandler);
-        stateSeqExtractor.crawlQuery(query);
+        StatefulSeqHandler<Object> statefulSeqHandler = new StatefulSeqHandler<>(stateHandler);
+        statefulSeqHandler.crawlQueryAndApplyModifications(query);
 
         System.out.println(query.getNodeRegistry());
 

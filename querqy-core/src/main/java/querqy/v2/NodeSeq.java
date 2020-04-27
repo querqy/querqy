@@ -99,6 +99,16 @@ public class NodeSeq {
         return builder.build();
     }
 
+    public static NodeSeq nodeSeqFromCharSeqs(List<CharSequence> seqs) {
+        NodeSeq.Builder builder = builder();
+
+        for (CharSequence seq : seqs) {
+            builder.append(seq);
+        }
+
+        return builder.build();
+    }
+
     @Override
     public String toString() {
         return "NodeSeq{" +
