@@ -1,14 +1,12 @@
-package querqy.v2.model;
+package querqy.v2.seqhandler;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-// TODO: Optional-like ifPresent instead of has/get?
 public class SeqState<T> {
 
-    private static SeqState emptySeqState = new SeqState();
+    private static final SeqState emptySeqState = new SeqState();
     public static SeqState empty() {
         return emptySeqState;
     }

@@ -1,7 +1,6 @@
-package querqy.v2.model;
+package querqy.v2.query;
 
-import querqy.v2.NodeSeq;
-import querqy.v2.Query;
+import querqy.v2.node.NodeSeq;
 
 import java.util.List;
 

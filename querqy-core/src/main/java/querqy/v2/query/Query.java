@@ -1,8 +1,8 @@
-package querqy.v2;
+package querqy.v2.query;
 
-import querqy.v2.model.QueryModification;
+import querqy.v2.node.Node;
+import querqy.v2.node.NodeSeq;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,36 +18,29 @@ public class Query {
         this.nodeRegistry = nodeRegistry;
     }
 
-    @Deprecated
     public Query removeNode(Node node) {
-        node.removeNodeFromPreviousNodes();
-        node.removeNodeFromNextNodes();
+        for (Node previousNode : node.getPrevious()) {
+            previousNode.addAllNext(node.getNext());
+        }
 
-        wireNodes(node.getPrevious(), node.getNext());
+        node.markAsDeleted();
         return this;
     }
 
-    @Deprecated
-    public void wireNodes(Collection<Node> previousNodes, Collection<Node> nextNodes) {
-        for (Node previousNode : previousNodes) {
-            previousNode.addAllNext(nextNodes);
+    public Query removeNodes(NodeSeq nodeSeq) {
+        for (Node previousNode : nodeSeq.getFirstNode().getPrevious()) {
+            previousNode.addAllNext(nodeSeq.getLastNode().getNext());
         }
-        for (Node nextNode : nextNodes) {
-            nextNode.addAllPrevious(previousNodes);
+
+        for (Node nextNode : nodeSeq.getLastNode().getNext()) {
+            nextNode.addAllPrevious(nodeSeq.getFirstNode().getPrevious());
         }
+
+        nodeSeq.markAllAsDeleted();
+        return this;
     }
 
-    private void openVariantFork(Node original, Node variant) {
-        for (Node previousNode : original.getPrevious()) {
-            previousNode.addNext(variant);
-        }
-    }
 
-    private void closeVariantFork(Node original, Node variant) {
-        for (Node nextNode : original.getNext()) {
-            nextNode.addPrevious(variant);
-        }
-    }
 
     // TODO: nodes in NodeSeq original could have been deleted
     // TODO: ensure that all nodes in original are part of the query (probably introduce flag "deleted" for nodes
@@ -70,6 +63,18 @@ public class Query {
         closeVariantFork(original, variant);
 
         nodeRegistry.add(variant);
+    }
+
+    private void openVariantFork(Node original, Node variant) {
+        for (Node previousNode : original.getPrevious()) {
+            previousNode.addNext(variant);
+        }
+    }
+
+    private void closeVariantFork(Node original, Node variant) {
+        for (Node nextNode : original.getNext()) {
+            nextNode.addPrevious(variant);
+        }
     }
 
     public Set<Node> getNodeRegistry() {
@@ -114,7 +119,7 @@ public class Query {
             return append(Node.createTermNode(seq));
         }
 
-        Builder append(Node newNode) {
+        public Builder append(Node newNode) {
             nodeSeqBuilder.append(newNode);
             nodeRegister.add(newNode);
             return this;

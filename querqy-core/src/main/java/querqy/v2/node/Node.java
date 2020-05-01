@@ -1,4 +1,4 @@
-package querqy.v2;
+package querqy.v2.node;
 
 import querqy.CompoundCharSequence;
 
@@ -8,21 +8,22 @@ import java.util.List;
 
 public class Node {
 
-    final boolean isStartNode;
-    final boolean isEndNode;
+    private final boolean isStartNode;
+    private final boolean isEndNode;
     private final CharSequence seq;
 
-    // TODO: Should be some kind of micro map? Required to fork edges for edge case deletions
+    private boolean isDeleted;
     private List<Node> previousNodes;
     private List<Node> nextNodes;
 
-    // TODO: start and end node should be own class?
-    static Node createStartNode() {
+    public static Node createStartNode() {
         return new Node(true, false, null);
     }
-    static Node createEndNode() {
+
+    public static Node createEndNode() {
         return new Node(false, true, null);
     }
+
     public static Node createTermNode(CharSequence seq) {
         return new Node(false, false, seq);
     }
@@ -31,6 +32,8 @@ public class Node {
         this.isStartNode = isStartNode;
         this.isEndNode = isEndNode;
         this.seq = seq;
+
+        this.isDeleted = false;
 
         if (isStartNode) {
             this.nextNodes = new ArrayList<>();
@@ -42,45 +45,48 @@ public class Node {
         }
     }
 
-    void addNext(Node node) {
+    public void addNext(Node node) {
         this.nextNodes.add(node);
     }
 
-    void addAllNext(Collection<Node> nodes) {
+    public void addAllNext(Collection<Node> nodes) {
         this.nextNodes.addAll(nodes);
     }
 
-    List<Node> getNext() {
+    public List<Node> getNext() {
         return this.nextNodes;
     }
 
-    void addPrevious(Node node) {
+    public void addPrevious(Node node) {
         this.previousNodes.add(node);
     }
 
-    void addAllPrevious(Collection<Node> nodes) {
+    public void addAllPrevious(Collection<Node> nodes) {
         this.previousNodes.addAll(nodes);
     }
 
-    List<Node> getPrevious() {
+    public List<Node> getPrevious() {
         return this.previousNodes;
     }
 
-    void removePrevious(Node node) {
-        this.previousNodes.remove(node);
+    public void markAsDeleted() {
+        this.isDeleted = true;
     }
 
-    void removeNext(Node node) {
-        this.nextNodes.remove(node);
-    }
-
-
-    boolean hasNext() {
+    public boolean hasNext() {
         return nextNodes != null && !nextNodes.isEmpty();
     }
 
-    boolean hasPrevious() {
+    public boolean hasPrevious() {
         return previousNodes != null && !previousNodes.isEmpty();
+    }
+
+    public boolean terminatesSeq() {
+        return this.isEndNode || this.isDeleted;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
     }
 
     public CharSequence getCharSeq() {
@@ -99,32 +105,6 @@ public class Node {
 
 
     }
-
-
-
-
-
-
-    /**
-     * @deprecated
-     * TODO: Wiring should not be done in node
-     */
-    @Deprecated
-    public Node removeNodeFromPreviousNodes() {
-        for (Node previousNode : this.previousNodes) {
-            previousNode.removeNext(this);
-        }
-        return this;
-    }
-
-    @Deprecated
-    public Node removeNodeFromNextNodes() {
-        for (Node nextNode : this.nextNodes) {
-            nextNode.removePrevious(this);
-        }
-        return this;
-    }
-
 
     // TODO: move out of node
     public List<CharSequence> extractAllFullSequences() {

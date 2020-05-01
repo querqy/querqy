@@ -1,11 +1,16 @@
 package querqy.v2;
 
 import org.junit.Test;
-import querqy.v2.model.SeqState;
+import querqy.v2.seqhandler.SeqState;
+import querqy.v2.node.Node;
+import querqy.v2.node.NodeSeq;
+import querqy.v2.node.NodeSeqBuffer;
+import querqy.v2.query.Query;
+import querqy.v2.seqhandler.StateHandler;
+import querqy.v2.seqhandler.StatefulSeqHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class TestQuery {
 
@@ -19,6 +24,8 @@ public class TestQuery {
         Node nodeE = Node.createTermNode("E");
         Node nodeF = Node.createTermNode("F");
         Node nodeG = Node.createTermNode("G");
+        Node nodeH = Node.createTermNode("H");
+        Node nodeI = Node.createTermNode("I");
 
         NodeSeqBuffer nodeSeqBuffer = new NodeSeqBuffer();
 
@@ -41,7 +48,11 @@ public class TestQuery {
         System.out.println(query);
 
         query.addVariant(nodeSeqBuffer.clear().addAll(nodeA, nodeB).createNodeSeqFromBuffer(),
-                NodeSeq.nodeSeqFromCharSeqs("G", "H", "I"));
+                NodeSeq.nodeSeqFromNodes(nodeG, nodeH, nodeI));
+
+        System.out.println(query);
+
+        query.removeNode(nodeG);
 
         System.out.println(query);
 

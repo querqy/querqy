@@ -3,11 +3,12 @@ package querqy.v2;
 import org.junit.Test;
 import querqy.trie.State;
 import querqy.trie.TrieMap;
-import querqy.v2.model.Instruction;
-import querqy.v2.model.SeqState;
-import querqy.v2.model.SynonymInstruction;
-
-import java.util.Optional;
+import querqy.v2.query.Instruction;
+import querqy.v2.seqhandler.SeqState;
+import querqy.v2.query.SynonymInstruction;
+import querqy.v2.query.Query;
+import querqy.v2.seqhandler.StateHandler;
+import querqy.v2.seqhandler.StatefulSeqHandler;
 
 public class TestStatefulSeqHandler {
 

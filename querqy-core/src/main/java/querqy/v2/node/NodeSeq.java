@@ -1,4 +1,4 @@
-package querqy.v2;
+package querqy.v2.node;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,17 +8,6 @@ public class NodeSeq {
 
     private final List<Node> nodes;
 
-    /**
-     * Two use cases of NodeSeq need to be covered:
-     *      1. NodeSeqBuilder: Build a NodeSeq to build new query, add variants or for tests: Append and wire new nodes
-     *          - Nodes must be fresh
-     *          - ArrayList of nodes useful for iteration / addAll?
-     *      2. NodeSeqBuffer: keeps an ArrayList of nodes, remembers offsets of last modification?
-     *          - e. g. ArrayList + offset
-     *          - clear() -> offset = 0
-     */
-
-    // ensure that NodeSeq is only created by builder
     NodeSeq(List<Node> nodes) {
         if (nodes.isEmpty()) {
             throw new UnsupportedOperationException("NodeSeqs of length 0 cannot be built");
@@ -37,6 +26,12 @@ public class NodeSeq {
 
     public List<Node> getNodes() {
         return this.nodes;
+    }
+
+    public void markAllAsDeleted() {
+        for (Node node : nodes) {
+            node.markAsDeleted();
+        }
     }
 
     public static Builder builder() {

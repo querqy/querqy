@@ -1,7 +1,9 @@
-package querqy.v2.model;
+package querqy.v2.seqhandler;
 
-import querqy.v2.Node;
-import querqy.v2.NodeSeqBuffer;
+import querqy.v2.node.Node;
+import querqy.v2.node.NodeSeqBuffer;
+import querqy.v2.query.Instruction;
+import querqy.v2.query.QueryModification;
 
 import java.util.ArrayList;
 import java.util.Collections;

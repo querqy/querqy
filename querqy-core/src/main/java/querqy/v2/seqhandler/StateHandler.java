@@ -1,7 +1,4 @@
-package querqy.v2;
-
-import querqy.v2.model.QueryStateView;
-import querqy.v2.model.SeqState;
+package querqy.v2.seqhandler;
 
 @FunctionalInterface
 public interface StateHandler<T> {

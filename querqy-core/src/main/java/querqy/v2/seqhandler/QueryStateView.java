@@ -1,4 +1,6 @@
-package querqy.v2.model;
+package querqy.v2.seqhandler;
+
+import querqy.v2.query.Instruction;
 
 import java.util.List;
 
