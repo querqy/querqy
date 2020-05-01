@@ -2,13 +2,10 @@ package querqy.v2;
 
 import querqy.v2.model.Instruction;
 import querqy.v2.model.QueryModification;
+import querqy.v2.model.QueryState;
+import querqy.v2.model.SeqState;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class StatefulSeqHandler<T> {
 
@@ -18,83 +15,39 @@ public class StatefulSeqHandler<T> {
         this.stateHandler = stateHandler;
     }
 
-    public void crawlQueryAndApplyModifications(Query query) {
+    public void findSeqsAndApplyModifications(Query query) {
 
         final Set<Node> nodeRegistry = query.getNodeRegistry();
-        final State iterationState = new State();
+        final QueryState<T> queryState = new QueryState<>();
 
         for (Node node : nodeRegistry) {
-            iterationState.clear();
-            crawlQuery(node, iterationState);
+            queryState.clear();
+            findSeqs(node, queryState);
         }
 
-        for (QueryModification modification : iterationState.getQueryModifications()) {
+        for (QueryModification modification : queryState.getQueryModifications()) {
             modification.apply(query);
         }
     }
 
-    private void crawlQuery(final Node node, final State state) {
+    private void findSeqs(final Node node, final QueryState<T> queryState) {
         if (node.isEndNode) {
             return;
         }
 
-        state.nodeSeqBuffer.add(node);
-        stateHandler.handleSequence(state).ifPresent(
-                t -> {
-                    int offset = state.nodeSeqBuffer.getOffset();
-                    for (Node nextNode : node.getNext()) {
-                        state.nodeSeqBuffer.setOffset(offset);
-                        state.outerState = t;
-                        crawlQuery(nextNode, state);
-                    }
-                }
-        );
-    }
+        queryState.getNodeSeqBuffer().add(node);
 
-    public class State {
+        SeqState<T> seqState = stateHandler.handleSequence(queryState);
+        if (seqState.hasValue()) {
+            int offset = queryState.getNodeSeqBuffer().getOffset();
 
-        private final NodeSeqBuffer nodeSeqBuffer;
-        private List<QueryModification> queryModifications;
-        private T outerState;
-
-        private State() {
-            this.nodeSeqBuffer = new NodeSeqBuffer();
-        }
-
-        public Optional<T> getState() {
-            return outerState != null ? Optional.of(outerState) : Optional.empty();
-        }
-
-        public CharSequence getCurrentTerm() {
-            return nodeSeqBuffer.getLast().getCharSeq();
-        }
-
-        public List<CharSequence> getSequence() {
-            return nodeSeqBuffer.getNodes().stream().map(Node::getCharSeq).collect(Collectors.toList());
-        }
-
-        private void clear() {
-            this.nodeSeqBuffer.clear();
-            this.outerState = null;
-        }
-
-        public void collectInstructionsForSeq(final List<Instruction> instructions) {
-            if (this.queryModifications == null) {
-                this.queryModifications = new ArrayList<>();
+            for (Node nextNode : node.getNext()) {
+                queryState.getNodeSeqBuffer().setOffset(offset);
+                queryState.setSeqState(seqState);
+                findSeqs(nextNode, queryState);
             }
-
-            this.queryModifications.add(new QueryModification(nodeSeqBuffer.createNodeSeqFromBuffer(),
-                    Collections.unmodifiableList(instructions)));
         }
 
-        public void collectInstructionsForSeq(final Instruction instruction) {
-            collectInstructionsForSeq(Collections.singletonList(instruction));
-        }
-
-        private List<QueryModification> getQueryModifications() {
-            return this.queryModifications == null ? Collections.emptyList() : this.queryModifications;
-        }
     }
-
 
 }

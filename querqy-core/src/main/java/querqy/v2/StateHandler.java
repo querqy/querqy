@@ -1,10 +1,11 @@
 package querqy.v2;
 
-import java.util.Optional;
+import querqy.v2.model.QueryStateView;
+import querqy.v2.model.SeqState;
 
 @FunctionalInterface
 public interface StateHandler<T> {
 
-    Optional<T> handleSequence(final StatefulSeqHandler.State state);
+    SeqState<T> handleSequence(final QueryStateView<T> queryStateView);
 
 }

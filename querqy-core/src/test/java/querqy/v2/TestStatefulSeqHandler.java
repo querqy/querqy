@@ -2,9 +2,9 @@ package querqy.v2;
 
 import org.junit.Test;
 import querqy.trie.State;
-import querqy.trie.States;
 import querqy.trie.TrieMap;
 import querqy.v2.model.Instruction;
+import querqy.v2.model.SeqState;
 import querqy.v2.model.SynonymInstruction;
 
 import java.util.Optional;
@@ -26,26 +26,25 @@ public class TestStatefulSeqHandler {
 
         System.out.println(query);
 
-        StateHandler<State<Instruction>> stateHandler = state -> {
+        StateHandler<State<Instruction>> stateHandler = queryStateView -> {
 
-            Optional<State<Instruction>> iterationState = state.getState();
+            SeqState<State<Instruction>> seqState = queryStateView.getSeqState();
 
-            State<Instruction> lookupState = state.getState().isPresent()
-                    ? map.get(state.getCurrentTerm(), iterationState.get()).getStateForCompleteSequence()
-                    : map.get(state.getCurrentTerm()).getStateForCompleteSequence();
+            State<Instruction> newLookupState = seqState.applyIfPresentOrElseGet(
+                    lookupState -> map.get(queryStateView.getCurrentTerm(), lookupState).getStateForCompleteSequence(),
+                    () -> map.get(queryStateView.getCurrentTerm()).getStateForCompleteSequence());
 
-            if (lookupState.isFinal()) {
-                state.collectInstructionsForSeq(lookupState.value);
+            if (newLookupState.isFinal()) {
+                queryStateView.collectInstructionsForSeq(newLookupState.value);
             }
 
-            return lookupState.isKnown
-                    ? Optional.of(lookupState)
-                    : Optional.empty();
-
+            return newLookupState.isKnown
+                    ? new SeqState<>(newLookupState)
+                    : SeqState.empty();
         };
 
         StatefulSeqHandler<State<Instruction>> statefulSeqHandler = new StatefulSeqHandler<>(stateHandler);
-        statefulSeqHandler.crawlQueryAndApplyModifications(query);
+        statefulSeqHandler.findSeqsAndApplyModifications(query);
 
         System.out.println(query);
 

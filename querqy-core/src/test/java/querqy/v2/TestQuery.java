@@ -1,6 +1,7 @@
 package querqy.v2;
 
 import org.junit.Test;
+import querqy.v2.model.SeqState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,11 +55,11 @@ public class TestQuery {
         System.out.println();
         System.out.println();
         System.out.println();
-        StateHandler<Object> stateHandler = state -> {
+        StateHandler<Object> stateHandler = queryStateView -> {
             //System.out.println(node.seq);
 
-            System.out.println("Seq: " + state.getSequence() + " Term: " + state.getCurrentTerm());
-            return Optional.of(obj);
+            System.out.println("Seq: " + queryStateView.getSequence() + " Term: " + queryStateView.getCurrentTerm());
+            return new SeqState<>(obj);
         };
 
         /*
@@ -73,7 +74,7 @@ public class TestQuery {
          */
 
         StatefulSeqHandler<Object> statefulSeqHandler = new StatefulSeqHandler<>(stateHandler);
-        statefulSeqHandler.crawlQueryAndApplyModifications(query);
+        statefulSeqHandler.findSeqsAndApplyModifications(query);
 
         System.out.println(query.getNodeRegistry());
 

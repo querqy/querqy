@@ -77,7 +77,7 @@ public class NodeSeqBuffer {
         return offset > 0 ? nodeBuffer.get(offset - 1) : null;
     }
 
-    List<Node> getNodes() {
+    public List<Node> getNodes() {
         return nodeBuffer.subList(0, offset);
     }
 
