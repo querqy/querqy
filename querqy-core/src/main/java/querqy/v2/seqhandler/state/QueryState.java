@@ -1,4 +1,4 @@
-package querqy.v2.seqhandler;
+package querqy.v2.seqhandler.state;
 
 import querqy.v2.node.Node;
 import querqy.v2.node.NodeSeqBuffer;
@@ -10,8 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// TODO: find better naming - QueryState misleading?
 public class QueryState<T> implements QueryStateView<T> {
+
     private final NodeSeqBuffer nodeSeqBuffer;
     private List<QueryModification> queryModifications;
     private SeqState<T> seqState;
@@ -20,6 +20,16 @@ public class QueryState<T> implements QueryStateView<T> {
         this.nodeSeqBuffer = new NodeSeqBuffer();
     }
 
+    public CharSequence getCurrentTerm() {
+        return nodeSeqBuffer.getLast().getCharSeq();
+    }
+
+    // TODO: should be rather append(Node node); since SavedState was implemented no access to buffer is required anymore
+    public NodeSeqBuffer getNodeSeqBuffer() {
+        return this.nodeSeqBuffer;
+    }
+
+    @Override
     public SeqState<T> getSeqState() {
         return seqState != null ? seqState : SeqState.empty();
     }
@@ -28,16 +38,14 @@ public class QueryState<T> implements QueryStateView<T> {
         this.seqState = seqState;
     }
 
-    public CharSequence getCurrentTerm() {
-        return nodeSeqBuffer.getLast().getCharSeq();
+    // TODO: getView() should be method of buffer
+    @Override
+    public List<Node> viewSequenceBuffer() {
+        return Collections.unmodifiableList(nodeSeqBuffer.getNodes());
     }
 
-    public NodeSeqBuffer getNodeSeqBuffer() {
-        return this.nodeSeqBuffer;
-    }
-
-    // TODO: find better way to hide nodes - rewriters should not be able to change node references
-    public List<CharSequence> getSequence() {
+    @Override
+    public List<CharSequence> copySequenceFromBuffer() {
         return nodeSeqBuffer.getNodes().stream().map(Node::getCharSeq).collect(Collectors.toList());
     }
 
@@ -62,5 +70,26 @@ public class QueryState<T> implements QueryStateView<T> {
     public List<QueryModification> getQueryModifications() {
         return this.queryModifications == null ? Collections.emptyList() : this.queryModifications;
     }
+
+    public SavedState<T> saveState() {
+        return new SavedState<>(this.nodeSeqBuffer.getOffset(), this.seqState);
+    }
+
+    public void loadState(SavedState<T> savedState) {
+        this.nodeSeqBuffer.setOffset(savedState.nodeSeqBufferState);
+        this.seqState = savedState.seqState;
+    }
+
+
+    public static class SavedState<T> {
+        private final int nodeSeqBufferState;
+        private final SeqState<T> seqState;
+
+        private SavedState(int nodeSeqBufferState, SeqState<T> seqState) {
+            this.nodeSeqBufferState = nodeSeqBufferState;
+            this.seqState = seqState;
+        }
+    }
+
 
 }

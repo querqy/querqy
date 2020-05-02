@@ -8,7 +8,8 @@ public class NodeSeq {
 
     private final List<Node> nodes;
 
-    NodeSeq(List<Node> nodes) {
+    // TODO: make private
+    public NodeSeq(List<Node> nodes) {
         if (nodes.isEmpty()) {
             throw new UnsupportedOperationException("NodeSeqs of length 0 cannot be built");
         }
@@ -45,7 +46,7 @@ public class NodeSeq {
 
         public Builder append(Node newNode) {
 
-            if (newNode.hasPrevious() || newNode.hasNext()) {
+            if (newNode.hasDownstream() || newNode.hasUpstream()) {
                 throw new IllegalArgumentException(
                         "Node to be appended to NodeSeq must not have references to other nodes. " +
                         "Use NodeSeqBuffer.createNodeSeqFromBuffer to create NodeSeq with already wired nodes.");
@@ -55,8 +56,8 @@ public class NodeSeq {
                 lastNode = newNode;
 
             } else {
-                this.lastNode.addNext(newNode);
-                newNode.addPrevious(this.lastNode);
+                this.lastNode.addUpstreamNode(newNode);
+                newNode.addDownstreamNode(this.lastNode);
                 this.lastNode = newNode;
             }
 

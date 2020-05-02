@@ -4,17 +4,18 @@ import querqy.CompoundCharSequence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public class Node {
+public class Node extends CharSeqContainer {
 
     private final boolean isStartNode;
     private final boolean isEndNode;
-    private final CharSequence seq;
 
     private boolean isDeleted;
-    private List<Node> previousNodes;
-    private List<Node> nextNodes;
+
+    private List<Node> downstream;
+    private List<Node> upstream;
 
     public static Node createStartNode() {
         return new Node(true, false, null);
@@ -29,59 +30,71 @@ public class Node {
     }
 
     private Node(boolean isStartNode, boolean isEndNode, CharSequence seq) {
+        super(seq);
+
         this.isStartNode = isStartNode;
         this.isEndNode = isEndNode;
-        this.seq = seq;
+
 
         this.isDeleted = false;
 
         if (isStartNode) {
-            this.nextNodes = new ArrayList<>();
+            this.upstream = new ArrayList<>();
+            this.downstream = Collections.emptyList();
         } else if (isEndNode) {
-            this.previousNodes = new ArrayList<>();
+            this.upstream = Collections.emptyList();
+            this.downstream = new ArrayList<>();
         } else {
-            this.previousNodes = new ArrayList<>();
-            this.nextNodes = new ArrayList<>();
+            this.upstream = new ArrayList<>();
+            this.downstream = new ArrayList<>();
         }
     }
 
-    public void addNext(Node node) {
-        this.nextNodes.add(node);
+    public void addUpstreamNode(Node node) {
+        this.upstream.add(node);
     }
 
-    public void addAllNext(Collection<Node> nodes) {
-        this.nextNodes.addAll(nodes);
+    public void addAllUpstreamNodes(Collection<Node> nodes) {
+        this.upstream.addAll(nodes);
     }
 
-    public List<Node> getNext() {
-        return this.nextNodes;
+    public List<Node> getUpstream() {
+        return this.upstream;
     }
 
-    public void addPrevious(Node node) {
-        this.previousNodes.add(node);
+    public void addDownstreamNode(Node node) {
+        this.downstream.add(node);
     }
 
-    public void addAllPrevious(Collection<Node> nodes) {
-        this.previousNodes.addAll(nodes);
+    public void addAllDownstreamNodes(Collection<Node> nodes) {
+        this.downstream.addAll(nodes);
     }
 
-    public List<Node> getPrevious() {
-        return this.previousNodes;
+    public List<Node> getDownstream() {
+        return this.downstream;
     }
 
     public void markAsDeleted() {
         this.isDeleted = true;
     }
 
-    public boolean hasNext() {
-        return nextNodes != null && !nextNodes.isEmpty();
+    public boolean hasUpstream() {
+        return !upstream.isEmpty();
     }
 
-    public boolean hasPrevious() {
-        return previousNodes != null && !previousNodes.isEmpty();
+    public boolean hasExactlyOneUpstreamNode() {
+        return upstream.size() == 1;
     }
 
-    public boolean terminatesSeq() {
+    public boolean hasUpstreamFork() {
+        return upstream.size() > 1;
+    }
+
+    public boolean hasDownstream() {
+        return !downstream.isEmpty();
+    }
+
+    public boolean isSeqTerminator() {
         return this.isEndNode || this.isDeleted;
     }
 
@@ -89,8 +102,50 @@ public class Node {
         return isDeleted;
     }
 
+    public boolean isEndNode() {
+        return isEndNode;
+    }
+
+
+
+
+    @Override
     public CharSequence getCharSeq() {
         return seq;
+    }
+
+
+    // TODO: move out of node
+    @Deprecated
+    public List<CharSequence> extractAllFullSequences() {
+        List<CharSequence> seqs = new ArrayList<>();
+        extractAllFullSequences(0, new ArrayList<>(), seqs);
+        return seqs;
+    }
+
+    // TODO: move out of node
+    @Deprecated
+    private void extractAllFullSequences(int index, List<CharSequence> tempList, List<CharSequence> seqList) {
+        if (this.isDeleted) {
+            return;
+        }
+
+        if (this.isStartNode) {
+            for (Node nextNode : this.upstream) {
+                nextNode.extractAllFullSequences(index, tempList, seqList);
+            }
+
+        } else if (this.isEndNode) {
+            seqList.add(new CompoundCharSequence(" ", tempList.subList(0, index)));
+
+        } else {
+            tempList.add(index, this.seq);
+            index++;
+
+            for (Node nextNode : this.upstream) {
+                nextNode.extractAllFullSequences(index, tempList, seqList);
+            }
+        }
     }
 
     @Override
@@ -106,31 +161,6 @@ public class Node {
 
     }
 
-    // TODO: move out of node
-    public List<CharSequence> extractAllFullSequences() {
-        List<CharSequence> seqs = new ArrayList<>();
-        extractAllFullSequences(0, new ArrayList<>(), seqs);
-        return seqs;
-    }
-
-    private void extractAllFullSequences(int index, List<CharSequence> tempList, List<CharSequence> seqList) {
-        if (this.isStartNode) {
-            for (Node nextNode : this.nextNodes) {
-                nextNode.extractAllFullSequences(index, tempList, seqList);
-            }
-
-        } else if (this.isEndNode) {
-            seqList.add(new CompoundCharSequence(" ", tempList.subList(0, index)));
-
-        } else {
-            tempList.add(index, this.seq);
-            index++;
-
-            for (Node nextNode : this.nextNodes) {
-                nextNode.extractAllFullSequences(index, tempList, seqList);
-            }
-        }
-    }
 
 
 }

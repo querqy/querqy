@@ -2,7 +2,10 @@ package querqy.v2.query;
 
 import querqy.v2.node.Node;
 import querqy.v2.node.NodeSeq;
+import querqy.v2.seqhandler.FullSeqHandler;
+import querqy.v2.seqhandler.SeqHandler;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,62 +21,56 @@ public class Query {
         this.nodeRegistry = nodeRegistry;
     }
 
-    public Query removeNode(Node node) {
-        for (Node previousNode : node.getPrevious()) {
-            previousNode.addAllNext(node.getNext());
+    public void removeNode(Node node) {
+        for (Node downstreamNode : node.getDownstream()) {
+            downstreamNode.addAllUpstreamNodes(node.getUpstream());
+        }
+
+        for (Node upstreamNode : node.getUpstream()) {
+            upstreamNode.addAllDownstreamNodes(node.getDownstream());
         }
 
         node.markAsDeleted();
-        return this;
     }
 
-    public Query removeNodes(NodeSeq nodeSeq) {
-        for (Node previousNode : nodeSeq.getFirstNode().getPrevious()) {
-            previousNode.addAllNext(nodeSeq.getLastNode().getNext());
+    public void removeNodes(List<Node> nodes) {
+        for (Node node : nodes) {
+            removeNode(node);
         }
-
-        for (Node nextNode : nodeSeq.getLastNode().getNext()) {
-            nextNode.addAllPrevious(nodeSeq.getFirstNode().getPrevious());
-        }
-
-        nodeSeq.markAllAsDeleted();
-        return this;
     }
 
+    // TODO: nodes in NodeSeq original could have been deleted -> should have been solved
+    // TODO: ensure that all nodes in original are part of the query (probably introduce flag "deleted" for nodes -> done
+    public void add(NodeSeq original, NodeSeq variant) {
+        variant.getFirstNode().addAllDownstreamNodes(original.getFirstNode().getDownstream());
+        variant.getLastNode().addAllUpstreamNodes(original.getLastNode().getUpstream());
 
-
-    // TODO: nodes in NodeSeq original could have been deleted
-    // TODO: ensure that all nodes in original are part of the query (probably introduce flag "deleted" for nodes
-    public void addVariant(NodeSeq original, NodeSeq variant) {
-        variant.getFirstNode().addAllPrevious(original.getFirstNode().getPrevious());
-        variant.getLastNode().addAllNext(original.getLastNode().getNext());
-
-        openVariantFork(original.getFirstNode(), variant.getFirstNode());
-        closeVariantFork(original.getLastNode(), variant.getLastNode());
+        openFork(original.getFirstNode(), variant.getFirstNode());
+        closeFork(original.getLastNode(), variant.getLastNode());
 
         nodeRegistry.addAll(variant.getNodes());
     }
 
-    // TODO: node original could have been deleted
-    public void addVariant(Node original, Node variant) {
-        variant.addAllPrevious(original.getPrevious());
-        variant.addAllNext(original.getNext());
+    // TODO: node original could have been deleted -> should be solved; needs to be tested
+    public void add(Node original, Node variant) {
+        variant.addAllDownstreamNodes(original.getDownstream());
+        variant.addAllUpstreamNodes(original.getUpstream());
 
-        openVariantFork(original, variant);
-        closeVariantFork(original, variant);
+        openFork(original, variant);
+        closeFork(original, variant);
 
         nodeRegistry.add(variant);
     }
 
-    private void openVariantFork(Node original, Node variant) {
-        for (Node previousNode : original.getPrevious()) {
-            previousNode.addNext(variant);
+    private void openFork(Node original, Node variant) {
+        for (Node previousNode : original.getDownstream()) {
+            previousNode.addUpstreamNode(variant);
         }
     }
 
-    private void closeVariantFork(Node original, Node variant) {
-        for (Node nextNode : original.getNext()) {
-            nextNode.addPrevious(variant);
+    private void closeFork(Node original, Node variant) {
+        for (Node nextNode : original.getUpstream()) {
+            nextNode.addDownstreamNode(variant);
         }
     }
 
@@ -82,24 +79,32 @@ public class Query {
     }
 
 
+    // TODO: should not depend on FullSeqHandler, but apply its own seq handling
+    public List<List<CharSequence>> findAllQueryVariants() {
 
+        List<List<CharSequence>> seqs = new ArrayList<>();
+        SeqHandler seqHandler = new FullSeqHandler(
+                queryStateView -> seqs.add(queryStateView.copySequenceFromBuffer()));
 
-
-
-
-
-
-
+        seqHandler.findSeqsAndApplyModifications(this);
+        return seqs;
+    }
 
     @Override
     public String toString() {
-
-        List<CharSequence> seqs = startNode.extractAllFullSequences()
-                .stream()
+        List<CharSequence> seqs = findAllQueryVariants().stream()
                 .map(seq -> " " + seq.toString())
                 .collect(Collectors.toList());
 
         return "[" + String.join("\n ", seqs) + " ]";
+
+
+//        List<CharSequence> seqs = startNode.extractAllFullSequences()
+//                .stream()
+//                .map(seq -> " " + seq.toString())
+//                .collect(Collectors.toList());
+//
+//        return "[" + String.join("\n ", seqs) + " ]";
     }
 
     public static Query.Builder builder() {

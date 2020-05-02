@@ -4,16 +4,31 @@ import org.junit.Test;
 import querqy.trie.State;
 import querqy.trie.TrieMap;
 import querqy.v2.query.Instruction;
-import querqy.v2.seqhandler.SeqState;
+import querqy.v2.seqhandler.state.SeqState;
 import querqy.v2.query.SynonymInstruction;
 import querqy.v2.query.Query;
-import querqy.v2.seqhandler.StateHandler;
-import querqy.v2.seqhandler.StatefulSeqHandler;
+import querqy.v2.seqhandler.StateExchangeFunction;
+import querqy.v2.seqhandler.StateExchangeSeqHandler;
 
-public class TestStatefulSeqHandler {
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class TestStateExchangeSeqHandler {
+
+    private List<CharSequence> list(CharSequence... seqs) {
+        return Arrays.asList(seqs);
+    }
+
+    private List<List<CharSequence>> list(List<CharSequence>... seqLists) {
+        return Arrays.asList(seqLists);
+    }
+
+
 
     @Test
-    public void test() {
+    public void testSynonyms() {
 
         Query query = Query.builder()
                 .append("A")
@@ -25,9 +40,10 @@ public class TestStatefulSeqHandler {
         map.put("A", new SynonymInstruction("D"));
         map.put("BC", new SynonymInstruction("E"));
 
-        System.out.println(query);
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C"));
 
-        StateHandler<State<Instruction>> stateHandler = queryStateView -> {
+        StateExchangeFunction<State<Instruction>> stateExchangeFunction = queryStateView -> {
 
             SeqState<State<Instruction>> seqState = queryStateView.getSeqState();
 
@@ -44,11 +60,14 @@ public class TestStatefulSeqHandler {
                     : SeqState.empty();
         };
 
-        StatefulSeqHandler<State<Instruction>> statefulSeqHandler = new StatefulSeqHandler<>(stateHandler);
-        statefulSeqHandler.findSeqsAndApplyModifications(query);
+        StateExchangeSeqHandler<State<Instruction>> stateExchangeSeqHandler = new StateExchangeSeqHandler<>(stateExchangeFunction);
+        stateExchangeSeqHandler.findSeqsAndApplyModifications(query);
 
-        System.out.println(query);
-
-
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C"),
+                list("D", "B", "C"),
+                list("A", "E"),
+                list("D", "E")
+        );
     }
 }

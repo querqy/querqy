@@ -1,8 +1,6 @@
 package querqy.v2.query;
 
 import querqy.v2.node.NodeSeq;
-import querqy.v2.query.Instruction;
-import querqy.v2.query.Query;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +19,6 @@ public class SynonymInstruction implements Instruction {
 
     @Override
     public void apply(final Query query, final NodeSeq nodeSeq) {
-        query.addVariant(nodeSeq, NodeSeq.nodeSeqFromCharSeqs(synonymSequence));
+        query.add(nodeSeq, NodeSeq.nodeSeqFromCharSeqs(synonymSequence));
     }
 }

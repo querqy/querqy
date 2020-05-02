@@ -3,17 +3,20 @@ package querqy.v2.seqhandler;
 import querqy.v2.query.QueryModification;
 import querqy.v2.node.Node;
 import querqy.v2.query.Query;
+import querqy.v2.seqhandler.state.QueryState;
+import querqy.v2.seqhandler.state.SeqState;
 
 import java.util.Set;
 
-public class StatefulSeqHandler<T> {
+public class StateExchangeSeqHandler<T> implements SeqHandler {
 
-    private final StateHandler<T> stateHandler;
+    private final StateExchangeFunction<T> stateExchangeFunction;
 
-    public StatefulSeqHandler(StateHandler<T> stateHandler) {
-        this.stateHandler = stateHandler;
+    public StateExchangeSeqHandler(StateExchangeFunction<T> stateExchangeFunction) {
+        this.stateExchangeFunction = stateExchangeFunction;
     }
 
+    @Override
     public void findSeqsAndApplyModifications(Query query) {
 
         final Set<Node> nodeRegistry = query.getNodeRegistry();
@@ -21,7 +24,7 @@ public class StatefulSeqHandler<T> {
 
         for (Node node : nodeRegistry) {
 
-            if (node.terminatesSeq()) {
+            if (node.isSeqTerminator()) {
                 continue;
             }
 
@@ -35,19 +38,22 @@ public class StatefulSeqHandler<T> {
     }
 
     private void findSeqs(final Node node, final QueryState<T> queryState) {
-        if (node.terminatesSeq()) {
+        if (node.isSeqTerminator()) {
             return;
         }
 
         queryState.getNodeSeqBuffer().add(node);
 
-        SeqState<T> seqState = stateHandler.handleSequence(queryState);
-        if (seqState.hasValue()) {
-            int offset = queryState.getNodeSeqBuffer().getOffset();
+        final SeqState<T> seqState = stateExchangeFunction.exchangeState(queryState);
 
-            for (Node nextNode : node.getNext()) {
-                queryState.getNodeSeqBuffer().setOffset(offset);
-                queryState.setSeqState(seqState);
+        if (seqState.isPresent()) {
+
+            queryState.setSeqState(seqState);
+
+            QueryState.SavedState<T> savedState = queryState.saveState();
+
+            for (Node nextNode : node.getUpstream()) {
+                queryState.loadState(savedState);
                 findSeqs(nextNode, queryState);
             }
         }

@@ -1,18 +1,21 @@
 package querqy.v2;
 
 import org.junit.Test;
-import querqy.v2.seqhandler.SeqState;
 import querqy.v2.node.Node;
 import querqy.v2.node.NodeSeq;
 import querqy.v2.node.NodeSeqBuffer;
 import querqy.v2.query.Query;
-import querqy.v2.seqhandler.StateHandler;
-import querqy.v2.seqhandler.StatefulSeqHandler;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class TestQuery {
+
+    private List<CharSequence> list(CharSequence... seqs) {
+        return Arrays.asList(seqs);
+    }
 
     @Test
     public void test() {
@@ -37,57 +40,104 @@ public class TestQuery {
                 .build();
 
 
-        System.out.println(query);
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C", "D"));
 
-        query.addVariant(nodeC, nodeE);
+        query.add(nodeC, nodeE);
 
-        System.out.println(query);
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C", "D"),
+                list("A", "B", "E", "D")
+        );
 
-        query.addVariant(nodeD, nodeF);
+        query.add(nodeD, nodeF);
 
-        System.out.println(query);
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C", "D"),
+                list("A", "B", "C", "F"),
+                list("A", "B", "E", "D"),
+                list("A", "B", "E", "F")
+        );
 
-        query.addVariant(nodeSeqBuffer.clear().addAll(nodeA, nodeB).createNodeSeqFromBuffer(),
+        query.add(nodeSeqBuffer.clear().addAll(nodeA, nodeB).createNodeSeqFromBuffer(),
                 NodeSeq.nodeSeqFromNodes(nodeG, nodeH, nodeI));
 
-        System.out.println(query);
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C", "D"),
+                list("A", "B", "C", "F"),
+                list("A", "B", "E", "D"),
+                list("A", "B", "E", "F"),
+
+                list("G", "H", "I", "C", "D"),
+                list("G", "H", "I", "C", "F"),
+                list("G", "H", "I", "E", "D"),
+                list("G", "H", "I", "E", "F")
+        );
 
         query.removeNode(nodeG);
 
-        System.out.println(query);
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "C", "D"),
+                list("A", "B", "C", "F"),
+                list("A", "B", "E", "D"),
+                list("A", "B", "E", "F"),
+
+                list("H", "I", "C", "D"),
+                list("H", "I", "C", "F"),
+                list("H", "I", "E", "D"),
+                list("H", "I", "E", "F")
+        );
+
+        query.removeNodes(Arrays.asList(nodeI, nodeC));
+
+        assertThat(query.findAllQueryVariants()).containsExactlyInAnyOrder(
+                list("A", "B", "D"),
+                list("A", "B", "F"),
+                list("A", "B", "E", "D"),
+                list("A", "B", "E", "F"),
+
+                list("H", "D"),
+                list("H", "F"),
+                list("H", "E", "D"),
+                list("H", "E", "F")
+        );
 
 
 
 
-        final List<Node> nodes = new ArrayList<>();
 
-        final Object obj = new Object();
 
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        StateHandler<Object> stateHandler = queryStateView -> {
-            //System.out.println(node.seq);
 
-            System.out.println("Seq: " + queryStateView.getSequence() + " Term: " + queryStateView.getCurrentTerm());
-            return new SeqState<>(obj);
-        };
 
-        /*
-        [ A B C D
-          A B C F
-          A B E D
-          A B E F
-          G H I C D
-          G H I C F
-          G H I E D
-          G H I E F ]
-         */
-
-        StatefulSeqHandler<Object> statefulSeqHandler = new StatefulSeqHandler<>(stateHandler);
-        statefulSeqHandler.findSeqsAndApplyModifications(query);
-
-        System.out.println(query.getNodeRegistry());
+//        final List<Node> nodes = new ArrayList<>();
+//
+//        final Object obj = new Object();
+//
+//        System.out.println();
+//        System.out.println();
+//        System.out.println();
+//        StateExchangeFunction<Object> stateExchangeFunction = queryStateView -> {
+//            //System.out.println(node.seq);
+//
+//            System.out.println("Seq: " + queryStateView.viewSequenceBuffer() + " Term: " + queryStateView.getCurrentTerm());
+//            return new SeqState<>(obj);
+//        };
+//
+//        /*
+//        [ A B C D
+//          A B C F
+//          A B E D
+//          A B E F
+//          G H I C D
+//          G H I C F
+//          G H I E D
+//          G H I E F ]
+//         */
+//
+//        StateExchangeSeqHandler<Object> stateExchangeSeqHandler = new StateExchangeSeqHandler<>(stateExchangeFunction);
+//        stateExchangeSeqHandler.findSeqsAndApplyModifications(query);
+//
+//        System.out.println(query.getNodeRegistry());
 
 
 
