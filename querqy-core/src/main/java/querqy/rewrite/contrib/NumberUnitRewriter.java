@@ -150,6 +150,10 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             }
         }
 
+        if (!isNumber) {
+            return Optional.empty();
+        }
+
         return Optional.of(new NumberUnitQueryInput(parseNumber(seq, floatDelimiter)));
     }
 

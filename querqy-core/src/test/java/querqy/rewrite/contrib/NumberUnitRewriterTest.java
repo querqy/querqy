@@ -105,6 +105,25 @@ public class NumberUnitRewriterTest {
     }
 
     @Test
+    public void testDelimiterOnlyInput() {
+        NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+
+        Optional<NumberUnitQueryInput> numberUnitInput;
+
+        numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq(".."));
+        assertThat(numberUnitInput).isEmpty();
+
+        numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("."));
+        assertThat(numberUnitInput).isEmpty();
+
+        numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq(","));
+        assertThat(numberUnitInput).isEmpty();
+
+
+
+    }
+
+    @Test
     public void testValidNumberInput() {
         NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
 
