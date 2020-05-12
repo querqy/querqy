@@ -281,14 +281,14 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     }
 
     @Override
-    public Optional<Query> parseRawQuery(final RawQuery rawQuery) throws SyntaxException {
+    public Query parseRawQuery(final RawQuery rawQuery) throws SyntaxException {
         try {
 
             if (rawQuery instanceof StringRawQuery) {
-                return Optional.of(QParser.getParser(((StringRawQuery) rawQuery).getQueryString(),
-                        null, request).getQuery());
+                return QParser.getParser(((StringRawQuery) rawQuery).getQueryString(),
+                        null, request).getQuery();
             } else {
-                return Optional.empty();
+                throw new UnsupportedOperationException("Implementation type of RawQuery is not supported for this adapter");
             }
 
         } catch (SyntaxError syntaxError) {

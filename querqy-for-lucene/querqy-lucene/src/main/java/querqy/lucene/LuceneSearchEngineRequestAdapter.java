@@ -243,7 +243,7 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
      * @return The Query parsed from {@link RawQuery} if the class extending {@link RawQuery} is known
      * @throws SyntaxException @throws SyntaxException if the raw query query could not be parsed
      */
-    Optional<Query> parseRawQuery(RawQuery rawQuery) throws SyntaxException;
+    Query parseRawQuery(RawQuery rawQuery) throws SyntaxException;
 
 
     /**
