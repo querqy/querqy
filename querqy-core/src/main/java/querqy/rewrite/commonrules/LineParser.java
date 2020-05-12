@@ -3,7 +3,7 @@ package querqy.rewrite.commonrules;
 import java.util.*;
 
 import querqy.model.Clause.Occur;
-import querqy.model.RawQuery;
+import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
@@ -97,7 +97,7 @@ public class LineParser {
                     return new ValidationError("Missing raw query after * in line: " + line);
                 }
                 String rawQuery = filterString.substring(1).trim();
-                return new FilterInstruction(new RawQuery(null, rawQuery, Occur.MUST, false));
+                return new FilterInstruction(new StringRawQuery(null, rawQuery, Occur.MUST, false));
             } else if (querqyParserFactory == null) {
                 return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' if you want to pass this line as a raw query String to your search engine. Line: " + line);
             } else {
@@ -231,7 +231,7 @@ public class LineParser {
 
             String rawQuery = boostLine.substring(1).trim();
             return new BoostInstruction(
-                    new RawQuery(null, rawQuery, Occur.SHOULD, false),
+                    new StringRawQuery(null, rawQuery, Occur.SHOULD, false),
                     direction, boost);
 
         } else if (querqyParserFactory == null) {

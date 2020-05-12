@@ -2,6 +2,7 @@ package querqy.solr.contrib.numberunit;
 
 import org.junit.Test;
 import querqy.model.RawQuery;
+import querqy.model.StringRawQuery;
 import querqy.rewrite.contrib.numberunit.model.FieldDefinition;
 import querqy.rewrite.contrib.numberunit.model.LinearFunction;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
@@ -20,7 +21,7 @@ public class NumberUnitQueryCreatorSolrTest {
 
     @Test
     public void testCreateBoostQueryWithExactMatchRange() {
-        RawQuery rawBoostQuery;
+        StringRawQuery rawBoostQuery;
 
         rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
                 BigDecimal.valueOf(50),
@@ -55,7 +56,7 @@ public class NumberUnitQueryCreatorSolrTest {
 
     @Test
     public void testCreateBoostQuery() {
-        RawQuery rawBoostQuery;
+        StringRawQuery rawBoostQuery;
 
         rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
                 BigDecimal.valueOf(50),
@@ -120,7 +121,7 @@ public class NumberUnitQueryCreatorSolrTest {
 
     @Test
     public void testCreateFilterQuery() {
-        RawQuery filterQuery;
+        StringRawQuery filterQuery;
 
         filterQuery = numberUnitQueryCreator.createFilterQuery(
                 BigDecimal.valueOf(100),

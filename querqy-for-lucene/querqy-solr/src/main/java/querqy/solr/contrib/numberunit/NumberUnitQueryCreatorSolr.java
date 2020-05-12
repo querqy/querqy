@@ -3,6 +3,7 @@ package querqy.solr.contrib.numberunit;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.RawQuery;
+import querqy.model.StringRawQuery;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.LinearFunction;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
@@ -31,7 +32,7 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
     private static final String RANGE_QUERY_TEMPLATE = "%s:[%s TO %s]";
     private static final String BOOLEAN_STRING_CONCATENATION_OR = " OR ";
 
-    protected RawQuery createRawBoostQuery(final BigDecimal value,
+    protected StringRawQuery createRawBoostQuery(final BigDecimal value,
                                            final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
         final List<String> queryParts = new ArrayList<>();
 
@@ -102,7 +103,7 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
 
         final String queryString = queryParts.size() == 1
                 ? queryParts.get(0) : String.format(MAX, String.join(",", queryParts));
-        return new RawQuery(null, FUNC + queryString, Clause.Occur.MUST, true);
+        return new StringRawQuery(null, FUNC + queryString, Clause.Occur.MUST, true);
     }
 
     public BoostQuery createBoostQuery(final BigDecimal value,
@@ -111,7 +112,7 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
     }
 
 
-    public RawQuery createFilterQuery(final BigDecimal value,
+    public StringRawQuery createFilterQuery(final BigDecimal value,
                                       final List<PerUnitNumberUnitDefinition> perUnitNumberUnitDefinitions) {
         final List<String> queryParts = new ArrayList<>();
 
@@ -135,6 +136,6 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
                             upperBound.compareTo(BigDecimal.ZERO) >= 0
                                     ? upperBound.setScale(field.scale, super.getRoundingMode()) : "*"))); });
 
-        return new RawQuery(null, String.join(BOOLEAN_STRING_CONCATENATION_OR, queryParts), Clause.Occur.MUST, true);
+        return new StringRawQuery(null, String.join(BOOLEAN_STRING_CONCATENATION_OR, queryParts), Clause.Occur.MUST, true);
     }
 }

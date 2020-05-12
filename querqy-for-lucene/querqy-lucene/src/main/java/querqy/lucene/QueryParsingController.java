@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -275,7 +276,7 @@ public class QueryParsingController {
 
                 if (qfq instanceof RawQuery) {
 
-                    fqs.add(requestAdapter.parseRawQuery((RawQuery) qfq));
+                    requestAdapter.parseRawQuery((RawQuery) qfq).ifPresent(fqs::add);
 
                 } else {
 
@@ -357,7 +358,7 @@ public class QueryParsingController {
 
                 if (boostQuery instanceof RawQuery) {
 
-                    luceneQuery = requestAdapter.parseRawQuery((RawQuery) boostQuery);
+                    luceneQuery = requestAdapter.parseRawQuery((RawQuery) boostQuery).orElse(null);
 
                 } else if (boostQuery instanceof querqy.model.Query) {
 
