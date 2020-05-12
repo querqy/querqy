@@ -18,7 +18,7 @@ import org.junit.Test;
 import querqy.model.Clause.Occur;
 import querqy.model.InputSequenceElement;
 import querqy.model.Query;
-import querqy.model.RawQuery;
+import querqy.model.StringRawQuery;
 import querqy.model.Term;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
@@ -125,7 +125,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                         new Instructions(6, "6",
                                 Collections.singletonList(
                                         new BoostInstruction(
-                                                new RawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f)
+                                                new StringRawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f)
                                 )),
                         new TermMatches(new TermMatch(t1)), 0, 1)
 
