@@ -1,4 +1,4 @@
-![travis ci build status](https://travis-ci.org/renekrie/querqy.png) [![Querqy for Solr](https://img.shields.io/maven-central/v/org.querqy/querqy-solr.svg?label=Download%20Querqy%20for%20Solr%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22) [![Querqy Core](https://img.shields.io/maven-central/v/org.querqy/querqy-core.svg?label=Querqy%20core%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-core%22)
+![Build status](https://github.com/querqy/querqy/actions?query=workflow%3ABuild) [![Querqy for Solr](https://img.shields.io/maven-central/v/org.querqy/querqy-solr.svg?label=Download%20Querqy%20for%20Solr%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22) [![Querqy Core](https://img.shields.io/maven-central/v/org.querqy/querqy-core.svg?label=Querqy%20core%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-core%22)
 
 Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/querqy/users)
 # Querqy
