@@ -1,7 +1,6 @@
 package querqy.solr.contrib.numberunit;
 
 import org.junit.Test;
-import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.contrib.numberunit.model.FieldDefinition;
 import querqy.rewrite.contrib.numberunit.model.LinearFunction;
@@ -21,6 +20,7 @@ public class NumberUnitQueryCreatorSolrTest {
 
     @Test
     public void testCreateBoostQueryWithExactMatchRange() {
+
         StringRawQuery rawBoostQuery;
 
         rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
@@ -32,11 +32,11 @@ public class NumberUnitQueryCreatorSolrTest {
                                 20, 10, 1.0)));
 
         assertThat(rawBoostQuery.getQueryString()).isEqualTo(
-                "{!func}if(query({!frange l=40.00 u=50.00 incu='false' v='screen_size'})," +
-                        "rint(linear(screen_size,1.000,-30.000))," +
+                "{!func}if(query({!frange l=40.00 u=47.50 incu='false' v='screen_size'})," +
+                        "rint(linear(screen_size,1.333,-43.320))," +
                         "if(query({!frange l=47.50 u=52.50 v='screen_size'}),30," +
-                        "if(query({!frange l=50.00 u=60.00 incl='false' v='screen_size'})," +
-                        "rint(linear(screen_size,-1.000,70.000)),0)))");
+                        "if(query({!frange l=52.50 u=60.00 incl='false' v='screen_size'})," +
+                        "rint(linear(screen_size,-1.333,89.980)),0)))");
 
         rawBoostQuery = numberUnitQueryCreator.createRawBoostQuery(
                 BigDecimal.valueOf(50),
@@ -47,11 +47,11 @@ public class NumberUnitQueryCreatorSolrTest {
                                 20, 10, 1.0)));
 
         assertThat(rawBoostQuery.getQueryString()).isEqualTo(
-                "{!func}if(query({!frange l=40 u=50 incu='false' v='screen_size'})," +
-                        "rint(linear(screen_size,1.000,-30.000))," +
+                "{!func}if(query({!frange l=40 u=48 incu='false' v='screen_size'})," +
+                        "rint(linear(screen_size,1.333,-43.320))," +
                         "if(query({!frange l=48 u=53 v='screen_size'}),30," +
-                        "if(query({!frange l=50 u=60 incl='false' v='screen_size'})," +
-                        "rint(linear(screen_size,-1.000,70.000)),0)))");
+                        "if(query({!frange l=53 u=60 incl='false' v='screen_size'})," +
+                        "rint(linear(screen_size,-1.333,89.980)),0)))");
     }
 
     @Test
@@ -98,7 +98,7 @@ public class NumberUnitQueryCreatorSolrTest {
                         createPerUnitNumberUnitDefinitionForBoosts(
                                 Collections.singletonList(new FieldDefinition("f3", 2)),
                                 20, 20, 0, 0,
-                                20, 10, 1.0)));
+                                30, 10, 1.0)));
 
         assertThat(rawBoostQuery.getQueryString()).isEqualTo(
                 "{!func}max(" +
@@ -113,10 +113,10 @@ public class NumberUnitQueryCreatorSolrTest {
                         "if(query({!frange l=50.00 u=60.00 incl='false' v='f2'})," +
                         "rint(linear(f2,-1.000,70.000)),0)))," +
                         "if(query({!frange l=40.00 u=50.00 incu='false' v='f3'})," +
-                        "rint(linear(f3,1.000,-30.000))," +
-                        "if(query({!frange l=50.00 u=50.00 v='f3'}),30," +
+                        "rint(linear(f3,2.000,-70.000))," +
+                        "if(query({!frange l=50.00 u=50.00 v='f3'}),40," +
                         "if(query({!frange l=50.00 u=60.00 incl='false' v='f3'})," +
-                        "rint(linear(f3,-1.000,70.000)),0))))");
+                        "rint(linear(f3,-2.000,130.000)),0))))");
     }
 
     @Test
