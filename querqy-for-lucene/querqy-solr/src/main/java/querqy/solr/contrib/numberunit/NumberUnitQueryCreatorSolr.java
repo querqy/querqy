@@ -2,7 +2,6 @@ package querqy.solr.contrib.numberunit;
 
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
-import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.LinearFunction;
@@ -41,65 +40,72 @@ public class NumberUnitQueryCreatorSolr extends NumberUnitQueryCreator {
 
             final BigDecimal multipliedValue = value.multiply(perUnitDef.multiplier);
 
-            final BigDecimal upperBound = addPercentage(multipliedValue,
-                    numberUnitDef.boostPercentageUpperBoundary);
             final BigDecimal lowerBound = subtractPercentage(multipliedValue,
                     numberUnitDef.boostPercentageLowerBoundary);
 
-            final BigDecimal upperBoundExactMatch = addPercentage(multipliedValue,
-                    numberUnitDef.boostPercentageUpperBoundaryExactMatch);
             final BigDecimal lowerBoundExactMatch = subtractPercentage(multipliedValue,
                     numberUnitDef.boostPercentageLowerBoundaryExactMatch);
 
+            final BigDecimal upperBound = addPercentage(multipliedValue,
+                    numberUnitDef.boostPercentageUpperBoundary);
+
+            final BigDecimal upperBoundExactMatch = addPercentage(multipliedValue,
+                    numberUnitDef.boostPercentageUpperBoundaryExactMatch);
+
             final LinearFunction linearFunctionLower = super.createLinearFunctionParameters(
                     lowerBound, numberUnitDef.minScoreAtLowerBoundary,
-                    multipliedValue, numberUnitDef.maxScoreForExactMatch);
+                    lowerBoundExactMatch, numberUnitDef.maxScoreForExactMatch);
 
             final LinearFunction linearFunctionUpper = super.createLinearFunctionParameters(
                     upperBound, numberUnitDef.minScoreAtUpperBoundary,
-                    multipliedValue, numberUnitDef.maxScoreForExactMatch);
+                    upperBoundExactMatch, numberUnitDef.maxScoreForExactMatch);
 
-            perUnitDef.numberUnitDefinition.fields.forEach(field -> queryParts.add(
-                    String.format(
-                            IF,
-                            String.format(
-                                    QUERY,
-                                    String.format(
-                                            RANGE_QUERY_EXCLUDE_UPPER,
-                                            lowerBound.setScale(field.scale, super.getRoundingMode()),
-                                            multipliedValue.setScale(field.scale, super.getRoundingMode()),
-                                            field.fieldName)),
-                            String.format(
-                                    LINEAR_FUNCTION,
-                                    field.fieldName,
-                                    linearFunctionLower.m,
-                                    linearFunctionLower.b),
-                            String.format(
-                                    IF,
-                                    String.format(
-                                            QUERY,
-                                            String.format(
-                                                    RANGE_QUERY,
-                                                    lowerBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
-                                                    upperBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
-                                                    field.fieldName)),
-                                    numberUnitDef.maxScoreForExactMatch.add(numberUnitDef.additionalScoreForExactMatch)
-                                            .intValue(),
-                                    String.format(
-                                            IF,
-                                            String.format(
-                                                    QUERY,
-                                                    String.format(
-                                                            RANGE_QUERY_EXCLUDE_LOWER,
-                                                            multipliedValue.setScale(field.scale, super.getRoundingMode()),
-                                                            upperBound.setScale(field.scale, super.getRoundingMode()),
-                                                            field.fieldName)),
-                                            String.format(
-                                                    LINEAR_FUNCTION,
-                                                    field.fieldName,
-                                                    linearFunctionUpper.m,
-                                                    linearFunctionUpper.b),
-                                            "0"))))); });
+            perUnitDef.numberUnitDefinition.fields.forEach(field -> {
+
+                queryParts.add(
+                        String.format(
+                                IF,
+                                String.format(
+                                        QUERY,
+                                        String.format(
+                                                RANGE_QUERY_EXCLUDE_UPPER,
+                                                lowerBound.setScale(field.scale, super.getRoundingMode()),
+                                                lowerBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
+                                                field.fieldName)),
+                                String.format(
+                                        LINEAR_FUNCTION,
+                                        field.fieldName,
+                                        linearFunctionLower.m,
+                                        linearFunctionLower.b),
+                                String.format(
+                                        IF,
+                                        String.format(
+                                                QUERY,
+                                                String.format(
+                                                        RANGE_QUERY,
+                                                        lowerBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
+                                                        upperBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
+                                                        field.fieldName)),
+                                        numberUnitDef.maxScoreForExactMatch.add(numberUnitDef.additionalScoreForExactMatch)
+                                                .intValue(),
+                                        String.format(
+                                                IF,
+                                                String.format(
+                                                        QUERY,
+                                                        String.format(
+                                                                RANGE_QUERY_EXCLUDE_LOWER,
+                                                                upperBoundExactMatch.setScale(field.scale, super.getRoundingMode()),
+                                                                upperBound.setScale(field.scale, super.getRoundingMode()),
+                                                                field.fieldName)),
+                                                String.format(
+                                                        LINEAR_FUNCTION,
+                                                        field.fieldName,
+                                                        linearFunctionUpper.m,
+                                                        linearFunctionUpper.b),
+                                                "0"))));
+
+                    }); });
+
 
         final String queryString = queryParts.size() == 1
                 ? queryParts.get(0) : String.format(MAX, String.join(",", queryParts));

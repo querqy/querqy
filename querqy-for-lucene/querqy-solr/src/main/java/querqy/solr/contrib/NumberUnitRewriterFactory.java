@@ -47,8 +47,8 @@ public class NumberUnitRewriterFactory implements FactoryAdapter<RewriterFactory
 
     private static final float DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY = 20;
     private static final float DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY = 20;
-    private static final float DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY_EXACT_MATCH = 5;
-    private static final float DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY_EXACT_MATCH = 5;
+    private static final float DEFAULT_BOOST_PERCENTAGE_UPPER_BOUNDARY_EXACT_MATCH = 0;
+    private static final float DEFAULT_BOOST_PERCENTAGE_LOWER_BOUNDARY_EXACT_MATCH = 0;
 
     private static final float DEFAULT_FILTER_PERCENTAGE_LOWER_BOUNDARY = 20;
     private static final float DEFAULT_FILTER_PERCENTAGE_UPPER_BOUNDARY = 20;
