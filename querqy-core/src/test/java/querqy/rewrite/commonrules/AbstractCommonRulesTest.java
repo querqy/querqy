@@ -70,5 +70,9 @@ public abstract class AbstractCommonRulesTest {
         return Arrays.asList(items);
     }
 
+    public static List<Instruction> list(Instruction... instructions) {
+        return Arrays.asList(instructions);
+    }
+
 
 }
