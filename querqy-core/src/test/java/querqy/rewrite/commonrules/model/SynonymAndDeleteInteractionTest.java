@@ -17,6 +17,67 @@ import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT
 public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
+    public void testSynonymBeforeDelete() {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        addRule(builder,
+                input("a"),
+                synonym("c")
+        );
+
+        addRule(builder,
+                input("a", "b"),
+                delete("a")
+        );
+
+
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
+
+        ExpandedQuery query = makeQuery("a b");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+
+        assertThat(rewritten,
+                bq(
+                        dmq(
+                                term("c", true)
+                        ),
+                        dmq(
+                                term("b", false)
+                        )
+                ));
+
+    }
+
+    @Test
+    public void testSynonymAfterDelete() {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        addRule(builder,
+                input("a", "b"),
+                delete("a")
+        );
+
+        addRule(builder,
+                input("a"),
+                synonym("c")
+        );
+
+
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
+
+        ExpandedQuery query = makeQuery("a b");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+
+        assertThat(rewritten,
+                bq(
+                        dmq(
+                                term("b", false)
+                        )
+                ));
+
+    }
+
+    @Test
     public void testExpandBySynonymAndDeleteBothInputTermsBySeparateInstructions() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         addRule(builder,
