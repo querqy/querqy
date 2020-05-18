@@ -47,6 +47,8 @@ public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P>
         }
 	    clauses.remove(clause);
 	}
+
+	public abstract void removeClauseAndTraverseTree(final C clause);
 	
 	public List<C> getClauses() {
 		return clauses;

@@ -129,4 +129,9 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
       return true;
    }
 
+
+   public void delete() {
+      this.getParent().removeClauseAndTraverseTree(this);
+   }
+
 }
