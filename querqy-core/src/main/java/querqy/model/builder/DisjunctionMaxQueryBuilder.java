@@ -1,5 +1,6 @@
 package querqy.model.builder;
 
+import querqy.ComparableCharSequence;
 import querqy.model.BooleanQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -73,8 +74,13 @@ public class DisjunctionMaxQueryBuilder {
         return new DisjunctionMaxQueryBuilder(null, Arrays.asList(clauses));
     }
 
-    public static DisjunctionMaxQueryBuilder dmq(CharSequence... terms) {
+    public static DisjunctionMaxQueryBuilder dmq(ComparableCharSequence... terms) {
         return new DisjunctionMaxQueryBuilder(null, Arrays.stream(terms).map(TermBuilder::term).collect(Collectors.toList()));
+    }
+
+    public static DisjunctionMaxQueryBuilder dmq(String... terms) {
+        return new DisjunctionMaxQueryBuilder(null, Arrays.stream(terms)
+                .map(TermBuilder::term).collect(Collectors.toList()));
     }
 
     @Override
