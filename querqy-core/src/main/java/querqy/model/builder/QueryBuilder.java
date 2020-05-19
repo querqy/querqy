@@ -1,5 +1,6 @@
 package querqy.model.builder;
 
+import querqy.ComparableCharSequenceWrapper;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Node;
 import querqy.model.Query;
@@ -65,6 +66,7 @@ public class QueryBuilder {
 
     public static QueryBuilder query(final String... terms) {
         return new QueryBuilder(Arrays.stream(terms)
+                .map(ComparableCharSequenceWrapper::new)
                 .map(DisjunctionMaxQueryBuilder::dmq)
                 .collect(Collectors.toList()));
     }

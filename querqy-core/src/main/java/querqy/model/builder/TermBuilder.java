@@ -1,14 +1,17 @@
 package querqy.model.builder;
 
+import querqy.ComparableCharSequenceContainer;
+import querqy.ComparableCharSequence;
+import querqy.ComparableCharSequenceWrapper;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
 
 public class TermBuilder implements DmqClauseBuilder {
 
-    private CharSequence seq;
+    private ComparableCharSequence seq;
     private DisjunctionMaxQuery parent;
 
-    private TermBuilder(final DisjunctionMaxQuery parent, final CharSequence seq) {
+    private TermBuilder(final DisjunctionMaxQuery parent, final ComparableCharSequence seq) {
         this.parent = parent;
         this.seq = seq;
     }
@@ -19,7 +22,7 @@ public class TermBuilder implements DmqClauseBuilder {
         return this;
     }
 
-    public TermBuilder setSequence(final CharSequence seq) {
+    public TermBuilder setSequence(final ComparableCharSequence seq) {
         this.seq = seq;
         return this;
     }
@@ -36,12 +39,16 @@ public class TermBuilder implements DmqClauseBuilder {
         return new TermBuilder(parent, null);
     }
 
-    public static TermBuilder fromQuery(Term term) {
-        return term(term.getValue());
+    public static TermBuilder fromQuery(ComparableCharSequenceContainer term) {
+        return term(term.getComparableCharSequence());
     }
 
-    public static TermBuilder term(final CharSequence seq) {
+    public static TermBuilder term(final ComparableCharSequence seq) {
         return new TermBuilder(null, seq);
+    }
+
+    public static TermBuilder term(final String seq) {
+        return term(new ComparableCharSequenceWrapper(seq));
     }
 
     @Override

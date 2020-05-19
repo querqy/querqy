@@ -3,6 +3,7 @@
  */
 package querqy.model;
 
+import querqy.ComparableCharSequenceContainer;
 import querqy.CharSequenceUtil;
 import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
@@ -14,7 +15,8 @@ import querqy.SimpleComparableCharSequence;
  * @author René Kriegler, @renekrie
  *
  */
-public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence, InputSequenceElement {
+public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence,
+        InputSequenceElement, ComparableCharSequenceContainer {
 
    protected final String field;
    protected final ComparableCharSequence value;
@@ -134,4 +136,10 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
       this.getParent().removeClauseAndTraverseTree(this);
    }
 
+   @Override
+   public ComparableCharSequence getComparableCharSequence() {
+      return value instanceof ComparableCharSequenceContainer
+              ? ((ComparableCharSequenceContainer) value).getComparableCharSequence()
+              : value;
+   }
 }

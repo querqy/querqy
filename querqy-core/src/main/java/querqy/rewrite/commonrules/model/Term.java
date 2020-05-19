@@ -4,12 +4,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import querqy.ComparableCharSequenceContainer;
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.LowerCaseCharSequence;
 import querqy.SimpleComparableCharSequence;
 
-public class Term implements ComparableCharSequence {
+public class Term implements ComparableCharSequence, ComparableCharSequenceContainer {
 
     public final String FIELD_CHAR = ":";
     protected final char[] value;
@@ -256,6 +257,12 @@ public class Term implements ComparableCharSequence {
     public LinkedList<PlaceHolder> getPlaceHolders() {
         return placeHolders;
     }
+
+    @Override
+    public ComparableCharSequence getComparableCharSequence() {
+        return new SimpleComparableCharSequence(value);
+    }
+
 
 
 }
