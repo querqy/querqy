@@ -5,9 +5,6 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.*;
 
-import querqy.ComparableCharSequence;
-import querqy.model.BooleanQuery;
-import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -50,70 +47,18 @@ public class DeleteInstruction implements Instruction {
    @Override
    public void apply(PositionSequence<querqy.model.Term> sequence, TermMatches termMatches,
                      int startPosition, int endPosition, ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
-      // make sure that at least one term will be left in the query after we
-      // apply this instruction
 
       int pos = 0;
-
-      boolean hasRemaining = false;
-
-      List<querqy.model.Term> toBeDeleted = new LinkedList<>();
 
       for (List<querqy.model.Term> position : sequence) {
           
          for (querqy.model.Term term : position) {
-
-            if (pos >= startPosition && pos < endPosition && isToBeDeleted(term)) {
-               // TODO: check whether it would be faster to use a LinkedHashMap
-               // for toBeDeleted and then check whether .add(term) returns true
-               if (hasRemaining) {
-                  toBeDeleted.add(term);
-               } else {
-                  if (toBeDeleted.contains(term)) { // same term twice - we keep
-                                                    // a copy
-                     hasRemaining = true;
-                  } else {
-                     toBeDeleted.add(term);
-                  }
-               }
-            } else {
-               hasRemaining = true;
-               // TODO: optimise: we can go to the next position in the sequence
-               // if
-               // we got here via pos < startPosition or pos >= endPosition (no
-               // need to check further terms at
-               // this position)
-            }
+             if (pos >= startPosition && pos < endPosition && isToBeDeleted(term)) {
+                 term.delete();
+             }
          }
          pos++;
       }
-
-      if (hasRemaining) {
-
-         for (querqy.model.Term term : toBeDeleted) {
-            // remove the term from its parent. If the parent doesn't have any
-            // further child,
-            // remove the parent from the grand-parent. If this also hasn't any
-            // further child,
-            // do not remove anything
-            DisjunctionMaxQuery parentQuery = term.getParent();
-            BooleanQuery grandParent = null;
-
-            if (parentQuery.getClauses().size() < 2) {
-               grandParent = parentQuery.getParent();
-               if (grandParent.getClauses().size() < 2) {
-                  continue;
-               }
-            }
-
-            parentQuery.removeClause(term);
-            if (grandParent != null) {
-               grandParent.removeClause(parentQuery);
-            }
-
-         }
-      }
-
    }
 
    public boolean isToBeDeleted(final querqy.model.Term term) {
