@@ -23,6 +23,7 @@ import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.Term;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
 public abstract class AbstractCommonRulesTest {
@@ -66,6 +67,17 @@ public abstract class AbstractCommonRulesTest {
         builder.addRule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
     }
 
+    public CommonRulesRewriter rewriter(Rule... rules) {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        Arrays.stream(rules).forEach(rule -> builder.addRule(rule.input, rule.instructions));
+        return new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
+    }
+
+    public Rule addRule(Input input, Instruction... instructions) {
+        int ruleCount = ruleCounter++;
+        return new Rule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
+    }
+
     public static List<String> list(String... items) {
         return Arrays.asList(items);
     }
@@ -74,5 +86,14 @@ public abstract class AbstractCommonRulesTest {
         return Arrays.asList(instructions);
     }
 
+    public static class Rule {
+        public final Input input;
+        public final Instructions instructions;
+
+        public Rule(Input input, Instructions instructions) {
+            this.input = input;
+            this.instructions = instructions;
+        }
+    }
 
 }

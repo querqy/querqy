@@ -17,6 +17,34 @@ import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT
 public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
+    public void testOverlappingDeleteInstructions() {
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        addRule(builder,
+                input("a", "b"),
+                delete("a")
+        );
+
+        addRule(builder,
+                input("a", "b"),
+                delete("a", "b")
+        );
+
+
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
+
+        ExpandedQuery query = makeQuery("a b c");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+
+        assertThat(rewritten,
+                bq(
+                        dmq(
+                                term("c", false)
+                        )
+                ));
+    }
+
+    @Test
     public void testSynonymBeforeDelete() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
@@ -82,9 +110,9 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         addRule(builder,
                 input("a", "b"),
-                synonym("s1"),
                 delete("a"),
-                delete("b")
+                delete("b"),
+                synonym("s1")
         );
 
         CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
@@ -122,12 +150,10 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
         assertThat(rewritten,
                 bq(
                         dmq(
-                                term("a", false),
                                 term("s1", true)
 
                         ),
                         dmq(
-                                term("b", false),
                                 term("s1", true)
                         )
                 ));
