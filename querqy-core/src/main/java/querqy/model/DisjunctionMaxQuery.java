@@ -60,7 +60,7 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
         super.removeClause(clause);
 
         if (this.clauses.isEmpty() && this.getParent() != null) {
-            this.getParent().removeClause(this);
+            this.getParent().removeClauseAndTraverseTree(this);
         }
     }
 
