@@ -64,7 +64,12 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
 
             applySequence(sequencesStack.removeLast(), true);
 
+            if (((Query) userQuery).isEmpty()
+                    && (query.getBoostUpQueries() != null || query.getFilterQueries() != null)) {
+                query.setUserQuery(new MatchAllQuery(true));
+            }
         }
+
         return query;
     }
 
