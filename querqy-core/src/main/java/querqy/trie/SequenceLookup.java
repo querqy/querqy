@@ -46,7 +46,7 @@ public class SequenceLookup<T> {
         suffixTrieMap.putSuffix(lc(term), ruleObject, true);
     }
 
-    public List<PrefixMatch<T>> findSingleTermPrefixMatches(List<? extends CharSequence> terms) {
+    public List<PrefixMatch<T>> findSingleTermPrefixMatches(final List<? extends CharSequence> terms) {
         final List<PrefixMatch<T>> prefixMatches = new ArrayList<>();
         final AtomicInteger lookupOffset = new AtomicInteger(0);
 
@@ -58,7 +58,7 @@ public class SequenceLookup<T> {
         return prefixMatches;
     }
 
-    public List<SuffixMatch<T>> findSingleTermSuffixMatches(List<? extends CharSequence> terms) {
+    public List<SuffixMatch<T>> findSingleTermSuffixMatches(final List<? extends CharSequence> terms) {
         final List<SuffixMatch<T>> suffixMatches = new ArrayList<>();
         final AtomicInteger lookupOffset = new AtomicInteger(0);
 
@@ -70,7 +70,7 @@ public class SequenceLookup<T> {
         return suffixMatches;
     }
 
-    public List<ExactMatch<T>> findExactMatches(List<? extends CharSequence> terms) {
+    public List<ExactMatch<T>> findExactMatches(final List<? extends CharSequence> terms) {
 
         final List<ExactMatch<T>> exactMatches = new ArrayList<>();
         int lookupIndex = 0;
@@ -110,11 +110,11 @@ public class SequenceLookup<T> {
         return exactMatches;
     }
 
-    private List<CharSequence> lc(List<? extends CharSequence> seqList) {
+    private List<CharSequence> lc(final List<? extends CharSequence> seqList) {
         return seqList.stream().map(this::lc).collect(Collectors.toCollection(LinkedList::new));
     }
 
-    private CharSequence lc(CharSequence seq) {
+    private CharSequence lc(final CharSequence seq) {
         return ignoreCase ? new LowerCaseCharSequence(seq) : seq;
     }
 }

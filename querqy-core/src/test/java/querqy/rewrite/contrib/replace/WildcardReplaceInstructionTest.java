@@ -1,7 +1,6 @@
 package querqy.rewrite.contrib.replace;
 
 import org.junit.Test;
-import querqy.CompoundCharSequence;
 
 import java.util.ArrayList;
 import java.util.Arrays;

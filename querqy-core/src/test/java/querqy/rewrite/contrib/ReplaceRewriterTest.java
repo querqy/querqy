@@ -1,7 +1,6 @@
 package querqy.rewrite.contrib;
 
 import org.junit.Test;
-import querqy.ComparableCharSequenceWrapper;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -16,9 +15,7 @@ import querqy.trie.SequenceLookup;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;

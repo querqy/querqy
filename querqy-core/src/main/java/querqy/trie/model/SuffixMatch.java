@@ -22,7 +22,7 @@ public class SuffixMatch<T> {
         return lookupOffset;
     }
 
-    public SuffixMatch<T> setLookupOffset(int lookupOffset) {
+    public SuffixMatch<T> setLookupOffset(final int lookupOffset) {
         this.lookupOffset = lookupOffset;
         return this;
     }

@@ -10,7 +10,7 @@ public class ExactMatch<T> {
 
     public final T value;
 
-    public ExactMatch(int lookupStart, int lookupExclusiveEnd, T value) {
+    public ExactMatch(final int lookupStart, final int lookupExclusiveEnd, final T value) {
         this.lookupStart = lookupStart;
         this.lookupExclusiveEnd = lookupExclusiveEnd;
         this.termSize = lookupExclusiveEnd - lookupStart;
@@ -27,7 +27,7 @@ public class ExactMatch<T> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExactMatch<?> that = (ExactMatch<?>) o;

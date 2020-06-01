@@ -12,7 +12,7 @@ public class PrefixMatch<T> {
         this(exclusiveEnd, "", match);
     }
 
-    public PrefixMatch(int exclusiveEnd, final CharSequence wildcardMatch, T match) {
+    public PrefixMatch(final int exclusiveEnd, final CharSequence wildcardMatch, final T match) {
         this.exclusiveEnd = exclusiveEnd;
         this.wildcardMatch = wildcardMatch;
         this.match = match;
@@ -22,7 +22,7 @@ public class PrefixMatch<T> {
         return lookupOffset;
     }
 
-    public PrefixMatch<T> setLookupOffset(int lookupOffset) {
+    public PrefixMatch<T> setLookupOffset(final int lookupOffset) {
         this.lookupOffset = lookupOffset;
         return this;
     }
