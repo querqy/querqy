@@ -1,6 +1,5 @@
-package querqy.rewrite.contrib;
+package querqy.rewrite.contrib.replace;
 
-import querqy.ComparableCharSequenceWrapper;
 import querqy.CompoundCharSequence;
 import querqy.LowerCaseCharSequence;
 import querqy.model.DisjunctionMaxQuery;
@@ -33,7 +32,9 @@ public class ReplaceRewriterParser {
             "contain a rule with at least one input and one output, e. g. a => b\n" +
             "For suffix and prefix rules, only one input can be defined per output, e. g. a* => b\n" +
             "The wildcard cannot be defined multiple times in the same rule, a definition like *a* => b is not allowed." +
-            "The wildcard cannot be used as a standalone input, a definition like * => b is not allowed.";
+            "The wildcard cannot be used as a standalone input, a definition like * => b is not allowed.\n" +
+            "The wildcard match can be added to the output of a suffix or prefix rule using $1, e. g. a* => a $1 or " +
+            "*a => $1b.";
 
     private static final String ERROR_MESSAGE_DUPLICATE_INPUT_TEMPLATE = "Duplicate input: %s";
 
@@ -54,9 +55,9 @@ public class ReplaceRewriterParser {
         this.querqyParser = querqyParser;
     }
 
-    public SequenceLookup<CharSequence, Queue<CharSequence>> parseConfig() throws IOException {
+    public SequenceLookup<ReplaceInstruction> parseConfig() throws IOException {
 
-        final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(ignoreCase);
+        final SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>(ignoreCase);
         final Set<CharSequence> checkForDuplicateInput = new HashSet<>();
 
         try (final BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
@@ -84,7 +85,7 @@ public class ReplaceRewriterParser {
                 errorMessageDuplicateInput = String.format(ERROR_MESSAGE_DUPLICATE_INPUT_TEMPLATE, fullInput);
 
                 final List<LinkedList<String>> inputs = parseInput(fullInput);
-                final Queue<String> outputList = parseOutput(output);
+                final LinkedList<String> outputList = parseOutput(output);
 
                 for (final LinkedList<String> input : inputs) {
 
@@ -92,7 +93,6 @@ public class ReplaceRewriterParser {
 
                         throwIfTrue(fullInput.endsWith(WILDCARD), errorMessageImproperInput);
                         throwIfTrue(input.size() != 1, errorMessageImproperInput);
-                        throwIfTrue(outputList.size() > 1, errorMessageImproperInput);
 
                         final CharSequence seq = lc(input.get(0));
                         throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
@@ -100,12 +100,12 @@ public class ReplaceRewriterParser {
 
                         sequenceLookup.putSuffix(
                                 seq.subSequence(1, seq.length()),
-                                !outputList.isEmpty() ? outputList.peek() : "");
+                                new WildcardReplaceInstruction(outputList)
+                        );
 
                     } else if (fullInput.endsWith(WILDCARD) && fullInput.length() > 1) {
 
                         throwIfTrue(input.size() != 1, errorMessageImproperInput);
-                        throwIfTrue(outputList.size() > 1, errorMessageImproperInput);
 
                         final CharSequence seq = lc(input.get(0));
                         throwIfTrue(checkForDuplicateInput.contains(seq), errorMessageDuplicateInput);
@@ -113,7 +113,8 @@ public class ReplaceRewriterParser {
 
                         sequenceLookup.putPrefix(
                                 seq.subSequence(0, fullInput.length() - 1),
-                                !outputList.isEmpty() ? outputList.peek() : "");
+                                new WildcardReplaceInstruction(outputList)
+                        );
 
                     } else {
 
@@ -127,9 +128,8 @@ public class ReplaceRewriterParser {
 
                         sequenceLookup.put(
                                 seqList,
-                                outputList.stream()
-                                        .map(ComparableCharSequenceWrapper::new)
-                                        .collect(Collectors.toCollection(LinkedList::new)));
+                                new TermsReplaceInstruction(outputList)
+                        );
                     }
                 }
             }
@@ -155,7 +155,7 @@ public class ReplaceRewriterParser {
         }
     }
 
-    private Queue<String> parseOutput(String term) {
+    private LinkedList<String> parseOutput(String term) {
         return parseQuery(this.querqyParser.parse(term));
     }
 

@@ -5,9 +5,9 @@ import java.util.stream.IntStream;
 
 public class TermsReplaceInstruction implements ReplaceInstruction {
 
-    private final List<CharSequence> replacementTerms;
+    private final List<? extends CharSequence> replacementTerms;
 
-    public TermsReplaceInstruction(final List<CharSequence> replacementTerms) {
+    public TermsReplaceInstruction(final List<? extends CharSequence> replacementTerms) {
         this.replacementTerms = replacementTerms;
     }
 

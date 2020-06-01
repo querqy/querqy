@@ -467,11 +467,7 @@ public class ReplaceRewriterTest {
     }
 
     private ReplaceInstruction getTermsReplaceInstruction(List<String> strings) {
-        return new TermsReplaceInstruction(
-                strings.stream()
-                        .map(ComparableCharSequenceWrapper::new)
-                        .collect(Collectors.toCollection(LinkedList::new))
-        );
+        return new TermsReplaceInstruction(strings);
     }
 
     private void addTerm(Query query, String value) {
