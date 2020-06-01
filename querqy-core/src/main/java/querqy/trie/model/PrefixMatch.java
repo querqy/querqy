@@ -5,10 +5,16 @@ import java.util.Objects;
 public class PrefixMatch<T> {
     public final T match;
     public final int exclusiveEnd;
+    public final CharSequence wildcardMatch;
     private int lookupOffset;
 
-    public PrefixMatch(int exclusiveEnd, T match) {
+    public PrefixMatch(final int exclusiveEnd, final T match) {
+        this(exclusiveEnd, "", match);
+    }
+
+    public PrefixMatch(int exclusiveEnd, final CharSequence wildcardMatch, T match) {
         this.exclusiveEnd = exclusiveEnd;
+        this.wildcardMatch = wildcardMatch;
         this.match = match;
     }
 
