@@ -1,6 +1,5 @@
 package querqy.rewrite.contrib;
 
-import querqy.CompoundCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
@@ -11,6 +10,7 @@ import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.trie.SequenceLookup;
 import querqy.trie.LookupUtils;
 import querqy.trie.model.ExactMatch;
@@ -20,15 +20,12 @@ import querqy.trie.model.SuffixMatch;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.stream.IntStream;
 
 public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup;
+    private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
-    public ReplaceRewriter(
-            SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup) {
+    public ReplaceRewriter(SequenceLookup<ReplaceInstruction> sequenceLookup) {
         this.sequenceLookup = sequenceLookup;
     }
 
@@ -48,62 +45,54 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        final List<SuffixMatch<CharSequence>> suffixMatches = sequenceLookup.findSingleTermSuffixMatches(collectedTerms);
-        if (!suffixMatches.isEmpty()) {
-            this.hasReplacement = true;
-
-            for (final SuffixMatch<CharSequence> suffixMatch : suffixMatches) {
-                collectedTerms.set(
-                        suffixMatch.getLookupOffset(),
-                        new CompoundCharSequence(
-                                "",
-                                collectedTerms.get(suffixMatch.getLookupOffset()).subSequence(0, suffixMatch.startSubstring),
-                                suffixMatch.match));
-            }
-        }
-
-        final List<PrefixMatch<CharSequence>> prefixMatches = sequenceLookup.findSingleTermPrefixMatches(collectedTerms);
-        if (!prefixMatches.isEmpty()) {
-            this.hasReplacement = true;
-
-            for (final PrefixMatch<CharSequence> prefixMatch : prefixMatches) {
-                CharSequence replacementTerm = collectedTerms.get(prefixMatch.getLookupOffset());
-
-                collectedTerms.set(
-                        prefixMatch.getLookupOffset(),
-                        new CompoundCharSequence(
-                                "",
-                                prefixMatch.match,
-                                replacementTerm.subSequence(prefixMatch.exclusiveEnd, replacementTerm.length())));
-            }
-        }
-
-        for (int i = collectedTerms.size() - 1; i >= 0; i--) {
-            if (collectedTerms.get(i).length() == 0) {
-                collectedTerms.remove(i);
-            }
-        }
-
-        final List<ExactMatch<Queue<CharSequence>>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
+        final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
         if (!exactMatches.isEmpty()) {
             this.hasReplacement = true;
 
-            int indexOffsetAfterReplacement = 0;
+            final List<ExactMatch<ReplaceInstruction>> exactMatchesFiltered =
+                    LookupUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
 
-            final List<ExactMatch<Queue<CharSequence>>> exactMatchesFiltered = LookupUtils.removeSubsetsAndSmallerOverlaps(exactMatches);
+            exactMatchesFiltered.sort(LookupUtils.COMPARE_EXACT_MATCH_BY_LOOKUP_OFFSET_DESC);
 
-            for (final ExactMatch<Queue<CharSequence>> exactMatch : exactMatchesFiltered) {
-                final int numberOfTermsToBeReplaced = exactMatch.lookupExclusiveEnd - exactMatch.lookupStart;
+            exactMatchesFiltered.forEach(exactMatch ->
+                    exactMatch.value.apply(
+                            collectedTerms,
+                            exactMatch.lookupStart,
+                            exactMatch.lookupExclusiveEnd - exactMatch.lookupStart
+                    )
 
-                final int indexStart = exactMatch.lookupStart + indexOffsetAfterReplacement;
-                final int indexExclusiveEnd = exactMatch.lookupExclusiveEnd + indexOffsetAfterReplacement;
+            );
+        }
 
-                IntStream.range(0, indexExclusiveEnd - indexStart).forEach(i -> collectedTerms.remove(indexStart));
-                collectedTerms.addAll(indexStart, exactMatch.value);
+        final List<SuffixMatch<ReplaceInstruction>> suffixMatches = sequenceLookup.findSingleTermSuffixMatches(collectedTerms);
+        if (!suffixMatches.isEmpty()) {
+            this.hasReplacement = true;
 
-                final int querySizeDelta = exactMatch.value.size() - numberOfTermsToBeReplaced;
-                indexOffsetAfterReplacement += querySizeDelta;
-            }
+            suffixMatches.sort(LookupUtils.COMPARE_SUFFIX_MATCH_BY_LOOKUP_OFFSET_DESC);
+
+            suffixMatches.forEach(suffixMatch ->
+                    suffixMatch.match.apply(
+                            collectedTerms,
+                            suffixMatch.getLookupOffset(),
+                            1,
+                            suffixMatch.wildcardMatch
+
+                    ));
+        }
+
+        final List<PrefixMatch<ReplaceInstruction>> prefixMatches = sequenceLookup.findSingleTermPrefixMatches(collectedTerms);
+        if (!prefixMatches.isEmpty()) {
+            this.hasReplacement = true;
+
+            prefixMatches.sort(LookupUtils.COMPARE_PREFIX_MATCH_BY_LOOKUP_OFFSET_DESC);
+
+            prefixMatches.forEach(prefixMatch ->
+                    prefixMatch.match.apply(
+                            collectedTerms,
+                            prefixMatch.getLookupOffset(),
+                            1,
+                            prefixMatch.wildcardMatch
+                    ));
         }
 
         return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
@@ -139,10 +128,12 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         return newQuery;
     }
 
+    // TODO: Alternatives in DMQs should be considered
+
     @Override
     public Node visit(final Term term) {
         if (!term.isGenerated()) {
-            collectedTerms.addLast(term.getValue());
+            collectedTerms.addLast(term);
         }
         return null;
     }
