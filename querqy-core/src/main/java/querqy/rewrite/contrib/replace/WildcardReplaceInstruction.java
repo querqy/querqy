@@ -15,7 +15,7 @@ public class WildcardReplaceInstruction implements ReplaceInstruction {
 
     private final List<TermCreator> termCreators = new LinkedList<>();
 
-    public WildcardReplaceInstruction(final List<CharSequence> replacementTerms) {
+    public WildcardReplaceInstruction(final List<? extends CharSequence> replacementTerms) {
 
         replacementTerms.stream()
                 .map(CharSequence::toString)

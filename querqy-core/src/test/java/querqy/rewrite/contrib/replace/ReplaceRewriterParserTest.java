@@ -1,4 +1,4 @@
-package querqy.rewrite.contrib;
+package querqy.rewrite.contrib.replace;
 
 import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -15,9 +15,17 @@ import java.util.List;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
+import querqy.rewrite.contrib.replace.ReplaceRewriterParser;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplaceRewriterParserTest {
+
+    /*
+    @Test
+    public void testThatNonMatchingPartIsRecognizedForPrefixInput() {
+
+    }
 
     @Test(expected = IOException.class)
     public void testCombinedInputWIthPrefixAndSuffix() throws IOException {
@@ -229,4 +237,5 @@ public class ReplaceRewriterParserTest {
     private List<CharSequence> list(String... str) {
         return Arrays.stream(str).collect(Collectors.toCollection(ArrayList::new));
     }
+    */
 }
