@@ -1,23 +1,31 @@
 
-abcd* => acd
-*def => df
-acdf => cd
+acdf => abcdef
+abcd* => acd$1
+*def => $1df
 
 prefix1* =>
 *suffix1 =>
 exactmatch1 =>
 
+ghij* => gh$1
+ghi* => g$1
+gh* => $1
 
-
-ghi* => gh
-gh* => g
-g* =>
-
-*jkl => jk
-*jk => j
-*j =>
+*klm => jk
+*kl => j
+*k =>
 
 mn op qr s => opq
 op qr s t =>
 uv w => tu
 xy z =>
+
+
+*opqr => $1 opqr
+qrst* => qrst $1
+
+b c => a b c
+d e => d e f
+h => g h
+
+
