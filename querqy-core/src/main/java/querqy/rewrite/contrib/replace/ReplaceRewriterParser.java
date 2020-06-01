@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -141,25 +140,25 @@ public class ReplaceRewriterParser {
         return sequenceLookup;
     }
 
-    private CharSequence lc(String seq) {
+    private CharSequence lc(final String seq) {
         return ignoreCase ? new LowerCaseCharSequence(seq) : seq;
     }
 
-    private List<CharSequence> lc(List<String> seq) {
+    private List<CharSequence> lc(final List<String> seq) {
         return seq.stream().map(this::lc).collect(Collectors.toList());
     }
 
-    private void throwIfTrue(boolean bool, String message) throws RuleParseException {
+    private void throwIfTrue(final boolean bool, final String message) throws RuleParseException {
         if (bool) {
             throw new RuleParseException(message);
         }
     }
 
-    private LinkedList<String> parseOutput(String term) {
+    private LinkedList<String> parseOutput(final String term) {
         return parseQuery(this.querqyParser.parse(term));
     }
 
-    private List<LinkedList<String>> parseInput(String fullInput) throws RuleParseException {
+    private List<LinkedList<String>> parseInput(final String fullInput) throws RuleParseException {
         final List<String> inputs = Arrays.stream(fullInput.split(this.inputDelimiter))
                 .map(String::trim)
                 .filter(term -> !term.isEmpty())
@@ -173,7 +172,7 @@ public class ReplaceRewriterParser {
                 .collect(Collectors.toList());
     }
 
-    private LinkedList<String> parseQuery(Query query) {
+    private LinkedList<String> parseQuery(final Query query) {
         return query.getClauses().stream()
                 .map(booleanClause -> (DisjunctionMaxQuery) booleanClause)
                 .flatMap(disjunctionMaxQuery -> disjunctionMaxQuery.getTerms().stream())

@@ -17,11 +17,11 @@ public class SuffixTrieMap<T> {
         this.trieMap = new TrieMap<>();
     }
 
-    public void putSuffix(CharSequence seq, T value) {
+    public void putSuffix(final CharSequence seq, final T value) {
         this.putSuffix(seq, value, false);
     }
 
-    public void putSuffix(CharSequence seq, T value, boolean includeExactMatch) {
+    public void putSuffix(final CharSequence seq, final T value, final boolean includeExactMatch) {
         if (seq.length() == 0) {
             throw new IllegalArgumentException("Must not put empty sequence into trie");
         }
@@ -34,7 +34,7 @@ public class SuffixTrieMap<T> {
         }
     }
 
-    public Optional<SuffixMatch<T>> getBySuffix(CharSequence seq) {
+    public Optional<SuffixMatch<T>> getBySuffix(final CharSequence seq) {
         if (seq.length() == 0) {
             return Optional.empty();
         }

@@ -31,7 +31,7 @@ public class LookupUtils {
     public static final Comparator<PrefixMatch<?>> COMPARE_PREFIX_MATCH_BY_LOOKUP_OFFSET_DESC =
             (o1, o2) -> o2.getLookupOffset() - o1.getLookupOffset();
 
-    public static <T> List<ExactMatch<T>> removeSubsetsAndSmallerOverlaps(List<ExactMatch<T>> exactMatches) {
+    public static <T> List<ExactMatch<T>> removeSubsetsAndSmallerOverlaps(final List<ExactMatch<T>> exactMatches) {
 
         final List<ExactMatch<T>> exactMatchesFiltered = new ArrayList<>();
 
@@ -49,7 +49,8 @@ public class LookupUtils {
         return exactMatchesFiltered;
     }
 
-    private static boolean sequencesDoNotOverlap(int startSeq1, int endSeq1, int startSeq2, int endSeq2) {
+    private static boolean sequencesDoNotOverlap(final int startSeq1, final int endSeq1, final int startSeq2,
+                                                 final int endSeq2) {
         return startSeq1 < startSeq2 && endSeq1 < startSeq2 || startSeq1 > endSeq2 && endSeq1 > endSeq2;
     }
 
