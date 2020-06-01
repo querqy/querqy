@@ -47,7 +47,13 @@ public class PrefixTrieMap<T> {
         final List<State<T>> prefixMatches = states.getPrefixes();
         if (prefixMatches != null && !prefixMatches.isEmpty()) {
             final State<T> prefixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
-            return Optional.of(new PrefixMatch<>(prefixMaxMatch.index + 1, prefixMaxMatch.value));
+
+            final int exclusiveEnd = prefixMaxMatch.index + 1;
+
+            return Optional.of(new PrefixMatch<>(
+                    exclusiveEnd,
+                    seq.subSequence(exclusiveEnd, seq.length()),
+                    prefixMaxMatch.value));
         }
 
         return Optional.empty();

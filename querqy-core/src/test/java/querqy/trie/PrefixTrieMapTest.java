@@ -56,6 +56,7 @@ public class PrefixTrieMapTest {
         PrefixMatch = prefixMatchOptional.get();
         assertThat(PrefixMatch.match).isEqualTo(shorterSuffix.toString().toUpperCase());
         assertThat(PrefixMatch.exclusiveEnd).isEqualTo(4);
+        assertThat(PrefixMatch.wildcardMatch).isEqualTo("exxxx");
     }
 
     @Test
@@ -72,6 +73,7 @@ public class PrefixTrieMapTest {
         PrefixMatch = prefixMatchOptional.get();
         assertThat(PrefixMatch.match).isEqualTo(matchSuffix.toString().toUpperCase());
         assertThat(PrefixMatch.exclusiveEnd).isEqualTo(5);
+        assertThat(PrefixMatch.wildcardMatch).isEqualTo("xxxx");
     }
 
     @Test
@@ -88,6 +90,7 @@ public class PrefixTrieMapTest {
         PrefixMatch = prefixMatchOptional.get();
         assertThat(PrefixMatch.match).isEqualTo(matchSuffix.toString().toUpperCase());
         assertThat(PrefixMatch.exclusiveEnd).isEqualTo(matchSuffix.length());
+        assertThat(PrefixMatch.wildcardMatch).isEqualTo("");
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -5,10 +5,16 @@ import java.util.Objects;
 public class SuffixMatch<T> {
     public final T match;
     public final int startSubstring;
+    public final CharSequence wildcardMatch;
     private int lookupOffset;
 
-    public SuffixMatch(int startSubstring, T match) {
+    public SuffixMatch(final int startSubstring, final T match) {
+        this(startSubstring, "", match);
+    }
+
+    public SuffixMatch(final int startSubstring, final CharSequence wildcardMatch, final T match) {
         this.startSubstring = startSubstring;
+        this.wildcardMatch = wildcardMatch;
         this.match = match;
     }
 
