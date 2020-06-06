@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
-        <version>4.9.lucene720.0-SNAPSHOT</version>
+        <version>4.9.lucene720.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
