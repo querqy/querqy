@@ -12,7 +12,8 @@ public class TermsReplaceInstruction implements ReplaceInstruction {
     }
 
     @Override
-    public void apply(List<CharSequence> seq, int start, int exclusiveOffset, CharSequence wildcardMatch) {
+    public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
+                      final CharSequence wildcardMatch) {
         IntStream.range(0, exclusiveOffset).forEach(i -> seq.remove(start));
         seq.addAll(start, replacementTerms);
     }

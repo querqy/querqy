@@ -70,7 +70,7 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
 
 
     @Override
-    public void removeClauseAndTraverseTree(BooleanClause clause) {
+    public void removeClauseAndTraverseTree(final BooleanClause clause) {
         super.removeClause(clause);
 
         if (this.clauses.isEmpty() && this.getParent() != null) {
@@ -79,7 +79,7 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
     }
 
     @Override
-    public void removeClauseAndTraverseTree(BooleanQuery clause) {
+    public void removeClauseAndTraverseTree(final BooleanQuery clause) {
         removeClauseAndTraverseTree((BooleanClause) clause);
     }
 

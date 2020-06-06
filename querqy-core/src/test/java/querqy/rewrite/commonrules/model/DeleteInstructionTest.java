@@ -1,10 +1,13 @@
 package querqy.rewrite.commonrules.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static querqy.QuerqyMatchers.*;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
@@ -187,6 +190,39 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         assertThat(rewritten,
                 bq());
 
+
+    }
+
+    @Test
+    public void testHashCode() {
+
+        DeleteInstruction delete1 = new DeleteInstruction(Arrays.asList(mkTerm("a"), mkTerm("b")));
+        DeleteInstruction delete2 = new DeleteInstruction(Arrays.asList(mkTerm("a"), mkTerm("b")));
+        DeleteInstruction delete3 = new DeleteInstruction(Arrays.asList(mkTerm("a"), mkTerm("c")));
+        DeleteInstruction delete4 = new DeleteInstruction(Arrays.asList(mkTerm("c"), mkTerm("a")));
+
+        assertEquals(delete1.hashCode(), delete2.hashCode());
+        assertNotEquals(delete1.hashCode(), delete3.hashCode());
+        assertNotEquals(delete2.hashCode(), delete3.hashCode());
+        assertNotEquals(delete3.hashCode(), delete4.hashCode());
+
+    }
+
+    @Test
+    public void testEquals() {
+
+        DeleteInstruction delete1 = new DeleteInstruction(Arrays.asList(mkTerm("a"), mkTerm("b")));
+        DeleteInstruction delete2 = new DeleteInstruction(Arrays.asList(mkTerm("a"), mkTerm("b")));
+        DeleteInstruction delete3 = new DeleteInstruction(Arrays.asList(mkTerm("a"), mkTerm("c")));
+        DeleteInstruction delete4 = new DeleteInstruction(Arrays.asList(mkTerm("c"), mkTerm("a")));
+
+        assertEquals(delete1, delete2);
+        assertEquals(delete1.hashCode(), delete2.hashCode());
+        assertNotEquals(delete1, delete3);
+        assertNotEquals(delete2, delete3);
+        assertNotEquals(delete3, delete4);
+        assertNotEquals(delete1, null);
+        assertNotEquals(delete1, new Object());
 
     }
 }

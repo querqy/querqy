@@ -3,9 +3,9 @@ package querqy.model.builder;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 
-public interface DmqClauseBuilder {
+public interface DisjunctionMaxClauseBuilder {
 
     DisjunctionMaxClause build();
-    DmqClauseBuilder setParent(DisjunctionMaxQuery dmq);
+    DisjunctionMaxClauseBuilder setParent(DisjunctionMaxQuery dmq);
 
 }

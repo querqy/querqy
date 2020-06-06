@@ -6,7 +6,7 @@ import querqy.ComparableCharSequenceWrapper;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
 
-public class TermBuilder implements DmqClauseBuilder {
+public class TermBuilder implements DisjunctionMaxClauseBuilder {
 
     private ComparableCharSequence seq;
     private DisjunctionMaxQuery parent;

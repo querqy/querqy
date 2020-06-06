@@ -45,14 +45,15 @@ public class DeleteInstruction implements Instruction {
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
    @Override
-   public void apply(PositionSequence<querqy.model.Term> sequence, TermMatches termMatches,
-                     int startPosition, int endPosition, ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+   public void apply(final PositionSequence<querqy.model.Term> sequence, final TermMatches termMatches,
+                     final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
       int pos = 0;
 
-      for (List<querqy.model.Term> position : sequence) {
+      for (final List<querqy.model.Term> position : sequence) {
           
-         for (querqy.model.Term term : position) {
+         for (final querqy.model.Term term : position) {
              if (pos >= startPosition && pos < endPosition && isToBeDeleted(term)) {
                  term.delete();
              }
@@ -87,14 +88,14 @@ public class DeleteInstruction implements Instruction {
    }
 
    @Override
-   public boolean equals(Object obj) {
+   public boolean equals(final Object obj) {
        if (this == obj)
            return true;
        if (obj == null)
            return false;
        if (getClass() != obj.getClass())
            return false;
-       DeleteInstruction other = (DeleteInstruction) obj;
+       final DeleteInstruction other = (DeleteInstruction) obj;
        if (termsToDelete == null) {
            if (other.termsToDelete != null)
                return false;

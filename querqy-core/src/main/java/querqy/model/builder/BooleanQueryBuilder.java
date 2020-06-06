@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BooleanQueryBuilder implements DmqClauseBuilder {
+public class BooleanQueryBuilder implements DisjunctionMaxClauseBuilder {
 
     private final List<DisjunctionMaxQueryBuilder> dmqs;
     private BooleanParent parent;

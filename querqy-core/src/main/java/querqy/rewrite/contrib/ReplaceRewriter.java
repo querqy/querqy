@@ -25,7 +25,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
-    public ReplaceRewriter(SequenceLookup<ReplaceInstruction> sequenceLookup) {
+    public ReplaceRewriter(final SequenceLookup<ReplaceInstruction> sequenceLookup) {
         this.sequenceLookup = sequenceLookup;
     }
 
@@ -33,7 +33,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
     private LinkedList<CharSequence> collectedTerms;
 
     @Override
-    public ExpandedQuery rewrite(ExpandedQuery expandedQuery) {
+    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
@@ -98,7 +98,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
     }
 
-    private ExpandedQuery buildQueryFromSeqList(ExpandedQuery oldQuery, LinkedList<CharSequence> tokens) {
+    private ExpandedQuery buildQueryFromSeqList(final ExpandedQuery oldQuery, final List<CharSequence> tokens) {
         final Query query = new Query();
 
         for (final CharSequence token : tokens) {

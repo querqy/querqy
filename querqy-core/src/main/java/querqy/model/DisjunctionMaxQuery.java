@@ -56,7 +56,7 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
    }
 
     @Override
-    public void removeClauseAndTraverseTree(DisjunctionMaxClause clause) {
+    public void removeClauseAndTraverseTree(final DisjunctionMaxClause clause) {
         super.removeClause(clause);
 
         if (this.clauses.isEmpty() && this.getParent() != null) {
@@ -65,7 +65,7 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
     }
 
     @Override
-    public void removeClauseAndTraverseTree(BooleanQuery booleanQuery) {
+    public void removeClauseAndTraverseTree(final BooleanQuery booleanQuery) {
         this.removeClauseAndTraverseTree((DisjunctionMaxClause) booleanQuery);
     }
 }

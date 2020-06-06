@@ -19,11 +19,11 @@ public class QueryBuilder {
         this.dmqs = dmqs;
     }
 
-    public QueryBuilder setParent(Node parent) {
+    public QueryBuilder setParent(final Node parent) {
         throw new UnsupportedOperationException("Not allowed to set parent Node for QueryBuilder");
     }
 
-    public QueryBuilder addDmqBuilder(DisjunctionMaxQueryBuilder builder) {
+    public QueryBuilder addDmqBuilder(final DisjunctionMaxQueryBuilder builder) {
         this.dmqs.add(builder);
         return this;
     }
@@ -38,7 +38,7 @@ public class QueryBuilder {
         return new QueryBuilder(new ArrayList<>());
     }
 
-    public static QueryBuilder fromQuery(Query query) {
+    public static QueryBuilder fromQuery(final Query query) {
         QueryBuilder builder = builder();
 
         query.getClauses().stream()
@@ -73,8 +73,8 @@ public class QueryBuilder {
 
     @Override
     public String toString() {
-        return "query[" +
-                String.join(", ", dmqs.stream()
-                        .map(Object::toString).collect(Collectors.toList())) + "]";
+        return dmqs.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", ", "query[", "]")) ;
     }
 }
