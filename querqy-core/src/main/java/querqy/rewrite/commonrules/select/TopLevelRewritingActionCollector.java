@@ -38,6 +38,7 @@ public class TopLevelRewritingActionCollector implements TopRewritingActionColle
     private final Comparator<Instructions> primaryComparator;
     private final List<Comparator<Instructions>> secondaryComparators;
 
+    // TODO: check if redundant query input is handled properly
     public TopLevelRewritingActionCollector(final List<Comparator<Instructions>> comparators, final int limit,
                                             final List<? extends FilterCriterion> filters) {
 

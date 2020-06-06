@@ -49,16 +49,6 @@
         </dependency>
 
         <dependency>
-            <!--
-            Solr provides com.jayway.jsonpath:json-path but not net.minidev:json-smart
-            on which some classes of json-path depend
-            -->
-            <groupId>net.minidev</groupId>
-            <artifactId>json-smart</artifactId>
-            <version>${minidev.json-smart.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
             <version>${lucene.version}</version>

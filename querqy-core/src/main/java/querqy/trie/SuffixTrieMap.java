@@ -17,11 +17,11 @@ public class SuffixTrieMap<T> {
         this.trieMap = new TrieMap<>();
     }
 
-    public void putSuffix(CharSequence seq, T value) {
+    public void putSuffix(final CharSequence seq, final T value) {
         this.putSuffix(seq, value, false);
     }
 
-    public void putSuffix(CharSequence seq, T value, boolean includeExactMatch) {
+    public void putSuffix(final CharSequence seq, final T value, final boolean includeExactMatch) {
         if (seq.length() == 0) {
             throw new IllegalArgumentException("Must not put empty sequence into trie");
         }
@@ -34,7 +34,7 @@ public class SuffixTrieMap<T> {
         }
     }
 
-    public Optional<SuffixMatch<T>> getBySuffix(CharSequence seq) {
+    public Optional<SuffixMatch<T>> getBySuffix(final CharSequence seq) {
         if (seq.length() == 0) {
             return Optional.empty();
         }
@@ -45,13 +45,19 @@ public class SuffixTrieMap<T> {
 
         final State<T> fullMatch = states.getStateForCompleteSequence();
         if (fullMatch.isFinal()) {
-            return Optional.of(new SuffixMatch<>(seq.length() - (fullMatch.index + 1), fullMatch.value));
+            return Optional.of(new SuffixMatch<>(0, fullMatch.value));
         }
 
         final List<State<T>> suffixMatches = states.getPrefixes();
         if (suffixMatches != null && !suffixMatches.isEmpty()) {
             final State<T> suffixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
-            return Optional.of(new SuffixMatch<>(seq.length() - (suffixMaxMatch.index + 1), suffixMaxMatch.value));
+
+            final int startSubstring = seq.length() - (suffixMaxMatch.index + 1);
+
+            return Optional.of(new SuffixMatch<>(
+                    startSubstring,
+                    seq.subSequence(0, startSubstring),
+                    suffixMaxMatch.value));
         }
 
         return Optional.empty();

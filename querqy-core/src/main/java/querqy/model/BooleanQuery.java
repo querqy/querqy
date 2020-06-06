@@ -67,4 +67,21 @@ public class BooleanQuery extends SubQuery<BooleanParent, BooleanClause> impleme
         }
         return bq;
     }
+
+
+    @Override
+    public void removeClauseAndTraverseTree(final BooleanClause clause) {
+        super.removeClause(clause);
+
+        if (this.clauses.isEmpty() && this.getParent() != null) {
+            this.getParent().removeClauseAndTraverseTree(this);
+        }
+    }
+
+    @Override
+    public void removeClauseAndTraverseTree(final BooleanQuery clause) {
+        removeClauseAndTraverseTree((BooleanClause) clause);
+    }
+
+
 }

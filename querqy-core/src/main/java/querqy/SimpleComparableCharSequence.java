@@ -13,6 +13,11 @@ public class SimpleComparableCharSequence implements ComparableCharSequence {
    final int start;
    final int length;
 
+   public SimpleComparableCharSequence(final char[] value) {
+      this.value = value;
+      this.start = 0;
+      this.length = value.length;
+   }
    public SimpleComparableCharSequence(final char[] value, final int start, final int length) {
       if ((start + length) > value.length) {
          throw new ArrayIndexOutOfBoundsException(start + length);

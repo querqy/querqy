@@ -22,7 +22,7 @@ public class DecorateInstruction implements Instruction {
     
     protected final Object decorationValue;
     
-    public DecorateInstruction(Object decorationValue) {
+    public DecorateInstruction(final Object decorationValue) {
         if (decorationValue == null) {
             throw new IllegalArgumentException("decorationValue must not be null");
         }
@@ -33,9 +33,9 @@ public class DecorateInstruction implements Instruction {
      * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
      */
     @Override
-    public void apply(PositionSequence<Term> sequence, TermMatches termMatches,
-            int startPosition, int endPosition, ExpandedQuery expandedQuery,
-                      SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
+            final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         
         @SuppressWarnings("unchecked")
         Set<Object> decorations = (Set<Object>) searchEngineRequestAdapter.getContext().get(CONTEXT_KEY);
@@ -57,27 +57,20 @@ public class DecorateInstruction implements Instruction {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((decorationValue == null) ? 0 : decorationValue.hashCode());
-        return result;
+        return prime + decorationValue.hashCode();
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
-        DecorateInstruction other = (DecorateInstruction) obj;
-        if (decorationValue == null) {
-            if (other.decorationValue != null)
-                return false;
-        } else if (!decorationValue.equals(other.decorationValue))
-            return false;
-        return true;
+        final DecorateInstruction other = (DecorateInstruction) obj;
+        return decorationValue.equals(other.decorationValue);
+
     }
 
     @Override

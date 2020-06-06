@@ -1,4 +1,4 @@
-package querqy.rewrite.contrib;
+package querqy.rewrite.contrib.replace;
 
 import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,26 +20,26 @@ public class ReplaceRewriterParserTest {
     @Test(expected = IOException.class)
     public void testCombinedInputWIthPrefixAndSuffix() throws IOException {
         String rules = " ab* \t *bc \t abc => cd";
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
     }
 
     @Test
     public void testCombinedInputOnlyExactMatch() throws IOException {
         String rules = " ab \t bc \t abc => cd";
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
     }
 
     @Test
     public void testEmptyOutput() throws IOException {
         String rules = " abc => ";
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
         assertThat(sequenceLookup.findExactMatches(Arrays.asList("abc", "cab", "dabc"))).hasSize(1);
     }
 
     @Test
     public void testEmptyOutputSuffix() throws IOException {
         String rules = " *abc => ";
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
         assertThat(sequenceLookup.findSingleTermSuffixMatches(Arrays.asList("dabc", "cab"))).hasSize(1);
     }
 
@@ -49,7 +47,7 @@ public class ReplaceRewriterParserTest {
     public void testDuplicateSuffixCaseSensitive() throws IOException {
         String rules = "*ab => af \n" +
                 "*AB => ag";
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
         assertThat(sequenceLookup.findSingleTermSuffixMatches(Arrays.asList("cAB", "cab", "dabc"))).hasSize(2);
     }
 
@@ -57,7 +55,7 @@ public class ReplaceRewriterParserTest {
     public void testDuplicatePrefixCaseSensitive() throws IOException {
         String rules = "ab* => af \n" +
                 "AB* => ag";
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
         assertThat(sequenceLookup.findSingleTermPrefixMatches(Arrays.asList("ABc", "abc", "dabc"))).hasSize(2);
     }
 
@@ -94,7 +92,7 @@ public class ReplaceRewriterParserTest {
     }
 
 
-    private SequenceLookup<CharSequence, Queue<CharSequence>> createRuleExtractor(String rules) throws IOException {
+    private SequenceLookup<ReplaceInstruction> createRuleExtractor(String rules) throws IOException {
         return createParser(rules).parseConfig();
     }
 
@@ -114,7 +112,7 @@ public class ReplaceRewriterParserTest {
                 + " *abc => ae \n"
                 + " *ab => af \n";
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createRuleExtractor(rules);
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createRuleExtractor(rules);
         assertThat(sequenceLookup.findSingleTermSuffixMatches(Arrays.asList("a", "ab", "dabc"))).hasSize(2);
     }
 
@@ -134,7 +132,7 @@ public class ReplaceRewriterParserTest {
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
                 input, true, "\t", new WhiteSpaceQuerqyParser());
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = replaceRewriterParser.parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = replaceRewriterParser.parseConfig();
         assertThat(sequenceLookup.findSingleTermPrefixMatches(Arrays.asList("a", "ab", "abcd"))).hasSize(2);
     }
 
@@ -181,49 +179,40 @@ public class ReplaceRewriterParserTest {
                 + " ab  \t c d => e \n"
                 + " FG => hi jk  \n ";
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules).parseConfig();;
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules).parseConfig();
 
-        List<ExactMatch<Queue<CharSequence>>> exactMatches;
+        List<ExactMatch<ReplaceInstruction>> exactMatches;
 
         exactMatches = sequenceLookup.findExactMatches(list("ab"));
-        assertThat(exactMatches).containsExactlyInAnyOrder(
-                new ExactMatch<>(0, 1, queue("e"))
-        );
+        assertThat(exactMatches).isNotEmpty();
 
         exactMatches = sequenceLookup.findExactMatches(list("c"));
         assertThat(exactMatches).isEmpty();
 
         exactMatches = sequenceLookup.findExactMatches(list("c", "d"));
-        assertThat(exactMatches).containsExactlyInAnyOrder(
-                new ExactMatch<>(0, 2, queue("e"))
-        );
+        assertThat(exactMatches).isNotEmpty();
 
         exactMatches = sequenceLookup.findExactMatches(list("fg"));
-        assertThat(exactMatches).containsExactlyInAnyOrder(
-                new ExactMatch<>(0, 1, queue("hi", "jk"))
-        );
+        assertThat(exactMatches).isNotEmpty();
     }
 
     @Test
     public void testMappingCaseSensitive() throws IOException {
         String rules = "AB => cd";
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = createParser(rules, false).parseConfig();
+        SequenceLookup<ReplaceInstruction> sequenceLookup = createParser(rules, false).parseConfig();
 
-
-        List<ExactMatch<Queue<CharSequence>>> exactMatches;
+        List<ExactMatch<ReplaceInstruction>> exactMatches;
 
         exactMatches = sequenceLookup.findExactMatches(list("AB"));
-        assertThat(exactMatches).containsExactlyInAnyOrder(
-                new ExactMatch<>(0, 1, queue("cd"))
-        );
+        assertThat(exactMatches).hasSize(1);
 
         exactMatches = sequenceLookup.findExactMatches(list("ab"));
         assertThat(exactMatches).isEmpty();
     }
 
-    private Queue<CharSequence> queue(String... str) {
-        return Arrays.stream(str).collect(Collectors.toCollection(LinkedList::new));
+    private ReplaceInstruction instruction(String... str) {
+        return new TermsReplaceInstruction(Arrays.asList(str));
     }
 
     private List<CharSequence> list(String... str) {

@@ -28,4 +28,8 @@ public class Query extends BooleanQuery {
 
     }
 
+    public boolean isEmpty() {
+        return clauses.isEmpty();
+    }
+
 }

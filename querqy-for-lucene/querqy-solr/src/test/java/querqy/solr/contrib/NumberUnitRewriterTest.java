@@ -123,6 +123,17 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
     }
 
     @Test
+    public void testDelimiterOnlyTokenInput() {
+        String q = "something . something2";
+        SolrQueryRequest req = req(
+                "q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy_standard");
+        assertQ("", req, "//result[@name='response' and @numFound='0']");
+        req.close();
+    }
+
+    @Test
     public void testMatchAllQuery() {
         String q = "*:*";
         SolrQueryRequest req = req("q", q);

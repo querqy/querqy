@@ -16,11 +16,11 @@ public class PrefixTrieMap<T> {
         this.trieMap = new TrieMap<>();
     }
 
-    public void putPrefix(CharSequence seq, T value) {
+    public void putPrefix(final CharSequence seq, final T value) {
         this.putPrefix(seq, value, false);
     }
 
-    public void putPrefix(CharSequence seq, T value, boolean includeExactMatch) {
+    public void putPrefix(final CharSequence seq, final T value, boolean includeExactMatch) {
         if (seq.length() == 0) {
             throw new IllegalArgumentException("Must not put empty sequence into trie");
         }
@@ -32,7 +32,7 @@ public class PrefixTrieMap<T> {
         }
     }
 
-    public Optional<PrefixMatch<T>> getPrefix(CharSequence seq) {
+    public Optional<PrefixMatch<T>> getPrefix(final CharSequence seq) {
         if (seq.length() == 0) {
             return Optional.empty();
         }
@@ -47,7 +47,13 @@ public class PrefixTrieMap<T> {
         final List<State<T>> prefixMatches = states.getPrefixes();
         if (prefixMatches != null && !prefixMatches.isEmpty()) {
             final State<T> prefixMaxMatch = Collections.max(states.getPrefixes(), COMPARE_STATE_BY_INDEX_DESC);
-            return Optional.of(new PrefixMatch<>(prefixMaxMatch.index + 1, prefixMaxMatch.value));
+
+            final int exclusiveEnd = prefixMaxMatch.index + 1;
+
+            return Optional.of(new PrefixMatch<>(
+                    exclusiveEnd,
+                    seq.subSequence(exclusiveEnd, seq.length()),
+                    prefixMaxMatch.value));
         }
 
         return Optional.empty();

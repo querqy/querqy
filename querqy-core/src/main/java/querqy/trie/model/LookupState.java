@@ -11,7 +11,7 @@ public class LookupState<T> {
 
     private State<T> state;
 
-    public LookupState(int lookupOffsetStart, Queue<CharSequence> terms, State<T> state) {
+    public LookupState(final int lookupOffsetStart, final Queue<CharSequence> terms, final State<T> state) {
         this.lookupOffsetStart = lookupOffsetStart;
         this.terms = terms;
         this.state = state;
@@ -21,12 +21,12 @@ public class LookupState<T> {
         return state;
     }
 
-    public LookupState<T> setState(State<T> state) {
+    public LookupState<T> setState(final State<T> state) {
         this.state = state;
         return this;
     }
 
-    public LookupState<T> addTerm(CharSequence term) {
+    public LookupState<T> addTerm(final CharSequence term) {
         terms.add(term);
         return this;
     }
