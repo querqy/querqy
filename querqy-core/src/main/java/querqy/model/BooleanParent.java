@@ -9,4 +9,6 @@ package querqy.model;
  */
 public interface BooleanParent extends Node {
 
+    void removeClauseAndTraverseTree(BooleanQuery booleanQuery);
+
 }

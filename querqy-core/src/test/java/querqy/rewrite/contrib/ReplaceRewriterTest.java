@@ -1,20 +1,21 @@
 package querqy.rewrite.contrib;
 
 import org.junit.Test;
-import querqy.ComparableCharSequenceWrapper;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.contrib.replace.ReplaceInstruction;
+import querqy.rewrite.contrib.replace.TermsReplaceInstruction;
+import querqy.rewrite.contrib.replace.WildcardReplaceInstruction;
 import querqy.trie.SequenceLookup;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,11 +26,16 @@ import static querqy.QuerqyMatchers.term;
 
 public class ReplaceRewriterTest {
 
+    private List<CharSequence> list(String... seqs) {
+        return new ArrayList<>(Arrays.asList(seqs));
+    }
+
+
     @Test
     public void testEmptyQueryAfterSuffixAndPrefixRule() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.putSuffix("suffix1", "");
-        sequenceLookup.putPrefix("prefix1", "");
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("suffix1", new WildcardReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.putPrefix("prefix1", new WildcardReplaceInstruction(Collections.emptyList()));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -43,12 +49,12 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testEmptyQueryAfterExactMatchRule() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("c d"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("d e"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("g h"), getTermQueue(Collections.emptyList()));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("c d"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("d e"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("e f"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("g h"), getTermsReplaceInstruction(Collections.emptyList()));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
         ExpandedQuery expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h")));
@@ -60,12 +66,12 @@ public class ReplaceRewriterTest {
     @Test
     public void testRemoveTerms() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("c"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("e f"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("h"), getTermQueue(Collections.singletonList("g")));
-        sequenceLookup.put(tokenListFromString("i j"), getTermQueue(Collections.emptyList()));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("c"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("e f"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("h"), getTermsReplaceInstruction(Collections.singletonList("g")));
+        sequenceLookup.put(tokenListFromString("i j"), getTermsReplaceInstruction(Collections.emptyList()));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -84,12 +90,12 @@ public class ReplaceRewriterTest {
     @Test
     public void testRemoveOverlappingTerms() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b c"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("c d e"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("e f g"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("f g h"), getTermQueue(Collections.emptyList()));
-        sequenceLookup.put(tokenListFromString("i"), getTermQueue(Collections.emptyList()));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b c"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("c d e"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("e f g"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("f g h"), getTermsReplaceInstruction(Collections.emptyList()));
+        sequenceLookup.put(tokenListFromString("i"), getTermsReplaceInstruction(Collections.emptyList()));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -107,10 +113,10 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testRuleCombinations() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.putSuffix("cde", "dde");
-        sequenceLookup.putPrefix("abd", "ab");
-        sequenceLookup.put(Collections.singletonList("abde"), getTermQueue(Collections.singletonList("fghi")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(Collections.singletonList("abcde"), getTermsReplaceInstruction(Collections.singletonList("fghi")));
+        sequenceLookup.putSuffix("hi", new WildcardReplaceInstruction(list("$1de")));
+        sequenceLookup.putPrefix("fg", new WildcardReplaceInstruction(list("ab$1")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -119,19 +125,19 @@ public class ReplaceRewriterTest {
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
-                        dmq(term("fghi"))
+                        dmq(term("abde"))
                 )
         );
     }
 
     @Test
     public void testPrefixSuffixCaseSensitive() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(false);
-        sequenceLookup.putPrefix("abc", "a");
-        sequenceLookup.putPrefix("DEF", "d");
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.putPrefix("abc", new WildcardReplaceInstruction(list("a$1")));
+        sequenceLookup.putPrefix("DEF", new WildcardReplaceInstruction(list("d$1")));
 
-        sequenceLookup.putSuffix("abc", "a");
-        sequenceLookup.putSuffix("DEF", "d");
+        sequenceLookup.putSuffix("abc", new WildcardReplaceInstruction(list("$1a")));
+        sequenceLookup.putSuffix("DEF", new WildcardReplaceInstruction(list("$1d")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -156,10 +162,10 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testSuffix() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.putSuffix("bc", "ab");
-        sequenceLookup.putSuffix("bcd", "abcd");
-        sequenceLookup.putSuffix("fg", "");
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putSuffix("bc", new WildcardReplaceInstruction(list("$1ab")));
+        sequenceLookup.putSuffix("bcd", new WildcardReplaceInstruction(list("$1abcd")));
+        sequenceLookup.putSuffix("fg", new WildcardReplaceInstruction(list("$1")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -178,10 +184,10 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testPrefix() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.putPrefix("ab", "bc");
-        sequenceLookup.putPrefix("abc", "bcde");
-        sequenceLookup.putPrefix("fg", "");
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.putPrefix("ab", new WildcardReplaceInstruction(list("bc$1")));
+        sequenceLookup.putPrefix("abc", new WildcardReplaceInstruction(list("bcde$1")));
+        sequenceLookup.putPrefix("fg", new WildcardReplaceInstruction(list("$1")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -201,8 +207,8 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testReplacementKeepBoostAndFilterQueries() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a"), getTermQueue(Collections.singletonList("b")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a"), getTermsReplaceInstruction(Collections.singletonList("b")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -221,9 +227,9 @@ public class ReplaceRewriterTest {
 
     @Test
     public void testReplacementCaseSensitive() {
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>(false);
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "E")));
-        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>(false);
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "E")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermsReplaceInstruction(Collections.singletonList("f")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -239,8 +245,8 @@ public class ReplaceRewriterTest {
         );
 
         sequenceLookup = new SequenceLookup<>(true);
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "E")));
-        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "E")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermsReplaceInstruction(Collections.singletonList("f")));
         replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         expandedQuery = getQuery(Arrays.asList("A", "b", "C"));
@@ -258,9 +264,9 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysIntersect() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
-        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("f")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermsReplaceInstruction(Collections.singletonList("f")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -279,9 +285,9 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysTermsIntersect() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b c d"), getTermQueue(Collections.singletonList("f")));
-        sequenceLookup.put(tokenListFromString("b c e"), getTermQueue(Collections.singletonList("g")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b c d"), getTermsReplaceInstruction(Collections.singletonList("f")));
+        sequenceLookup.put(tokenListFromString("b c e"), getTermsReplaceInstruction(Collections.singletonList("g")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -300,10 +306,10 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementOverlappingKeysSubset() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
-        sequenceLookup.put(tokenListFromString("a b c"), getTermQueue(Collections.singletonList("f")));
-        sequenceLookup.put(tokenListFromString("b c"), getTermQueue(Collections.singletonList("g")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
+        sequenceLookup.put(tokenListFromString("a b c"), getTermsReplaceInstruction(Collections.singletonList("f")));
+        sequenceLookup.put(tokenListFromString("b c"), getTermsReplaceInstruction(Collections.singletonList("g")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -334,8 +340,8 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementInTheMiddle() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -355,8 +361,8 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementAtBeginning() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -376,8 +382,8 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementAtEnd() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -397,8 +403,8 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementRemoveGeneratedIfMatch() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -423,8 +429,8 @@ public class ReplaceRewriterTest {
     @Test
     public void testReplacementKeepGeneratedIfUnmatched() {
 
-        SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup = new SequenceLookup<>();
-        sequenceLookup.put(tokenListFromString("a b"), getTermQueue(Arrays.asList("d", "e")));
+        SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Arrays.asList("d", "e")));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
@@ -457,8 +463,8 @@ public class ReplaceRewriterTest {
         return Arrays.stream(str.split(" ")).collect(Collectors.toList());
     }
 
-    private Queue<CharSequence> getTermQueue(List<String> strings) {
-        return strings.stream().map(ComparableCharSequenceWrapper::new).collect(Collectors.toCollection(LinkedList::new));
+    private ReplaceInstruction getTermsReplaceInstruction(List<String> strings) {
+        return new TermsReplaceInstruction(strings);
     }
 
     private void addTerm(Query query, String value) {

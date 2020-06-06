@@ -15,7 +15,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testNoMatch() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>(false);
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>(false);
         sequenceLookup.putSuffix("suffix", "suffix");
         sequenceLookup.putPrefix("prefix", "prefix");
         sequenceLookup.put(createStringList("exact"), "exact");
@@ -34,7 +34,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testSuffixIgnoreCase() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>(false);
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>(false);
         sequenceLookup.putSuffix("1SUFFIX", "upper");
         sequenceLookup.putSuffix("2suffix", "lower");
 
@@ -50,7 +50,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testSuffixDuplicate() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.putSuffix("1suffix", "value1");
 
         List<SuffixMatch<String>> suffixMatches;
@@ -64,7 +64,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testSuffixSubset() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.putSuffix("11suffix", "value1");
         sequenceLookup.putSuffix("fix", "value2");
         sequenceLookup.putSuffix("suffix", "value3");
@@ -80,7 +80,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testSuffixMultipleMatches() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.putSuffix("1suffix", "value1");
         sequenceLookup.putSuffix("11suffix", "value2");
 
@@ -96,7 +96,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testPrefixIgnoreCase() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>(false);
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>(false);
         sequenceLookup.putPrefix("PREFIX1", "upper");
         sequenceLookup.putPrefix("prefix2", "lower");
 
@@ -112,7 +112,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testPrefixDuplicate() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.putPrefix("prefix1", "value1");
 
         List<PrefixMatch<String>> prefixMatches;
@@ -126,7 +126,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testPrefixSubset() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.putPrefix("prefix11", "value1");
         sequenceLookup.putPrefix("pref", "value2");
         sequenceLookup.putPrefix("prefix", "value3");
@@ -142,7 +142,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testPrefixMultipleMatches() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.putPrefix("prefix1", "value1");
         sequenceLookup.putPrefix("prefix11", "value2");
 
@@ -157,7 +157,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testMatchingOfMultiTermOverlaps() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.put(createStringList("term1", "term2", "term3", "term4"), "value1");
         sequenceLookup.put(createStringList("term2", "term3", "term4"), "value2");
         sequenceLookup.put(createStringList("term2", "term3"), "value3");
@@ -189,7 +189,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testEmptyInput() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.put(createStringList("term1", "term2"), "value1");
 
         List<ExactMatch<String>> exactMatches;
@@ -202,13 +202,13 @@ public class SequenceLookupTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testPutEmptyInputString() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.put(createStringList(""), "value1");
     }
 
     @Test
     public void testMatchingOfSubsets() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.put(createStringList("term1", "term2"), "value1");
         sequenceLookup.put(createStringList("term1", "term2", "term3"), "value2");
         sequenceLookup.put(createStringList("term2", "term3"), "value3");
@@ -225,7 +225,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testBasicMatchingOnSingleTerms() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.put(createStringList("term1"), "value1");
         sequenceLookup.put(createStringList("term2"), "value2");
         sequenceLookup.put(createStringList("term3"), "value3");
@@ -250,7 +250,7 @@ public class SequenceLookupTest {
 
     @Test
     public void testBasicMatchingOnMultipleTerms() {
-        SequenceLookup<String, String> sequenceLookup = new SequenceLookup<>();
+        SequenceLookup<String> sequenceLookup = new SequenceLookup<>();
         sequenceLookup.put(createStringList("term1", "term2"), "value1");
         sequenceLookup.put(createStringList("term2", "term1"), "value2");
         sequenceLookup.put(createStringList("term1", "term2", "term3"), "value3");

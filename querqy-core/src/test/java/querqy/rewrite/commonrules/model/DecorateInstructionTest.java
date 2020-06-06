@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import querqy.model.EmptySearchEngineRequestAdapter;
@@ -100,7 +101,35 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
                               
               );
 
-        
-        
+    }
+
+    @Test
+    public void testHashCode() {
+
+        DecorateInstruction deco1 = new DecorateInstruction("decoA");
+        DecorateInstruction deco2 = new DecorateInstruction("decoA");
+        DecorateInstruction deco3 = new DecorateInstruction("deco3");
+
+        Assert.assertEquals(deco1.hashCode(), deco2.hashCode());
+        Assert.assertNotEquals(deco1.hashCode(), deco3.hashCode());
+        Assert.assertNotEquals(deco2.hashCode(), deco3.hashCode());
+
+    }
+
+    @Test
+    public void testEquals() {
+
+        DecorateInstruction deco1 = new DecorateInstruction("decoA");
+        DecorateInstruction deco2 = new DecorateInstruction("decoA");
+        DecorateInstruction deco3 = new DecorateInstruction("deco3");
+
+        Assert.assertEquals(deco1, deco2);
+        Assert.assertEquals(deco1.hashCode(), deco2.hashCode());
+        Assert.assertEquals(deco1, deco1);
+        Assert.assertNotEquals(deco1, deco3);
+        Assert.assertNotEquals(deco2, deco3);
+        Assert.assertNotEquals(deco2, null);
+        Assert.assertNotEquals(deco2, new Object());
+
     }
 }

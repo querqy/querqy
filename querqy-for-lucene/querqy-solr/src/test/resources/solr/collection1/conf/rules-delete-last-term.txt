@@ -1,0 +1,19 @@
+a =>
+	SYNONYM: b
+	DELETE: a
+
+b =>
+    DELETE: b
+	
+c =>
+    FILTER: * *:*
+    DELETE: c
+
+d =>
+    UP(1.0): * *:*
+    DELETE: d
+
+e =>
+    DOWN(1.0): * *:*
+    DELETE: e
+

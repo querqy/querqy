@@ -29,6 +29,7 @@ import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
+import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.infologging.InfoLogging;
@@ -282,7 +283,14 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     @Override
     public Query parseRawQuery(final RawQuery rawQuery) throws SyntaxException {
         try {
-            return QParser.getParser(rawQuery.getQueryString(), null, request).getQuery();
+
+            if (rawQuery instanceof StringRawQuery) {
+                return QParser.getParser(((StringRawQuery) rawQuery).getQueryString(),
+                        null, request).getQuery();
+            } else {
+                throw new UnsupportedOperationException("Implementation type of RawQuery is not supported for this adapter");
+            }
+
         } catch (SyntaxError syntaxError) {
             throw new SyntaxException(syntaxError);
         }

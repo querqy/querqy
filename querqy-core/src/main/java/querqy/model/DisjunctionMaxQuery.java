@@ -55,6 +55,17 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
        return dmq;
    }
 
+    @Override
+    public void removeClauseAndTraverseTree(final DisjunctionMaxClause clause) {
+        super.removeClause(clause);
 
+        if (this.clauses.isEmpty() && this.getParent() != null) {
+            this.getParent().removeClauseAndTraverseTree(this);
+        }
+    }
 
+    @Override
+    public void removeClauseAndTraverseTree(final BooleanQuery booleanQuery) {
+        this.removeClauseAndTraverseTree((DisjunctionMaxClause) booleanQuery);
+    }
 }

@@ -3,13 +3,11 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.ID;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,7 +46,16 @@ public class Instructions extends LinkedList<Instruction> {
 
     public Instructions(final int ord, Object id, final Collection<Instruction> instructions,
                         final InstructionsProperties properties) {
-        super(instructions);
+        super();
+
+        instructions.forEach(instruction -> {
+            if (instruction instanceof DeleteInstruction) {
+                this.addLast(instruction);
+            } else {
+                this.addFirst(instruction);
+            }
+        });
+
         this.ord = ord;
         if (id == null) {
             throw new IllegalArgumentException("id must not be null");
@@ -77,4 +84,11 @@ public class Instructions extends LinkedList<Instruction> {
         return properties;
     }
 
+    @Override
+    public String toString() {
+        return "Instructions{" +
+                "ord=" + ord +
+                ", List=" + super.toString() +
+                '}';
+    }
 }

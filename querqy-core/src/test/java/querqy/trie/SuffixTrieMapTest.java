@@ -57,6 +57,7 @@ public class SuffixTrieMapTest {
         suffixMatch = suffixMatchOptional.get();
         assertThat(suffixMatch.match).isEqualTo(shorterSuffix.toString().toUpperCase());
         assertThat(suffixMatch.startSubstring).isEqualTo(11);
+        assertThat(suffixMatch.wildcardMatch).isEqualTo("digitalkame");
     }
 
     @Test
@@ -73,6 +74,7 @@ public class SuffixTrieMapTest {
         suffixMatch = suffixMatchOptional.get();
         assertThat(suffixMatch.match).isEqualTo(matchSuffix.toString().toUpperCase());
         assertThat(suffixMatch.startSubstring).isEqualTo(7);
+        assertThat(suffixMatch.wildcardMatch).isEqualTo("digital");
     }
 
     @Test
@@ -89,6 +91,7 @@ public class SuffixTrieMapTest {
         suffixMatch = suffixMatchOptional.get();
         assertThat(suffixMatch.match).isEqualTo(matchSuffix.toString().toUpperCase());
         assertThat(suffixMatch.startSubstring).isEqualTo(0);
+        assertThat(suffixMatch.wildcardMatch).isEqualTo("");
     }
 
     @Test(expected = IllegalArgumentException.class)

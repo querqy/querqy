@@ -1,4 +1,4 @@
-![travis ci build status](https://travis-ci.org/renekrie/querqy.png) [![Querqy for Solr](https://img.shields.io/maven-central/v/org.querqy/querqy-solr.svg?label=Download%20Querqy%20for%20Solr%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22) [![Querqy Core](https://img.shields.io/maven-central/v/org.querqy/querqy-core.svg?label=Querqy%20core%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-core%22)
+![Build](https://github.com/querqy/querqy/workflows/Build/badge.svg) [![Querqy for Solr](https://img.shields.io/maven-central/v/org.querqy/querqy-solr.svg?label=Download%20Querqy%20for%20Solr%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-solr%22) [![Querqy Core](https://img.shields.io/maven-central/v/org.querqy/querqy-core.svg?label=Querqy%20core%20(Maven%20Central))](https://search.maven.org/search?q=g:%22org.querqy%22%20AND%20a:%22querqy-core%22)
 
 Support & Community:  [![Gitter community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/querqy/users)
 # Querqy
@@ -27,13 +27,13 @@ Detailed Solr version mapping:
 |8.3.x| 4.8.lucene810.0||
 |8.2.x| 4.8.lucene810.0||
 |8.1.x| 4.8.lucene810.0|Please check out the [Release Notes from 5 August 2019 and later](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001).|
-|8.0.0| 4.7.lucene800.0|Please check out the [Release Notes](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
-|7.7.x| 4.7.lucene720.0||
-|7.6.0| 4.7.lucene720.0||
-|7.5.0| 4.7.lucene720.0||
-|7.4.0| 4.7.lucene720.0||
-|7.3.x| 4.7.lucene720.0||
-|7.2.x| 4.7.lucene720.0||
+|8.0.0| 4.8.lucene800.0|Please check out the [Release Notes](https://github.com/querqy/querqy/wiki#5-august-2019---querqy-44lucene8101-and-44lucene8001). Many thanks to [Martin Grigorov](https://github.com/martin-g) for major contributions|
+|7.7.x| 4.8.lucene720.0||
+|7.6.0| 4.8.lucene720.0||
+|7.5.0| 4.8.lucene720.0||
+|7.4.0| 4.8.lucene720.0||
+|7.3.x| 4.8.lucene720.0||
+|7.2.x| 4.8.lucene720.0||
 
 For older Solr versions, please see [here](https://github.com/querqy/querqy/wiki/Older-Querqy-versions).
 

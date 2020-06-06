@@ -88,7 +88,7 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
         String q;
         SolrQueryRequest req;
 
-        q = "ghi gh g jkl jk j mn op qr s t uv w xy z";
+        q = "ghij ghi gh klm kl k mn op qr s t uv w xy z";
         req = req("q", q,
                 DisMaxParams.QF, "f1",
                 "defType", "querqy",
@@ -102,11 +102,11 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testRuleCombinations() {
+    public void testMultipleSubsequentReplacements() {
         String q;
         SolrQueryRequest req;
 
-        q = "abcdef";
+        q = "b c d e h";
         req = req("q", q,
                 DisMaxParams.QF, "f1",
                 "defType", "querqy",
@@ -114,7 +114,61 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
         );
 
         assertQ("Replace rules", req,
-                "//str[@name='parsedquery_toString'][text() = 'f1:cd']"
+                "//str[@name='parsedquery_toString'][text() = 'f1:a f1:b f1:c f1:d f1:e f1:f f1:g f1:h']"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testRuleCombinations() {
+        String q;
+        SolrQueryRequest req;
+
+        q = "acdf";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Replace rules", req,
+                "//str[@name='parsedquery_toString'][text() = 'f1:acdf']"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testMultipleOutputTermsForSuffixRule() {
+        String q;
+        SolrQueryRequest req;
+
+        q = "mnopqr";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Replace rules", req,
+                "//str[@name='parsedquery_toString'][text() = 'f1:mn f1:opqr']"
+        );
+        req.close();
+    }
+
+    @Test
+    public void testMultipleOutputTermsForPrefixRule() {
+        String q;
+        SolrQueryRequest req;
+
+        q = "qrstuvw";
+        req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "on"
+        );
+
+        assertQ("Replace rules", req,
+                "//str[@name='parsedquery_toString'][text() = 'f1:qrst f1:uvw']"
         );
         req.close();
     }

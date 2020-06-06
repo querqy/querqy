@@ -6,16 +6,16 @@ import querqy.parser.QuerqyParser;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.trie.SequenceLookup;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Queue;
 import java.util.Set;
 
 public class ReplaceRewriterFactory extends RewriterFactory {
 
-    private final SequenceLookup<CharSequence, Queue<CharSequence>> sequenceLookup;
+    private final SequenceLookup<ReplaceInstruction> sequenceLookup;
     private final boolean ignoreCase;
 
     public ReplaceRewriterFactory(final String id,
@@ -25,7 +25,7 @@ public class ReplaceRewriterFactory extends RewriterFactory {
                                   final QuerqyParser querqyParser) throws IOException {
         super(id);
         this.ignoreCase = ignoreCase;
-        sequenceLookup = new ReplaceRewriterParser(reader, this.ignoreCase, inputDelimiter, querqyParser).parseConfig();
+        sequenceLookup = new querqy.rewrite.contrib.replace.ReplaceRewriterParser(reader, this.ignoreCase, inputDelimiter, querqyParser).parseConfig();
     }
 
     @Override
