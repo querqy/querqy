@@ -8,7 +8,7 @@ Querqy is a framework for query preprocessing in Java-based search engines.
 ## Documentation and 'Getting started'
 
 
-[Visits docs.querqy.org/querqy/ for a detailed documentation.](https://docs.querqy.org/querqy/index.html) 
+[Visits docs.querqy.org/querqy/ for detailed documentation.](https://docs.querqy.org/querqy/index.html) 
 
 Check out [Querqy.org](https://querqy.org) for related projects that help you speed up search software development.
 
