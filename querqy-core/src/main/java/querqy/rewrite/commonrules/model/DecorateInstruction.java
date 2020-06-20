@@ -3,8 +3,10 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -59,15 +61,12 @@ public class DecorateInstruction implements Instruction {
 
         } else {
             @SuppressWarnings("unchecked")
-            Map<String, Object> decorationsMap = (Map<String, Object>) searchEngineRequestAdapter.getContext()
-                    .get(DECORATION_CONTEXT_MAP_KEY);
+            final Map<String, List<Object>> decorationsMap = (Map<String, List<Object>>) searchEngineRequestAdapter
+                    .getContext()
+                    .computeIfAbsent(DECORATION_CONTEXT_MAP_KEY, k -> new HashMap<>());
 
-            if (decorationsMap == null) {
-                decorationsMap = new HashMap<>();
-                searchEngineRequestAdapter.getContext().put(DECORATION_CONTEXT_MAP_KEY, decorationsMap);
-            }
-
-            decorationsMap.putIfAbsent(decorationKey, decorationValue);
+            final List<Object> values = decorationsMap.computeIfAbsent(decorationKey, k -> new ArrayList<>(2));
+            values.add(decorationValue);
         }
     }
 

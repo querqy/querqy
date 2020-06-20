@@ -4,14 +4,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static querqy.model.builder.DisjunctionMaxQueryBuilder.dmq;
 import static querqy.model.builder.QueryBuilder.query;
-import static querqy.model.builder.TermBuilder.term;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,18 +28,19 @@ import querqy.rewrite.commonrules.LineParser;
 public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
     @Test
-    public void testThatSecondDecorationWithSameKeyIsNotAddedToMap() {
+    public void testThatDecorationsWithSameKeyAreAllAddedToMap() {
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewrite(
-                query("a", "b"),
+                query("a", "b", "c"),
                 rewriter(
                         rule(input("a"), decorate("key1", "value1")),
-                        rule(input("b"), decorate("key1", "value2"))
+                        rule(input("b"), decorate("key1", "value2")),
+                        rule(input("c"), decorate("key1", "value2"))
                 ),
                 searchEngineRequestAdapter);
 
         Assertions.assertThat(getDecorationMap(searchEngineRequestAdapter))
-                .containsOnly(entry("key1", "value1"));
+                .containsOnly(entry("key1", "value1", "value2", "value2"));
 
     }
 
@@ -81,8 +81,8 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         return (Map<String, Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_MAP_KEY);
     }
 
-    private AbstractMap.SimpleEntry<String, String> entry(String key, String value) {
-        return new AbstractMap.SimpleEntry<>(key, value);
+    private AbstractMap.SimpleEntry<String, List<String>> entry(String key, String... value) {
+        return new AbstractMap.SimpleEntry<>(key, Arrays.asList(value));
     }
 
     @SuppressWarnings("unchecked")
