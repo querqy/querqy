@@ -4,12 +4,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static querqy.model.builder.DisjunctionMaxQueryBuilder.dmq;
+import static querqy.model.builder.QueryBuilder.query;
+import static querqy.model.builder.TermBuilder.term;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,6 +27,63 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.LineParser;
 
 public class DecorateInstructionTest extends AbstractCommonRulesTest {
+
+    @Test
+    public void testThatSecondDecorationWithSameKeyIsNotAddedToMap() {
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
+        rewrite(
+                query("a", "b"),
+                rewriter(
+                        rule(input("a"), decorate("key1", "value1")),
+                        rule(input("b"), decorate("key1", "value2"))
+                ),
+                searchEngineRequestAdapter);
+
+        Assertions.assertThat(getDecorationMap(searchEngineRequestAdapter))
+                .containsOnly(entry("key1", "value1"));
+
+    }
+
+    @Test
+    public void testThatTwoDecorationsWithDifferentKeysAreAddedToMap() {
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
+        rewrite(
+                query("a", "b"),
+                rewriter(
+                        rule(input("a"), decorate("key1", "value1")),
+                        rule(input("b"), decorate("key2", "value2"))
+                ),
+                searchEngineRequestAdapter);
+
+        Assertions.assertThat(getDecorationMap(searchEngineRequestAdapter))
+                .containsOnly(
+                        entry("key1", "value1"),
+                        entry("key2", "value2")
+                );
+
+    }
+
+    @Test
+    public void testThatDecorationWithKeyIsAddedToMap() {
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
+        rewrite(
+                query("a"),
+                rewriter(rule(input("a"), decorate("key1", "value1"))),
+                searchEngineRequestAdapter);
+
+        Assertions.assertThat(getDecorationMap(searchEngineRequestAdapter))
+                .containsOnly(entry("key1", "value1"));
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getDecorationMap(SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        return (Map<String, Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_MAP_KEY);
+    }
+
+    private AbstractMap.SimpleEntry<String, String> entry(String key, String value) {
+        return new AbstractMap.SimpleEntry<>(key, value);
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -41,7 +104,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
         
         
-        assertThat((Set<Object>)searchEngineRequestAdapter.getContext().get(DecorateInstruction.CONTEXT_KEY),
+        assertThat((Set<Object>)searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
               contains( 
                       equalTo((Object) "deco1")
               ));
@@ -65,7 +128,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
         
         
-        assertThat((Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.CONTEXT_KEY),
+        assertThat((Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
               contains( 
                       equalTo((Object) "deco1")
               ));
@@ -96,7 +159,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         
         
         assertThat(
-                (Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.CONTEXT_KEY),
+                (Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
                 containsInAnyOrder((Object) "deco1", (Object) "deco2", (Object) "deco3")
                               
               );
