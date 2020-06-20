@@ -6,6 +6,7 @@ package querqy.rewrite.commonrules.model;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
@@ -74,29 +75,24 @@ public class DecorateInstruction implements Instruction {
     public Set<Term> getGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
-    
+
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        return prime + decorationValue.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DecorateInstruction that = (DecorateInstruction) o;
+        return Objects.equals(decorationKey, that.decorationKey) &&
+                Objects.equals(decorationValue, that.decorationValue);
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final DecorateInstruction other = (DecorateInstruction) obj;
-        return decorationValue.equals(other.decorationValue);
-
+    public int hashCode() {
+        return Objects.hash(decorationKey, decorationValue);
     }
 
     @Override
     public String toString() {
-        return "DecorateInstruction [decorationValue=" + decorationValue + "]";
+        return "DecorateInstruction [decorationKey=" + decorationKey + ", decorationValue=" + decorationValue + "]";
     }
 
     
