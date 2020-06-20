@@ -255,6 +255,74 @@ public class DefaultQuerqyDismaxQParserWithCommonRulesTest extends SolrTestCaseJ
     }
 
     @Test
+    public void testThatSingleNamedDecorationIsApplied() {
+        String q = "a d1key";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "2",
+                "defType", "querqy",
+                "indent", "on"
+        );
+
+        assertQ("Single named decoration fails",
+                req,
+                "//lst[@name='querqy_named_decorations'][count(arr)=1]",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key1']/str[text()='deco 1']"
+
+        );
+        req.close();
+    }
+
+    @Test
+    public void testThatDecorationAndNamedDecorationAreApplied() {
+        String q = "a d1 d1key";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "2",
+                "defType", "querqy",
+                "indent", "on"
+        );
+
+        assertQ("Decoration fails",
+                req,
+                "//arr[@name='querqy_decorations'][count(str)=1]",
+                "//arr[@name='querqy_decorations']/str[text()='deco 1']",
+                "//lst[@name='querqy_named_decorations'][count(arr)=1]",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key1']/str[text()='deco 1']"
+
+        );
+        req.close();
+    }
+
+    @Test
+    public void testThatMultipleNamedDecorationsWithSameKeyAreApplied() {
+        String q = "a d1key d2key d3key";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "2",
+                "defType", "querqy",
+                "indent", "on"
+        );
+
+        assertQ("Single named decoration fails",
+                req,
+                "//lst[@name='querqy_named_decorations'][count(arr)=2]",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key1'][count(str)=2]",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key1']/str[text()='deco 1']",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key1']/str[text()='deco 3']",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key2'][count(str)=1]",
+                "//lst[@name='querqy_named_decorations']/arr[@name='key2']/str[text()='deco 2']"
+
+        );
+        req.close();
+    }
+
+
+
+    @Test
     public void testThatPurelyNegativeFilterIsApplied() {
         String q = "qneg";
 
