@@ -10,10 +10,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.InputSequenceElement;
+import querqy.model.Query;
+import querqy.model.builder.QueryBuilder;
 import querqy.parser.WhiteSpaceQuerqyParser;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
@@ -54,6 +59,10 @@ public abstract class AbstractCommonRulesTest {
         return new DeleteInstruction(Arrays.stream(terms).map(this::mkTerm).collect(Collectors.toList()));
     }
 
+    public DecorateInstruction decorate(String key, String value) {
+        return new DecorateInstruction(key, value);
+    }
+
     public SynonymInstruction synonym(String... terms) {
         return new SynonymInstruction(Arrays.stream(terms).map(this::mkTerm).collect(Collectors.toList()));
     }
@@ -73,9 +82,19 @@ public abstract class AbstractCommonRulesTest {
         return new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
     }
 
-    public Rule addRule(Input input, Instruction... instructions) {
+    public Rule rule(Input input, Instruction... instructions) {
         int ruleCount = ruleCounter++;
         return new Rule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
+    }
+
+    public QueryBuilder rewrite(QueryBuilder queryBuilder, CommonRulesRewriter rewriter) {
+        return rewrite(queryBuilder, rewriter, new EmptySearchEngineRequestAdapter());
+    }
+
+    public QueryBuilder rewrite(QueryBuilder queryBuilder, CommonRulesRewriter rewriter,
+                         SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        ExpandedQuery query = new ExpandedQuery(queryBuilder.build());
+        return QueryBuilder.fromQuery((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getUserQuery());
     }
 
     public static List<String> list(String... items) {

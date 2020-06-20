@@ -21,7 +21,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     @Test
     public void testDeletionOfNestedBooleanQuery() {
         CommonRulesRewriter rewriter = rewriter(
-                addRule(input("a", "b"),
+                rule(input("a", "b"),
                         delete("a", "b"))
         );
 
@@ -48,7 +48,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     public void testThatSequencesAcrossNestedBooleanQueriesAreNotRemoved() {
 
         CommonRulesRewriter rewriter = rewriter(
-            addRule(input("a", "b"),
+            rule(input("a", "b"),
                     delete("a", "b"))
         );
 
@@ -75,7 +75,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     @Test
     public void testThatDmqContainingTheSameTermMultipleTimesIsFullyRemoved() {
         CommonRulesRewriter rewriter = rewriter(
-                addRule(input("a"),
+                rule(input("a"),
                         delete("a"))
         );
 
@@ -91,7 +91,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     @Test
     public void testThatMultipleDmqsContainingTheSameTermAreFullyRemoved() {
         CommonRulesRewriter rewriter = rewriter(
-                addRule(input("a"),
+                rule(input("a"),
                         delete("a"))
         );
 
@@ -110,7 +110,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     @Test
     public void testThatSynonymsAreAppliedOnDuplicateSequences() {
         CommonRulesRewriter rewriter = rewriter(
-                addRule(input("a", "b"),
+                rule(input("a", "b"),
                         synonym("c"))
         );
 
