@@ -67,7 +67,7 @@ public class QuerqyQueryComponent extends QueryComponent {
             if (context != null) {
 
                 @SuppressWarnings("unchecked")
-                Set<Object> decorations = (Set<Object>) context.get(DecorateInstruction.CONTEXT_KEY);
+                Set<Object> decorations = (Set<Object>) context.get(DecorateInstruction.DECORATION_CONTEXT_KEY);
                 if (decorations != null) {
                     rb.rsp.add("querqy_decorations", decorations);
                 }
