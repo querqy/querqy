@@ -1,12 +1,16 @@
 package querqy.rewrite.commonrules;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import querqy.model.Clause.Occur;
 import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+
+import javax.swing.text.html.Option;
 
 /**
  * @author René Kriegler, @renekrie
@@ -157,22 +161,44 @@ public class LineParser {
 
     }
 
+    private static final String DECORATE_ERROR_MESSAGE_TEMPLATE = "Invalid decorate rule %s. Decorate rules must either " +
+            "be defined only with a value, e. g. DECORATE: value, or with a key surrounded by brackets and a value, " +
+            "e. g. DECORATE(key): value.";
+
+    private static String createDecorateErrorMessage(final String line) {
+        return String.format(DECORATE_ERROR_MESSAGE_TEMPLATE, line);
+    }
+
+    private static Pattern DECORATE_KEY_PATTERN = Pattern.compile("^\\(([\\w\\d_]+)\\):");
+
     public static Object parseDecorateInstruction(String line) {
         if (line.length() == INSTR_DECORATE.length()) {
-            return new ValidationError(INSTR_DECORATE + " requires a value");
+            return new ValidationError(createDecorateErrorMessage(line));
         }
 
-        String decValue = line.substring(INSTR_DECORATE.length()).trim();
-        if (decValue.charAt(0) != ':') {
-            return new ValidationError("Cannot parse line, ':' expetcted in " + line);
+        String decKey = null;
+        String linePart = line.substring(INSTR_DECORATE.length()).trim();
+
+        if (linePart.charAt(0) == '(') {
+            final Matcher matcher = DECORATE_KEY_PATTERN.matcher(linePart);
+            if (matcher.find()) {
+                decKey = matcher.group(1);
+                linePart = linePart.substring(decKey.length() + 2);
+            } else {
+                return new ValidationError(createDecorateErrorMessage(line));
+            }
         }
 
-        decValue = decValue.substring(1).trim();
+        if (linePart.charAt(0) != ':') {
+            return new ValidationError(createDecorateErrorMessage(line));
+        }
+
+        final String decValue = linePart.substring(1).trim();
         if (decValue.length() == 0) {
-            return new ValidationError(INSTR_DECORATE + " requires a value");
+            return new ValidationError(createDecorateErrorMessage(line));
         }
 
-        return new DecorateInstruction(decValue);
+        return new DecorateInstruction(decKey, decValue);
 
     }
 

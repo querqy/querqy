@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import org.assertj.core.api.Assertions;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -271,6 +272,48 @@ public class LineParserTest {
     public void testThatCaseIsPreservedInDecorateInstruction() {
         Input input = (Input) LineParser.parseInput("in");
         assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", input, null));
+    }
+
+    @Test
+    public void testThatDecorateInputIsInvalidIfOpeningBracketIsMissing() {
+        Assertions.assertThat(LineParser.parse("DECORATEkey): Some Deco", null,
+                null)).isInstanceOf(ValidationError.class);
+    }
+
+    @Test
+    public void testThatDecorateInputIsInvalidIfClosingBracketIsMissing() {
+        Assertions.assertThat(LineParser.parse("DECORATE(key: Some Deco", null,
+                null)).isInstanceOf(ValidationError.class);
+    }
+
+    @Test
+    public void testThatDecorateInputIsInvalidIfOpeningBracketAndKeyAreMissing() {
+        Assertions.assertThat(LineParser.parse("DECORATE):Deco", null,
+                null)).isInstanceOf(ValidationError.class);
+    }
+
+    @Test
+    public void testThatDecorateInputIsInvalidIfClosingBracketAndKeyAreMissing() {
+        Assertions.assertThat(LineParser.parse("DECORATE(: Some ):Deco", null,
+                null)).isInstanceOf(ValidationError.class);
+    }
+
+    @Test
+    public void testThatDecorateInputIsInvalidIfKeyIsMissing() {
+        Assertions.assertThat(LineParser.parse("DECORATE():Deco", null,
+                null)).isInstanceOf(ValidationError.class);
+    }
+
+    @Test
+    public void testThatDecorateInputIsInvalidIfKeyContainsCharThatIsNotAllowed() {
+        Assertions.assertThat(LineParser.parse("DECORATE(k-ey):Deco", null,
+                null)).isInstanceOf(ValidationError.class);
+    }
+
+    @Test
+    public void testValidDecorateKeyInput() {
+        Input input = (Input) LineParser.parseInput("in");
+        assertEquals(new DecorateInstruction("key", "value"), LineParser.parse("DECORATE(key): value", input, null));
     }
 
     TermMatcher term(String value, String...fieldNames) {
