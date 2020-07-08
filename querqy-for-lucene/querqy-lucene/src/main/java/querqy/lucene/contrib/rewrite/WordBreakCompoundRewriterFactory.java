@@ -29,11 +29,12 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final Supplier<IndexReader> indexReaderSupplier;
     private final String dictionaryField;
     private final boolean lowerCaseInput;
-    private final WordBreakSpellChecker spellChecker;
     private final boolean alwaysAddReverseCompounds;
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompundCollation;
+    private final LuceneWordBreaker wordBreaker;
+    private final LuceneCompounder compounder;
 
     /**
      * @param rewriterId The id of the rewriter
@@ -82,18 +83,21 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         }
 
-        spellChecker = new WordBreakSpellChecker();
+        final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
         spellChecker.setMaxChanges(MAX_CHANGES);
         spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
         spellChecker.setMaxCombineWordLength(maxCombineLength);
         spellChecker.setMinBreakWordLength(minBreakLength);
         spellChecker.setMaxEvaluations(100);
+
+        wordBreaker = new SpellCheckerWordBreaker(spellChecker, dictionaryField, lowerCaseInput);
+        compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
     }
 
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery input,
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
+        return new WordBreakCompoundRewriter(wordBreaker, compounder, indexReaderSupplier.get(),
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
                 verifyDecompundCollation);
     }

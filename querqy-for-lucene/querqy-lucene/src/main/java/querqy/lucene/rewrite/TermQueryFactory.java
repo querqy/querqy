@@ -3,8 +3,6 @@
  */
 package querqy.lucene.rewrite;
 
-import java.io.IOException;
-
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
 
