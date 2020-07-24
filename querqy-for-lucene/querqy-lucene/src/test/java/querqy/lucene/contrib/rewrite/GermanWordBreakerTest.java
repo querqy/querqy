@@ -1,7 +1,6 @@
 package querqy.lucene.contrib.rewrite;
 
 import static org.hamcrest.Matchers.equalTo;
-import static querqy.lucene.rewrite.TestUtil.addNumDocsWithStringField;
 import static querqy.lucene.rewrite.TestUtil.addNumDocsWithTextField;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -185,7 +184,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
         final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
         addNumDocsWithTextField("f1", "fan shirt", indexWriter, 20);
-        addNumDocsWithTextField("f1", "fans hirt", indexWriter, 20);
+        addNumDocsWithTextField("f1", "fan hirt", indexWriter, 20);
 
         indexWriter.close();
 
@@ -196,7 +195,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
             final List<CharSequence[]> sequences = wordBreaker.breakWord("fanshirt", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"fan", "shirt"}),
-                    equalTo(new CharSequence[] {"fans","hirt"}))
+                    equalTo(new CharSequence[] {"fan","hirt"}))
             );
 
 
@@ -211,7 +210,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
     }
 
     @Test
-    public void testThatHighCollationFrequencyWeighsMoreThanStrategyPrior() throws IOException {
+    public void testThatHighCollationFrequencyWeighsMoreThanStrategyPriorForDefaultWeights() throws IOException {
 
         final Analyzer analyzer = new WhitespaceAnalyzer();
 
@@ -219,7 +218,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
         final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
         addNumDocsWithTextField("f1", "fan shirt", indexWriter, 1);
-        addNumDocsWithTextField("f1", "fans hirt", indexWriter, 10 + (int) (GermanWordBreaker.NORM_PRIOR * GermanWordBreaker.PRIOR_PLUS_S));
+        addNumDocsWithTextField("f1", "fan hirt", indexWriter, 1 + (int) Math.pow((GermanWordBreaker.NORM_PRIOR * GermanWordBreaker.PRIOR_PLUS_S), GermanWordBreaker.DEFAULT_WEIGHT_STRATEGY));
 
         indexWriter.close();
 
@@ -229,7 +228,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
             final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 2);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("fanshirt", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
-                    equalTo(new CharSequence[] {"fans", "hirt"}),
+                    equalTo(new CharSequence[] {"fan", "hirt"}),
                     equalTo(new CharSequence[] {"fan","shirt"}))
             );
 
@@ -296,6 +295,66 @@ public class GermanWordBreakerTest extends LuceneTestCase {
             final List<CharSequence[]> sequences = wordBreaker.breakWord("straußenei", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"strauß", "ei"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
+    public void testSplitAtLinkingMorphemeNen() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "wöchnerin heim", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 2);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("wöchnerinnenheim", indexReader, 2, true);
+            assertThat(sequences, Matchers.contains(
+                    equalTo(new CharSequence[] {"wöchnerin", "heim"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
+    public void testSplitAtLinkingMorphemeIen() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "prinzip reiter", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 2);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("prinzipienreiter", indexReader, 2, true);
+            assertThat(sequences, Matchers.contains(
+                    equalTo(new CharSequence[] {"prinzip", "reiter"}))
             );
 
         } finally {
@@ -405,6 +464,86 @@ public class GermanWordBreakerTest extends LuceneTestCase {
     }
 
     @Test
+    public void testSplitAtLinkingMorphemeUmlautEr() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "buch regal", indexWriter, 1);
+        addNumDocsWithTextField("f1", "blatt wald", indexWriter, 1);
+        addNumDocsWithTextField("f1", "korn brötchen", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
+
+            assertThat(wordBreaker.breakWord("bücherregal", indexReader, 2, true), Matchers.contains(
+                    equalTo(new CharSequence[] {"buch", "regal"}))
+            );
+
+            assertThat(wordBreaker.breakWord("blätterwald", indexReader, 2, true), Matchers.contains(
+                    equalTo(new CharSequence[] {"blatt", "wald"}))
+            );
+
+            assertThat(wordBreaker.breakWord("körnerbrötchen", indexReader, 2, true), Matchers.contains(
+                    equalTo(new CharSequence[] {"korn", "brötchen"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
+    public void testSplitAtLinkingMorphemeUmlautE() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "gans klein", indexWriter, 1);
+        addNumDocsWithTextField("f1", "laus kamm", indexWriter, 1);
+        addNumDocsWithTextField("f1", "korb macher", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
+
+            assertThat(wordBreaker.breakWord("gänseklein", indexReader, 2, true), Matchers.contains(
+                    equalTo(new CharSequence[] {"gans", "klein"}))
+            );
+
+            assertThat(wordBreaker.breakWord("läusekamm", indexReader, 2, true), Matchers.contains(
+                    equalTo(new CharSequence[] {"laus", "kamm"}))
+            );
+
+            assertThat(wordBreaker.breakWord("körbemacher", indexReader, 2, true), Matchers.contains(
+                    equalTo(new CharSequence[] {"korb", "macher"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
     public void testSplitAtLinkingMorphemeEnRemovingUs() throws IOException {
 
         final Analyzer analyzer = new WhitespaceAnalyzer();
@@ -495,7 +634,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
     }
 
     @Test
-    public void testSplitAtLinkingMorphemeEnRemovingOn() throws IOException {
+    public void testSplitAtLinkingMorphemeEnRemovingOnPlusEn() throws IOException {
 
         final Analyzer analyzer = new WhitespaceAnalyzer();
 
@@ -512,6 +651,66 @@ public class GermanWordBreakerTest extends LuceneTestCase {
             final List<CharSequence[]> sequences = wordBreaker.breakWord("stadienverbot", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"stadion", "verbot"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
+    public void testSplitAtLinkingMorphemeRemovingOnPlusA() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "pharmakon analyse", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("pharmakaanalyse", indexReader, 2, true);
+            assertThat(sequences, Matchers.contains(
+                    equalTo(new CharSequence[] {"pharmakon", "analyse"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
+    public void testSplitAtLinkingMorphemeRemovingEPlusI() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "carabiniere schule", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("carabinierischule", indexReader, 2, true);
+            assertThat(sequences, Matchers.contains(
+                    equalTo(new CharSequence[] {"carabiniere", "schule"}))
             );
 
         } finally {
@@ -554,35 +753,65 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
     }
 
+    @Test
+    public void testSplitRemovingEn() throws IOException {
 
-//    @Test
-//    public void testSplitAtLinkingMorphemeEnRemovingA() throws IOException {
-//
-//        final Analyzer analyzer = new WhitespaceAnalyzer();
-//
-//        final Directory directory = newDirectory();
-//        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
-//
-//        addNumDocsWithTextField("f1", "aphrodisiakum verkäufer", indexWriter, 1);
-//
-//        indexWriter.close();
-//
-//        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
-//
-//            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
-//            final List<CharSequence[]> sequences = wordBreaker.breakWord("aphrodisiakaverkäufer", indexReader, 2, true);
-//            assertThat(sequences, Matchers.contains(
-//                    equalTo(new CharSequence[] {"aphrodisiakum", "verkäufer"}))
-//            );
-//
-//        } finally {
-//            try {
-//                directory.close();
-//            } catch (final IOException e) {
-//                //
-//            }
-//        }
-//
-//    }
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "süden wind", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("südwind", indexReader, 2, true);
+            assertThat(sequences, Matchers.contains(
+                    equalTo(new CharSequence[] {"süden", "wind"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+
+    @Test
+    public void testSplitAtLinkingMorphemeARemovingUm() throws IOException {
+
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        addNumDocsWithTextField("f1", "aphrodisiakum verkäufer", indexWriter, 1);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 3);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("aphrodisiakaverkäufer", indexReader, 2, true);
+            assertThat(sequences, Matchers.contains(
+                    equalTo(new CharSequence[] {"aphrodisiakum", "verkäufer"}))
+            );
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
 
 }
