@@ -21,6 +21,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerCompounder;
+import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerWordBreaker;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;

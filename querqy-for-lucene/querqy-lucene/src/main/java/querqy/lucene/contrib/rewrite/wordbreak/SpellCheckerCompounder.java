@@ -1,4 +1,4 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
 import static querqy.lucene.LuceneQueryUtil.toLuceneTerm;
 
@@ -6,6 +6,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.spell.CombineSuggestion;
 import org.apache.lucene.search.spell.SuggestMode;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
+import querqy.lucene.contrib.rewrite.wordbreak.LuceneCompounder;
 import querqy.model.Term;
 
 import java.io.IOException;

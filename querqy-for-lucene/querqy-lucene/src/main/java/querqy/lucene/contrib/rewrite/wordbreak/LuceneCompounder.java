@@ -1,4 +1,4 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
 import querqy.model.Term;

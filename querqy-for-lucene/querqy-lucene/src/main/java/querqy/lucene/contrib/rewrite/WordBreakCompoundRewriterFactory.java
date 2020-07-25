@@ -2,6 +2,10 @@ package querqy.lucene.contrib.rewrite;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
+import querqy.lucene.contrib.rewrite.wordbreak.LuceneCompounder;
+import querqy.lucene.contrib.rewrite.wordbreak.LuceneWordBreaker;
+import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerCompounder;
+import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerWordBreaker;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -10,7 +14,6 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
