@@ -19,4 +19,5 @@ public class SuffixWordGenerator implements WordGenerator {
     public Optional<CharSequence> generateModifier(final CharSequence reducedModifier) {
         return Optional.of(new CompoundCharSequence(null, reducedModifier, suffix));
     }
+
 }

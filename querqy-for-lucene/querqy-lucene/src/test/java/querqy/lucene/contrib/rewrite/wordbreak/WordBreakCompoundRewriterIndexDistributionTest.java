@@ -1,4 +1,4 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
@@ -16,6 +16,7 @@ import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
+import querqy.lucene.contrib.rewrite.wordbreak.ClassicWordBreakCompoundRewriterFactory;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.EmptySearchEngineRequestAdapter;
@@ -81,7 +82,7 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
             final IndexReader reader = DirectoryReader.open(directory);
 
             try {
-                rewritten = new WordBreakCompoundRewriterFactory("WordBreakCompoundRewriter", () -> reader, "dict",
+                rewritten = new ClassicWordBreakCompoundRewriterFactory("WordBreakCompoundRewriter", () -> reader, "dict",
                         false, 1, 2, 1, Collections.emptyList(), false, 2, true)
                         .createRewriter(expandedQuery, new EmptySearchEngineRequestAdapter())
                         .rewrite(expandedQuery);

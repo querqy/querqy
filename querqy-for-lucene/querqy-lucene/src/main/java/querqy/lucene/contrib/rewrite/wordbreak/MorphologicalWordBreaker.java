@@ -9,36 +9,30 @@ import querqy.LowerCaseCharSequence;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-
-/**
- * S. Langer. 1998. Zur Morphologie und Semantik von Nominalkomposita. Tagungsband der 4. Konferenz zur Verarbeitung
- *   natürlicher Sprache (KONVENS).
- */
 
 public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
     public static final float DEFAULT_WEIGHT_MORPHEME_STRATEGY = 0.8f;
 
-
+    final SuffixGroup suffixGroup; // package visible for testing
 
     private final int minBreakLength;
-    private final SuffixGroup suffixGroup;
     private final boolean lowerCaseInput;
     private final String dictionaryField;
     private final int minSuggestionFrequency;
     final float weightDfObservation;
 
-    public MorphologicalWordBreaker(final Language language, final String dictionaryField, final boolean lowerCaseInput,
-                                    final int minSuggestionFrequency, final int minBreakLength) {
-        this(language, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength,
+    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
+                                    final boolean lowerCaseInput, final int minSuggestionFrequency,
+                                    final int minBreakLength) {
+        this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength,
                 DEFAULT_WEIGHT_MORPHEME_STRATEGY);
     }
 
-    public MorphologicalWordBreaker(final Language language, final String dictionaryField, final boolean lowerCaseInput,
-                                    final int minSuggestionFrequency, final int minBreakLength,
-                                    final float weightMorphemeStrategy) {
+    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
+                                    final boolean lowerCaseInput, final int minSuggestionFrequency,
+                                    final int minBreakLength, final float weightMorphemeStrategy) {
 
         this.minBreakLength = minBreakLength;
         this.lowerCaseInput = lowerCaseInput;
@@ -47,7 +41,7 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
         weightDfObservation = 1f - weightMorphemeStrategy;
 
-        suffixGroup = language.createMorphemes(weightMorphemeStrategy);
+        suffixGroup = morphology.createMorphemes(weightMorphemeStrategy);
 
     }
 
@@ -107,9 +101,6 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
         }
     }
-
-
-
 
 
     public static class BreakSuggestion implements Comparable<BreakSuggestion> {

@@ -45,7 +45,7 @@
                	<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
 		   	</lst>
 		   	<lst name="rewriter">
-		   		<str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
+		   		<str name="class">querqy.solr.contrib.ClassicWordBreakCompoundRewriterFactory</str>
 				 	<str name="dictionaryField">f1</str>
 				 	<arr name="reverseCompoundTriggerWords">
 						<str>für</str>
@@ -63,35 +63,6 @@
      	 
 	</queryParser>
 
-	<queryParser name="querqyDE" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
-
-		<lst name="rewriteChain">
-			<lst name="rewriter">
-				<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-				<str name="rules">rules-before-wordbreaks.txt</str>
-				<bool name="ignoreCase">true</bool>
-				<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-			</lst>
-			<lst name="rewriter">
-				<str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
-				<str name="dictionaryField">f1</str>
-				<str name="morphology">GERMAN</str>
-				<arr name="reverseCompoundTriggerWords">
-					<str>für</str>
-					<str>aus</str>
-				</arr>
-				<bool name="decompound.verifyCollation">true</bool>
-				<bool name="lowerCaseInput">true</bool>
-			</lst>
-		</lst>
-
-		<lst name="parser">
-			<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-			<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
-		</lst>
-
-	</queryParser>
-
     <queryParser name="querqyNoCollationNoLowerCase" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 
         <lst name="rewriteChain">
@@ -102,7 +73,7 @@
                 <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
             </lst>
             <lst name="rewriter">
-                <str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
+                <str name="class">querqy.solr.contrib.ClassicWordBreakCompoundRewriterFactory</str>
                 <str name="dictionaryField">f1</str>
                 <bool name="decompound.verifyCollation">false</bool>
                 <bool name="lowerCaseInput">false</bool>

@@ -4,16 +4,14 @@ import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrRequestInfo;
-import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
 import querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.FactoryAdapter;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Supplier;
 
-public class WordBreakCompoundRewriterFactory implements FactoryAdapter<RewriterFactory> {
+public class ClassicWordBreakCompoundRewriterFactory implements FactoryAdapter<RewriterFactory> {
 
     private static final int DEFAULT_MIN_SUGGESTION_FREQ = 1;
     private static final int DEFAULT_MAX_COMBINE_LENGTH = 30;
@@ -55,18 +53,13 @@ public class WordBreakCompoundRewriterFactory implements FactoryAdapter<Rewriter
         // define whether we should always try to add a reverse compound
         final boolean alwaysAddReverseCompounds = getOrDefault(args, "alwaysAddReverseCompounds", Boolean.FALSE);
 
-        final String morphologyName = (String) args.get("morphology");
-        final Morphology morphology = morphologyName == null
-                ? Morphology.DEFAULT : Enum.valueOf(Morphology.class, morphologyName.toUpperCase(Locale.ROOT));
-
         // the indexReader has to be supplied on a per-request basis from a request thread-local
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
-        return new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(id, indexReaderSupplier,
-                morphology, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength, minBreakLength,
-                reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
-                verifyDecompoundCollation);
+        return new querqy.lucene.contrib.rewrite.wordbreak.ClassicWordBreakCompoundRewriterFactory(id, indexReaderSupplier, indexField,
+                lowerCaseInput, minSuggestionFreq, maxCombineLength, minBreakLength, reverseCompoundTriggerWords,
+                alwaysAddReverseCompounds, maxDecompoundExpansions, verifyDecompoundCollation);
     }
 
     @Override

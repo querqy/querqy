@@ -1,7 +1,7 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
 import static org.hamcrest.Matchers.equalTo;
-import static querqy.lucene.contrib.rewrite.wordbreak.Language.GERMAN;
+import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.GERMAN;
 import static querqy.lucene.rewrite.TestUtil.addNumDocsWithTextField;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -814,8 +814,8 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
     }
 
-    @Test
-    public void testSpeed() throws Exception {
+    //@Test
+    public void xtestSpeed() throws Exception {
 
         final Analyzer analyzer = new WhitespaceAnalyzer();
 

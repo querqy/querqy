@@ -1,9 +1,7 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
 import querqy.LowerCaseCharSequence;
-import querqy.lucene.contrib.rewrite.wordbreak.LuceneCompounder;
-import querqy.lucene.contrib.rewrite.wordbreak.LuceneWordBreaker;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;

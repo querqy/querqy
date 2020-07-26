@@ -8,7 +8,6 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.spell.SuggestMode;
 import org.apache.lucene.search.spell.SuggestWord;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
-import querqy.lucene.contrib.rewrite.WordBreakCompoundRewriter;
 
 import java.io.IOException;
 import java.util.Arrays;

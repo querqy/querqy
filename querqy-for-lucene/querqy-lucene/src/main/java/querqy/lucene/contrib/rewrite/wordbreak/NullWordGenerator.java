@@ -14,4 +14,6 @@ public class NullWordGenerator implements WordGenerator {
     public Optional<CharSequence> generateModifier(final CharSequence reducedModifier) {
         return Optional.of(reducedModifier);
     }
+
+
 }
