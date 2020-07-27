@@ -50,7 +50,8 @@ public class WordBreakCompoundRewriterFactoryTest {
     public void testLanguageMorphologyIsApplied() {
 
         Collector collector = mock(Collector.class);
-        when(collector.collect(anyString(), anyString(), any(), anyInt(), anyFloat())).thenReturn(true);
+        when(collector.collect(any(CharSequence.class), any(CharSequence.class), any(), anyInt(), anyFloat()))
+                .thenReturn(Collector.CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED);
 
         ArgumentCaptor<String> leftCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -64,7 +65,7 @@ public class WordBreakCompoundRewriterFactoryTest {
         final String right = "right";
         final Term rightTerm = new Term("f1", "right");
 
-        assertTrue(suffixGroup.collect(left, 0, right, rightTerm, 10, 1, collector));
+        assertTrue(suffixGroup.collect(left, 0, right, rightTerm, 10, 1, collector).getMatched().orElse(false));
         verify(collector, times(5)).collect(leftCaptor.capture(), anyString(), any(), anyInt(), anyFloat());
         assertThat(leftCaptor.getAllValues(), containsInAnyOrder("buch", "büch", "bücher","büchere", "bücheren"));
 

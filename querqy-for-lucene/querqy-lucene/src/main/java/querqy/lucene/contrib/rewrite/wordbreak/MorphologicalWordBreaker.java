@@ -13,11 +13,12 @@ import java.util.List;
 
 public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
-    public static final float DEFAULT_WEIGHT_MORPHEME_STRATEGY = 0.8f;
+    public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
 
     final SuffixGroup suffixGroup; // package visible for testing
 
     private final int minBreakLength;
+    private final int maxEvaluations;
     private final boolean lowerCaseInput;
     private final String dictionaryField;
     private final int minSuggestionFrequency;
@@ -25,23 +26,25 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
     public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
-                                    final int minBreakLength) {
-        this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength,
-                DEFAULT_WEIGHT_MORPHEME_STRATEGY);
+                                    final int minBreakLength, final int maxEvaluations) {
+        this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength, maxEvaluations,
+                DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
     public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
-                                    final int minBreakLength, final float weightMorphemeStrategy) {
+                                    final int minBreakLength, final int maxEvaluations,
+                                    final float weightMorphologicalPattern) {
 
         this.minBreakLength = minBreakLength;
+        this.maxEvaluations = maxEvaluations;
         this.lowerCaseInput = lowerCaseInput;
         this.dictionaryField = dictionaryField;
         this.minSuggestionFrequency = minSuggestionFrequency;
 
-        weightDfObservation = 1f - weightMorphemeStrategy;
+        weightDfObservation = 1f - weightMorphologicalPattern;
 
-        suffixGroup = morphology.createMorphemes(weightMorphemeStrategy);
+        suffixGroup = morphology.createMorphemes(weightMorphologicalPattern);
 
     }
 
@@ -55,8 +58,8 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
             return Collections.emptyList();
         }
 
-        final Collector collector = new Collector(minSuggestionFrequency, maxDecompoundExpansions, verifyCollation,
-                indexReader, dictionaryField, weightDfObservation);
+        final Collector collector = new Collector(minSuggestionFrequency, maxDecompoundExpansions, maxEvaluations,
+                verifyCollation, indexReader, dictionaryField, weightDfObservation);
 
         collectSuggestions(word, indexReader, collector);
 

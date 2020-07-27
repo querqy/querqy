@@ -1,6 +1,7 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.GERMAN;
 import static querqy.lucene.rewrite.TestUtil.addNumDocsWithTextField;
 
@@ -15,6 +16,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class GermanWordBreakerTest extends LuceneTestCase {
@@ -36,7 +38,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("abcdef", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"ab", "cdef"}),
@@ -67,7 +69,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("hundefutter", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"hund", "futter"}))
@@ -97,7 +99,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("mattenladen", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"matte", "laden"}))
@@ -127,7 +129,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("arbeitsmatten", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"arbeit", "matten"}))
@@ -157,7 +159,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 1);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 1, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("schiller", indexReader, 2, true);
             // We don't care which strategy produces this but let's make sure, we don't crash.
             assertThat(sequences, Matchers.contains(
@@ -192,7 +194,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("fanshirt", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"fan", "shirt"}),
@@ -209,9 +211,9 @@ public class GermanWordBreakerTest extends LuceneTestCase {
         }
 
     }
-/*
+
     @Test
-    public void testThatHighCollationFrequencyWeighsMoreThanStrategyPriorForDefaultWeights() throws IOException {
+    public void testThatHighDfObservatioWeightWeighsMoreThanMorphoSyntaxPrior() throws IOException {
 
         final Analyzer analyzer = new WhitespaceAnalyzer();
 
@@ -219,19 +221,24 @@ public class GermanWordBreakerTest extends LuceneTestCase {
         final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
         addNumDocsWithTextField("f1", "fan shirt", indexWriter, 1);
-        addNumDocsWithTextField("f1", "fan hirt", indexWriter, 1 + (int) Math.pow((GermanWordBreaker.NORM_PRIOR * GermanWordBreaker.PRIOR_PLUS_S), GermanWordBreaker.DEFAULT_WEIGHT_STRATEGY));
+        addNumDocsWithTextField("f1", "fan hirt", indexWriter, 10);
 
         indexWriter.close();
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
 
-            final GermanWordBreaker wordBreaker = new GermanWordBreaker("f1", true, 1, 2);
-            final List<CharSequence[]> sequences = wordBreaker.breakWord("fanshirt", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
-                    equalTo(new CharSequence[] {"fan", "hirt"}),
-                    equalTo(new CharSequence[] {"fan","shirt"}))
-            );
+            // use higher weight for morph-syntax structure first
+            assertThat(
+                    new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100, 0.8f).breakWord("fanshirt", indexReader,
+                            1, true),  Matchers.contains(equalTo(new CharSequence[] {"fan", "shirt"})));
+
+            // use low weight for morph-syntax structure first
+            assertThat(
+                    new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100, 0.1f).breakWord("fanshirt", indexReader,
+                            1, true),  Matchers.contains(equalTo(new CharSequence[] {"fan", "hirt"})));
+
+
 
 
         } finally {
@@ -243,7 +250,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
         }
 
     }
-*/
+
     @Test
     public void testMinBreakSizeAtLinkingMorphemeS() throws IOException {
 
@@ -260,11 +267,11 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             // minBreakLength must relate to prefix word w/o linking morpheme
             assertTrue(
-                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 7)
+                    new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 7, 100)
                             .breakWord("arbeitsverträge", indexReader, 2, true).isEmpty());
 
             assertFalse(
-                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 6)
+                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 6, 100)
                             .breakWord("arbeitsverträge", indexReader, 2, true).isEmpty());
 
 
@@ -292,7 +299,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("straußenei", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"strauß", "ei"}))
@@ -322,7 +329,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("wöchnerinnenheim", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"wöchnerin", "heim"}))
@@ -352,7 +359,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("prinzipienreiter", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"prinzip", "reiter"}))
@@ -382,7 +389,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("tageszeit", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"tag", "zeit"}))
@@ -414,11 +421,11 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             // minBreakLength must relate to prefix word w/o linking morpheme
             assertTrue(
-                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 4)
+                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 4, 100)
                             .breakWord("tageszeit", indexReader, 2, true).isEmpty());
 
             assertFalse(
-                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3)
+                    new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100)
                             .breakWord("tageszeit", indexReader, 2, true).isEmpty());
 
 
@@ -448,7 +455,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("geisterstunde", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"geist", "stunde"}))
@@ -480,7 +487,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
 
             assertThat(wordBreaker.breakWord("bücherregal", indexReader, 2, true), Matchers.contains(
                     equalTo(new CharSequence[] {"buch", "regal"}))
@@ -520,7 +527,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
 
             assertThat(wordBreaker.breakWord("gänseklein", indexReader, 2, true), Matchers.contains(
                     equalTo(new CharSequence[] {"gans", "klein"}))
@@ -558,7 +565,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("aphorismensammlung", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"aphorismus", "sammlung"}))
@@ -588,7 +595,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("museenverwaltung", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"museum", "verwaltung"}))
@@ -618,7 +625,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("madonnenkult", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"madonna", "kult"}))
@@ -648,7 +655,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("stadienverbot", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"stadion", "verbot"}))
@@ -678,7 +685,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("pharmakaanalyse", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"pharmakon", "analyse"}))
@@ -708,7 +715,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("carabinierischule", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"carabiniere", "schule"}))
@@ -738,7 +745,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("baumwolltuch", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"baumwolle", "tuch"}))
@@ -768,7 +775,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("südwind", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"süden", "wind"}))
@@ -798,7 +805,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("aphrodisiakaverkäufer", indexReader, 2, true);
             assertThat(sequences, Matchers.contains(
                     equalTo(new CharSequence[] {"aphrodisiakum", "verkäufer"}))
@@ -851,7 +858,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
-            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 50, 1);
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 50, 1, 100);
             final boolean verifyCollation = true;
 
             final int maxIterations = 1000;

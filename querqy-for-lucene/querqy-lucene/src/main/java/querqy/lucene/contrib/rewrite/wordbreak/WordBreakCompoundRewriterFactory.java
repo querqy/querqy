@@ -25,6 +25,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     // as we currently only send 2-grams to WBSP for compounding only max_changes = 1 is correctly supported
     private static final int MAX_CHANGES = 1;
 
+    private static final int MAX_EVALUATIONS = 100;
+
     private final Supplier<IndexReader> indexReaderSupplier;
     private final boolean lowerCaseInput;
     private final boolean alwaysAddReverseCompounds;
@@ -91,7 +93,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         // TODO: configure weight of strategy
         wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
-                minBreakLength);
+                minBreakLength, MAX_EVALUATIONS);
 
 
     }

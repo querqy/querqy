@@ -15,8 +15,8 @@ public enum Morphology {
         this.morphemeFactory = morphemeFactory;
     }
 
-    public SuffixGroup createMorphemes(final float morphemeStructureWeight) {
-        return morphemeFactory.apply(morphemeStructureWeight);
+    public SuffixGroup createMorphemes(final float weightMorphologicalPattern) {
+        return morphemeFactory.apply(weightMorphologicalPattern);
     }
 
 }

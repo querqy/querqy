@@ -16,10 +16,94 @@ import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+/**
+ * <p>A Collector receives the de-compounding candidates, checks whether they exist in the index, and, optionally,
+ * verifies that they co-occur in a document. It collects the candidates that match these requirements, ranks them and
+ * keeps up to 'maxDecompoundExpansions' of them. The number of index lookups is restricted by the 'maxEvaluations'
+ * property.</p>
+ *
+ * <p>Candidates are scores like this:<br/>
+ *
+ * The score depends on two main variables: A 'prior' score that reflects general the popularity of the morphological
+ * structure in compound creation (see constants names PRIOR... in {@link GermanDecompoundingMorphology}), and a score
+ * that depends on the document frequency (df) in the index of the two terms that form the compound. The df-dependent
+ * score is calculated as:
+ *
+ *  <pre>
+ *  score_df = -log(count(term1) / N) -log(count(term2) / N)
+ *  </pre>
+ *
+ *  where a smaller value will be better.
+ *
+ *  To avoid issues with missing terms, we use add-1 smoothing:
+ *
+ *  <pre>
+ *  score_df = -log((count(term1) +1) / (N + 1)) -log((count(term2) +1)/ (N + 1))
+ *  </pre>
+ *
+ *  which can be reformulated into:
+ *
+ *  <pre>
+ *  score_df = 2*log(N+1) - (log(count(term1) +1) + log(count(term2) +1))
+ *  </pre>
+ *
+ *  We combine it with the score from the prior (score_prior) in a weighted manner:
+ *
+ *  <pre>
+ *  score = score_prior^w / score_df^(1-w)
+ *  </pre>
+ *
+ * </p>
+ * <p>The approach to the calculation of score_df follows:
+ * <ul>
+ * <li>Schiller, A.: German compound analysis with wfsc. In Proceedings of Finite State Methods and Natural
+ * Language Processing 2005, Helsinki (2005)</li>
+ * <li>Marek, T.: Analysis of german compounds using weighted finite state transducers. Technical report, BA Thesis,
+ * Universiät Tübingen (2006)</li>
+ * <li>Both of the above quoted in: Alfonseca, E. & Pharies, S.: German Decompounding in a Difficult Corpus.
+ * CICLing 2008</li>
+ * </ul>
+ * </p>
+ *
+ * @author renekrie
+ */
 public class Collector {
+
+    /**
+     * A call to {@link #collect(CharSequence, CharSequence, Term, int, float)} returns a CollectionState, containing
+     * the information about whether the maximum number of evaluations have been reached and if the terms could be found
+     * in the index (fulfilling all requirements about verification and minimum index frequency).
+     */
+    enum CollectionState {
+
+        MAX_EVALUATIONS_REACHED(null, true),
+        MATCHED_MAX_EVALUATIONS_REACHED(true, true),
+        MATCHED_MAX_EVALUATIONS_NOT_REACHED(true, false),
+        NOT_MATCHED_MAX_EVALUATIONS_REACHED(false, true),
+        NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED(false, false);
+
+        private final Boolean matched;
+        private final boolean maxEvaluationsReached;
+
+        CollectionState(final Boolean matched, final boolean maxEvaluationsReached) {
+            this.matched = matched;
+            this.maxEvaluationsReached = maxEvaluationsReached;
+        }
+
+        boolean isMaxEvaluationsReached() {
+            return maxEvaluationsReached;
+        }
+
+        Optional<Boolean> getMatched() {
+            return Optional.ofNullable(matched);
+        }
+    }
+
+
 
     private final Queue<MorphologicalWordBreaker.BreakSuggestion> collection;
     private final int minSuggestionFrequency;
@@ -30,9 +114,20 @@ public class Collector {
     private final float totalDocsNorm;
     private final int maxDecompoundExpansions;
     private final IndexSearcher searcher;
+    private final int maxEvaluations;
+    private int evaluations = 0;
 
-    public Collector(final int minSuggestionFrequency,
-                     final int maxDecompoundExpansions,
+    /**
+     *
+     * @param minSuggestionFrequency Minimum frequency of each split term in the index
+     * @param maxDecompoundExpansions Maximum number of decompound structures to return
+     * @param maxEvaluations Maximum number of lookups in the index
+     * @param verifyCollation Iff true, the compound parts must co-occur in a document in the index
+     * @param indexReader The index reader
+     * @param dictionaryField The document field to use for the lookup
+     * @param weightDfObservation The weight of the observed document frequencies when combining with the score of the morphological compound pattern.
+     */
+    public Collector(final int minSuggestionFrequency,final int maxDecompoundExpansions, final int maxEvaluations,
                      final boolean verifyCollation, final IndexReader indexReader, final String dictionaryField,
                      final float weightDfObservation) {
 
@@ -46,11 +141,27 @@ public class Collector {
         searcher = new IndexSearcher(indexReader);
         this.dictionaryField = dictionaryField;
         this.weightDfObservation = weightDfObservation;
+        this.maxEvaluations = maxEvaluations;
         this.totalDocsNorm = 2f * (float) Math.log(1 + indexReader.numDocs());
     }
 
 
-    public boolean collect(final CharSequence left, final CharSequence right, final Term rightTerm, final int rightDf, final float strategyWeight) {
+    /**
+     *
+     * @param left
+     * @param right
+     * @param rightTerm
+     * @param rightDf
+     * @param weightMorphologicalPattern The weight of this specific morphological pattern.
+     * @return
+     */
+    public CollectionState collect(final CharSequence left, final CharSequence right, final Term rightTerm,
+                                   final int rightDf, final float weightMorphologicalPattern) {
+
+        if (maxEvaluations <= evaluations) {
+            return CollectionState.MAX_EVALUATIONS_REACHED;
+        }
+        evaluations++;
 
         final Term leftTerm = new Term(dictionaryField, new BytesRef(left));
         final int leftDf;
@@ -58,26 +169,36 @@ public class Collector {
             leftDf = indexReader.docFreq(leftTerm);
             if (leftDf >= minSuggestionFrequency) {
 
-                final float score = weightDfObservation == 0f ? strategyWeight
-                        : strategyWeight / ((float) Math.pow(totalDocsNorm - Math.log(leftDf + 1) - Math.log(rightDf + 1), weightDfObservation));
+                final float score = weightDfObservation == 0f ? weightMorphologicalPattern
+                        : weightMorphologicalPattern /
+                            ((float) Math.pow(totalDocsNorm - Math.log(leftDf + 1) - Math.log(rightDf + 1),
+                                    weightDfObservation));
 
                 if (verifyCollation) {
 
                     if (((collection.size() < maxDecompoundExpansions) || (score > collection.element().score))
                             && hasMinMatches(1, leftTerm, rightTerm)) {
-                        collection.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{left, right}, score));
+                        collection.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{left, right},
+                                score));
+
                         if (collection.size() > maxDecompoundExpansions) {
                             collection.poll();
                         }
-                        return true;
+                        return evaluations == maxEvaluations
+                                ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
+                                : CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED;
                     }
 
                 } else {
-                    collection.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{left, right}, score));
+
+                    collection.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{left, right},
+                            score));
                     if (collection.size() > maxDecompoundExpansions) {
                         collection.poll();
                     }
-                    return true;
+                    return evaluations == maxEvaluations
+                            ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
+                            : CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED;
                 }
 
             }
@@ -85,10 +206,20 @@ public class Collector {
             throw new UncheckedIOException(e);
         }
 
-        return false;
+        return evaluations == maxEvaluations
+                ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
+                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
 
     }
 
+    public boolean maxEvaluationsReached() {
+        return evaluations >= maxEvaluations;
+    }
+
+    /**
+     * Get the collected results ordered by decreasing score. This resets the internal result queue.
+     * @return
+     */
     public List<CharSequence[]> flushResults() {
         if (collection.isEmpty()) {
             return Collections.emptyList();
@@ -102,23 +233,17 @@ public class Collector {
         return result;
     }
 
-    private boolean hasMinMatches(final int minCount, final Term... suggestion)
+    private boolean hasMinMatches(final int minCount, final Term term1, final Term term2)
             throws IOException {
 
-        if (suggestion.length != 2) {
-            throw new IllegalArgumentException("Can only handle exactly two terms");
-        }
 
         final IndexReaderContext topReaderContext = searcher.getTopReaderContext();
         final IndexReader indexReader = topReaderContext.reader();
-        // FIXME: deleted documents!
+        // TODO: deleted documents?
         final int numDocs = indexReader.numDocs();
         if (minCount > numDocs) {
             return false;
         }
-
-        final Term term1 = suggestion[0];
-        final Term term2 = suggestion[1];
 
         final int df1 = indexReader.docFreq(term1);
         if (minCount > df1) {

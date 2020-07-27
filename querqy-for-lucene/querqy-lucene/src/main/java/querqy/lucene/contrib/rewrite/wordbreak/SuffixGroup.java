@@ -1,10 +1,38 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.apache.lucene.index.Term;
+import querqy.lucene.contrib.rewrite.wordbreak.Collector.CollectionState;
 
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * <p></p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.
+ *
+ * <p>For example, German has a suffix -en that is added to the modifier word in compounding:</p>
+ * <pre>
+ *     strauß + ei -> straußenei (strauß +en ei)
+ * </pre>
+ * There are further structures that use this suffix:
+ * <pre>
+ *     stadion + verbot -> stadienverbot (stadion -on +en verbot)
+ *     aphorismus + schatz -> aphorismenschat (aphorismus -us +en schatz)
+ *     ...
+ * </pre>
+ *
+ * <p>All word forms using the +en would be combined into a single SuffixGroup and the different structures (Null, -on,
+ * -us etc.) will be kept in the {@link #generatorAndWeights} list.<p>
+ *
+ * <p>Suffixes can overlap: -ien/-nen are both contained in -en, -en is contained in -n, and finally, all suffixes are
+ * contained in the null (or, zero-length) suffix. This relationship is expressed in the {@link #next} property of
+ * a SuffixGroup. -n is a 'next' of the zero-length SuffixGroup, -en is a 'next' of -n, and -ien and -nen are both
+ * 'nexts' of -en. This organisation of suffixed helps speed up the lookup, as we can stop the lookup as soon as the
+ * first element in the 'next' list could be matched in the index.</p>
+ *
+ * @author renekrie
+ */
 public class SuffixGroup {
+
 
     private final CharSequence suffix;
     private final int suffixLength;
@@ -25,14 +53,17 @@ public class SuffixGroup {
      * @param minLength
      * @return true iff the suffix of this SuffixGroup matched
      */
-    public boolean collect(final CharSequence left, final int matchingFromEndOfLeft, final CharSequence right,
-                           final Term rightTerm,  final int rightDf, final int minLength,
-                           final Collector collector) {
+    public CollectionState collect(final CharSequence left, final int matchingFromEndOfLeft,
+                                             final CharSequence right, final Term rightTerm, final int rightDf,
+                                             final int minLength, final Collector collector) {
 
         final int leftLength = left.length();
 
         if (left.length() <= suffixLength) {
-            return false;
+            return collector.maxEvaluationsReached()
+                    ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
+                    : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
+
         }
 
         if (suffixLength > 0 && left.length() > suffixLength) {
@@ -40,7 +71,9 @@ public class SuffixGroup {
             for (int i = 1 + matchingFromEndOfLeft; i <= suffixLength; i++) {
 
                 if (left.charAt(leftLength - i) != suffix.charAt(suffixLength - i)) {
-                    return false;
+                    return collector.maxEvaluationsReached()
+                            ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
+                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
                 }
             }
 
@@ -50,26 +83,43 @@ public class SuffixGroup {
 
         final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
         for (final WordGeneratorAndWeight generatorAndWeight: generatorAndWeights) {
-            matched |= generatorAndWeight.generator.generateModifier(reduced)
-                    .filter(modifier -> modifier.length() >= minLength)
-                    .map(modifier ->
-                            collector.collect(modifier, right, rightTerm, rightDf, generatorAndWeight.weight)
-                    ).orElse(false);
+            final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(reduced);
+            if (modifierOpt.isPresent()) {
+                final CharSequence modifier = modifierOpt.get();
+                if (modifier.length() >= minLength) {
+                    final CollectionState collectionState = collector.collect(modifier, right, rightTerm,
+                            rightDf, generatorAndWeight.weight);
+                    matched |= collectionState.getMatched().orElse(false);
+                    if (collectionState.isMaxEvaluationsReached()) {
+                        return matched
+                                ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
+                                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
+                    }
+                }
+            }
+
 
         }
 
         if (next != null) {
             for (final SuffixGroup group : next) {
-                if (group.collect(left, suffixLength, right, rightTerm, rightDf,
-                        minLength, collector)) {
-                    matched = true;
-                    // As suffixes are mutually exclusive, we can break after the first match
-                    break;
+                final CollectionState collectionState = group.collect(left, suffixLength, right, rightTerm, rightDf, minLength, collector);
+
+                final boolean wasMatched = collectionState.getMatched().orElse(false);
+                if (collectionState.isMaxEvaluationsReached()) {
+                    return matched || wasMatched
+                            ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
+                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
+                }
+                if (wasMatched) {
+                    return CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED;
                 }
             }
         }
 
-        return matched;
+        return matched
+                ? CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED
+                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
     }
 
 }
