@@ -8,7 +8,7 @@
 	<dataDir>${solr.core0.data.dir:}</dataDir>
 
 	<schemaFactory class="ClassicIndexSchemaFactory" />
-
+	
     <indexConfig>
         <!-- Needed for RAMDirectoryFactory -->
         <lockType>single</lockType>
@@ -27,7 +27,6 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
-
 	</requestHandler>
 
 	<requestHandler name="standard" class="solr.StandardRequestHandler"
@@ -35,17 +34,18 @@
 	<requestHandler name="/analysis/field" startup="lazy"
 		class="solr.FieldAnalysisRequestHandler" />
 
+	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 		<lst name="rewriteChain">
-		    <lst name="rewriter">
-				<str name="class">querqy.solr.contrib.SolrSynonymsRewriterFactory</str>
-				<str name="synonyms">contrib/synonyms.txt</str>
-				<bool name="expand">true</bool>
+			<lst name="rewriter">
+				<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+				<str name="rules">rules-dfc.txt</str>
 			</lst>
 		</lst>
 		<lst name="parser">
          <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-         <str name="class">querqy.parser.FieldAwareWhiteSpaceQuerqyParser</str>
+         <str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
       </lst>
 	</queryParser>
 	<admin>
