@@ -12,6 +12,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.ExtendedQuery;
 import org.apache.solr.search.QParser;
+import org.apache.solr.search.RankQuery;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.search.WrappedQuery;
 import querqy.lucene.LuceneQueries;
@@ -91,7 +92,13 @@ public class QuerqyDismaxQParser extends QParser {
                         maybeWrapQuery(builder.build()), requestAdapter.getReRankNumDocs(), 1.0);
 
             } else {
-                processedQuery = maybeWrapQuery(luceneQueries.mainQuery);
+                // an external rank query (parsed from querqy.rq) is only applied if no querqy boost queries have been applied
+                // (either by applying them on the main query as optional clauses or by wrapping the main query in a QuerqyReRankQuery)
+                if (luceneQueries.rankQuery != null && !luceneQueries.isMainQueryBoosted) {
+                    processedQuery = ((RankQuery) luceneQueries.rankQuery).wrap(luceneQueries.mainQuery);
+                } else {
+                    processedQuery = maybeWrapQuery(luceneQueries.mainQuery);
+                }
             }
 
 
