@@ -19,6 +19,7 @@ import org.apache.solr.search.DisMaxQParser;
 import org.apache.solr.search.FieldParams;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.apache.solr.search.QParser;
+import org.apache.solr.search.RankQuery;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 import querqy.lucene.PhraseBoosting;
@@ -393,6 +394,26 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     @Override
     public List<Query> getMultiplicativeBoosts(final QuerqyQuery<?> userQuery) throws SyntaxException {
         return parseQueriesFromParam(MULT_BOOST, FunctionQParserPlugin.NAME);
+    }
+
+    @Override
+    public Optional<Query> parseRankQuery() throws SyntaxException {
+        Optional<String> rankQueryStringOpt = getRequestParam(QRQ);
+        if (rankQueryStringOpt.isPresent()) {
+            // see org.apache.solr.handler.component.QueryComponent#prepare
+            try {
+                Query rq = QParser.getParser(rankQueryStringOpt.get(), request).getQuery();
+                if (rq instanceof RankQuery) {
+                    return Optional.of(rq);
+                } else {
+                    throw new IllegalArgumentException(QRQ + " must be resolved to RankQuery.");
+                }
+            } catch (SyntaxError e) {
+                throw new SyntaxException(e);
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     private List<Query> parseQueriesFromParam(final String paramName, final String defaultParserName) throws SyntaxException {

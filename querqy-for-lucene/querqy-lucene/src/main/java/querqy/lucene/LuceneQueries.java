@@ -11,20 +11,25 @@ public class LuceneQueries {
     public final List<Query> filterQueries;
     public final Query userQuery;
     public final List<Query> querqyBoostQueries;
+    public final Query rankQuery;
     public final boolean areQueriesInterdependent;
+    public final boolean isMainQueryBoosted;
 
 
     public LuceneQueries(final Query mainQuery, final List<Query> filterQueries, final List<Query> querqyBoostQueries,
-                         final Query userQuery, final boolean areQueriesInterdependent) {
+                         final Query userQuery, final Query rankQuery, final boolean areQueriesInterdependent,
+                         final boolean isMainQueryBoosted) {
         this.mainQuery = Objects.requireNonNull(mainQuery);
         this.filterQueries = filterQueries;
         this.querqyBoostQueries = querqyBoostQueries;
         this.userQuery =  Objects.requireNonNull(userQuery);
+        this.rankQuery = rankQuery;
         this.areQueriesInterdependent = areQueriesInterdependent;
+        this.isMainQueryBoosted = isMainQueryBoosted;
     }
 
     public LuceneQueries(final Query mainQuery, final List<Query> filterQueries, final Query userQuery,
-                         final boolean areQueriesInterdependent) {
-        this(mainQuery, filterQueries, null, userQuery, areQueriesInterdependent);
+                         final boolean areQueriesInterdependent, final boolean isMainQueryBoosted) {
+        this(mainQuery, filterQueries, null, userQuery, null, areQueriesInterdependent, isMainQueryBoosted);
     }
 }
