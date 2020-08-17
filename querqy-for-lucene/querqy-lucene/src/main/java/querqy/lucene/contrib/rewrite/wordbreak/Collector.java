@@ -26,7 +26,7 @@ import java.util.Queue;
  * keeps up to 'maxDecompoundExpansions' of them. The number of index lookups is restricted by the 'maxEvaluations'
  * property.</p>
  *
- * <p>Candidates are scores like this:
+ * <p>Candidates are scores like this:</p>
  *
  * The score depends on two main variables: A 'prior' score that reflects general the popularity of the morphological
  * structure in compound creation (see constants names PRIOR... in {@link GermanDecompoundingMorphology}), and a score
@@ -57,7 +57,7 @@ import java.util.Queue;
  *  score = score_prior^w / score_df^(1-w)
  *  </pre>
  *
- * </p>
+ *
  *
  *
  * <p>The approach to the calculation of score_df follows:

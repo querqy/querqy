@@ -39,6 +39,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     /**
      * @param rewriterId The id of the rewriter
      * @param indexReaderSupplier Access to an IndexReader
+     * @param morphology The (de)compounding morphology to use
      * @param dictionaryField The dictionary field name
      * @param lowerCaseInput Iff true, lowercase input before matching it against the dictionary field.
      * @param minSuggestionFreq The minimum frequency of a suggestion in the dictionary field (see {@link WordBreakSpellChecker}.setMinSuggestionFrequency())
