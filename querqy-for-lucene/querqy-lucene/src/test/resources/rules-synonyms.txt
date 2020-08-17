@@ -1,0 +1,27 @@
+a =>
+    SYNONYM: x
+
+abc =>
+    SYNONYM: def
+
+b c =>
+    SYNONYM: y
+
+b c d =>
+    SYNONYM: z x
+
+b e =>
+    SYNONYM: m
+
+bb cc dd =>
+    SYNONYM: z x
+
+f =>
+    SYNONYM: k l
+
+g h =>
+    SYNONYM: n o
+
+j =>
+    SYNONYM: s t
+    SYNONYM: q

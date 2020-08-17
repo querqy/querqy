@@ -3,11 +3,16 @@ package querqy.lucene.rewrite;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -23,13 +28,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import querqy.lucene.contrib.rewrite.LuceneSynonymsRewriterFactory;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.model.ExpandedQuery;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
+import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
@@ -105,13 +112,18 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
-        LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory("LuceneSynonymsRewriter", true, true);
-        factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
-        factory.build();
 
-        QueryRewriter rewriter = factory.createRewriter(null, searchEngineRequestAdapter);
+        SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("CommonRulesRewriter",
+                new BufferedReader(new InputStreamReader(Objects.requireNonNull(
+                        getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
+                        StandardCharsets.UTF_8)),
+                new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
+                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
 
-        return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
+        ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
+                searchEngineRequestAdapter);
+
+        return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery());
 
     }
    
@@ -338,13 +350,18 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");
-       LuceneSynonymsRewriterFactory factory = new LuceneSynonymsRewriterFactory("LuceneSynonymsRewriter", true, true);
-       factory.addResource(getClass().getClassLoader().getResourceAsStream("synonyms-test.txt"));
-       factory.build();
 
-       QueryRewriter rewriter = factory.createRewriter(null, searchEngineRequestAdapter);
+       SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("CommonRulesRewriter",
+               new BufferedReader(new InputStreamReader(Objects.requireNonNull(
+                       getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
+                       StandardCharsets.UTF_8)),
+               new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
+               (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
 
-       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q)).getUserQuery());
+       ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
+               searchEngineRequestAdapter);
+
+       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery());
        
        assertThat(query, 
            dmq(1f, 0.1f,
