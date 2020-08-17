@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-core</artifactId>
-    <version>3.8.0</version>
+    <version>3.9.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting: Querqy Core</description>
@@ -48,7 +48,7 @@
         <url>git@github.com:querqy/querqy.git</url>
         <connection>scm:git:git@github.com:querqy/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:querqy/querqy.git</developerConnection>
-        <tag>querqy-core-3.8.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <prerequisites>
