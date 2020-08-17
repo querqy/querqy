@@ -7,21 +7,21 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <p></p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.
+ * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>
  *
  * <p>For example, German has a suffix -en that is added to the modifier word in compounding:</p>
  * <pre>
- *     strauß + ei -> straußenei (strauß +en ei)
+ *     strauß + ei -&gt; straußenei (strauß +en ei)
  * </pre>
  * There are further structures that use this suffix:
  * <pre>
- *     stadion + verbot -> stadienverbot (stadion -on +en verbot)
- *     aphorismus + schatz -> aphorismenschat (aphorismus -us +en schatz)
+ *     stadion + verbot -&gt; stadienverbot (stadion -on +en verbot)
+ *     aphorismus + schatz -&gt; aphorismenschat (aphorismus -us +en schatz)
  *     ...
  * </pre>
  *
  * <p>All word forms using the +en would be combined into a single SuffixGroup and the different structures (Null, -on,
- * -us etc.) will be kept in the {@link #generatorAndWeights} list.<p>
+ * -us etc.) will be kept in the {@link #generatorAndWeights} list.</p>
  *
  * <p>Suffixes can overlap: -ien/-nen are both contained in -en, -en is contained in -n, and finally, all suffixes are
  * contained in the null (or, zero-length) suffix. This relationship is expressed in the {@link #next} property of
@@ -49,8 +49,13 @@ public class SuffixGroup {
 
     /**
      *
-     * @param left The left split
-     * @param minLength
+     * @param left The left split (the modifier)
+     * @param matchingFromEndOfLeft number of characters that are know to match from the end of the left split
+     * @param right The head character sequence
+     * @param rightTerm The head character sequence as a term in the dictionary field
+     * @param rightDf The document frequency of the rightTerm
+     * @param minLength The minimum head/modifier length
+     * @param collector The collector that will be presented the candidates
      * @return true iff the suffix of this SuffixGroup matched
      */
     public CollectionState collect(final CharSequence left, final int matchingFromEndOfLeft,

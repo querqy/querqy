@@ -26,7 +26,7 @@ import java.util.Queue;
  * keeps up to 'maxDecompoundExpansions' of them. The number of index lookups is restricted by the 'maxEvaluations'
  * property.</p>
  *
- * <p>Candidates are scores like this:<br/>
+ * <p>Candidates are scores like this:
  *
  * The score depends on two main variables: A 'prior' score that reflects general the popularity of the morphological
  * structure in compound creation (see constants names PRIOR... in {@link GermanDecompoundingMorphology}), and a score
@@ -58,13 +58,15 @@ import java.util.Queue;
  *  </pre>
  *
  * </p>
+ *
+ *
  * <p>The approach to the calculation of score_df follows:
  * <ul>
  * <li>Schiller, A.: German compound analysis with wfsc. In Proceedings of Finite State Methods and Natural
  * Language Processing 2005, Helsinki (2005)</li>
  * <li>Marek, T.: Analysis of german compounds using weighted finite state transducers. Technical report, BA Thesis,
  * Universiät Tübingen (2006)</li>
- * <li>Both of the above quoted in: Alfonseca, E. & Pharies, S.: German Decompounding in a Difficult Corpus.
+ * <li>Both of the above quoted in: Alfonseca, E. &amp; Pharies, S.: German Decompounding in a Difficult Corpus.
  * CICLing 2008</li>
  * </ul>
  * </p>
@@ -148,12 +150,12 @@ public class Collector {
 
     /**
      *
-     * @param left
-     * @param right
-     * @param rightTerm
-     * @param rightDf
+     * @param left The modifier character sequence
+     * @param right The head character sequence
+     * @param rightTerm The head character sequence as a term in the dictionary field
+     * @param rightDf The document frequency of the rightTerm
      * @param weightMorphologicalPattern The weight of this specific morphological pattern.
-     * @return
+     * @return The state of candidate collection
      */
     public CollectionState collect(final CharSequence left, final CharSequence right, final Term rightTerm,
                                    final int rightDf, final float weightMorphologicalPattern) {
@@ -218,7 +220,8 @@ public class Collector {
 
     /**
      * Get the collected results ordered by decreasing score. This resets the internal result queue.
-     * @return
+     *
+     * @return The collected results.
      */
     public List<CharSequence[]> flushResults() {
         if (collection.isEmpty()) {
