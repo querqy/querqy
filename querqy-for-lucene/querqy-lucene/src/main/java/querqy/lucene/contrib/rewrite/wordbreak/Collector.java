@@ -69,7 +69,6 @@ import java.util.Queue;
  * <li>Both of the above quoted in: Alfonseca, E. &amp; Pharies, S.: German Decompounding in a Difficult Corpus.
  * CICLing 2008</li>
  * </ul>
- * </p>
  *
  * @author renekrie
  */
