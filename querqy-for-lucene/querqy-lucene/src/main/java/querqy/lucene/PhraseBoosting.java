@@ -73,11 +73,11 @@ public class PhraseBoosting {
      * the scores for these levels are aggregated: a value of 1.0 will add up the scores, a value of 0.0 will pick the
      * highest score.</p>
      *
-     * @param userQuery
-     * @param phraseBoostFieldParams
-     * @param phraseBoostTiebreaker
-     * @param queryAnalyzer
-     * @return
+     * @param userQuery The main query from which to generate phrases
+     * @param phraseBoostFieldParams A list of phrase boost parameters
+     * @param phraseBoostTiebreaker The tie breaker for aggregating scores from the different phrase length levels
+     * @param queryAnalyzer The Lucene query analyzer
+     * @return An optional query that contains the phrase boost queries if any such query could be created
      */
     public static Optional<Query> makePhraseFieldsBoostQuery(final QuerqyQuery<?> userQuery,
                                                              final List<PhraseBoostFieldParams> phraseBoostFieldParams,

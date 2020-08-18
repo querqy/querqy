@@ -64,12 +64,12 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * the term was generated, and from queryFieldsAndBoostings otherwise. If the respective map doesn't contain the field,
     * use the defaultGeneratedFieldBoostFactor for generated terms. If the term is not generated, treat the field name as
     * part of the term text (= "fieldname:value").</p>
-    * 
-    * @param termQueryBuilder
-    * @param analyzer
-    * @param searchFieldsAndBoosting
-    * @param dmqTieBreakerMultiplier
-    * @param normalizeBooleanQueryBoost
+    *
+    * @param termQueryBuilder The TermQueryBuilder
+    * @param analyzer The query Analyzer
+    * @param searchFieldsAndBoosting The search fields and their boost factors
+    * @param dmqTieBreakerMultiplier The tie breaker for dismax queries
+    * @param normalizeBooleanQueryBoost Iff true and if the analyzer turns a single token into multiple tokens, divide their aggregate score by their count
     * @param termQueryCache The term query cache or null
     */
     public LuceneQueryBuilder(final TermQueryBuilder termQueryBuilder, final Analyzer analyzer,

@@ -46,15 +46,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final boolean verifyDecompoundCollation;
 
     /**
-<<<<<<< HEAD:querqy-for-lucene/querqy-lucene/src/main/java/querqy/lucene/contrib/rewrite/WordBreakCompoundRewriter.java
-     * @param wordBreakSpellChecker
-     * @param indexReader
-     * @param dictionaryField
-     * @param lowerCaseInput
-     * @param alwaysAddReverseCompounds
-     * @param reverseCompoundTriggerWords
-     * @param maxDecompoundExpansions
-=======
      * @param wordBreaker The word breaker to use
      * @param compounder The compounder to use
      * @param indexReader The index reader
@@ -62,7 +53,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
      * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
      * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
->>>>>>> solr8_0:querqy-for-lucene/querqy-lucene/src/main/java/querqy/lucene/contrib/rewrite/wordbreak/WordBreakCompoundRewriter.java
      * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
      */
     public WordBreakCompoundRewriter(final LuceneWordBreaker wordBreaker, final LuceneCompounder compounder,
