@@ -56,7 +56,7 @@ public class QuerqyQueryComponent extends QueryComponent {
         
         super.process(rb);
         
-        QParser parser = rb.getQparser();
+        final QParser parser = rb.getQparser();
         
         if (parser instanceof QuerqyDismaxQParser) {
 
@@ -67,10 +67,19 @@ public class QuerqyQueryComponent extends QueryComponent {
             if (context != null) {
 
                 @SuppressWarnings("unchecked")
-                Set<Object> decorations = (Set<Object>) context.get(DecorateInstruction.CONTEXT_KEY);
+                final Set<Object> decorations = (Set<Object>) context.get(DecorateInstruction.DECORATION_CONTEXT_KEY);
                 if (decorations != null) {
                     rb.rsp.add("querqy_decorations", decorations);
                 }
+
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> namedDecorations =
+                        (Map<String, Object>) context.get(DecorateInstruction.DECORATION_CONTEXT_MAP_KEY);
+
+                if (namedDecorations != null) {
+                    rb.rsp.add("querqy_named_decorations", namedDecorations);
+                }
+
             }
 
             searchEngineRequestAdapter.getInfoLoggingContext().ifPresent(InfoLoggingContext::endOfRequest);

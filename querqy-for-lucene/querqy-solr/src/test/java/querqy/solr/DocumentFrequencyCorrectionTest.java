@@ -31,7 +31,7 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
 
    @BeforeClass
    public static void beforeTests() throws Exception {
-      initCore("solrconfig-boost.xml", "schema.xml");
+      initCore("solrconfig-dfc.xml", "schema.xml");
    }
 
     @Override

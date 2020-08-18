@@ -1,19 +1,17 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.index.IndexReader;
 import org.junit.Assert;
 import org.junit.Test;
+import querqy.lucene.contrib.rewrite.wordbreak.ClassicWordBreakCompoundRewriterFactory;
 import querqy.trie.TrieMap;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 
-public class WordBreakCompoundRewriterFactoryTest {
+public class ClassicWordBreakCompoundRewriterFactoryTest {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputTrue() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null,
+        final ClassicWordBreakCompoundRewriterFactory factory = new ClassicWordBreakCompoundRewriterFactory("w1", () -> null,
                 "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false);
 
         final TrieMap<Boolean> triggerWords = factory.getReverseCompoundTriggerWords();
@@ -24,7 +22,7 @@ public class WordBreakCompoundRewriterFactoryTest {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputFalse() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null,
+        final ClassicWordBreakCompoundRewriterFactory factory = new ClassicWordBreakCompoundRewriterFactory("w2", () -> null,
                 "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false);
 
         final TrieMap<Boolean> triggerWords = factory.getReverseCompoundTriggerWords();

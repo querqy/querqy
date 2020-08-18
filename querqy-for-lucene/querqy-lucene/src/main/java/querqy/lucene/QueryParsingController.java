@@ -207,11 +207,13 @@ public class QueryParsingController {
 
         final boolean hasMultiplicativeBoosts = multiplicativeBoosts != null && !multiplicativeBoosts.isEmpty();
         final boolean hasQuerqyBoostQueries = !querqyBoostQueries.isEmpty();
+        final boolean hasQuerqyBoostQueriesOnMainQuery = hasQuerqyBoostQueries && addQuerqyBoostQueriesToMainQuery;
 
         // do we have to add a boost query as an optional clause to the main query?
-        final boolean hasOptBoost = needsScores && ((additiveBoosts != null && !additiveBoosts.isEmpty())
-                || hasMultiplicativeBoosts
-                || (hasQuerqyBoostQueries && addQuerqyBoostQueriesToMainQuery));
+        final boolean hasOptBoost = needsScores &&
+                ((additiveBoosts != null && !additiveBoosts.isEmpty())
+                        || hasMultiplicativeBoosts
+                        || hasQuerqyBoostQueriesOnMainQuery);
 
         if (hasOptBoost) {
 
@@ -230,7 +232,7 @@ public class QueryParsingController {
                 }
             }
 
-            if (hasQuerqyBoostQueries && addQuerqyBoostQueriesToMainQuery) {
+            if (hasQuerqyBoostQueriesOnMainQuery) {
                 for (final Query q : querqyBoostQueries) {
                     builder.add(q, BooleanClause.Occur.SHOULD);
                 }
@@ -255,11 +257,16 @@ public class QueryParsingController {
             }
         }
 
-        return ((!addQuerqyBoostQueriesToMainQuery) && hasQuerqyBoostQueries)
-                ? new LuceneQueries(mainQuery, filterQueries, querqyBoostQueries, userQuery, dfc != null)
-                : new LuceneQueries(mainQuery, filterQueries, userQuery, dfc != null);
-
-
+        LuceneQueries luceneQueries;
+        if ((!addQuerqyBoostQueriesToMainQuery) && hasQuerqyBoostQueries) {
+            luceneQueries = new LuceneQueries(mainQuery, filterQueries, querqyBoostQueries, userQuery, null, dfc != null,
+                    false);
+        } else {
+            Query rankQuery = requestAdapter.parseRankQuery().orElse(null);
+            luceneQueries = new LuceneQueries(mainQuery, filterQueries, null, userQuery, rankQuery, dfc != null,
+                    hasQuerqyBoostQueriesOnMainQuery);
+        }
+        return luceneQueries;
     }
 
     public List<Query> transformFilterQueries(final Collection<QuerqyQuery<?>> filterQueries) throws SyntaxException {

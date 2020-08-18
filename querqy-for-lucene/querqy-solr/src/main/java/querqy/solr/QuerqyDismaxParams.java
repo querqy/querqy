@@ -75,6 +75,12 @@ public interface QuerqyDismaxParams {
     String QPF_TIE = "qpf.tie";
 
     /**
+     * Rerank Query Parameter, same as Solr's {@link org.apache.solr.common.params.CommonParams#RQ}
+     * Querqy will rerank the result by this query if there is no Querqy {@link querqy.model.BoostQuery} applied before.
+     */
+    String QRQ = "querqy.rq";
+
+    /**
      * A possible value of {@link #QBOOST_SIMILARITY_SCORE}: Do not calculate the similarity score for Querqy boost
      * queries.
      * As a result the boost queries are only scored by query boost and field boost but not by any function of DF or TF.
