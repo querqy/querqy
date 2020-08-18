@@ -1,13 +1,6 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.spell.CombineSuggestion;
-import org.apache.lucene.search.spell.SuggestMode;
-import org.apache.lucene.search.spell.SuggestWord;
-import org.apache.lucene.search.spell.WordBreakSpellChecker;
-import org.apache.lucene.util.BytesRef;
 import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
@@ -25,22 +18,17 @@ import querqy.trie.TrieMap;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private static final int COMPOUND_WINDOW = 3;
-
-    private final WordBreakSpellChecker wordBreakSpellChecker;
+    private final LuceneWordBreaker wordBreaker;
+    private final LuceneCompounder compounder;
     private final IndexReader indexReader;
-    private final String dictionaryField;
     private final boolean lowerCaseInput;
 
     // We are not using this as a map but as a kind of a set to look up CharSequences quickly
@@ -55,22 +43,20 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final boolean alwaysAddReverseCompounds;
 
     private final int maxDecompoundExpansions;
-    private final int decompoundsToQuery;
     private final boolean verifyDecompoundCollation;
 
     /**
-     * @param wordBreakSpellChecker A WordBreakSpellChecker instance
+     * @param wordBreaker The word breaker to use
+     * @param compounder The compounder to use
      * @param indexReader The index reader
-     * @param dictionaryField The dictionary field name
      * @param lowerCaseInput Iff true, lowercase input before matching it against the dictionary field.
      * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
      * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
      */
-    public WordBreakCompoundRewriter(final WordBreakSpellChecker wordBreakSpellChecker,
+    public WordBreakCompoundRewriter(final LuceneWordBreaker wordBreaker, final LuceneCompounder compounder,
                                      final IndexReader indexReader,
-                                     final String dictionaryField,
                                      final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
                                      final int maxDecompoundExpansions, final boolean verifyDecompoundCollation) {
@@ -79,15 +65,15 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             throw new IllegalArgumentException("reverseCompoundTriggerWords must not be null");
         }
 
+        this.wordBreaker = wordBreaker;
+        this.compounder = compounder;
+
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
         this.reverseCompoundTriggerWords = reverseCompoundTriggerWords;
         this.maxDecompoundExpansions = maxDecompoundExpansions;
         this.verifyDecompoundCollation = verifyDecompoundCollation;
-        this.wordBreakSpellChecker = wordBreakSpellChecker;
         this.indexReader = indexReader;
-        this.dictionaryField = dictionaryField;
         this.lowerCaseInput = lowerCaseInput;
-        this.decompoundsToQuery = verifyDecompoundCollation ? maxDecompoundExpansions * 4 : maxDecompoundExpansions;
     }
 
     @Override
@@ -182,19 +168,21 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     protected void decompound(final Term term) {
+
         // determine the nodesToAdd based on the term
         try {
 
-            for (final SuggestWord[] decompounded : suggestWordbreaks(term)) {
+            for (final CharSequence[] decompounded : wordBreaker.breakWord(term, indexReader, maxDecompoundExpansions,
+                    verifyDecompoundCollation)) {
 
                 if (decompounded != null && decompounded.length > 0) {
 
                     final BooleanQuery bq = new BooleanQuery(term.getParent(), Clause.Occur.SHOULD, true);
 
-                    for (final SuggestWord word : decompounded) {
+                    for (final CharSequence word : decompounded) {
                         final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Clause.Occur.MUST, true);
                         bq.addClause(dmq);
-                        dmq.addClause(new Term(dmq, term.getField(), word.string, true));
+                        dmq.addClause(new Term(dmq, term.getField(), word, true));
                     }
                     nodesToAdd.add(bq);
 
@@ -229,9 +217,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             }
 
             if (previousTerm != null) {
-                final ArrayDeque<Term> compoundTerms = new ArrayDeque<>(2);
-                compoundTerms.add(previousTerm);
-                compoundTerms.add(term);
+
+                final Term[] compoundTerms = new Term[] {previousTerm, term};
 
                 try {
                     addCompounds(compoundTerms, false);
@@ -246,34 +233,12 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         }
     }
 
-    private void addCompounds(final ArrayDeque<Term> terms, final boolean reverse) throws IOException {
+    private void addCompounds(final Term[] terms, final boolean reverse) throws IOException {
 
-        final CombineSuggestion[] combinations = suggestCombination(reverse
-                ? terms.descendingIterator() : terms.iterator());
-
-        if (combinations != null && combinations.length > 0) {
-
-            final Term[] termArray;
-            if (reverse) {
-                termArray = new Term[terms.size()];
-                int i = terms.size() - 1;
-                final Iterator<Term> termIterator = terms.descendingIterator();
-                while (termIterator.hasNext()) {
-                    termArray[i--] = termIterator.next();
-                }
-            } else {
-                termArray = terms.toArray(new Term[0]);
+        for (final LuceneCompounder.CompoundTerm compoundTerm : compounder.combine(terms, indexReader, reverse)) {
+            for (final Term sibling: compoundTerm.originalTerms) {
+                nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
             }
-
-            for (final CombineSuggestion suggestion : combinations) {
-                // add compound to each sibling that is part of the compound to maintain mm logic
-                Arrays.stream(suggestion.originalTermIndexes)
-                        .mapToObj(idx -> termArray[idx])
-                        .forEach(sibling -> nodesToAdd.add(
-                                new Term(sibling.getParent(), sibling.getField(), suggestion.suggestion.string, true)));
-
-            }
-
         }
 
     }
@@ -282,58 +247,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     public Node visit(final BooleanQuery bq) {
         previousTerms.clear();
         return super.visit(bq);
-    }
-
-    protected List<SuggestWord[]> suggestWordbreaks(final Term term) throws IOException {
-        final SuggestWord[][] rawSuggestions = wordBreakSpellChecker
-                .suggestWordBreaks(toLuceneTerm(term), decompoundsToQuery, indexReader, SuggestMode.SUGGEST_ALWAYS,
-                        WordBreakSpellChecker.BreakSuggestionSortMethod.NUM_CHANGES_THEN_MAX_FREQUENCY);
-
-        if (rawSuggestions.length == 0) {
-            return Collections.emptyList();
-        }
-
-        if (!verifyDecompoundCollation) {
-            return Arrays.stream(rawSuggestions)
-                    .filter(suggestion -> suggestion != null && suggestion.length > 1)
-                    .limit(maxDecompoundExpansions).collect(Collectors.toList());
-        }
-
-        final IndexSearcher searcher = new IndexSearcher(indexReader);
-        return Arrays.stream(rawSuggestions)
-                .filter(suggestion -> suggestion != null && suggestion.length > 1)
-                .map(suggestion -> new MaxSortable<>(suggestion, countCollatedMatches(suggestion, searcher)))
-                .filter(sortable -> sortable.count > 0)
-                .sorted()
-                .limit(maxDecompoundExpansions) // TODO: use PriorityQueue
-                .map(sortable -> sortable.obj)
-                .collect(Collectors.toList());
-
-    }
-
-    protected int countCollatedMatches(final SuggestWord[] suggestion, final IndexSearcher searcher) {
-        org.apache.lucene.search.BooleanQuery.Builder builder = new org.apache.lucene.search.BooleanQuery.Builder();
-        for (final SuggestWord word : suggestion) {
-            builder.add(new org.apache.lucene.search.BooleanClause(
-                    new TermQuery(new org.apache.lucene.index.Term(dictionaryField, word.string)),
-                    org.apache.lucene.search.BooleanClause.Occur.FILTER));
-        }
-
-        try {
-            return searcher.count(builder.build());
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected CombineSuggestion[] suggestCombination(final Iterator<Term> terms) throws IOException {
-
-        final List<org.apache.lucene.index.Term> luceneTerms = new ArrayList<>(COMPOUND_WINDOW);
-
-        terms.forEachRemaining(term -> luceneTerms.add(toLuceneTerm(term)));
-
-        return wordBreakSpellChecker.suggestWordCombinations(
-                luceneTerms.toArray(new org.apache.lucene.index.Term[0]), 10, indexReader, SuggestMode.SUGGEST_ALWAYS);
     }
 
     public static class MaxSortable<T> implements Comparable<MaxSortable<T>> {
@@ -352,15 +265,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         }
     }
 
-    private org.apache.lucene.index.Term toLuceneTerm(final Term querqyTerm) {
-        return new org.apache.lucene.index.Term(dictionaryField,
-                new BytesRef(lowerCaseInput ? new LowerCaseCharSequence(querqyTerm) : querqyTerm));
-    }
-
-    private static <T> boolean eq(final T value1, final T value2) {
-        return (value1 == null && value2 == null) || (value1 != null && value1.equals(value2));
-    }
-
     // Iterator wrapper that only iterates as long as it can emit terms from a given field
     private static class TermsFromFieldIterator implements Iterator<Term> {
 
@@ -376,13 +280,13 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
         @Override
         public boolean hasNext() {
-            return tryFillSlotIfEmpty() && eq(slot.getField(), field);
+            return tryFillSlotIfEmpty() && Objects.equals(slot.getField(), field);
         }
 
         @Override
         public Term next() {
             tryFillSlotIfEmpty();
-            if (slot == null || !eq(slot.getField(), field)) {
+            if (slot == null || !Objects.equals(slot.getField(), field)) {
                 throw new NoSuchElementException("No more terms");
             } else {
                 Term term = slot;

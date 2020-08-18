@@ -3,8 +3,12 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
@@ -18,14 +22,22 @@ import querqy.rewrite.SearchEngineRequestAdapter;
  */
 public class DecorateInstruction implements Instruction {
     
-    public static final String CONTEXT_KEY = "querqy.commonrules.decoration";
-    
+    public static final String DECORATION_CONTEXT_KEY = "querqy.commonrules.decoration";
+    public static final String DECORATION_CONTEXT_MAP_KEY = "querqy.commonrules.decoration.map";
+
+    protected final String decorationKey;
     protected final Object decorationValue;
     
     public DecorateInstruction(final Object decorationValue) {
+        this(null, decorationValue);
+    }
+
+    public DecorateInstruction(final String decorationKey, final Object decorationValue) {
         if (decorationValue == null) {
             throw new IllegalArgumentException("decorationValue must not be null");
         }
+
+        this.decorationKey = decorationKey;
         this.decorationValue = decorationValue;
     }
 
@@ -36,46 +48,50 @@ public class DecorateInstruction implements Instruction {
     public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
             final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
                       final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        
-        @SuppressWarnings("unchecked")
-        Set<Object> decorations = (Set<Object>) searchEngineRequestAdapter.getContext().get(CONTEXT_KEY);
-        if (decorations == null) {
-            decorations = new HashSet<>();
-            searchEngineRequestAdapter.getContext().put(CONTEXT_KEY, decorations);
-        }
-        
-        decorations.add(decorationValue);
-        
 
+        if (this.decorationKey == null) {
+            @SuppressWarnings("unchecked")
+            Set<Object> decorations = (Set<Object>) searchEngineRequestAdapter.getContext().get(DECORATION_CONTEXT_KEY);
+            if (decorations == null) {
+                decorations = new HashSet<>();
+                searchEngineRequestAdapter.getContext().put(DECORATION_CONTEXT_KEY, decorations);
+            }
+
+            decorations.add(decorationValue);
+
+        } else {
+            @SuppressWarnings("unchecked")
+            final Map<String, List<Object>> decorationsMap = (Map<String, List<Object>>) searchEngineRequestAdapter
+                    .getContext()
+                    .computeIfAbsent(DECORATION_CONTEXT_MAP_KEY, k -> new HashMap<>());
+
+            final List<Object> values = decorationsMap.computeIfAbsent(decorationKey, k -> new ArrayList<>(2));
+            values.add(decorationValue);
+        }
     }
 
     @Override
     public Set<Term> getGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
-    
+
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        return prime + decorationValue.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DecorateInstruction that = (DecorateInstruction) o;
+        return Objects.equals(decorationKey, that.decorationKey) &&
+                Objects.equals(decorationValue, that.decorationValue);
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final DecorateInstruction other = (DecorateInstruction) obj;
-        return decorationValue.equals(other.decorationValue);
-
+    public int hashCode() {
+        return Objects.hash(decorationKey, decorationValue);
     }
 
     @Override
     public String toString() {
-        return "DecorateInstruction [decorationValue=" + decorationValue + "]";
+        return "DecorateInstruction [decorationKey=" + decorationKey + ", decorationValue=" + decorationValue + "]";
     }
 
     

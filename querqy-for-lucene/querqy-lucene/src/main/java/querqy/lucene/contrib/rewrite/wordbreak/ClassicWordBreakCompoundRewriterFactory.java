@@ -1,7 +1,12 @@
-package querqy.lucene.contrib.rewrite;
+package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
+import querqy.lucene.contrib.rewrite.wordbreak.LuceneCompounder;
+import querqy.lucene.contrib.rewrite.wordbreak.LuceneWordBreaker;
+import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerCompounder;
+import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerWordBreaker;
+import querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -10,11 +15,10 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class WordBreakCompoundRewriterFactory extends RewriterFactory {
+public class ClassicWordBreakCompoundRewriterFactory extends RewriterFactory {
 
     // this controls behaviour of the Lucene WordBreakSpellChecker:
     // for compounds: maximum distance of leftmost and rightmost term index
@@ -27,13 +31,13 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private static final int MAX_CHANGES = 1;
 
     private final Supplier<IndexReader> indexReaderSupplier;
-    private final String dictionaryField;
     private final boolean lowerCaseInput;
-    private final WordBreakSpellChecker spellChecker;
     private final boolean alwaysAddReverseCompounds;
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompundCollation;
+    private final LuceneWordBreaker wordBreaker;
+    private final LuceneCompounder compounder;
 
     /**
      * @param rewriterId The id of the rewriter
@@ -48,20 +52,19 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
      */
-    public WordBreakCompoundRewriterFactory(final String rewriterId,
-                                            final Supplier<IndexReader> indexReaderSupplier,
-                                            final String dictionaryField,
-                                            final boolean lowerCaseInput,
-                                            final int minSuggestionFreq,
-                                            final int maxCombineLength,
-                                            final int minBreakLength,
-                                            final List<String> reverseCompoundTriggerWords,
-                                            final boolean alwaysAddReverseCompounds,
-                                            final int maxDecompoundExpansions,
-                                            final boolean verifyDecompoundCollation) {
+    public ClassicWordBreakCompoundRewriterFactory(final String rewriterId,
+                                                   final Supplier<IndexReader> indexReaderSupplier,
+                                                   final String dictionaryField,
+                                                   final boolean lowerCaseInput,
+                                                   final int minSuggestionFreq,
+                                                   final int maxCombineLength,
+                                                   final int minBreakLength,
+                                                   final List<String> reverseCompoundTriggerWords,
+                                                   final boolean alwaysAddReverseCompounds,
+                                                   final int maxDecompoundExpansions,
+                                                   final boolean verifyDecompoundCollation) {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
-        this.dictionaryField = dictionaryField;
         this.lowerCaseInput = lowerCaseInput;
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
         this.verifyDecompundCollation = verifyDecompoundCollation;
@@ -82,18 +85,21 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         }
 
-        spellChecker = new WordBreakSpellChecker();
+        final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
         spellChecker.setMaxChanges(MAX_CHANGES);
         spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
         spellChecker.setMaxCombineWordLength(maxCombineLength);
         spellChecker.setMinBreakWordLength(minBreakLength);
         spellChecker.setMaxEvaluations(100);
+
+        wordBreaker = new SpellCheckerWordBreaker(spellChecker, dictionaryField, lowerCaseInput);
+        compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
     }
 
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery input,
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return new WordBreakCompoundRewriter(spellChecker, indexReaderSupplier.get(), dictionaryField,
+        return new WordBreakCompoundRewriter(wordBreaker, compounder, indexReaderSupplier.get(),
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
                 verifyDecompundCollation);
     }

@@ -6,11 +6,11 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
+public class ClassicWordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("contrib/solrconfig-wordbreak.xml", "schema.xml");
+        initCore("contrib/solrconfig-classicwordbreak.xml", "schema.xml");
         addDocs();
     }
 
@@ -29,8 +29,6 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 "f1", "damenjacke lila"));
         assertU(adoc("id", "6",
                 "f1", "kinder"));
-        assertU(adoc("id", "7",
-                "f1", "bild buch"));
         assertU(commit());
         
     }
@@ -50,27 +48,6 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response' and @numFound='1']",
                 "//doc/str[@name='id'][contains(.,'2')]"
-        );
-
-
-        req.close();
-    }
-
-    @Test
-    public void testWordBreakDecompoundingGerman() {
-        String q = "bilderbuch";
-
-        SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                DisMaxParams.MM, "100%",
-                "defType", "querqyDE",
-                "debugQuery", "on"
-        );
-
-        assertQ("Misssing decompound",
-                req,
-                "//result[@name='response' and @numFound='1']",
-                "//doc/str[@name='id'][contains(.,'7')]"
         );
 
 

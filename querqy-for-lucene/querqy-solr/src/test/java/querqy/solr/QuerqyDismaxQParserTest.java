@@ -124,7 +124,7 @@ public class QuerqyDismaxQParserTest {
         final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
                 querqyParser, rewriteChain, infoLogging, null);
         parser.luceneQueries = new LuceneQueries(new MatchAllDocsQuery(), Collections.emptyList(),
-                Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), true);
+                Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), null, true, false);
         parser.applyLocalParams();
 
         final Query query = parser.getQuery();
@@ -146,7 +146,7 @@ public class QuerqyDismaxQParserTest {
         final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
                 querqyParser, rewriteChain, infoLogging, null);
         parser.luceneQueries = new LuceneQueries(new MatchAllDocsQuery(), Collections.emptyList(),
-                Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), false);
+                Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), null, false, false);
         parser.applyLocalParams();
 
         final Query query = parser.getQuery();

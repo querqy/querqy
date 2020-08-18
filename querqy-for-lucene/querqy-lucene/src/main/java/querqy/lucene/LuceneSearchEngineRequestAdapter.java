@@ -237,6 +237,14 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
     List<Query> getMultiplicativeBoosts(final QuerqyQuery<?> userQuery) throws SyntaxException;
 
     /**
+     * <p>Parse an optional rank query from the request.</p>
+     *
+     * @return An Optional Query which should be used as the query (re-)ranking the result
+     * @throws SyntaxException if the rank query could not be parsed
+     */
+    Optional<Query> parseRankQuery() throws SyntaxException;
+
+    /**
      * <p>Parse a {@link RawQuery}.</p>
      *
      * @param rawQuery The raw query.
