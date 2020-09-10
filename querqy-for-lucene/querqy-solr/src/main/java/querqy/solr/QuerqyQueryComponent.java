@@ -1,11 +1,12 @@
 /**
- * 
+ *
  */
 package querqy.solr;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.lucene.search.Query;
@@ -13,6 +14,7 @@ import org.apache.solr.handler.component.QueryComponent;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.search.QParser;
 
+import org.apache.solr.search.RankQuery;
 import querqy.infologging.InfoLoggingContext;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
@@ -30,11 +32,11 @@ public class QuerqyQueryComponent extends QueryComponent {
     public void prepare(final ResponseBuilder rb) throws IOException {
 
         super.prepare(rb);
-        
+
         QParser parser = rb.getQparser();
-        
+
         if (parser instanceof QuerqyDismaxQParser) {
-        
+
             List<Query> filterQueries = ((QuerqyDismaxQParser) parser).getFilterQueries();
             if ((filterQueries != null) && !filterQueries.isEmpty()) {
                 List<Query> filters = rb.getFilters();
@@ -45,6 +47,11 @@ public class QuerqyQueryComponent extends QueryComponent {
                 }
             }
 
+            // add the RankQuery to the ResponseBuilder, only if it does not already contain one (set by Solr's rq parameter)
+            Optional<RankQuery> maybeRankQuery = ((QuerqyDismaxQParser) parser).getRankQuery();
+            if (rb.getRankQuery() == null) {
+                maybeRankQuery.ifPresent(rb::setRankQuery);
+            }
         }
     }
 
@@ -53,11 +60,11 @@ public class QuerqyQueryComponent extends QueryComponent {
      */
     @Override
     public void process(final ResponseBuilder rb) throws IOException {
-        
+
         super.process(rb);
-        
+
         final QParser parser = rb.getQparser();
-        
+
         if (parser instanceof QuerqyDismaxQParser) {
 
             final SearchEngineRequestAdapter searchEngineRequestAdapter =
