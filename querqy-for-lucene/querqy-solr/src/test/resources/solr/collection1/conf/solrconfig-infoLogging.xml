@@ -2,7 +2,7 @@
 
 <config>
 
-	<luceneMatchVersion>5.0.0</luceneMatchVersion>
+	<luceneMatchVersion>7.0.0</luceneMatchVersion>
 	<directoryFactory name="DirectoryFactory" class="solr.RAMDirectoryFactory" />
 
 	<dataDir>${solr.core0.data.dir:}</dataDir>
@@ -33,26 +33,11 @@
 		class="solr.FieldAnalysisRequestHandler" />
 
 	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+
+    <requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler" />
+
+	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
 	
-	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
-	
-		<lst name="rewriteChain">
-           <lst name="rewriter">
-               <str name="id">common1</str>
-               <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-               <str name="rules">rules-infoLogging1.txt</str>
-               <bool name="ignoreCase">true</bool>
-               <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-           </lst>
-            <lst name="rewriter">
-                <str name="id">common2</str>
-                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-                <str name="rules">rules-infoLogging2.txt</str>
-                <bool name="ignoreCase">true</bool>
-                <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-            </lst>
-        </lst>
-     	 
         <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>

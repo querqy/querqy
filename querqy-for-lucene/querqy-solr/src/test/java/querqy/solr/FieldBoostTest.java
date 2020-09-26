@@ -29,7 +29,7 @@ public class FieldBoostTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-dfc.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
     }
 
     @Override

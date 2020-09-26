@@ -3,6 +3,8 @@ package querqy.solr;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_OPT;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -27,7 +29,8 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules.txt");
     }
 
     @Override
@@ -46,7 +49,8 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("Default boost method is not 'opt'",
@@ -68,7 +72,8 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
                 QueryParsing.OP, "OR",
                 QBOOST_METHOD, QBOOST_METHOD_OPT,
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
 
         );
 
@@ -91,7 +96,8 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
                 QueryParsing.OP, "OR",
                 QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
 
         );
 

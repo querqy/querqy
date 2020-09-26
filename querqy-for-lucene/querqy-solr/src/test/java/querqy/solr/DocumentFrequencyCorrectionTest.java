@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -29,10 +32,11 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
       assertU(commit());
    }
 
-   @BeforeClass
-   public static void beforeTests() throws Exception {
-      initCore("solrconfig-dfc.xml", "schema.xml");
-   }
+    @BeforeClass
+    public static void beforeTests() throws Exception {
+        initCore("solrconfig.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules-dfc.txt");
+    }
 
     @Override
     @Before
@@ -42,26 +46,28 @@ public class DocumentFrequencyCorrectionTest extends SolrTestCaseJ4 {
         index();
     }
 
-   @Test
-   public void testDfGetsCorrectedForBoostUp() throws Exception {
+    @Test
+    public void testDfGetsCorrectedForBoostUp() throws Exception {
 
-      String q = "a c";
+        String q = "a c";
 
-      SolrQueryRequest req = req("q", q,
-            DisMaxParams.QF, "f1 f2",
-            QueryParsing.OP, "OR",
-            DisMaxParams.TIE, "0.1",
-            "defType", "querqy",
-            "debugQuery", "true"
-            );
-      assertQ("wrong df",
-            req,
-            "//str[@name='2'][contains(.,'7 = n, number of documents containing term')]",
-            "//str[@name='2'][not(contains(.,'1 = n, number of documents containing term'))]",
-            "//str[@name='7'][contains(.,'10 = n, number of documents containing term')]",
-            "//str[@name='7'][not(contains(.,'4 = n, number of documents containing term'))]");
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                QueryParsing.OP, "OR",
+                DisMaxParams.TIE, "0.1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
+        );
 
-      req.close();
-   }
+        assertQ("wrong df",
+                req,
+                "//str[@name='2'][contains(.,'7 = n, number of documents containing term')]",
+                "//str[@name='2'][not(contains(.,'1 = n, number of documents containing term'))]",
+                "//str[@name='7'][contains(.,'10 = n, number of documents containing term')]",
+                "//str[@name='7'][not(contains(.,'4 = n, number of documents containing term'))]");
+
+        req.close();
+    }
 
 }

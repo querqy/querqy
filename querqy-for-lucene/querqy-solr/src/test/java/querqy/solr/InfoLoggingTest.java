@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -9,9 +12,13 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class InfoLoggingTest extends SolrTestCaseJ4 {
 
+    private final static String REWRITERS = "common1,common2";
+
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-infoLogging.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common1", "configs/commonrules/rules-infoLogging1.txt");
+        withCommonRulesRewriter(h.getCore(), "common2", "configs/commonrules/rules-infoLogging2.txt");
     }
 
     @Test
@@ -22,7 +29,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Log property is missing",
@@ -44,7 +52,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Empty log output for rewriter",
@@ -63,7 +72,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logged ID is missing",
@@ -85,7 +95,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Synthetic log message missing",
@@ -107,7 +118,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Log not returned if ID is configured",
@@ -130,7 +142,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
@@ -154,7 +167,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
@@ -185,7 +199,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
@@ -209,7 +224,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
@@ -227,7 +243,8 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "off",
-                "defType", "querqy"
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
