@@ -262,6 +262,7 @@ public class QueryParsingController {
 
         LuceneQueries luceneQueries;
         if ((!addQuerqyBoostQueriesToMainQuery) && hasQuerqyBoostQueries) {
+            // boost queries have not been applied to the main query, they are returned separately here, external rank queries are ignored
             luceneQueries = new LuceneQueries(mainQuery, filterQueries, querqyBoostQueries, userQuery, null, dfc != null,
                     false);
         } else {
