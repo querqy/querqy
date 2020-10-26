@@ -262,41 +262,49 @@ public class Collector {
         for (final LeafReaderContext context : topReaderContext.leaves()) {
 
             final Terms terms1 = context.reader().terms(term1.field());
-            final Terms terms2 = context.reader().terms(term2.field());
 
-            final TermsEnum termsEnum1 = terms1.iterator();
-            if (!termsEnum1.seekExact(term1.bytes())) {
-                continue;
-            }
+            if (terms1 != null) {
 
-            final TermsEnum termsEnum2 = terms2.iterator();
-            if (!termsEnum2.seekExact(term2.bytes())) {
-                continue;
-            }
+                final Terms terms2 = context.reader().terms(term2.field());
+                if (terms2 != null) {
 
-            final PostingsEnum postings1 = termsEnum1.postings(null, PostingsEnum.NONE);
-            final PostingsEnum postings2 = termsEnum2.postings(null, PostingsEnum.NONE);
-
-            int doc1 = postings1.nextDoc();
-            while (doc1 != DocIdSetIterator.NO_MORE_DOCS) {
-                int doc2 = postings2.advance(doc1);
-                if (doc2 == DocIdSetIterator.NO_MORE_DOCS) {
-                    break;
-                }
-                if (doc2 == doc1) {
-                    count++;
-                    if (count >= minCount) {
-                        return true;
+                    final TermsEnum termsEnum1 = terms1.iterator();
+                    if (!termsEnum1.seekExact(term1.bytes())) {
+                        continue;
                     }
-                } else if (doc2 > doc1) {
-                    doc1 = postings1.advance(doc2);
-                    if (doc2 == doc1) {
-                        count++;
-                        if (count >= minCount) {
-                            return true;
+
+                    final TermsEnum termsEnum2 = terms2.iterator();
+                    if (!termsEnum2.seekExact(term2.bytes())) {
+                        continue;
+                    }
+
+                    final PostingsEnum postings1 = termsEnum1.postings(null, PostingsEnum.NONE);
+                    final PostingsEnum postings2 = termsEnum2.postings(null, PostingsEnum.NONE);
+
+                    int doc1 = postings1.nextDoc();
+                    while (doc1 != DocIdSetIterator.NO_MORE_DOCS) {
+                        int doc2 = postings2.advance(doc1);
+                        if (doc2 == DocIdSetIterator.NO_MORE_DOCS) {
+                            break;
+                        }
+                        if (doc2 == doc1) {
+                            count++;
+                            if (count >= minCount) {
+                                return true;
+                            }
+                        } else if (doc2 > doc1) {
+                            doc1 = postings1.advance(doc2);
+                            if (doc2 == doc1) {
+                                count++;
+                                if (count >= minCount) {
+                                    return true;
+                                }
+                            }
                         }
                     }
+
                 }
+
             }
 
         }
