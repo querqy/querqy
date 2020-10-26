@@ -21,6 +21,61 @@ import java.util.List;
 
 public class GermanWordBreakerTest extends LuceneTestCase {
 
+    @Test
+    public void testWithEmptyIndex() throws IOException {
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("abcdef", indexReader, 2, true);
+            assertNotNull(sequences);
+            assertTrue(sequences.isEmpty());
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
+
+    @Test
+    public void testWithNoExistentDictField() throws IOException {
+        final Analyzer analyzer = new WhitespaceAnalyzer();
+
+        final Directory directory = newDirectory();
+
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
+        addNumDocsWithTextField("f1", "abc def", indexWriter, 4);
+        addNumDocsWithTextField("f1", "ab cdef", indexWriter, 10);
+        addNumDocsWithTextField("f1", "abcd ef", indexWriter, 5);
+
+        indexWriter.close();
+
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+
+            final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, "f2", true, 1, 2, 100);
+            final List<CharSequence[]> sequences = wordBreaker.breakWord("abcdef", indexReader, 2, true);
+            assertNotNull(sequences);
+            assertTrue(sequences.isEmpty());
+
+        } finally {
+            try {
+                directory.close();
+            } catch (final IOException e) {
+                //
+            }
+        }
+
+    }
 
     @Test
     public void testNoLinkingMorpheme() throws IOException {
