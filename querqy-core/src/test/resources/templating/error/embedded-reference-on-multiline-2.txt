@@ -1,0 +1,8 @@
+def multi_line():
+1
+2
+
+def single_line():
+1
+
+<< single_line >> << multi_line >>
