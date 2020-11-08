@@ -67,8 +67,9 @@ public class PropertiesBuilder {
                 // left trim only (as this might be the start of an object)
                 str = ltrim(line);
 
+                // TODO: The generic fallback error message should be handled outside of PropertiesBuilder
                 if (!str.startsWith("@")) {
-                    return Optional.of(new ValidationError("@ expected at beginning of line: " + line));
+                    return Optional.of(new ValidationError("not able to read the following statement: " + line));
                 }
 
                 str = ltrim(str.substring(1));

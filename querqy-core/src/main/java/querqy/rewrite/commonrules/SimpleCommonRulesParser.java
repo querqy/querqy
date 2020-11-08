@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntUnaryOperator;
 
 import querqy.rewrite.commonrules.model.*;
 
@@ -31,6 +32,8 @@ public class SimpleCommonRulesParser {
     private List<Instruction> instructionList = null;
     private PropertiesBuilder propertiesBuilder = null;
 
+    private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;
+
     public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
                                    final boolean ignoreCase) {
         this(in, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase));
@@ -44,6 +47,10 @@ public class SimpleCommonRulesParser {
         this.propertiesBuilder = new PropertiesBuilder();
     }
 
+    public SimpleCommonRulesParser setLineNumberMapper(final IntUnaryOperator lineNumberMapper) {
+        this.lineNumberMapper = lineNumberMapper;
+        return this;
+    }
 
     public RulesCollection parse() throws IOException, RuleParseException {
         try {
@@ -103,13 +110,13 @@ public class SimpleCommonRulesParser {
                 instructionList = new LinkedList<>();
                 propertiesBuilder.reset();
             } else if (lineObject instanceof ValidationError) {
-                throw new RuleParseException(lineNumber, ((ValidationError) lineObject).getMessage());
+                throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber), ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
                 instructionList.add((Instruction) lineObject);
             } else if (lineObject instanceof String) {
                 final Optional<ValidationError> optionalError = propertiesBuilder.nextLine(line);
                 if (optionalError.isPresent()) {
-                    throw new RuleParseException(lineNumber, optionalError.map(ValidationError::getMessage).orElse(""));
+                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber), optionalError.map(ValidationError::getMessage).orElse(""));
                 }
             }
 
