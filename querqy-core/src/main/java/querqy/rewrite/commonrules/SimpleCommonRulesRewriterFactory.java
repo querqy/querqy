@@ -9,9 +9,11 @@ import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
+import querqy.rewrite.QuerqyTemplateEngine;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.TemplateParseException;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
@@ -55,8 +57,11 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
         this.defaultSelectionStrategyFactory = Objects.requireNonNull(defaultSelectionStrategyFactory);
 
         try {
-            rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
-        } catch (final RuleParseException e) {
+            final QuerqyTemplateEngine querqyTemplateEngine = new QuerqyTemplateEngine(reader);
+            rules = new SimpleCommonRulesParser(querqyTemplateEngine.renderedRules.reader, querqyParserFactory, ignoreCase)
+                    .setLineNumberMapper(querqyTemplateEngine.renderedRules.lineNumberMapping::get)
+                    .parse();
+        } catch (final RuleParseException | TemplateParseException e) {
             throw new IOException(e);
         } finally {
             try {
