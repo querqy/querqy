@@ -1,0 +1,5 @@
+def multi_line():
+1
+2
+
+x << multi_line >>
