@@ -64,12 +64,8 @@ public class ParametrizedRawQuery extends RawQuery {
         public final Type type;
 
         public Part(String part, Type type) {
-            this.part = type == Type.PARAMETER ? part.trim() : part;
+            this.part = part;
             this.type = type;
-        }
-
-        public boolean isEmpty() {
-            return part.trim().isEmpty();
         }
 
         @Override

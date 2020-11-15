@@ -81,7 +81,7 @@ public class LineParserTest {
                 new ParametrizedRawQuery(null,
                         Arrays.asList(
                                 new ParametrizedRawQuery.Part("q ", ParametrizedRawQuery.Part.Type.QUERY_PART),
-                                new ParametrizedRawQuery.Part("param", ParametrizedRawQuery.Part.Type.PARAMETER),
+                                new ParametrizedRawQuery.Part(" param ", ParametrizedRawQuery.Part.Type.PARAMETER),
                                 new ParametrizedRawQuery.Part(" q", ParametrizedRawQuery.Part.Type.QUERY_PART)),
                         Clause.Occur.MUST,
                         false)));
@@ -93,7 +93,7 @@ public class LineParserTest {
                         null,
                         Arrays.asList(
                                 new ParametrizedRawQuery.Part("q ", ParametrizedRawQuery.Part.Type.QUERY_PART),
-                                new ParametrizedRawQuery.Part("param", ParametrizedRawQuery.Part.Type.PARAMETER),
+                                new ParametrizedRawQuery.Part(" param ", ParametrizedRawQuery.Part.Type.PARAMETER),
                                 new ParametrizedRawQuery.Part(" q", ParametrizedRawQuery.Part.Type.QUERY_PART)),
                         Clause.Occur.SHOULD,
                         false),
@@ -109,7 +109,7 @@ public class LineParserTest {
         Assertions.assertThat(rawQuery).isInstanceOf(ParametrizedRawQuery.class);
         Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(3);
         Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(0).part).isEqualTo("query ");
-        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(1).part).isEqualTo("param");
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(1).part).isEqualTo(" param ");
         Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(2).part).isEqualTo(" query2");
         Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(0).type)
                 .isEqualTo(ParametrizedRawQuery.Part.Type.QUERY_PART);
@@ -122,7 +122,7 @@ public class LineParserTest {
         Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(3);
 
         rawQuery = LineParser.parseRawQuery(" %%  %% \n\t\r %% param %%query2", Clause.Occur.SHOULD);
-        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(2);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(5);
 
         rawQuery = LineParser.parseRawQuery("query %% param %% query1 %% param2 %% query2", Clause.Occur.SHOULD);
         Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(5);
