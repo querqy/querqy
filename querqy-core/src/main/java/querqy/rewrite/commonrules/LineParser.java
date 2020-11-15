@@ -207,9 +207,8 @@ public class LineParser {
                     .mapToObj(index -> index % 2 == 0
                             ? new ParametrizedRawQuery.Part(rawQueryParts.get(index),
                                 ParametrizedRawQuery.Part.Type.QUERY_PART)
-                            : new ParametrizedRawQuery.Part(rawQueryParts.get(index).trim(),
+                            : new ParametrizedRawQuery.Part(rawQueryParts.get(index),
                                 ParametrizedRawQuery.Part.Type.PARAMETER))
-                    .filter(part -> !part.isEmpty())
                     .collect(Collectors.toList());
 
             return new ParametrizedRawQuery(null, parts, occur, false);

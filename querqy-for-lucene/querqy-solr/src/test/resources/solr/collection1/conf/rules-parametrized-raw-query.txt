@@ -1,10 +1,10 @@
 term1 =>
-  UP(1.0): * {!func}if(query({!lucene df=str v=%% boostval1 %%}),100,0)
+  UP(1.0): * {!func}if(query({!lucene df=str v=%%boostval1%%}),100,0)
 
 term2 =>
   SYNONYM: term1
-  UP(1.0): * {!func}if(query(%% str:boostval1 %%),10,if(%% {!lucene df=str v='boostval2'} %%,20,0))
-  UP(1.0): * {!func}if(query(%% str:boostval2 %%),30,0)
+  UP(1.0): * {!func}if(query(%%str:boostval1%%),10,if(%%{!lucene df=str v='boostval2'}%%,20,0))
+  UP(1.0): * {!func}if(query(%%str:boostval2%%),30,0)
 
 term3 =>
-  UP(1.0): * {!func}if(query({!term f=str v=%% link's awakening %%}),100,0)
+  UP(1.0): * {!func}if(query({!term f=str v=%%link's awakening%%}),100,0)
