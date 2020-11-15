@@ -4,12 +4,12 @@
 package querqy.rewrite.commonrules.model;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
+import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -20,9 +20,9 @@ import querqy.trie.TrieMap;
  */
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
-    final TrieMap<List<Instructions>> map = new TrieMap<>();
+    final TrieMap<InstructionsSupplier> map = new TrieMap<>();
     private final Set<Object> seenInstructionIds = new HashSet<>();
-    
+
     final boolean ignoreCase;
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
@@ -34,12 +34,16 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      */
     @Override
     public void addRule(final Input input, final Instructions instructions) {
+        this.addOrMergeInstructionsSupplier(input, new InstructionsSupplier().addInstructions(instructions));
+    }
 
-        if (seenInstructionIds.contains(instructions.getId())) {
-            throw new IllegalStateException("Duplicate instructions ID " + instructions.getId());
-        }
-        
-        List<Term> inputTerms = input.getInputTerms();
+    @Override
+    public void addRule(final Input input, final BooleanInputLiteral literal) {
+        this.addOrMergeInstructionsSupplier(input, new InstructionsSupplier().setLiteral(literal));
+    }
+
+    public void addOrMergeInstructionsSupplier(final Input input, final InstructionsSupplier instructionsSupplier) {
+        final List<Term> inputTerms = input.getInputTerms();
         
         switch (inputTerms.size()) {
         
@@ -47,42 +51,40 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
             if (!(input.requiresLeftBoundary && input.requiresRightBoundary)) {
                 throw new IllegalArgumentException("Empty input!");
             }
-            
-            ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, TrieMapRulesCollection.BOUNDARY_WORD);
-            States<List<Instructions>> states = map.get(seq);
-            State<List<Instructions>> state = states.getStateForCompleteSequence();
+
+            final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, TrieMapRulesCollection.BOUNDARY_WORD);
+            final States<InstructionsSupplier> states = map.get(seq);
+            final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
             if (state.value != null) {
-                state.value.add(instructions);
+                state.value.merge(instructionsSupplier);
             } else {
-                List<Instructions> instructionsList = new LinkedList<>();
-                instructionsList.add(instructions);
-                map.put(seq, instructionsList);
+                map.put(seq, instructionsSupplier);
             }
             
         }
         break;
         
         case 1: {
-            
-            Term term = inputTerms.get(0);
+
+            final Term term = inputTerms.get(0);
             
             boolean isPrefix = term instanceof PrefixTerm;
             
             for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
                 
                 seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
-                
-                States<List<Instructions>> states = map.get(seq);
+
+                final States<InstructionsSupplier> states = map.get(seq);
                 
                 if (isPrefix) {
                     boolean added = false;
-                    
-                    List<State<List<Instructions>>> prefixes = states.getPrefixes();
+
+                    final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
                     
                     if (prefixes != null) {
-                        for (State<List<Instructions>> state: prefixes) {
+                        for (final State<InstructionsSupplier> state : prefixes) {
                             if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.add(instructions);
+                                state.value.merge(instructionsSupplier);
                                 added = true;
                                 break;
                             }
@@ -91,19 +93,15 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                     }
                     
                     if (!added) {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.putPrefix(seq, instructionsList);
+                        map.putPrefix(seq, instructionsSupplier);
                     }
                 
                 } else {
-                    State<List<Instructions>> state = states.getStateForCompleteSequence();
+                    final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
                     if (state.value != null) {
-                        state.value.add(instructions);
+                        state.value.merge(instructionsSupplier);
                     } else {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.put(seq, instructionsList);
+                        map.put(seq, instructionsSupplier);
                     }
                     
                 }
@@ -112,24 +110,24 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         break;
         
         default:
-            Term lastTerm = input.inputTerms.get(input.inputTerms.size() -1);
-            boolean isPrefix = lastTerm instanceof PrefixTerm;
+            final Term lastTerm = input.inputTerms.get(input.inputTerms.size() -1);
+            final boolean isPrefix = lastTerm instanceof PrefixTerm;
             for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
                 
                 seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
-                
-                States<List<Instructions>> states = map.get(seq);
+
+                final States<InstructionsSupplier> states = map.get(seq);
                 
                 if (isPrefix) { 
                     
                     boolean added = false;
-                    
-                    List<State<List<Instructions>>> prefixes = states.getPrefixes();
+
+                    final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
                     
                     if (prefixes != null) {
-                        for (State<List<Instructions>> state: prefixes) {
+                        for (final State<InstructionsSupplier> state: prefixes) {
                             if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.add(instructions);
+                                state.value.merge(instructionsSupplier);
                                 added = true;
                                 break;
                             }
@@ -138,25 +136,20 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                     }
                     
                     if (!added) {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.putPrefix(seq, instructionsList);
+                        map.putPrefix(seq, instructionsSupplier);
                     }
                 } else {
-                    State<List<Instructions>> state = states.getStateForCompleteSequence();
+                    final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
                     if (state.value != null) {
-                        state.value.add(instructions);
+                        state.value.merge(instructionsSupplier);
                     } else {
-                        List<Instructions> instructionsList = new LinkedList<>();
-                        instructionsList.add(instructions);
-                        map.put(seq, instructionsList);
+                        map.put(seq, instructionsSupplier);
                     }
                 }
                 
             } 
         }
 
-        seenInstructionIds.add(instructions.getId());
 
     }
     

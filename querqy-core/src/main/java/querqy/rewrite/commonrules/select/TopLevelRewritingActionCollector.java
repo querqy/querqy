@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author René Kriegler, @renekrie
  *
  */
-public class TopLevelRewritingActionCollector implements TopRewritingActionCollector {
+public class TopLevelRewritingActionCollector extends TopRewritingActionCollector {
 
     private static List<Comparator<Instructions>> DEFAULT_SECONDARY_COMPARATORS = Collections.singletonList(
             Comparator.comparingInt(Instructions::getOrd));

@@ -1,6 +1,9 @@
 package querqy.rewrite.commonrules;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,8 +12,8 @@ import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-
-import javax.swing.text.html.Option;
+import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser.BooleanInputString;
+import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInput.BooleanInputBuilder;
 
 /**
  * @author René Kriegler, @renekrie
@@ -30,7 +33,9 @@ public class LineParser {
 
     static final char RAWQUERY = '*';
 
-    public static Object parse(final String line, final Input previousInput,
+    public static Object parse(final String line,
+                               final Input previousInput,
+                               final BooleanInputBuilder booleanInputBuilder,
                                final QuerqyParserFactory querqyParserFactory) {
 
 
@@ -38,16 +43,30 @@ public class LineParser {
             if (line.length() == 2) {
                 return new ValidationError("Empty input");
             }
-            return parseInput(line.substring(0, line.length() - 2));
+
+            if (line.startsWith("%%")) {
+                final String booleanInputString = line.substring(2, line.length() - 2).trim();
+                if (booleanInputString.isEmpty()) {
+                    return new ValidationError("Empty boolean input");
+                } else {
+                    return new BooleanInputString(booleanInputString);
+                }
+
+            } else {
+                return parseInput(line.substring(0, line.length() - 2));
+            }
         }
 
-        if (previousInput == null) {
+        if (previousInput == null && booleanInputBuilder == null) {
             return new ValidationError("Missing input for instruction");
         }
 
         final String lcLine = line.toLowerCase(Locale.ROOT).trim();
 
         if (lcLine.startsWith(INSTR_DELETE)) {
+            if (booleanInputBuilder != null) {
+                return new ValidationError("DELETE instruction is not allowed for boolean input");
+            }
 
             if (lcLine.length() == 6) {
                 return new DeleteInstruction(previousInput.getInputTerms());
@@ -119,6 +138,9 @@ public class LineParser {
         }
 
         if (lcLine.startsWith(INSTR_SYNONYM)) {
+            if (booleanInputBuilder != null) {
+                return new ValidationError("SYNONYM instruction is not allowed for boolean input");
+            }
 
             if (lcLine.length() == 7) {
                 return new ValidationError("Cannot parse line: " + line);
@@ -367,7 +389,7 @@ public class LineParser {
         int len = s.length();
 
         if (len == 1) {
-            return Arrays.asList(s);
+            return Collections.singletonList(s);
         }
 
 
