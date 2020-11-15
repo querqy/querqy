@@ -17,8 +17,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import querqy.rewrite.commonrules.model.*;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.DecorateInstruction;
+import querqy.rewrite.commonrules.model.DeleteInstruction;
+import querqy.rewrite.commonrules.model.FilterInstruction;
+import querqy.rewrite.commonrules.model.Input;
+import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.PrefixTerm;
+import querqy.rewrite.commonrules.model.Term;
+import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInput;
 
 public class LineParserTest {
 
@@ -35,6 +43,29 @@ public class LineParserTest {
     }
 
     @Test
+    public void testThatBooleanInputOnlyAllowsCertainInstructions() {
+        final WhiteSpaceQuerqyParserFactory factory = new WhiteSpaceQuerqyParserFactory();
+
+        Assertions.assertThat(LineParser.parse("FILTER: f", null, BooleanInput.builder(), factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("UP: f", null, BooleanInput.builder(), factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("DOWN: f", null, BooleanInput.builder(), factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("DECORATE: f", null, BooleanInput.builder(), factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("SYNONYM: f", null, BooleanInput.builder(), factory))
+                .isInstanceOf(ValidationError.class);
+
+        Assertions.assertThat(LineParser.parse("DELETE: f", null, BooleanInput.builder(), factory))
+                .isInstanceOf(ValidationError.class);
+    }
+
+    @Test
     public void testPredicatesWithVaryingLocales() {
 
         final Input input = new Input(Collections.singletonList(new Term("a".toCharArray(), 0, 1, null)), "a");
@@ -44,14 +75,14 @@ public class LineParserTest {
 
             Locale.setDefault(locale);
 
-            assertTrue(LineParser.parse("filter: f", input, rhsParserFactory) instanceof FilterInstruction);
-            assertTrue(LineParser.parse("FILTER: f", input, rhsParserFactory) instanceof FilterInstruction);
-            assertTrue(LineParser.parse("up: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("UP: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("down: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("DOWN: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("delete: a", input, rhsParserFactory) instanceof DeleteInstruction);
-            assertTrue(LineParser.parse("DELETE: a", input, rhsParserFactory) instanceof DeleteInstruction);
+            assertTrue(LineParser.parse("filter: f", input, null, rhsParserFactory) instanceof FilterInstruction);
+            assertTrue(LineParser.parse("FILTER: f", input, null, rhsParserFactory) instanceof FilterInstruction);
+            assertTrue(LineParser.parse("up: f", input, null, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("UP: f", input, null, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("down: f", input, null, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("DOWN: f", input, null, rhsParserFactory) instanceof BoostInstruction);
+            assertTrue(LineParser.parse("delete: a", input, null, rhsParserFactory) instanceof DeleteInstruction);
+            assertTrue(LineParser.parse("DELETE: a", input, null, rhsParserFactory) instanceof DeleteInstruction);
 
         }
 
@@ -271,49 +302,49 @@ public class LineParserTest {
     @Test
     public void testThatCaseIsPreservedInDecorateInstruction() {
         Input input = (Input) LineParser.parseInput("in");
-        assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", input, null));
+        assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", input, null, null));
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfOpeningBracketIsMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATEkey): Some Deco", null,
+        Assertions.assertThat(LineParser.parse("DECORATEkey): Some Deco", null, null,
                 null)).isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfClosingBracketIsMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE(key: Some Deco", null,
+        Assertions.assertThat(LineParser.parse("DECORATE(key: Some Deco", null, null,
                 null)).isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfOpeningBracketAndKeyAreMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE):Deco", null,
+        Assertions.assertThat(LineParser.parse("DECORATE):Deco", null, null,
                 null)).isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfClosingBracketAndKeyAreMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE(: Some ):Deco", null,
+        Assertions.assertThat(LineParser.parse("DECORATE(: Some ):Deco", null, null,
                 null)).isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfKeyIsMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE():Deco", null,
+        Assertions.assertThat(LineParser.parse("DECORATE():Deco", null, null,
                 null)).isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfKeyContainsCharThatIsNotAllowed() {
-        Assertions.assertThat(LineParser.parse("DECORATE(k-ey):Deco", null,
+        Assertions.assertThat(LineParser.parse("DECORATE(k-ey):Deco", null, null,
                 null)).isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testValidDecorateKeyInput() {
         Input input = (Input) LineParser.parseInput("in");
-        assertEquals(new DecorateInstruction("key", "value"), LineParser.parse("DECORATE(key): value", input, null));
+        assertEquals(new DecorateInstruction("key", "value"), LineParser.parse("DECORATE(key): value", input, null, null));
     }
 
     TermMatcher term(String value, String...fieldNames) {
