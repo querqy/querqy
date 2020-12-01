@@ -68,13 +68,14 @@ public class NamedListWrapper {
             final Object obj = namedList.get(key);
             if (obj == null) {
                 return defaultValue;
+            } else if (obj instanceof Integer) {
+                return (int) obj;
+            } else if (obj instanceof String) {
+                return Integer.parseInt((String) obj);
             } else {
-                if (obj instanceof String) {
-                    return Integer.parseInt((String) obj);
-                } else {
-                    throw new IllegalArgumentException(String.format("Property %s cannot be parsed to integer", key));
-                }
+                throw new IllegalArgumentException(String.format("Property %s cannot be parsed to integer", key));
             }
+
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(String.format("Property %s cannot be parsed to integer", key), e);
         }

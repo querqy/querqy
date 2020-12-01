@@ -1,6 +1,7 @@
 package querqy.solr;
 
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.search.SolrIndexSearcher;
@@ -41,7 +42,7 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
         this.resourceLoader = resourceLoader;
     }
 
-    protected abstract void init();
+    protected abstract void init(@SuppressWarnings({"rawtypes"}) NamedList args);
     protected abstract void doClose();
     protected abstract void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException;

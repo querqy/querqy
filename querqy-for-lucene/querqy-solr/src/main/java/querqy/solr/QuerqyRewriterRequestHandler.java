@@ -33,9 +33,12 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     private RewriterContainer<?> rewriterContainer = null;
 
+    @SuppressWarnings({"rawtypes"})
+    private NamedList initArgs = null;
+
     @Override
     public void init(final NamedList args) {
-
+        this.initArgs = args;
     }
 
     @Override
@@ -65,12 +68,11 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
         if (resourceLoader instanceof ZkSolrResourceLoader) {
             rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader);
-            rewriterContainer.init();
 
         } else {
             rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader);
-            rewriterContainer.init();
         }
+        rewriterContainer.init(initArgs);
 
 
     }

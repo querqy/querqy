@@ -1,9 +1,7 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
-import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
-import org.apache.lucene.util.TestUtil;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -13,8 +11,6 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.cloud.AbstractDistribZkTestBase;
-import org.apache.solr.cloud.SolrCloudTestCase;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
@@ -30,10 +26,10 @@ import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
+import java.util.List;
 
 @SolrTestCaseJ4.SuppressSSL
-public class QuerqyRewriterRequestHandlerSolrCloudTest extends SolrCloudTestCase {
+public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySolrCloudTestCase {
 
     final static String COLLECTION = "basic1";
 
@@ -41,7 +37,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends SolrCloudTestCase
     private static CloudSolrClient CLOUD_CLIENT;
 
     /** One client per node */
-    private static final ArrayList<HttpSolrClient> CLIENTS = new ArrayList<>(5);
+    private static final List<HttpSolrClient> CLIENTS = new ArrayList<>(5);
 
 
     @BeforeClass
@@ -101,7 +97,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends SolrCloudTestCase
     public void testSimpleRequest() throws IOException, SolrServerException {
         final SolrParams params = params("collection", COLLECTION, "q", "*:*", "rows", "10", "defType", "querqy");
         final QueryRequest request = new QueryRequest(params);
-        QueryResponse rsp = request.process(getRandClient(random()));
+        QueryResponse rsp = request.process(getRandClient());
         assertEquals(3L, rsp.getResults().getNumFound());
     }
 
@@ -184,17 +180,17 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends SolrCloudTestCase
 
     }
 
-
     @Test
-    public void testDeleteRewriter() throws IOException, SolrServerException {
+    public void testDeleteRewriter() throws Exception {
 
         assertEquals(0, new CommonRulesConfigRequestBuilder()
                 .rules("a =>\n SYNONYM: b").buildSaveRequest("delete_common_rules")
                 .process(getRandClient())
                 .getStatus());
 
-        // common rules rewriter only
-        QueryResponse rsp = new QueryRequest(
+        final SolrClient client = getRandClient();
+
+        final QueryResponse rsp = waitForRewriterAndQuery(new QueryRequest(
                 params("collection", COLLECTION,
                         "q", "a",
                         "defType", "querqy",
@@ -202,7 +198,9 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends SolrCloudTestCase
                         DisMaxParams.QF, "f1 f2",
                         QueryParsing.OP, "OR")
 
-        ).process(getRandClient());
+        ), client);
+
+
         assertEquals(2L, rsp.getResults().getNumFound());
 
         assertEquals(0, RewriterConfigRequestBuilder.buildDeleteRequest("delete_common_rules")
@@ -226,67 +224,8 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends SolrCloudTestCase
 
     }
 
-    @Test
-    public void testLargeConfig() throws IOException, SolrServerException, InterruptedException {
-
-        // we upload a 2.3 MB rules.txt, which can be compressed to < 1 MB
-        assertEquals(0, new CommonRulesConfigRequestBuilder()
-                .rules(getClass().getClassLoader().getResourceAsStream("configs/commonrules/rules-large.txt"))
-                .buildSaveRequest("large_common_rules")
-                .process(getRandClient())
-                .getStatus());
-
-        // It will take a bit to propagate this large config to the nodes. We try to apply the rewriter max. 3 times and
-        // wait for a bit between the attempts
-        int attempts = 3;
-        QueryResponse rsp = null;
-        do {
-            synchronized (this) {
-                wait(800L);
-            }
-            try {
-                rsp = new QueryRequest(
-                        params("collection", COLLECTION,
-                                "q", "f",
-                                "defType", "querqy",
-                                PARAM_REWRITERS, "large_common_rules",
-                                DisMaxParams.QF, "f1 f2",
-                                QueryParsing.OP, "OR")
-
-                ).process(getRandClient());
-                attempts = 0;
-            } catch (Exception e) {
-                if ((attempts <= 1) || (!e.getMessage().contains("No such rewriter"))){
-                    throw e;
-                }
-                attempts--;
-            }
-        } while (attempts > 0);
-
-        assertNotNull(rsp);
-        assertEquals(1L, rsp.getResults().getNumFound());
-
-    }
-
     private SolrClient getRandClient() {
-        return getRandClient(random());
-    }
-
-    /**
-     * returns a random SolrClient -- either a CloudSolrClient, or an HttpSolrClient pointed
-     * at a node in our cluster
-     */
-    public static SolrClient getRandClient(Random rand) {
-        int numClients = CLIENTS.size();
-        int idx = TestUtil.nextInt(rand, 0, numClients);
-
-        return (idx == numClients) ? CLOUD_CLIENT : CLIENTS.get(idx);
-    }
-
-    public static void waitForRecoveriesToFinish(CloudSolrClient client) throws Exception {
-        assert null != client.getDefaultCollection();
-        AbstractDistribZkTestBase.waitForRecoveriesToFinish(client.getDefaultCollection(), client.getZkStateReader(),
-                true, true, 330);
+        return getRandClient(random(), CLIENTS, CLOUD_CLIENT);
     }
 
 }
