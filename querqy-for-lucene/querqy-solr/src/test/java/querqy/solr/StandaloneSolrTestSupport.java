@@ -1,7 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.*;
+
 import org.apache.solr.common.util.ContentStreamBase;
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.LocalSolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
@@ -42,9 +43,9 @@ public interface StandaloneSolrTestSupport {
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId,
                                         final CommonRulesConfigRequestBuilder builder) {
-        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId + "/_put");
-        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, new NamedList());
+        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId);
 
+        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, SAVE.params());
         req.setContentStreams(Collections.singletonList(new ContentStreamBase.StringStream(builder.buildJson())));
         req.getContext().put("httpMethod", "POST");
 
@@ -67,10 +68,9 @@ public interface StandaloneSolrTestSupport {
                              final Class<? extends SolrRewriterFactoryAdapter> rewriterClass,
                                         final Map<String, Object> config) {
 
-        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId + "/_put");
+        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId);
 
-        @SuppressWarnings({"rawtypes"})
-        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, new NamedList());
+        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, SAVE.params());
 
         final Map<String, Object> request = new HashMap<>();
         request.put("class", rewriterClass.getName());
@@ -91,10 +91,9 @@ public interface StandaloneSolrTestSupport {
 
     static void deleteRewriter(final SolrCore core, final String rewriterId) {
 
-        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId + "/_delete");
+        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId);
 
-        @SuppressWarnings({"rawtypes"})
-        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, new NamedList());
+        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, DELETE.params());
 
         req.getContext().put("httpMethod", "POST");
 

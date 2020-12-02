@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.DELETE;
+import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.SAVE;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.request.RequestWriter;
@@ -74,7 +77,7 @@ public abstract class RewriterConfigRequestBuilder {
     public static class DeleteRewriterConfigSolrRequest extends SolrRequest<DeleteRewriterConfigSolrSolrResponse> {
 
         public DeleteRewriterConfigSolrRequest(final String requestHandlerName, final String rewriterId) {
-            super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId + "/_delete");
+            super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId);
         }
 
         public DeleteRewriterConfigSolrRequest(final String rewriterId) {
@@ -83,7 +86,7 @@ public abstract class RewriterConfigRequestBuilder {
 
         @Override
         public SolrParams getParams() {
-            return null;
+            return DELETE.params();
         }
 
         @Override
@@ -101,7 +104,7 @@ public abstract class RewriterConfigRequestBuilder {
 
         public SaveRewriterConfigSolrRequest(final String requestHandlerName, final String rewriterId,
                                              final String payload) {
-            super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId + "/_put");
+            super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId);
             this.payload = payload;
         }
 
@@ -111,7 +114,7 @@ public abstract class RewriterConfigRequestBuilder {
 
         @Override
         public SolrParams getParams() {
-            return null;
+            return SAVE.params();
         }
 
 

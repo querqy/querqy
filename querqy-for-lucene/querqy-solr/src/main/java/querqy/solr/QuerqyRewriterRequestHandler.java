@@ -1,9 +1,12 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.*;
 import static querqy.solr.utils.JsonUtil.readJson;
 
 import org.apache.solr.cloud.ZkSolrResourceLoader;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.params.MultiMapSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
@@ -19,12 +22,48 @@ import querqy.rewrite.RewriterFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedRequestHandler, SolrCoreAware {
+
+    public static final String PARAM_ACTION = "action";
+
+    public enum ActionParam {
+
+        SAVE, DELETE, GET;
+
+        private final SolrParams params;
+
+        ActionParam() {
+            final Map<String, String[]> params = new HashMap<>(1);
+            params.put(PARAM_ACTION, new String[] {name()});
+            this.params = new MultiMapSolrParams(params);
+        }
+
+        static Optional<ActionParam> fromString(final String str) {
+            if (str == null) {
+                return Optional.empty();
+            }
+            if (SAVE.name().equalsIgnoreCase(str)) {
+                return Optional.of(SAVE);
+            }
+            if (DELETE.name().equalsIgnoreCase(str)) {
+                return Optional.of(DELETE);
+            }
+            if (GET.name().equalsIgnoreCase(str)) {
+                return Optional.of(GET);
+            }
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
+                    "Unknown action value: " + str);
+        }
+
+        public SolrParams params() {
+            return params;
+        }
+    }
 
     public static final String DEFAULT_HANDLER_NAME = "/querqy/rewriter";
 
@@ -99,18 +138,29 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
             @Override
             public void handleRequest(final SolrQueryRequest req, final SolrQueryResponse rsp) {
 
-                final String[] pathParts = subPath.split("/");
-                if (pathParts.length < 2) {
+                final String rewriterId = subPath.charAt(0) == '/' ? subPath.substring(1) : subPath;
+
+                if (rewriterId.indexOf('/') > 0 || rewriterId.isEmpty()) {
                     throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
-                            "Expected rewriter name and action in path: " + subPath);
+                            "Illegal rewriter ID: " + rewriterId);
                 }
+
+                // Solr V1 API can only handle GET and POST.
                 final boolean isPost = req.getHttpMethod().equalsIgnoreCase("POST");
-                final String rewriterId = pathParts[pathParts.length - 2];
-                switch (pathParts[pathParts.length - 1].toLowerCase(Locale.ROOT)) {
-                    case "_delete":
+                final ActionParam action = fromString(req.getParams().get(PARAM_ACTION)).orElse(GET);
+
+                switch (action) {
+                    case SAVE:
                         if (!isPost) {
                             throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
-                                    "_delete only allowed with Http POST method");
+                                    SAVE.name() + " only allowed with Http POST method");
+                        }
+                        doPut(req, rewriterId);
+                        break;
+                    case DELETE:
+                        if (!isPost) {
+                            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
+                                    DELETE.name() + " only allowed with Http POST method");
                         }
                         try {
                             rewriterContainer.deleteRewriter(rewriterId);
@@ -118,17 +168,15 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
                             throw new RuntimeException(e);
                         }
                         break;
-                    case "_put":
-                        if (!isPost) {
-                            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
-                                    "_put only allowed with Http POST method");
-                        }
-                        doPut(req, rewriterId);
-                        break;
-                    case "_get": break;
+                    case GET:
+                        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
+                            GET.name() + " not implemented yet");
+
                     default: throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
                             "Expected rewriter name and action in path: " + subPath);
                 }
+
+
 
             }
 
