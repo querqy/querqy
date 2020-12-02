@@ -102,7 +102,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     }
 
     @Test
-    public void testSaveAndUpdateRewriter() throws IOException, SolrServerException {
+    public void testSaveAndUpdateRewriter() throws Exception {
 
         final SaveRewriterConfigSolrResponse response = new CommonRulesConfigRequestBuilder()
                 .rules("a =>\n SYNONYM: b").buildSaveRequest("rewriter_test_save").process(getRandClient());
@@ -117,7 +117,8 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                 QueryParsing.OP, "OR"
                 );
 
-        QueryResponse rsp = new QueryRequest(params).process(getRandClient());
+        QueryResponse rsp = waitForRewriterAndQuery(params, getRandClient());
+
         assertEquals(2L, rsp.getResults().getNumFound());
 
         final SaveRewriterConfigSolrResponse response2 = new CommonRulesConfigRequestBuilder()
@@ -126,13 +127,13 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         assertEquals(0, response2.getStatus());
 
-        QueryResponse rsp2 = new QueryRequest(params).process(getRandClient());
+        QueryResponse rsp2 = waitForRewriterAndQuery(params, getRandClient());
         assertEquals(3L, rsp2.getResults().getNumFound());
 
     }
 
     @Test
-    public void testRewriteChain() throws IOException, SolrServerException {
+    public void testRewriteChain() throws Exception {
 
         assertEquals(0, new CommonRulesConfigRequestBuilder()
                 .rules("a =>\n SYNONYM: b").buildSaveRequest("chain_common_rules").process(getRandClient())
@@ -143,39 +144,38 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                 .getStatus());
 
         // common rules rewriter only
-        QueryResponse rsp = new QueryRequest(
+        QueryResponse rsp = waitForRewriterAndQuery(
+
                 params("collection", COLLECTION,
                         "q", "a",
                         "defType", "querqy",
                         PARAM_REWRITERS, "chain_common_rules",
                         DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR")
+                        QueryParsing.OP, "OR"),
+                getRandClient());
 
-        ).process(getRandClient());
         assertEquals(2L, rsp.getResults().getNumFound());
 
         // replace rewriter first, supplies input to following common rules rewriter
-        QueryResponse rsp2 = new QueryRequest(
+        QueryResponse rsp2 = waitForRewriterAndQuery(
                 params("collection", COLLECTION,
                         "q", "sd",
                         "defType", "querqy",
                         PARAM_REWRITERS, "chain_replace,chain_common_rules",
                         DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR")
-
-        ).process(getRandClient());
+                        QueryParsing.OP, "OR"),
+                getRandClient());
         assertEquals(2L, rsp2.getResults().getNumFound());
 
         // common rules first (but no match), followed by replace rewriter
-        QueryResponse rsp3 = new QueryRequest(
+        QueryResponse rsp3 = waitForRewriterAndQuery(
                 params("collection", COLLECTION,
                         "q", "sd",
                         "defType", "querqy",
                         PARAM_REWRITERS, "chain_common_rules,chain_replace",
                         DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR")
-
-        ).process(getRandClient());
+                        QueryParsing.OP, "OR"),
+                getRandClient());
         assertEquals(1L, rsp3.getResults().getNumFound());
 
     }
@@ -190,15 +190,14 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final SolrClient client = getRandClient();
 
-        final QueryResponse rsp = waitForRewriterAndQuery(new QueryRequest(
+        final QueryResponse rsp = waitForRewriterAndQuery(
                 params("collection", COLLECTION,
                         "q", "a",
                         "defType", "querqy",
                         PARAM_REWRITERS, "delete_common_rules",
                         DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR")
-
-        ), client);
+                        QueryParsing.OP, "OR"),
+                client);
 
 
         assertEquals(2L, rsp.getResults().getNumFound());
@@ -208,15 +207,15 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                 .getStatus());
 
         try {
-            new QueryRequest(
+
+            waitForRewriterAndQuery(
                     params("collection", COLLECTION,
                             "q", "a",
                             "defType", "querqy",
                             PARAM_REWRITERS, "delete_common_rules",
                             DisMaxParams.QF, "f1 f2",
-                            QueryParsing.OP, "OR")
-
-            ).process(getRandClient());
+                            QueryParsing.OP, "OR"),
+                    getRandClient());
             fail("Expected bad request exception for deleted rewriter");
         } catch (final SolrException e) {
             assertEquals(SolrException.ErrorCode.BAD_REQUEST.code, e.code());

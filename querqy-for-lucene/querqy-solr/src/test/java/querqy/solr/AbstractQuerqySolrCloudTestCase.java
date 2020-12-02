@@ -7,6 +7,7 @@ import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.cloud.AbstractDistribZkTestBase;
 import org.apache.solr.cloud.SolrCloudTestCase;
+import org.apache.solr.common.params.SolrParams;
 
 import java.util.List;
 import java.util.Random;
@@ -31,14 +32,18 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
                 true, true, 330);
     }
 
+    protected QueryResponse waitForRewriterAndQuery(final SolrParams params, final SolrClient client) throws Exception {
+        return waitForRewriterAndQuery(new QueryRequest(params), client);
+    }
+
     protected QueryResponse waitForRewriterAndQuery(final QueryRequest req, final SolrClient client) throws Exception {
         // It will take a bit to propagate a rewriter config to the nodes. We try to apply the rewriter max. 3 times and
         // wait for a bit between the attempts
 
-        int attempts = 3;
+        int attempts = 20;
         do {
             synchronized (this) {
-                wait(800L);
+                wait(100L);
             }
             try {
                 return req.process(client);

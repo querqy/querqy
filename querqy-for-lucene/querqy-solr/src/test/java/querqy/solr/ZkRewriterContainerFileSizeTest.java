@@ -104,15 +104,14 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
                 .process(getRandClient())
                 .getStatus());
 
-        final QueryResponse rsp = waitForRewriterAndQuery(new QueryRequest(
+        final QueryResponse rsp = waitForRewriterAndQuery(
                 params("collection", COLLECTION,
                         "q", "f",
                         "defType", "querqy",
                         PARAM_REWRITERS, "large_common_rules",
                         DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR")
-
-        ), getRandClient());
+                        QueryParsing.OP, "OR"),
+                getRandClient());
 
         assertNotNull(rsp);
         assertEquals(1L, rsp.getResults().getNumFound());
