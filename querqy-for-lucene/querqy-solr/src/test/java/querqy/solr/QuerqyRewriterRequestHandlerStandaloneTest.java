@@ -68,6 +68,31 @@ public class QuerqyRewriterRequestHandlerStandaloneTest extends SolrTestCaseJ4 {
         req.close();
     }
 
+    @Test
+    public void testGetConfig() {
+
+        final String rewriterName = "conf_common_rules";
+        final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
+                .rules("a =>\n SYNONYM: b").ignoreCase(false);
+        withCommonRulesRewriter(h.getCore(), rewriterName, builder);
+
+
+
+        try (SolrQueryRequest req = req("qt", "/querqy/rewriter/" + rewriterName )) {
+
+            assertQ("Rewriter config not found",
+                    req,
+                    "//lst[@name='conf_common_rules']/str[@name='class'][text()='querqy.solr.rewriter.commonrules." +
+                            "CommonRulesRewriterFactory']",
+                    "//lst[@name='conf_common_rules']/lst[@name='config']/bool[@name='ignoreCase'][text()='false']",
+                    "//lst[@name='conf_common_rules']/lst[@name='config']/str[@name='rules'][contains(.,'SYNONYM: b')]"
+            );
+
+        }
+
+    }
+
+
 
     @Test
     public void testUpdateRewriter() {

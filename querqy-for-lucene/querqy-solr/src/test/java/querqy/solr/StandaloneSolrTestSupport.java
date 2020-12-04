@@ -33,7 +33,7 @@ public interface StandaloneSolrTestSupport {
 
         try {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
-                    .rules(BoostMethodTest.class.getClassLoader().getResourceAsStream(rulesName));
+                    .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName));
             ruleSelectionStrategies.forEach(builder::ruleSelectionStrategy);
             withCommonRulesRewriter(core, rewriterId, builder);
         } catch (IOException e) {

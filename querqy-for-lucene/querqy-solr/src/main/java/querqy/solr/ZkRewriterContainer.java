@@ -183,7 +183,13 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
                     null, true));
             zkClient.delete(rewriterPath(rewriterId), -1, true);
 
-        } catch (final InterruptedException | KeeperException e) {
+        } catch (final KeeperException e) {
+            if (KeeperException.Code.NONODE == e.code()) {
+                throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "Rewriter " + rewriterId + " not found.");
+            } else {
+                throw new IOException("Error deleting rewriter " + rewriterId, e);
+            }
+        } catch (final InterruptedException e) {
             throw new IOException("Error deleting rewriter " + rewriterId, e);
         }
 
@@ -241,21 +247,36 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     public synchronized void onRewriterChanged(final String rewriterId) {
 
+        try {
+            loadRewriter(rewriterId, readRewriterDescription(rewriterId, newRewriterWatcher(rewriterId)));
+        } catch (final IOException e) {
+            // TODO: log
+        }
+
+    }
+
+    @Override
+    public synchronized Map<String, Object> readRewriterDescription(final String rewriterId)
+            throws IOException {
+        return readRewriterDescription(rewriterId, null);
+    }
+
+    protected synchronized Map<String, Object> readRewriterDescription(final String rewriterId, final Watcher watcher)
+            throws IOException {
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream(maxFileSize)) {
 
-            for (final String uuid : new String(zkClient.getData(rewriterPath(rewriterId),
-                    newRewriterWatcher(rewriterId), null, true)).split(",")) {
+            for (final String uuid : new String(zkClient.getData(rewriterPath(rewriterId), watcher, null, true))
+                    .split(",")) {
                 final byte[] data = zkClient.getData(rewriterDataPath(rewriterId, uuid), null, null, true);
                 bos.write(data);
             }
 
-            loadRewriter(rewriterId, readJson(GZIPAwareResourceLoader.detectGZIPAndWrap(
-                    new ByteArrayInputStream(bos.toByteArray())), Map.class));
+            return readJson(GZIPAwareResourceLoader.detectGZIPAndWrap(new ByteArrayInputStream(bos.toByteArray())),
+                    Map.class);
 
-        } catch (final Exception e) {
-            // TODO: log
+        } catch (final InterruptedException | KeeperException e) {
+            throw new IOException(e);
         }
-
     }
 
     protected String rewriterPath(final String rewriterId) {

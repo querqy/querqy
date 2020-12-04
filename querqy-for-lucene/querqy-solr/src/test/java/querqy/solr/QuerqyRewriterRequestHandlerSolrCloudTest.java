@@ -1,6 +1,7 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.RewriterConfigRequestBuilder.buildGetRequest;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrClient;
@@ -15,10 +16,12 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QueryParsing;
+import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
@@ -221,6 +224,52 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             assertEquals(SolrException.ErrorCode.BAD_REQUEST.code, e.code());
         }
 
+    }
+
+    @Test
+    public void testGetConfig() throws IOException, SolrServerException {
+
+        final String rewriterName = "conf_common_rules";
+        final SolrClient client = getRandClient();
+        final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
+
+        assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
+                .process(client).getStatus());
+
+        final GetRewriterConfigSolrResponse response = buildGetRequest(rewriterName).process(client);
+        assertEquals(0, response.getStatus());
+        assertEquals(configBuilder.buildDescription(), response.getResponse().get(rewriterName));
+
+    }
+
+    @Test
+    public void testFor404WhenDeletingUnknownRewriter() throws IOException, SolrServerException {
+        try {
+            RewriterConfigRequestBuilder.buildDeleteRequest("delete_the_void")
+                    .process(getRandClient());
+
+            fail("Expected rewriter not found exception while deleting");
+        } catch (final SolrException e) {
+            assertEquals(SolrException.ErrorCode.NOT_FOUND.code, e.code());
+        }
+    }
+
+    @Test
+    public void testFor400WhenUsingUnknownRewriter() throws IOException, SolrServerException {
+
+        try {
+            new QueryRequest(
+                    params("collection", COLLECTION,
+                            "q", "a",
+                            "defType", "querqy",
+                            PARAM_REWRITERS, "delete_common_rules",
+                            DisMaxParams.QF, "f1 f2",
+                            QueryParsing.OP, "OR")).process(getRandClient());
+
+            fail("Expected rewriter not found exception while querying");
+        } catch (final SolrException e) {
+            assertEquals(SolrException.ErrorCode.BAD_REQUEST.code, e.code());
+        }
     }
 
     private SolrClient getRandClient() {

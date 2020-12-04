@@ -1,6 +1,7 @@
 package querqy.solr;
 
 import static querqy.solr.utils.JsonUtil.readJson;
+import static querqy.solr.utils.JsonUtil.writeJson;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
@@ -8,7 +9,6 @@ import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.rest.ManagedResourceStorage;
 import querqy.rewrite.RewriterFactory;
-import querqy.solr.utils.JsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,18 +60,29 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
     }
 
     @Override
+    public synchronized Map<String, Object> readRewriterDescription(final String rewriterId)
+            throws IOException {
+
+        final ManagedResourceStorage.StorageIO storageIO = ManagedResourceStorage.newStorageIO(core.getCoreDescriptor()
+                .getCollectionName(), resourceLoader, new NamedList<>());
+
+        return readJson(storageIO.openInputStream(rewriterPath(rewriterId)), Map.class);
+
+    }
+
+    @Override
     protected void doClose() {
     }
 
     @Override
-    protected void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
+    protected synchronized void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException {
 
         final ManagedResourceStorage.StorageIO storageIO = ManagedResourceStorage.newStorageIO(core
                 .getCoreDescriptor().getCollectionName(), resourceLoader, new NamedList<>());
 
         try (final OutputStream os = storageIO.openOutputStream(rewriterPath(rewriterId))) {
-            JsonUtil.writeJson(instanceDescription, os);
+            writeJson(instanceDescription, os);
         }
 
         loadRewriter(rewriterId, instanceDescription);

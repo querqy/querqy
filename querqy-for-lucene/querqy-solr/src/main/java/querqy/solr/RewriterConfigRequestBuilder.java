@@ -1,6 +1,7 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.DELETE;
+import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.GET;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.SAVE;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -33,7 +34,10 @@ public abstract class RewriterConfigRequestBuilder {
     public abstract Map<String, Object> buildConfig();
 
     public String buildJson() {
+        return JsonUtil.toJson(buildDescription());
+    }
 
+    public Map<String, Object> buildDescription() {
         final Map<String, Object> config = buildConfig();
 
         final List<String> errors = SolrRewriterFactoryAdapter
@@ -44,11 +48,13 @@ public abstract class RewriterConfigRequestBuilder {
             throw new RuntimeException("Invalid configuration: " + String.join(", ", errors));
         }
 
-        final Map<String, Object> request = new HashMap<>();
-        request.put(CONF_CLASS, rewriterFactoryAdapterClass.getName());
-        request.put(CONF_CONFIG, config);
-        return JsonUtil.toJson(request);
+        final Map<String, Object> description = new HashMap<>();
+        description.put(CONF_CLASS, rewriterFactoryAdapterClass.getName());
+        description.put(CONF_CONFIG, config);
+        return description;
+
     }
+
 
     public SaveRewriterConfigSolrRequest buildSaveRequest(final String rewriterId) {
         return buildSaveRequest(rewriterId, this);
@@ -56,7 +62,8 @@ public abstract class RewriterConfigRequestBuilder {
 
     public static SaveRewriterConfigSolrRequest buildSaveRequest(final String rewriterId,
                                                                  final RewriterConfigRequestBuilder requestBuilder) {
-        return  new SaveRewriterConfigSolrRequest(rewriterId, requestBuilder.buildJson());
+        return  new SaveRewriterConfigSolrRequest(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME, rewriterId,
+                requestBuilder.buildJson());
     }
 
     public static SaveRewriterConfigSolrRequest buildSaveRequest(final String requestHandlerName,
@@ -66,7 +73,7 @@ public abstract class RewriterConfigRequestBuilder {
     }
 
     public static DeleteRewriterConfigSolrRequest buildDeleteRequest(final String rewriterId) {
-        return new DeleteRewriterConfigSolrRequest(rewriterId);
+        return new DeleteRewriterConfigSolrRequest(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME, rewriterId);
     }
 
     public static DeleteRewriterConfigSolrRequest buildDeleteRequest(final String requestHandlerName,
@@ -74,29 +81,14 @@ public abstract class RewriterConfigRequestBuilder {
         return new DeleteRewriterConfigSolrRequest(requestHandlerName, rewriterId);
     }
 
-    public static class DeleteRewriterConfigSolrRequest extends SolrRequest<DeleteRewriterConfigSolrSolrResponse> {
-
-        public DeleteRewriterConfigSolrRequest(final String requestHandlerName, final String rewriterId) {
-            super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId);
-        }
-
-        public DeleteRewriterConfigSolrRequest(final String rewriterId) {
-            this(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME, rewriterId);
-        }
-
-        @Override
-        public SolrParams getParams() {
-            return DELETE.params();
-        }
-
-        @Override
-        protected DeleteRewriterConfigSolrSolrResponse createResponse(final SolrClient client) {
-            return new DeleteRewriterConfigSolrSolrResponse();
-        }
+    public static GetRewriterConfigSolrRequest buildGetRequest(final String rewriterId) {
+        return new GetRewriterConfigSolrRequest(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME, rewriterId);
     }
 
-
-    public static class DeleteRewriterConfigSolrSolrResponse extends SolrResponseBase { }
+    public static GetRewriterConfigSolrRequest buildGetRequest(final String requestHandlerName,
+                                                               final String rewriterId) {
+        return new GetRewriterConfigSolrRequest(requestHandlerName, rewriterId);
+    }
 
     public static class SaveRewriterConfigSolrRequest extends SolrRequest<SaveRewriterConfigSolrResponse> {
 
@@ -106,10 +98,6 @@ public abstract class RewriterConfigRequestBuilder {
                                              final String payload) {
             super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId);
             this.payload = payload;
-        }
-
-        public SaveRewriterConfigSolrRequest(final String rewriterId, final String payload) {
-            this(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME, rewriterId, payload);
         }
 
         @Override
@@ -141,7 +129,48 @@ public abstract class RewriterConfigRequestBuilder {
         }
     }
 
+    public static class DeleteRewriterConfigSolrRequest extends SolrRequest<DeleteRewriterConfigSolrSolrResponse> {
+
+        public DeleteRewriterConfigSolrRequest(final String requestHandlerName, final String rewriterId) {
+            super(SolrRequest.METHOD.POST, requestHandlerName + "/" + rewriterId);
+        }
+
+        @Override
+        public SolrParams getParams() {
+            return DELETE.params();
+        }
+
+        @Override
+        protected DeleteRewriterConfigSolrSolrResponse createResponse(final SolrClient client) {
+            return new DeleteRewriterConfigSolrSolrResponse();
+        }
+
+    }
+
+    public static class GetRewriterConfigSolrRequest extends SolrRequest<GetRewriterConfigSolrResponse> {
+
+        public GetRewriterConfigSolrRequest(final String requestHandlerName, final String rewriterId) {
+            super(SolrRequest.METHOD.GET, requestHandlerName + "/" + rewriterId);
+        }
+
+        @Override
+        public SolrParams getParams() {
+            return GET.params();
+        }
+
+        @Override
+        protected GetRewriterConfigSolrResponse createResponse(final SolrClient client) {
+            return new GetRewriterConfigSolrResponse();
+        }
+
+    }
+
+
     public static class SaveRewriterConfigSolrResponse extends SolrResponseBase { }
+
+    public static class DeleteRewriterConfigSolrSolrResponse extends SolrResponseBase { }
+
+    public static class GetRewriterConfigSolrResponse extends SolrResponseBase { }
 
 
 }
