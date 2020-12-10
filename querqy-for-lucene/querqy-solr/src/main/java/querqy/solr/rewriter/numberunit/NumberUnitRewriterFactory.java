@@ -1,17 +1,15 @@
 package querqy.solr.rewriter.numberunit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.contrib.numberunit.model.FieldDefinition;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.UnitDefinition;
 import querqy.solr.SolrRewriterFactoryAdapter;
-import querqy.solr.rewriter.numberunit.NumberUnitConfigObject;
 import querqy.solr.rewriter.numberunit.NumberUnitConfigObject.NumberUnitDefinitionObject;
-import querqy.solr.rewriter.numberunit.NumberUnitQueryCreatorSolr;
+import querqy.solr.utils.ConfigUtils;
+import querqy.solr.utils.JsonUtil;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
 
-    public static final String KEY_CONFIG_PROPERTY = "config";
+    public static final String CONF_PROPERTY = "config";
 
     private static final String EXCEPTION_MESSAGE = "NumberUnitRewriter not properly configured. " +
             "At least one unit and one field need to be properly defined, e. g. \n" +
@@ -173,14 +171,9 @@ public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
     @Override
     public void configure(final Map<String, Object> config) {
 
-        final Object numberUnitConfig = config.get(KEY_CONFIG_PROPERTY);
-        final NumberUnitConfigObject numberUnitConfigObject;
-        try {
-            numberUnitConfigObject = new ObjectMapper().readValue((String) numberUnitConfig,
-                    NumberUnitConfigObject.class);
-        } catch (final IOException e) {
-            throw new IllegalStateException("Config could not be parsed after successful validation");
-        }
+        final NumberUnitConfigObject numberUnitConfigObject = ConfigUtils.getStringArg(config, CONF_PROPERTY)
+                .map(confString -> JsonUtil.readJson(confString, NumberUnitConfigObject.class))
+                .orElseThrow(() -> new IllegalStateException("Config could not be parsed after successful validation"));
 
         final int scale = getOrDefaultInt(numberUnitConfigObject::getScaleForLinearFunctions,
                 DEFAULT_SCALE_FOR_LINEAR_FUNCTIONS);
@@ -192,29 +185,26 @@ public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
 
     @Override
     public List<String> validateConfiguration(final Map<String, Object> config) {
-        final Object numberUnitConfig = config.get(KEY_CONFIG_PROPERTY);
-        if (!(numberUnitConfig instanceof String)) {
-            return Collections.singletonList("Property 'config' not or not properly configured");
-        }
 
-        // resource InputStream will be closed by Jackson Json Parser
-        final NumberUnitConfigObject numberUnitConfigObject;
-        try {
-            numberUnitConfigObject = new ObjectMapper().readValue(
-                    (String) numberUnitConfig, NumberUnitConfigObject.class);
+        return ConfigUtils.getStringArg(config, CONF_PROPERTY)
+                .map(configString -> JsonUtil.readJson(configString, NumberUnitConfigObject.class))
+                .map(numberUnitConfigObject -> {
+                    try {
+                        final List<NumberUnitDefinition> numberUnitDefinitions = parseConfig(numberUnitConfigObject);
+                        numberUnitDefinitions.stream()
+                                .filter(this::numberUnitDefinitionHasDuplicateUnitDefinition)
+                                .findFirst()
+                                .ifPresent(numberUnitDefinition -> {
+                                    throw new IllegalArgumentException("Units must only defined once per " +
+                                            "NumberUnitDefinition");
+                                });
+                        return Collections.<String>emptyList();
+                    } catch (final Exception e) {
+                        return Collections.singletonList(e.getMessage());
+                    }
+                }
+                ).orElse(Collections.singletonList("Property '" + CONF_PROPERTY + "' not configured"));
 
-            final List<NumberUnitDefinition> numberUnitDefinitions = parseConfig(numberUnitConfigObject);
-            numberUnitDefinitions.stream()
-                    .filter(this::numberUnitDefinitionHasDuplicateUnitDefinition)
-                    .findFirst()
-                    .ifPresent(numberUnitDefinition -> {
-                        throw new IllegalArgumentException("Units must only defined once per NumberUnitDefinition");});
-
-        } catch (IOException | IllegalArgumentException e) {
-            return Collections.singletonList(e.getMessage());
-        }
-
-        return Collections.emptyList();
     }
 
     @Override

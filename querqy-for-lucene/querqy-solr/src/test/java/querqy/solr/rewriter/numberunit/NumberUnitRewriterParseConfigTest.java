@@ -1,20 +1,17 @@
 package querqy.solr.rewriter.numberunit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
-import querqy.solr.rewriter.numberunit.NumberUnitConfigObject;
-import querqy.solr.rewriter.numberunit.NumberUnitRewriterFactory;
+import querqy.solr.utils.JsonUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NumberUnitRewriterParseConfigTest {
 
-    private static String basePath = "configs/numberunit/";
+    private static String BASE_PATH = "configs/numberunit/";
 
     @Test
     public void testFullConfig() throws IOException {
@@ -108,10 +105,9 @@ public class NumberUnitRewriterParseConfigTest {
         assertThat(numberUnitDefinition.filterPercentageLowerBoundary.doubleValue()).isNotNull();
     }
 
-    private NumberUnitConfigObject createConfigObjectFromFileName(String fileName) throws IOException {
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(basePath + fileName);
-        final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(inputStream, NumberUnitConfigObject.class);
+    private NumberUnitConfigObject createConfigObjectFromFileName(String fileName) {
+        return JsonUtil.readJson(getClass().getClassLoader().getResourceAsStream(BASE_PATH + fileName),
+                NumberUnitConfigObject.class);
     }
 
 }

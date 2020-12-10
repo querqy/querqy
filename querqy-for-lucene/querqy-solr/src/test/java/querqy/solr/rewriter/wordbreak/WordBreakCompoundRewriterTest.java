@@ -1,4 +1,4 @@
-package querqy.solr.rewriter;
+package querqy.solr.rewriter.wordbreak;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
@@ -9,6 +9,7 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;

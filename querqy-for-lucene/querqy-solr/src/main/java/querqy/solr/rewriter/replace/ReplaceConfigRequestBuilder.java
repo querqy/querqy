@@ -27,28 +27,31 @@ public class ReplaceConfigRequestBuilder extends RewriterConfigRequestBuilder {
         final Map<String, Object> config = new HashMap<>();
 
         if (ignoreCase != null) {
-            config.put(ReplaceRewriterFactory.KEY_CONFIG_IGNORE_CASE, ignoreCase);
+            config.put(ReplaceRewriterFactory.CONF_IGNORE_CASE, ignoreCase);
         }
         if (rhsParser != null) {
-            config.put(ReplaceRewriterFactory.KEY_CONFIG_RHS_QUERY_PARSER, rhsParser.getName());
+            config.put(ReplaceRewriterFactory.CONF_RHS_QUERY_PARSER, rhsParser.getName());
         }
 
         if (inputDelimiter != null) {
             if (inputDelimiter.isEmpty()) {
-                throw new RuntimeException(ReplaceRewriterFactory.KEY_CONFIG_INPUT_DELIMITER + " must not be empty");
+                throw new RuntimeException(ReplaceRewriterFactory.CONF_INPUT_DELIMITER + " must not be empty");
             }
-            config.put(ReplaceRewriterFactory.KEY_CONFIG_INPUT_DELIMITER, inputDelimiter);
+            config.put(ReplaceRewriterFactory.CONF_INPUT_DELIMITER, inputDelimiter);
         }
 
         if (rules == null) {
-            throw new RuntimeException(ReplaceRewriterFactory.KEY_CONFIG_RULES + " must not be null");
+            throw new RuntimeException(ReplaceRewriterFactory.CONF_RULES + " must not be null");
         }
-        config.put(ReplaceRewriterFactory.KEY_CONFIG_RULES, rules);
+        config.put(ReplaceRewriterFactory.CONF_RULES, rules);
 
         return config;
     }
 
     public ReplaceConfigRequestBuilder rules(final String rules) {
+        if (rules == null) {
+            throw new IllegalArgumentException("rules must not be null");
+        }
         this.rules = rules;
         return this;
     }
@@ -66,6 +69,15 @@ public class ReplaceConfigRequestBuilder extends RewriterConfigRequestBuilder {
     }
 
     public ReplaceConfigRequestBuilder inputDelimiter(final String inputDelimiter) {
+
+        if (inputDelimiter != null) {
+
+            if (inputDelimiter.isEmpty()) {
+                throw new IllegalArgumentException("inputDelimiter must not be empty");
+            }
+
+        }
+
         this.inputDelimiter = inputDelimiter;
         return this;
     }

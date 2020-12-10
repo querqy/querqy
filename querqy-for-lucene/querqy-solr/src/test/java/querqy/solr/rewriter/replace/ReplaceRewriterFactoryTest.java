@@ -3,7 +3,7 @@ package querqy.solr.rewriter.replace;
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 import static querqy.solr.StandaloneSolrTestSupport.withRewriter;
-import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.KEY_CONFIG_RULES;
+import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_RULES;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -11,7 +11,6 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.solr.StandaloneSolrTestSupport;
-import querqy.solr.rewriter.replace.ReplaceRewriterFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,12 +24,12 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
         initCore("solrconfig.xml", "schema.xml");
 
         final Map<String, Object> config = new HashMap<>();
-        config.put(KEY_CONFIG_RULES,
+        config.put(CONF_RULES,
                 StandaloneSolrTestSupport.resourceToString("configs/replace/replace-rules-defaults.txt"));
         withRewriter(h.getCore(), "replace_defaults", ReplaceRewriterFactory.class, config);
 
         final Map<String, Object> config2 = new HashMap<>();
-        config2.put(KEY_CONFIG_RULES,
+        config2.put(CONF_RULES,
                 StandaloneSolrTestSupport.resourceToString("configs/replace/replace-rules.txt"));
         withRewriter(h.getCore(), "replace", ReplaceRewriterFactory.class, config2);
 

@@ -1,6 +1,7 @@
 package querqy.solr.rewriter.numberunit;
 
 import java.util.List;
+import java.util.Objects;
 
 public class NumberUnitConfigObject {
     private Integer scaleForLinearFunctions;
@@ -20,6 +21,20 @@ public class NumberUnitConfigObject {
 
     public void setNumberUnitDefinitions(List<NumberUnitDefinitionObject> numberUnitDefinitions) {
         this.numberUnitDefinitions = numberUnitDefinitions;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof NumberUnitConfigObject)) return false;
+        final NumberUnitConfigObject that = (NumberUnitConfigObject) o;
+        return Objects.equals(scaleForLinearFunctions, that.scaleForLinearFunctions)
+                && Objects.equals(numberUnitDefinitions, that.numberUnitDefinitions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(scaleForLinearFunctions, numberUnitDefinitions);
     }
 
     public static class NumberUnitDefinitionObject {
@@ -59,6 +74,20 @@ public class NumberUnitConfigObject {
         public void setFilter(FilterObject filter) {
             this.filter = filter;
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof NumberUnitDefinitionObject)) return false;
+            final NumberUnitDefinitionObject that = (NumberUnitDefinitionObject) o;
+            return Objects.equals(units, that.units) && Objects.equals(fields, that.fields)
+                    && Objects.equals(boost, that.boost) && Objects.equals(filter, that.filter);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(units, fields, boost, filter);
+        }
     }
 
     public static class UnitObject {
@@ -80,6 +109,19 @@ public class NumberUnitConfigObject {
         public void setMultiplier(Float multiplier) {
             this.multiplier = multiplier;
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof UnitObject)) return false;
+            final UnitObject that = (UnitObject) o;
+            return Objects.equals(term, that.term) && Objects.equals(multiplier, that.multiplier);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(term, multiplier);
+        }
     }
 
     public static class FieldObject {
@@ -100,6 +142,19 @@ public class NumberUnitConfigObject {
 
         public void setScale(Integer scale) {
             this.scale = scale;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof FieldObject)) return false;
+            final FieldObject that = (FieldObject) o;
+            return Objects.equals(fieldName, that.fieldName) && Objects.equals(scale, that.scale);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(fieldName, scale);
         }
     }
 
@@ -177,6 +232,28 @@ public class NumberUnitConfigObject {
         public void setAdditionalScoreForExactMatch(Float additionalScoreForExactMatch) {
             this.additionalScoreForExactMatch = additionalScoreForExactMatch;
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BoostObject)) return false;
+            final BoostObject that = (BoostObject) o;
+            return Objects.equals(percentageLowerBoundary, that.percentageLowerBoundary)
+                    && Objects.equals(percentageUpperBoundary, that.percentageUpperBoundary)
+                    && Objects.equals(percentageLowerBoundaryExactMatch, that.percentageLowerBoundaryExactMatch)
+                    && Objects.equals(percentageUpperBoundaryExactMatch, that.percentageUpperBoundaryExactMatch)
+                    && Objects.equals(minScoreAtLowerBoundary, that.minScoreAtLowerBoundary)
+                    && Objects.equals(minScoreAtUpperBoundary, that.minScoreAtUpperBoundary)
+                    && Objects.equals(maxScoreForExactMatch, that.maxScoreForExactMatch)
+                    && Objects.equals(additionalScoreForExactMatch, that.additionalScoreForExactMatch);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(percentageLowerBoundary, percentageUpperBoundary, percentageLowerBoundaryExactMatch,
+                    percentageUpperBoundaryExactMatch, minScoreAtLowerBoundary, minScoreAtUpperBoundary,
+                    maxScoreForExactMatch, additionalScoreForExactMatch);
+        }
     }
 
     public static class FilterObject {
@@ -197,6 +274,20 @@ public class NumberUnitConfigObject {
 
         public void setPercentageUpperBoundary(Float percentageUpperBoundary) {
             this.percentageUpperBoundary = percentageUpperBoundary;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof FilterObject)) return false;
+            final FilterObject that = (FilterObject) o;
+            return Objects.equals(percentageLowerBoundary, that.percentageLowerBoundary)
+                    && Objects.equals(percentageUpperBoundary, that.percentageUpperBoundary);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(percentageLowerBoundary, percentageUpperBoundary);
         }
     }
 }

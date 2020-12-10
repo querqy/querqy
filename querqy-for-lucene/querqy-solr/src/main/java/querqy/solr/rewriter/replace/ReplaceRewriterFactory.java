@@ -16,10 +16,10 @@ import java.util.Map;
 
 public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter {
 
-    public static final String KEY_CONFIG_RULES = "rules";
-    public static final String KEY_CONFIG_RHS_QUERY_PARSER = "querqyParser";
-    public static final String KEY_CONFIG_INPUT_DELIMITER = "inputDelimiter";
-    public static final String KEY_CONFIG_IGNORE_CASE = "ignoreCase";
+    public static final String CONF_RULES = "rules";
+    public static final String CONF_RHS_QUERY_PARSER = "querqyParser";
+    public static final String CONF_INPUT_DELIMITER = "inputDelimiter";
+    public static final String CONF_IGNORE_CASE = "ignoreCase";
 
 
     private static final Boolean DEFAULT_IGNORE_CASE = true;
@@ -34,15 +34,15 @@ public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter {
 
     @Override
     public void configure(final Map<String, Object> config) {
-        final String rules = (String) config.get(KEY_CONFIG_RULES);
+        final String rules = (String) config.get(CONF_RULES);
         final InputStreamReader rulesReader = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
 
-        final boolean ignoreCase = ConfigUtils.getArg(config, KEY_CONFIG_IGNORE_CASE, DEFAULT_IGNORE_CASE);
+        final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, DEFAULT_IGNORE_CASE);
 
-        final String inputDelimiter = ConfigUtils.getArg(config, KEY_CONFIG_INPUT_DELIMITER, DEFAULT_INPUT_DELIMITER);
+        final String inputDelimiter = ConfigUtils.getArg(config, CONF_INPUT_DELIMITER, DEFAULT_INPUT_DELIMITER);
 
         final QuerqyParserFactory querqyParser = ConfigUtils.getInstanceFromArg(
-                config, KEY_CONFIG_RHS_QUERY_PARSER, DEFAULT_RHS_QUERY_PARSER);
+                config, CONF_RHS_QUERY_PARSER, DEFAULT_RHS_QUERY_PARSER);
 
         try {
             delegate = new querqy.rewrite.contrib.ReplaceRewriterFactory(rewriterId, rulesReader, ignoreCase,
@@ -55,23 +55,23 @@ public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter {
 
     @Override
     public List<String> validateConfiguration(final Map<String, Object> config) {
-        final String rules = (String) config.get(KEY_CONFIG_RULES);
+        final String rules = (String) config.get(CONF_RULES);
         if (rules == null) {
-            return Collections.singletonList("Property '" + KEY_CONFIG_RULES + "' not configured");
+            return Collections.singletonList("Property '" + CONF_RULES + "' not configured");
         }
 
         final InputStreamReader rulesReader = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
 
-        final boolean ignoreCase = ConfigUtils.getArg(config, KEY_CONFIG_IGNORE_CASE, DEFAULT_IGNORE_CASE);
+        final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, DEFAULT_IGNORE_CASE);
 
-        final String inputDelimiter = ConfigUtils.getArg(config, KEY_CONFIG_INPUT_DELIMITER, DEFAULT_INPUT_DELIMITER);
+        final String inputDelimiter = ConfigUtils.getArg(config, CONF_INPUT_DELIMITER, DEFAULT_INPUT_DELIMITER);
 
 
         final QuerqyParserFactory querqyParser;
         try {
-            querqyParser = ConfigUtils.getInstanceFromArg(config, KEY_CONFIG_RHS_QUERY_PARSER, DEFAULT_RHS_QUERY_PARSER);
+            querqyParser = ConfigUtils.getInstanceFromArg(config, CONF_RHS_QUERY_PARSER, DEFAULT_RHS_QUERY_PARSER);
         } catch (final Exception e) {
-            return Collections.singletonList("Invalid attribute '" + KEY_CONFIG_RHS_QUERY_PARSER + "': " + e.getMessage());
+            return Collections.singletonList("Invalid attribute '" + CONF_RHS_QUERY_PARSER + "': " + e.getMessage());
         }
 
         try {

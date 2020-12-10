@@ -9,7 +9,6 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.solr.StandaloneSolrTestSupport;
-import querqy.solr.rewriter.numberunit.NumberUnitRewriterFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,12 +22,12 @@ public class NumberUnitRewriterTest extends SolrTestCaseJ4 {
         initCore("solrconfig.xml", "rewriter/schema-numberunit.xml");
 
         final Map<String, Object> config = new HashMap<>();
-        config.put(NumberUnitRewriterFactory.KEY_CONFIG_PROPERTY,
+        config.put(NumberUnitRewriterFactory.CONF_PROPERTY,
                 StandaloneSolrTestSupport.resourceToString("configs/numberunit/number-unit-config.json"));
         withRewriter(h.getCore(), "number_unit_standard", NumberUnitRewriterFactory.class, config);
 
         final Map<String, Object> config2 = new HashMap<>();
-        config2.put(NumberUnitRewriterFactory.KEY_CONFIG_PROPERTY,
+        config2.put(NumberUnitRewriterFactory.CONF_PROPERTY,
                 StandaloneSolrTestSupport.resourceToString("configs/numberunit/number-unit-exact-range-config.json"));
         withRewriter(h.getCore(), "number_unit_exact_range", NumberUnitRewriterFactory.class, config2);
 

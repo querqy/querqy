@@ -3,9 +3,12 @@ package querqy.solr.rewriter;
 import org.apache.solr.common.SolrException;
 
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.RewriterConfigRequestBuilder;
 import querqy.solr.SolrRewriterFactoryAdapter;
+import querqy.solr.utils.ConfigUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +17,8 @@ import java.util.Map;
  */
 public class ShingleRewriterFactory extends SolrRewriterFactoryAdapter {
 
+    public static final String CONF_ACCEPT_GENERATED_TERMS = "acceptGeneratedTerms";
+
     querqy.rewrite.contrib.ShingleRewriterFactory factory = null;
 
     public ShingleRewriterFactory(final String rewriterId) {
@@ -21,33 +26,21 @@ public class ShingleRewriterFactory extends SolrRewriterFactoryAdapter {
     }
 
     @Override
-    public void configure(final Map<String, Object> config)
-            throws SolrException {
-        final Object acceptGeneratedTerms = config.get("acceptGeneratedTerms");
+    public void configure(final Map<String, Object> config) throws SolrException {
 
-        if (acceptGeneratedTerms == null) {
-            factory = new querqy.rewrite.contrib.ShingleRewriterFactory(rewriterId);
-        } else if (acceptGeneratedTerms instanceof Boolean) {
-            factory = new querqy.rewrite.contrib.ShingleRewriterFactory(rewriterId, (Boolean) acceptGeneratedTerms);
-        } else {
-            factory = new querqy.rewrite.contrib.ShingleRewriterFactory(rewriterId, Boolean.parseBoolean(
-                    acceptGeneratedTerms.toString()));
-        }
+        factory = ConfigUtils.getBoolArg(config, CONF_ACCEPT_GENERATED_TERMS)
+                .map(accept -> new querqy.rewrite.contrib.ShingleRewriterFactory(rewriterId, accept))
+                .orElseGet(() -> new querqy.rewrite.contrib.ShingleRewriterFactory(rewriterId));
 
     }
 
     @Override
     public List<String> validateConfiguration(final Map<String, Object> config) {
-        final Object acceptGeneratedTerms = config.get("acceptGeneratedTerms");
-        if ((acceptGeneratedTerms == null) || (acceptGeneratedTerms instanceof Boolean)) {
-            return null;
-        }
-
         try {
-            Boolean.parseBoolean(acceptGeneratedTerms.toString());
+            ConfigUtils.getBoolArg(config, CONF_ACCEPT_GENERATED_TERMS);
             return null;
         } catch (final Exception e){
-            return Collections.singletonList("boolean value expected for acceptGeneratedTerms");
+            return Collections.singletonList("boolean value expected for " + CONF_ACCEPT_GENERATED_TERMS);
         }
 
     }
@@ -55,5 +48,36 @@ public class ShingleRewriterFactory extends SolrRewriterFactoryAdapter {
     @Override
     public RewriterFactory getRewriterFactory() {
         return factory;
+    }
+
+    public static class ShingleConfigRequestBuilder extends RewriterConfigRequestBuilder {
+
+        private Boolean acceptGeneratedTerms;
+
+        public ShingleConfigRequestBuilder() {
+            super(ShingleRewriterFactory.class);
+        }
+
+        public ShingleConfigRequestBuilder(final boolean acceptGeneratedTerms) {
+            super(ShingleRewriterFactory.class);
+            this.acceptGeneratedTerms = acceptGeneratedTerms;
+        }
+
+        @Override
+        public Map<String, Object> buildConfig() {
+            if (acceptGeneratedTerms == null) {
+                return Collections.emptyMap();
+            } else {
+                final Map<String, Object> config = new HashMap<>(1);
+                config.put(CONF_ACCEPT_GENERATED_TERMS, acceptGeneratedTerms);
+                return config;
+            }
+        }
+
+        public ShingleConfigRequestBuilder acceptGeneratedTerms(final Boolean accept) {
+            acceptGeneratedTerms = accept;
+            return this;
+        }
+
     }
 }

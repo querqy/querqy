@@ -11,6 +11,8 @@ import org.junit.Test;
 import querqy.solr.BoostMethodTest;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by rene on 05/05/2017.

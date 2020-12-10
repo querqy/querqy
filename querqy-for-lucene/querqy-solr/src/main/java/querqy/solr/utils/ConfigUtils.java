@@ -1,7 +1,5 @@
 package querqy.solr.utils;
 
-import org.apache.solr.common.SolrException;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,6 +13,21 @@ public interface ConfigUtils {
 
     static Optional<String> getStringArg(final Map<String, Object> config, final String name) {
         return Optional.ofNullable((String) config.get(name));
+    }
+
+    static boolean getBoolArg(final Map<String, Object> config, final String name, final boolean defaultValue) {
+        return getBoolArg(config, name).orElse(defaultValue);
+    }
+
+    static Optional<Boolean> getBoolArg(final Map<String, Object> config, final String name) {
+        final Object object = config.get(name);
+        if (object == null) {
+            return Optional.empty();
+        } else if (object instanceof Boolean) {
+            return Optional.of((Boolean) object);
+        } else {
+            return Optional.of(Boolean.parseBoolean(object.toString()));
+        }
     }
 
     static <T extends Enum<T>> Optional<T> getEnumArg(final Map<String, Object> config, final String name,

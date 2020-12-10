@@ -35,6 +35,9 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
     }
 
     public CommonRulesConfigRequestBuilder rules(final String rules) {
+        if (rules == null) {
+            throw new IllegalArgumentException("rules must not be null");
+        }
         this.rules = rules;
         return this;
     }
