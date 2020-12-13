@@ -1,5 +1,6 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.index.IndexReader;
 import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
@@ -45,6 +46,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompoundCollation;
 
+    private final CharArraySet protectedWords;
+
     /**
      * @param wordBreaker The word breaker to use
      * @param compounder The compounder to use
@@ -54,12 +57,14 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
      * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param protectedWords The "false-positive" set of terms that should never be split or be result of a combination
      */
     public WordBreakCompoundRewriter(final LuceneWordBreaker wordBreaker, final LuceneCompounder compounder,
                                      final IndexReader indexReader,
                                      final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
-                                     final int maxDecompoundExpansions, final boolean verifyDecompoundCollation) {
+                                     final int maxDecompoundExpansions, final boolean verifyDecompoundCollation,
+                                     final CharArraySet protectedWords) {
 
         if (reverseCompoundTriggerWords == null) {
             throw new IllegalArgumentException("reverseCompoundTriggerWords must not be null");
@@ -74,6 +79,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         this.verifyDecompoundCollation = verifyDecompoundCollation;
         this.indexReader = indexReader;
         this.lowerCaseInput = lowerCaseInput;
+        this.protectedWords = protectedWords;
     }
 
     @Override
@@ -141,7 +147,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             }
         }
         return null;
-        
+
     }
 
     @Override
@@ -152,7 +158,9 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             if (isReverseCompoundTriggerWord(term)) {
                 termsToDelete.add(term);
             } else {
-                decompound(term);
+                if (!protectedWords.contains(term.getValue())) {
+                    decompound(term);
+                }
                 compound(term);
             }
 
@@ -236,8 +244,10 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private void addCompounds(final Term[] terms, final boolean reverse) throws IOException {
 
         for (final LuceneCompounder.CompoundTerm compoundTerm : compounder.combine(terms, indexReader, reverse)) {
-            for (final Term sibling: compoundTerm.originalTerms) {
-                nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
+            if (!protectedWords.contains(compoundTerm.value)) {
+                for (final Term sibling: compoundTerm.originalTerms) {
+                    nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
+                }
             }
         }
 
