@@ -31,8 +31,10 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 "f1", "kinder"));
         assertU(adoc("id", "7",
                 "f1", "bild buch"));
+        assertU(adoc("id", "8",
+                "f1", "wissen schaft"));
         assertU(commit());
-        
+
     }
 
     @Test
@@ -209,6 +211,25 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response' and @numFound='1']",
                 "//doc/str[@name='id'][contains(.,'4')]"
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testDoNotSplitProtectedWords() {
+        String q = "wissenschaft";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                DisMaxParams.MM, "100%",
+                "defType", "querqyWithProtectedWords",
+                "debug", "true"
+        );
+
+        assertQ("Split found when it should not be",
+                req,
+                "//result[@name='response' and @numFound='0']"
         );
 
         req.close();

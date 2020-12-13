@@ -1,5 +1,6 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
 import querqy.model.ExpandedQuery;
@@ -35,6 +36,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final boolean verifyDecompundCollation;
     final LuceneWordBreaker wordBreaker; // package visible for testing
     private final LuceneCompounder compounder;
+    private final CharArraySet protectedWords;
 
     /**
      * @param rewriterId The id of the rewriter
@@ -61,7 +63,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                             final List<String> reverseCompoundTriggerWords,
                                             final boolean alwaysAddReverseCompounds,
                                             final int maxDecompoundExpansions,
-                                            final boolean verifyDecompoundCollation) {
+                                            final boolean verifyDecompoundCollation,
+                                            final List<String> protectedWords) {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.lowerCaseInput = lowerCaseInput;
@@ -84,6 +87,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         }
 
+        this.protectedWords = protectedWords == null ? CharArraySet.EMPTY_SET : new CharArraySet(protectedWords, lowerCaseInput);
+
         final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
         spellChecker.setMaxChanges(MAX_CHANGES);
         spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
@@ -104,7 +109,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new WordBreakCompoundRewriter(wordBreaker, compounder, indexReaderSupplier.get(),
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
-                verifyDecompundCollation);
+                verifyDecompundCollation, protectedWords);
     }
 
     @Override
@@ -114,5 +119,9 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
     TrieMap<Boolean> getReverseCompoundTriggerWords() {
         return reverseCompoundTriggerWords;
+    }
+
+    CharArraySet getProtectedWords() {
+        return protectedWords;
     }
 }
