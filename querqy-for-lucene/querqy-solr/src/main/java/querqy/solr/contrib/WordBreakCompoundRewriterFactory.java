@@ -59,6 +59,9 @@ public class WordBreakCompoundRewriterFactory implements FactoryAdapter<Rewriter
         final Morphology morphology = morphologyName == null
                 ? Morphology.DEFAULT : Enum.valueOf(Morphology.class, morphologyName.toUpperCase(Locale.ROOT));
 
+        // terms that are "protected", i.e. false positives that should never be split and never be result of a combination
+        final List<String> protectedWords = (List<String>) args.get("protectedWords");
+
         // the indexReader has to be supplied on a per-request basis from a request thread-local
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
@@ -66,7 +69,7 @@ public class WordBreakCompoundRewriterFactory implements FactoryAdapter<Rewriter
         return new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(id, indexReaderSupplier,
                 morphology, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength, minBreakLength,
                 reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
-                verifyDecompoundCollation);
+                verifyDecompoundCollation, protectedWords);
     }
 
     @Override
