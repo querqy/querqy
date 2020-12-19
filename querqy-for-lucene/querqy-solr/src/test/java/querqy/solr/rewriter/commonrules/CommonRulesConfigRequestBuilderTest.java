@@ -23,6 +23,7 @@ public class CommonRulesConfigRequestBuilderTest {
 
         try {
             new CommonRulesConfigRequestBuilder().rules((String) null);
+            fail("rules==null must not be allowed");
         } catch (final Exception e) {
             assertTrue(e.getMessage().contains(CommonRulesRewriterFactory.CONF_RULES));
         }

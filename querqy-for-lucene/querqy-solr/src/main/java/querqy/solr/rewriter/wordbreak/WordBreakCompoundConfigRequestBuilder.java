@@ -1,8 +1,21 @@
 package querqy.solr.rewriter.wordbreak;
 
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_ALWAYS_ADD_REVERSE_COMPOUNDS;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_MAX_EXPANSIONS;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_VERIFY_COLLATION;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DICTIONARY_FIELD;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_LOWER_CASE_INPUT;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MAX_COMBINE_WORD_LENGTH;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MIN_BREAK_LENGTH;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MIN_SUGGESTION_FREQ;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MORPHOLOGY;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_REVERSE_COMPOUND_TRIGGER_WORDS;
+
 import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
 import querqy.solr.RewriterConfigRequestBuilder;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,54 +43,54 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
         final Map<String, Object> config = new HashMap<>();
 
         if (dictionaryField == null) {
-            throw new RuntimeException(WordBreakCompoundRewriterFactory.CONF_DICTIONARY_FIELD + " must not be null");
+            throw new RuntimeException(CONF_DICTIONARY_FIELD + " must not be null");
         }
-        config.put(WordBreakCompoundRewriterFactory.CONF_DICTIONARY_FIELD, dictionaryField);
+        config.put(CONF_DICTIONARY_FIELD, dictionaryField);
 
         if (minSuggestionFrequency != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_MIN_SUGGESTION_FREQ, minSuggestionFrequency);
+            config.put(CONF_MIN_SUGGESTION_FREQ, minSuggestionFrequency);
         }
 
         if (maxCombineWordLength != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_MAX_COMBINE_WORD_LENGTH, maxCombineWordLength);
+            config.put(CONF_MAX_COMBINE_WORD_LENGTH, maxCombineWordLength);
         }
 
         if (minBreakLength != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_MIN_BREAK_LENGTH, minBreakLength);
+            config.put(CONF_MIN_BREAK_LENGTH, minBreakLength);
         }
 
         if (lowerCaseInput != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_LOWER_CASE_INPUT, lowerCaseInput);
+            config.put(CONF_LOWER_CASE_INPUT, lowerCaseInput);
         }
 
         if (reverseCompoundTriggerWords != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_REVERSE_COMPOUND_TRIGGER_WORD, reverseCompoundTriggerWords);
+            config.put(CONF_REVERSE_COMPOUND_TRIGGER_WORDS, Arrays.asList(reverseCompoundTriggerWords));
         }
 
         if (alwaysAddReverseCompounds != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_ALWAYS_ADD_REVERSE_COMPOUNDS, alwaysAddReverseCompounds);
+            config.put(CONF_ALWAYS_ADD_REVERSE_COMPOUNDS, alwaysAddReverseCompounds);
         }
 
         if (morphology != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_MORPHOLOGY, morphology);
+            config.put(CONF_MORPHOLOGY, morphology.name());
         }
 
         Map<String, Object> decompoundConf = null;
 
         if (decompoundMaxExpansions != null) {
             decompoundConf = new HashMap<>();
-            decompoundConf.put(WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_MAX_EXPANSIONS, decompoundMaxExpansions);
+            decompoundConf.put(CONF_DECOMPOUND_MAX_EXPANSIONS, decompoundMaxExpansions);
         }
         if (decompoundVerifyCollation != null) {
             if (decompoundConf == null) {
                 decompoundConf = new HashMap<>();
             }
-            decompoundConf.put(WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_VERIFY_COLLATION,
+            decompoundConf.put(CONF_DECOMPOUND_VERIFY_COLLATION,
                     decompoundVerifyCollation);
         }
 
         if (decompoundConf != null) {
-            config.put(WordBreakCompoundRewriterFactory.CONF_DECOMPOUND, decompoundConf);
+            config.put(CONF_DECOMPOUND, decompoundConf);
         }
 
         return config;

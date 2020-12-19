@@ -9,7 +9,6 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;

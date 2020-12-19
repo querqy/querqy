@@ -20,7 +20,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
     public static final String CONF_MAX_COMBINE_WORD_LENGTH = "maxCombineWordLength";
     public static final String CONF_MIN_BREAK_LENGTH = "minBreakLength";
     public static final String CONF_LOWER_CASE_INPUT = "lowerCaseInput";
-    public static final String CONF_REVERSE_COMPOUND_TRIGGER_WORD = "reverseCompoundTriggerWords";
+    public static final String CONF_REVERSE_COMPOUND_TRIGGER_WORDS = "reverseCompoundTriggerWords";
     public static final String CONF_ALWAYS_ADD_REVERSE_COMPOUNDS = "alwaysAddReverseCompounds";
     public static final String CONF_MORPHOLOGY = "morphology";
     public static final String CONF_DECOMPOUND = "decompound";
@@ -62,7 +62,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final boolean lowerCaseInput = ConfigUtils.getArg(config, CONF_LOWER_CASE_INPUT, Boolean.FALSE);
 
         // terms triggering a reversal of the surrounding compound, e.g. "tasche AUS samt" -> samttasche
-        final List<String> reverseCompoundTriggerWords = (List<String>) config.get(CONF_REVERSE_COMPOUND_TRIGGER_WORD);
+        final List<String> reverseCompoundTriggerWords = (List<String>) config.get(CONF_REVERSE_COMPOUND_TRIGGER_WORDS);
 
         final Map<String, Object> decompoundConf = ConfigUtils.getArg(config, CONF_DECOMPOUND, Collections.emptyMap());
 

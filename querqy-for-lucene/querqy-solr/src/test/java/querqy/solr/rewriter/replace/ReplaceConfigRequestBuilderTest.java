@@ -25,6 +25,7 @@ public class ReplaceConfigRequestBuilderTest {
 
         try {
             new ReplaceConfigRequestBuilder().rules((String) null);
+            fail("rules==null must not be allowed");
         } catch (final Exception e) {
             assertTrue(e.getMessage().contains(CONF_RULES));
         }
@@ -46,6 +47,9 @@ public class ReplaceConfigRequestBuilderTest {
                 .rules("ab;cd => xy")
                 .ignoreCase(false)
                 .rhsParser(WhiteSpaceQuerqyParserFactory.class).buildConfig();
+
+        final List<String> errors = new ReplaceRewriterFactory("id").validateConfiguration(config);
+        assertTrue(errors == null || errors.isEmpty());
 
         assertThat(config, hasEntry(CONF_RULES, "ab;cd => xy"));
         assertThat(config, hasEntry(CONF_IGNORE_CASE, Boolean.FALSE));
