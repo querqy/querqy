@@ -95,15 +95,6 @@ public class QuerqyTemplateEngineTest {
         return new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
     }
 
-    private void printReader(Reader reader) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(reader);
-
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            System.out.println(line);
-        }
-    }
-
     private List<String> list(Reader reader) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(reader);
 
