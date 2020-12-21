@@ -13,7 +13,7 @@ import java.util.Set;
  * Factory for {@link ShingleRewriter}
  */
 public class ShingleRewriterFactory extends RewriterFactory {
-    
+
     protected final boolean acceptGeneratedTerms;
 
     public ShingleRewriterFactory(final String rewriterId) {
@@ -36,4 +36,7 @@ public class ShingleRewriterFactory extends RewriterFactory {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
 
+    public boolean isAcceptGeneratedTerms() {
+        return acceptGeneratedTerms;
+    }
 }
