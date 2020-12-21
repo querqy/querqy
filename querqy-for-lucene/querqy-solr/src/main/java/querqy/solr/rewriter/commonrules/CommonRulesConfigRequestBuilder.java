@@ -18,7 +18,7 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
     private Boolean ignoreCase = null;
     private Class<? extends QuerqyParserFactory> rhsParser = null;
     private String rules = null;
-    private Map<String, Map<String, Object>> ruleSelectionStrategies = new HashMap<>();
+    private final Map<String, Map<String, Object>> ruleSelectionStrategies = new HashMap<>();
 
     public CommonRulesConfigRequestBuilder() {
         super(CommonRulesRewriterFactory.class);

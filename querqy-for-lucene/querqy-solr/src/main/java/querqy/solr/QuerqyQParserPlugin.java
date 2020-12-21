@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
@@ -40,6 +41,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     public static final String CONF_CACHE_NAME = "termQueryCache.name";
     public static final String CONF_CACHE_UPDATE = "termQueryCache.update";
     public static final String CONF_REWRITER_REQUEST_HANDLER = "rewriterRequestHandler";
+    public static final String CONF_SKIP_UNKNOWN_REWRITERS = "skipUnkownRewriters";
 
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -51,6 +53,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     protected boolean ignoreTermQueryCacheUpdates = true;
     protected InfoLogging infoLogging;
     protected String rewriterRequestHandlerName = QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
+    protected boolean skipUnknownRewriter = false;
 
     @Override
     public void init(final @SuppressWarnings("rawtypes") NamedList args) {
@@ -66,6 +69,12 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
 
         rewriterRequestHandlerName = name != null ? name : QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
+        final Boolean skip = args.getBooleanArg(CONF_SKIP_UNKNOWN_REWRITERS);
+        skipUnknownRewriter = skip != null ? skip : false;
+
+        logger.info("Initialized Querqy query parser: QuerqyRewriterRequestHandler={},skipUnknownRewriter={}",
+                rewriterRequestHandlerName, skipUnknownRewriter);
+
     }
 
     @Override
@@ -225,9 +234,17 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
             final String[] rewriterIds = rewritersParam.split(",");
             final List<RewriterFactory> factories = new ArrayList<>(rewriterIds.length);
             for (final String rewriterId: rewriterIds) {
-                factories.add(rewriterRequestHandler.getRewriterFactory(rewriterId.trim())
-                        .orElseThrow(() -> new SolrException(SolrException.ErrorCode.BAD_REQUEST,
-                                "No such rewriter: " + rewriterId)));
+
+                final Optional<RewriterFactory> factoryOpt = rewriterRequestHandler
+                        .getRewriterFactory(rewriterId.trim());
+
+                if (factoryOpt.isPresent()) {
+                    factories.add(factoryOpt.get());
+                } else if (skipUnknownRewriter){
+                    logger.warn("Skipping unknown rewriter: {}", rewriterId);
+                } else {
+                    throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "No such rewriter: " + rewriterId);
+                }
 
             }
             rewriteChain = new RewriteChain(factories);
