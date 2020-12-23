@@ -1,0 +1,2 @@
+term4 =>
+  FILTER: * {!lucene df=str v=%%(filterval1 OR filterval2)%%}

@@ -19,7 +19,28 @@ public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "1", "f1", "term1", "str", "boostval1"));
         assertU(adoc("id", "2", "f1", "term1", "str", "boostval2"));
         assertU(adoc("id", "3", "f1", "term3", "str", "link's awakening"));
+        assertU(adoc("id", "id-4", "f1", "term4", "str", "filterval1"));
+        assertU(adoc("id", "id-5", "f1", "term4", "str", "filterval2"));
+        assertU(adoc("id", "id-6", "f1", "term4", "str", "filterval3"));
         assertU(commit());
+    }
+
+    @Test
+    public void testMultipleParamsFromDifferentRewriters() {
+        String q = "term4";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "uq.similarityScore", "off",
+                "fl", "id,score",
+                "debugQuery", "on",
+                "defType", "querqy");
+
+        assertQ("",
+                req,
+                "//result[@name='response' and @numFound='1']"
+        );
+        req.close();
     }
 
     @Test
