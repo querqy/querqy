@@ -8,3 +8,6 @@ term2 =>
 
 term3 =>
   UP(1.0): * {!func}if(query({!term f=str v=%%link's awakening%%}),100,0)
+
+term4 =>
+  FILTER: * {!lucene df=str v=%%(filterval2 OR filterval3)%%}
