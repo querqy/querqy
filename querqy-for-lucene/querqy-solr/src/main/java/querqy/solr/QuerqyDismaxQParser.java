@@ -60,9 +60,11 @@ public class QuerqyDismaxQParser extends QParser {
                                final TermQueryCache termQueryCache) {
         super(qstr, localParams, params, req);
         final String q = Objects.requireNonNull(qstr).trim();
+
         if (q.isEmpty()) {
             throw new SolrException(BAD_REQUEST, "Query string must not be empty");
         }
+
         this.userQueryString = q;
         this.querqyParser = querqyParser;
 
@@ -70,8 +72,12 @@ public class QuerqyDismaxQParser extends QParser {
                 SolrParams.wrapDefaults(localParams, params), querqyParser, rewriteChain, infoLogging, termQueryCache);
 
 
-        controller = new QueryParsingController(requestAdapter);
+        controller = createQueryParsingController();
 
+    }
+
+    public QueryParsingController createQueryParsingController() {
+        return new QueryParsingController(requestAdapter);
     }
 
 
