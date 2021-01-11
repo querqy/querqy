@@ -100,7 +100,6 @@ public class TypeCastingUtils {
         }
     }
 
-    // TODO: Not a casting method anymore; could be put into an own class?
     public static List<QueryNodeBuilder> castListOfQueryNodeBuilders(final Object obj) {
         final Optional<List> optionalList = castList(obj);
         if (optionalList.isPresent()) {
