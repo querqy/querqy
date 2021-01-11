@@ -4,7 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static querqy.model.builder.QueryBuilder.query;
+import static querqy.model.builder.impl.BooleanQueryBuilder.bq;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.AbstractMap;
@@ -31,7 +31,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
     public void testThatDecorationsWithSameKeyAreAllAddedToMap() {
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewrite(
-                query("a", "b", "c"),
+                bq("a", "b", "c"),
                 rewriter(
                         rule(input("a"), decorate("key1", "value1")),
                         rule(input("b"), decorate("key1", "value2")),
@@ -48,7 +48,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
     public void testThatTwoDecorationsWithDifferentKeysAreAddedToMap() {
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewrite(
-                query("a", "b"),
+                bq("a", "b"),
                 rewriter(
                         rule(input("a"), decorate("key1", "value1")),
                         rule(input("b"), decorate("key2", "value2"))
@@ -67,7 +67,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
     public void testThatDecorationWithKeyIsAddedToMap() {
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewrite(
-                query("a"),
+                bq("a"),
                 rewriter(rule(input("a"), decorate("key1", "value1"))),
                 searchEngineRequestAdapter);
 
@@ -88,10 +88,10 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testThatSingleDecorationIsEmitted() {
-        
+
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
-        
+
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", Collections.singletonList(deco)));
 
@@ -102,15 +102,15 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
-        
-        
+
+
         assertThat((Set<Object>)searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
-              contains( 
+              contains(
                       equalTo((Object) "deco1")
               ));
-        
+
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public void testDecorationForEmptyInput() throws Exception {
@@ -118,7 +118,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         DecorateInstruction deco = new DecorateInstruction("deco1");
         builder.addRule((Input) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
                     new Instructions(1, "1", Collections.singletonList( deco)));
-        
+
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
@@ -126,24 +126,24 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
-        
-        
+
+
         assertThat((Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
-              contains( 
+              contains(
                       equalTo((Object) "deco1")
               ));
-        
+
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public void testThatMultipleDecorationsAreEmitted() {
-        
+
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco1 = new DecorateInstruction("deco1");
         DecorateInstruction deco2 = new DecorateInstruction("deco2");
         DecorateInstruction deco3 = new DecorateInstruction("deco3");
-        
+
         builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", Arrays.asList(deco1, deco2)));
         builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
