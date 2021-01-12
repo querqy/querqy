@@ -1,6 +1,5 @@
 package querqy.solr;
 
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.response.SolrQueryResponse;
 import querqy.infologging.Sink;
@@ -14,6 +13,7 @@ import java.util.TreeMap;
 public class ResponseSink implements Sink {
 
     private static final String CONTEXT_KEY = ResponseSink.class.getName() + ".MESSAGES";
+    public static final String QUERQY_INFO_LOG = "querqy.infoLog";
 
 
     @Override
@@ -37,7 +37,7 @@ public class ResponseSink implements Sink {
 
         if (messages != null && !messages.isEmpty()) {
             final SolrQueryResponse rsp = SolrRequestInfo.getRequestInfo().getRsp();
-            rsp.add("querqy.infoLog", messages);
+            rsp.add(QUERQY_INFO_LOG, messages);
         }
 
     }
