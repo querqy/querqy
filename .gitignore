@@ -5,6 +5,7 @@
 .idea/*
 target/*
 .DS_Store
+.vscode
 
 # modules
 **/.classpath
