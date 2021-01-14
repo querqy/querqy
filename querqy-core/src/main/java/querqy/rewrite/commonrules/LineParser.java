@@ -147,6 +147,22 @@ public class LineParser {
             }
 
             String synonymString = line.substring(7).trim();
+            float boost = 1f;
+
+            // check for boost (optional)
+            if (synonymString.charAt(0) == '(') {
+                synonymString = synonymString.substring(1).trim();
+                int boostEndBracket = synonymString.indexOf(')');
+                if (boostEndBracket < 0) {
+                    return new ValidationError("Cannot parse line. No closing bracket found: " + line);
+                }
+                boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
+                if (boost < 0) {
+                    return new ValidationError("Cannot parse line. Negative boost not allowed: " + line);
+                }
+                synonymString = synonymString.substring(boostEndBracket + 1).trim();
+            }
+
             if (synonymString.charAt(0) != ':') {
                 return new ValidationError("Cannot parse line, ':' expetcted in " + line);
             }
@@ -169,10 +185,11 @@ public class LineParser {
             if (synonymTerms.isEmpty()) {
                 // should never happen
                 return new ValidationError("Cannot parse line: " + line);
+            } else if (Float.compare(boost, 1f) != 0) {
+                return new WeightedSynonymInstruction(synonymTerms, boost);
             } else {
                 return new SynonymInstruction(synonymTerms);
             }
-
         }
 
         if (lcLine.startsWith(INSTR_DECORATE)) {

@@ -253,6 +253,27 @@ public class LineParserTest {
         assertTrue(instruction instanceof BoostInstruction);
         assertTrue(((BoostInstruction) instruction).hasPlaceHolderInBoostQuery());
     }
+    
+    @Test
+    public void testUnweightedSynonym() {
+        String line = "SYNONYM: 3$1";
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof SynonymInstruction);
+    }
+    
+    @Test
+    public void testFallbackToUnweightedSynonym() {
+        String line = "SYNONYM(1.0): 3$1";
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof SynonymInstruction);
+    }
+
+    @Test
+    public void testWeightedSynonym() {
+        String line = "SYNONYM(0.5): 3$1";
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof WeightedSynonymInstruction);
+    }
 
     @SuppressWarnings("unchecked")
     @Test
