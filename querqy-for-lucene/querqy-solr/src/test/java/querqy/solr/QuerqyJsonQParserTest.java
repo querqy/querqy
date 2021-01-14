@@ -11,6 +11,7 @@ import org.junit.Test;
 import querqy.model.builder.converter.MapConverter;
 import querqy.model.builder.impl.BooleanQueryBuilder;
 import querqy.model.builder.impl.ExpandedQueryBuilder;
+import querqy.rewrite.experimental.QueryRewritingHandler;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static querqy.model.builder.impl.BooleanQueryBuilder.bq;
 import static querqy.model.builder.impl.BoostQueryBuilder.boost;
 import static querqy.model.builder.impl.DisjunctionMaxQueryBuilder.dmq;
@@ -45,6 +47,22 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         assertU(adoc("id", "21", "f1", "blau", "f2", "television"));
 
         assertU(commit());
+    }
+
+    @Test
+    public void testQueryRewritingHandler() throws IOException, SolrServerException {
+        final ExpandedQueryBuilder expanded = QueryRewritingHandler.builder()
+                .addCommonRulesRewriter("tv => \n SYNONYM: television")
+                .build()
+                .rewriteQuery("tv")
+                .getQuery();
+
+        final JsonQueryRequest jsonQuery = new JsonQueryRequest()
+                .setQuery(createRequestToTestMatching(expanded));
+
+        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+
+        Assertions.assertThat(response.getResults()).hasSize(6);
     }
 
     @Test
@@ -207,7 +225,7 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
                         )
                 )
         );
-        ExpandedQueryBuilder expandedQuery = expanded(query);
+        final ExpandedQueryBuilder expandedQuery = expanded(query);
 
         final ModifiableSolrParams params = new ModifiableSolrParams();
         params.add("fl", "*,score");
@@ -257,7 +275,4 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         solrDocument.put("score", score);
         return solrDocument;
     }
-
-
-
 }
