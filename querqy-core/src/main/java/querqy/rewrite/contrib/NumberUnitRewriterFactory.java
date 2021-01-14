@@ -62,7 +62,7 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public Set<Term> getGenerableTerms() {
+    public Set<Term> getCacheableGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
 }
