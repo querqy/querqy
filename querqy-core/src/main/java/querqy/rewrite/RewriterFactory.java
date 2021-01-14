@@ -31,7 +31,7 @@ public abstract class RewriterFactory {
      *
      * @return The set of {@link Term}s to be generated.
      */
-    public abstract Set<Term> getGenerableTerms();
+    public abstract Set<Term> getCacheableGenerableTerms();
 
     public String getRewriterId() {
         return rewriterId;
