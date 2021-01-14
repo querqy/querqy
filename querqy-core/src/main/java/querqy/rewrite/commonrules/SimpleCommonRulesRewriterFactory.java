@@ -2,6 +2,7 @@ package querqy.rewrite.commonrules;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +29,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     private final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
     private final String strategyParam;
     private final SelectionStrategyFactory defaultSelectionStrategyFactory;
+    private final boolean buildTermCache;
 
 
     /**
@@ -45,7 +47,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                             final Reader reader, final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
-                                            final SelectionStrategyFactory defaultSelectionStrategyFactory)
+                                            final SelectionStrategyFactory defaultSelectionStrategyFactory,
+                                            final boolean buildTermCache)
             throws IOException {
 
         super(rewriterId);
@@ -55,6 +58,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
         this.selectionStrategyFactories = new HashMap<>(selectionStrategyFactories);
 
         this.defaultSelectionStrategyFactory = Objects.requireNonNull(defaultSelectionStrategyFactory);
+
+        this.buildTermCache = buildTermCache;
 
         try {
             final QuerqyTemplateEngine querqyTemplateEngine = new QuerqyTemplateEngine(reader);
@@ -91,8 +96,12 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public Set<Term> getGenerableTerms() {
-        return rules.getGenerableTerms();
+    public Set<Term> getCacheableGenerableTerms() {
+        if (buildTermCache) {
+            return rules.getGenerableTerms();
+        }
+
+        return Collections.emptySet();
     }
 
     RulesCollection getRules() {
