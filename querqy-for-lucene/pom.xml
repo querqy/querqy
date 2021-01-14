@@ -73,7 +73,7 @@
         <hamcrest.version>2.1</hamcrest.version>
         <mockito.version>2.27.0</mockito.version>
 
-        <querqy.core.version>3.8.0</querqy.core.version>
+        <querqy.core.version>3.9.0-SNAPSHOT</querqy.core.version>
         <lucene.version>7.2.1</lucene.version>
         <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>
@@ -131,6 +131,35 @@
                         <tests.codec>Lucene70</tests.codec>
                     </systemPropertyVariables>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <source>8</source>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <pluginManagement>
