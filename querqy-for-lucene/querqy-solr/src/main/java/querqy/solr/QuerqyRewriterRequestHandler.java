@@ -153,7 +153,18 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     @Override
     public void handleRequest(final SolrQueryRequest req, final SolrQueryResponse rsp) {
-
+        final Map<String, RewriterFactory> rewriters = rewriterContainer.rewriters;
+        try {
+            final Map<String, Object> result = new HashMap<>();
+            final Map<String, Map<String, Object>> rewritersResult = new HashMap<>();
+            for (String rewriterId : rewriters.keySet()) {
+                rewritersResult.put(rewriterId, rewriterContainer.readRewriterDescription(rewriterId));
+            }
+            result.put("rewriters", rewritersResult);
+            rsp.add("response", result);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

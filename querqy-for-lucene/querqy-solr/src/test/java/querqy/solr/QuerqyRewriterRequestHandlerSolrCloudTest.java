@@ -1,6 +1,7 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.RewriterConfigRequestBuilder.buildDeleteRequest;
 import static querqy.solr.RewriterConfigRequestBuilder.buildGetRequest;
 
 import org.apache.solr.SolrTestCaseJ4;
@@ -16,11 +17,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QueryParsing;
-import org.hamcrest.Matchers;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
@@ -29,6 +26,7 @@ import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 @SolrTestCaseJ4.SuppressSSL
@@ -94,6 +92,18 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         randClient.commit();
 
+    }
+
+    @After
+    public void cleanup() throws IOException {
+        try{
+            buildDeleteRequest("chain_replace").process(getRandClient());
+            buildDeleteRequest("chain_common_rules").process(getRandClient());
+            buildDeleteRequest("conf_common_rules").process(getRandClient());
+            buildDeleteRequest("rewriter_test_save").process(getRandClient());
+        } catch (SolrServerException | HttpSolrClient.RemoteSolrException e){
+            // nothing to do
+        }
     }
 
     @Test
@@ -205,7 +215,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         assertEquals(2L, rsp.getResults().getNumFound());
 
-        assertEquals(0, RewriterConfigRequestBuilder.buildDeleteRequest("delete_common_rules")
+        assertEquals(0, buildDeleteRequest("delete_common_rules")
                 .process(getRandClient())
                 .getStatus());
 
@@ -243,9 +253,34 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     }
 
     @Test
+    public void testGetAllConfig() throws IOException, SolrServerException {
+
+        final String rewriterName = "conf_common_rules";
+        final SolrClient client = getRandClient();
+        final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
+
+        assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
+                .process(client).getStatus());
+
+        final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(client);
+        assertEquals(0, response.getStatus());
+        assertEquals(configBuilder.buildDescription(), ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
+
+    }
+
+    @Test
+    public void testGetAllEmptyConfig() throws IOException, SolrServerException {
+
+        final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
+        assertEquals(0, response.getStatus());
+        assertEquals(0, ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+
+    }
+
+    @Test
     public void testFor404WhenDeletingUnknownRewriter() throws IOException, SolrServerException {
         try {
-            RewriterConfigRequestBuilder.buildDeleteRequest("delete_the_void")
+            buildDeleteRequest("delete_the_void")
                     .process(getRandClient());
 
             fail("Expected rewriter not found exception while deleting");
