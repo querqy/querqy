@@ -150,7 +150,7 @@ public abstract class RewriterConfigRequestBuilder {
     public static class GetRewriterConfigSolrRequest extends SolrRequest<GetRewriterConfigSolrResponse> {
 
         public GetRewriterConfigSolrRequest(final String requestHandlerName, final String rewriterId) {
-            super(SolrRequest.METHOD.GET, requestHandlerName + "/" + rewriterId);
+            super(SolrRequest.METHOD.GET, requestHandlerName + (rewriterId != null ? ("/" + rewriterId) : ""));
         }
 
         @Override
