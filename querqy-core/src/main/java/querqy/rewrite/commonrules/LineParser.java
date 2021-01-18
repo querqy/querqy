@@ -147,7 +147,7 @@ public class LineParser {
             }
 
             String synonymString = line.substring(7).trim();
-            float boost = 1f;
+            float boost = SynonymInstruction.DEFAULT_TERM_BOOST;
 
             // check for boost (optional)
             if (synonymString.charAt(0) == '(') {
@@ -190,10 +190,8 @@ public class LineParser {
             if (synonymTerms.isEmpty()) {
                 // should never happen
                 return new ValidationError("Cannot parse line: " + line);
-            } else if (Float.compare(boost, 1f) != 0) {
-                return new WeightedSynonymInstruction(synonymTerms, boost);
             } else {
-                return new SynonymInstruction(synonymTerms);
+                return new SynonymInstruction(synonymTerms, boost);
             }
         }
 

@@ -259,6 +259,7 @@ public class LineParserTest {
         String line = "SYNONYM: 3$1";
         final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
+        assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
     }
     
     @Test
@@ -266,13 +267,15 @@ public class LineParserTest {
         String line = "SYNONYM(1.0): 3$1";
         final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
+        assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
     }
 
     @Test
     public void testWeightedSynonym() {
         String line = "SYNONYM(0.5): 3$1";
         final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
-        assertTrue(instruction instanceof WeightedSynonymInstruction);
+        assertTrue(instruction instanceof SynonymInstruction);
+        assertThat(((SynonymInstruction) instruction).getTermBoost(), is(0.5f));
     }
         
     @Test
