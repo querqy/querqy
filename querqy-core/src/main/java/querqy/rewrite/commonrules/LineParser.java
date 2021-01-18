@@ -10,8 +10,6 @@ import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
-import javax.swing.text.html.Option;
-
 /**
  * @author René Kriegler, @renekrie
  */
@@ -134,7 +132,12 @@ public class LineParser {
                 if (boostEndBracket < 0) {
                     return new ValidationError("Cannot parse line. No closing bracket found: " + line);
                 }
-                boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
+                try {
+                    boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
+                } catch (final NumberFormatException e) {
+                    return new ValidationError("Cannot parse line. Invalid boost in: " + line + ". Threw: " + e.getMessage());
+                }
+
                 if (boost < 0) {
                     return new ValidationError("Cannot parse line. Negative boost not allowed: " + line);
                 }
