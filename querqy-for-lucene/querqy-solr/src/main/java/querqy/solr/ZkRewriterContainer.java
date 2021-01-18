@@ -215,7 +215,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
                     .collect(Collectors.toList());
 
         } catch (final Exception e) {
-            // TODO: log
+            LOG.error("Error handling onDirectoryChanged", e);
             return;
         }
 
@@ -224,7 +224,11 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         for (final String rewriterId : children) {
             if (!known.remove(rewriterId)) {
                 // unknown => new rewriter. This loads it and creates an updated 'rewriters' map
-                onRewriterChanged(rewriterId);
+                try {
+                    onRewriterChanged(rewriterId);
+                } catch (final IOException e) {
+                    LOG.error("Error loading rewriter " + rewriterId, e);
+                }
             }
         }
 
@@ -245,23 +249,19 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     }
 
-    public synchronized void onRewriterChanged(final String rewriterId) {
+    public synchronized void onRewriterChanged(final String rewriterId) throws IOException {
 
-        try {
-            loadRewriter(rewriterId, readRewriterDescription(rewriterId, newRewriterWatcher(rewriterId)));
-        } catch (final IOException e) {
-            // TODO: log
-        }
+        loadRewriter(rewriterId, readRewriterDefinition(rewriterId, newRewriterWatcher(rewriterId)));
 
     }
 
     @Override
-    public synchronized Map<String, Object> readRewriterDescription(final String rewriterId)
+    public synchronized Map<String, Object> readRewriterDefinition(final String rewriterId)
             throws IOException {
-        return readRewriterDescription(rewriterId, null);
+        return readRewriterDefinition(rewriterId, null);
     }
 
-    protected synchronized Map<String, Object> readRewriterDescription(final String rewriterId, final Watcher watcher)
+    protected synchronized Map<String, Object> readRewriterDefinition(final String rewriterId, final Watcher watcher)
             throws IOException {
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream(maxFileSize)) {
 
@@ -274,7 +274,13 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
             return readJson(GZIPAwareResourceLoader.detectGZIPAndWrap(new ByteArrayInputStream(bos.toByteArray())),
                     Map.class);
 
-        } catch (final InterruptedException | KeeperException e) {
+        } catch (final KeeperException e) {
+            if (KeeperException.Code.NONODE == e.code()) {
+                throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "Rewriter " + rewriterId + " not found.");
+            } else {
+                throw new IOException(e);
+            }
+        } catch (final InterruptedException e) {
             throw new IOException(e);
         }
     }
@@ -308,7 +314,12 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         @Override
         public void process(final WatchedEvent event) {
             if (enabled) {
-                onRewriterChanged(rewriterId);
+                try {
+                    onRewriterChanged(rewriterId);
+                } catch (final IOException e) {
+                    LOG.error("Error processing WatchedEvent for rewriter " + rewriterId, e);
+                    return;
+                }
                 LOG.info("Rewriter changed: {}", rewriterId);
                 notifyRewritersChangeListener();
             }

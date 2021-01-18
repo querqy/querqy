@@ -78,14 +78,52 @@ public class QuerqyRewriterRequestHandlerStandaloneTest extends SolrTestCaseJ4 {
 
 
 
-        try (SolrQueryRequest req = req("qt", "/querqy/rewriter/" + rewriterName )) {
+        try (final SolrQueryRequest req = req("qt", "/querqy/rewriter/" + rewriterName )) {
 
             assertQ("Rewriter config not found",
                     req,
-                    "//lst[@name='conf_common_rules']/str[@name='class'][text()='querqy.solr.rewriter.commonrules." +
-                            "CommonRulesRewriterFactory']",
-                    "//lst[@name='conf_common_rules']/lst[@name='config']/bool[@name='ignoreCase'][text()='false']",
-                    "//lst[@name='conf_common_rules']/lst[@name='config']/str[@name='rules'][contains(.,'SYNONYM: b')]"
+                    "//lst[@name='rewriter']/str[@name='id'][text()='" + rewriterName + "']",
+                    "//lst[@name='rewriter']/str[@name='path'][text()='/querqy/rewriter/" + rewriterName + "']",
+                    "//lst[@name='rewriter']/lst[@name='definition']/str[@name='class']" +
+                            "[text()='querqy.solr.rewriter.commonrules.CommonRulesRewriterFactory']",
+                    "//lst[@name='rewriter']/lst[@name='definition']/lst[@name='config']/bool[@name='ignoreCase']" +
+                            "[text()='false']",
+                    "//lst[@name='rewriter']/lst[@name='definition']/lst[@name='config']/str[@name='rules']" +
+                            "[contains(.,'SYNONYM: b')]"
+            );
+
+        }
+
+    }
+
+    @Test
+    public void testListConfigs() {
+
+        final String rewriterName1 = "rewriter1";
+        final CommonRulesConfigRequestBuilder builder1 = new CommonRulesConfigRequestBuilder()
+                .rules("a =>\n SYNONYM: b").ignoreCase(false);
+        withCommonRulesRewriter(h.getCore(), rewriterName1, builder1);
+
+        final String rewriterName2 = "rewriter2";
+        final CommonRulesConfigRequestBuilder builder2 = new CommonRulesConfigRequestBuilder()
+                .rules("a =>\n SYNONYM: b").ignoreCase(false);
+        withCommonRulesRewriter(h.getCore(), rewriterName2, builder2);
+
+
+
+        try (final SolrQueryRequest req = req("qt", "/querqy/rewriter")) {
+
+            assertQ("Rewriter config not found",
+                    req,
+                    "//lst[@name='rewriters']/lst[@name='" + rewriterName1 + "']/str[@name='id'][text()='" +
+                            rewriterName1 + "']",
+                    "//lst[@name='rewriters']/lst[@name='" + rewriterName1 + "']/str[@name='path'][text()='" +
+                            "/querqy/rewriter/" + rewriterName1 + "']",
+                    "//lst[@name='rewriters']/lst[@name='" + rewriterName2 + "']/str[@name='id'][text()='" +
+                            rewriterName2 + "']",
+                    "//lst[@name='rewriters']/lst[@name='" + rewriterName2 + "']/str[@name='path'][text()='" +
+                            "/querqy/rewriter/" + rewriterName2 + "']"
+
             );
 
         }
