@@ -122,9 +122,10 @@ public class SynonymInstruction implements Instruction {
 
     protected Term createTermFrom(final DisjunctionMaxQuery dmq, final ComparableCharSequence charSequence, final String fieldName) {
         if (Float.compare(this.boost, 1f) != 0) {
-            new BoostedTerm(dmq, fieldName, charSequence, boost);
+            return new BoostedTerm(dmq, fieldName, charSequence, boost);
+        } else {
+            return new Term(dmq, fieldName, charSequence, true);
         }
-        return new Term(dmq, fieldName, charSequence, true);
     }
 
     @Override
