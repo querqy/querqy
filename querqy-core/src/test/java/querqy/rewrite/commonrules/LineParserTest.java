@@ -274,6 +274,24 @@ public class LineParserTest {
         final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof WeightedSynonymInstruction);
     }
+        
+    @Test
+    public void testMalformedWeightedSynonym() {
+        Object instruction = LineParser.parse("SYNONYM(): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(-): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(-0.5): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(3e): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(sausage): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+    }
 
     @SuppressWarnings("unchecked")
     @Test
