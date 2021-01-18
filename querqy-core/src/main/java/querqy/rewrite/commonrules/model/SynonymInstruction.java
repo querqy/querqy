@@ -176,9 +176,9 @@ public class SynonymInstruction implements Instruction {
 
     @Override
     public String toString() {
+        if (boost != DEFAULT_TERM_BOOST) {
+            return "SynonymInstruction [boost=" + boost + ", synonym=" + synonym + "]";
+        }
         return "SynonymInstruction [synonym=" + synonym + "]";
     }
-
-
-    
 }
