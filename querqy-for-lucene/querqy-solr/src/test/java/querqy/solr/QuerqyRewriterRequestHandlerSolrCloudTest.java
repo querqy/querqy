@@ -34,10 +34,14 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
     final static String COLLECTION = "basic1";
 
-    /** A basic client for operations at the cloud level, default collection will be set */
+    /**
+     * A basic client for operations at the cloud level, default collection will be set
+     */
     private static CloudSolrClient CLOUD_CLIENT;
 
-    /** One client per node */
+    /**
+     * One client per node
+     */
     private static final List<HttpSolrClient> CLIENTS = new ArrayList<>(5);
 
 
@@ -96,12 +100,14 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
     @After
     public void cleanup() throws IOException {
-        try{
-            buildDeleteRequest("chain_replace").process(getRandClient());
-            buildDeleteRequest("chain_common_rules").process(getRandClient());
-            buildDeleteRequest("conf_common_rules").process(getRandClient());
-            buildDeleteRequest("rewriter_test_save").process(getRandClient());
-        } catch (SolrServerException | HttpSolrClient.RemoteSolrException e){
+        try {
+            for (SolrClient c : CLIENTS) {
+                buildDeleteRequest("chain_replace").process(c);
+                buildDeleteRequest("chain_common_rules").process(c);
+                buildDeleteRequest("conf_common_rules").process(c);
+                buildDeleteRequest("rewriter_test_save").process(c);
+            }
+        } catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
             // nothing to do
         }
     }
@@ -128,7 +134,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                 PARAM_REWRITERS, "rewriter_test_save",
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR"
-                );
+        );
 
         QueryResponse rsp = waitForRewriterAndQuery(params, getRandClient());
 
@@ -264,7 +270,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(client);
         assertEquals(0, response.getStatus());
-        assertEquals(configBuilder.buildDescription(), ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
+        assertEquals(configBuilder.buildDescription(), ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
 
     }
 
@@ -273,7 +279,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
         assertEquals(0, response.getStatus());
-        assertEquals(0, ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
 
     }
 
