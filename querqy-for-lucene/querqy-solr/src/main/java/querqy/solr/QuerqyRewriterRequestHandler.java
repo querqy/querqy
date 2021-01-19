@@ -138,9 +138,6 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     public static final String DEFAULT_HANDLER_NAME = "/querqy/rewriter";
 
-    private static final Logger LOG = LoggerFactory.getLogger(QuerqyRewriterRequestHandler.class);
-
-
     private RewriterContainer<?> rewriterContainer = null;
 
     @SuppressWarnings({"rawtypes"})

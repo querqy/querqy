@@ -1,23 +1,33 @@
 package querqy.solr.rewriter.commonrules;
 
+import com.google.common.io.Files;
+import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.SolrResourceLoader;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
+import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_RULES;
+
+public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_IGNORE_CASE = "ignoreCase";
     public static final String CONF_RHS_QUERY_PARSER = "querqyParser";
@@ -62,7 +72,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter {
     @Override
     public List<String> validateConfiguration(final Map<String, Object> config) {
 
-        final String rules = ConfigUtils.getStringArg(config, CONF_RULES,  null);
+        final String rules = ConfigUtils.getStringArg(config, CONF_RULES, null);
         if (rules == null) {
             return Collections.singletonList("Missing attribute '" + CONF_RULES + "'");
         }
@@ -127,4 +137,19 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter {
         return delegate;
     }
 
+    @Override
+    public Map<String, Object> parseConfiguration(NamedList<?> configuration, SolrResourceLoader resourceLoader) throws IOException {
+
+        final Map<String, Object> result = new HashMap<>();
+
+        // TODO: Auslagern als interface an die Factories, da es das nur in dem CommonRules gibt
+        final Object rulesFile = configuration.remove("rules");
+        if (rulesFile != null) {
+            String rules = Files.asCharSource(Paths.get(resourceLoader.getConfigDir(), (String) rulesFile).toFile(), UTF_8).read();
+            HashMap<Object, Object> ruleMap = new HashMap<>();
+            ruleMap.put(CONF_RULES, rules);
+            result.put(CONF_CONFIG, ruleMap);
+        }
+        return result;
+    }
 }

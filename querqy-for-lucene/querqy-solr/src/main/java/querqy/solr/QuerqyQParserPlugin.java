@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.search.QParser;
@@ -221,16 +222,8 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
 
         final RewriteChain rewriteChain;
         if (rewritersParam != null) {
-            final SolrRequestHandler requestHandler = req.getCore().getRequestHandler(rewriterRequestHandlerName);
-            if (requestHandler == null) {
-                throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-                        "Could not find QuerqyRewriterRequestHandler for name " + rewriterRequestHandlerName);
-            }
-            if (!(requestHandler instanceof QuerqyRewriterRequestHandler)) {
-                throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-                        rewriterRequestHandlerName + " is not a " + QuerqyRewriterRequestHandler.class);
-            }
-            final QuerqyRewriterRequestHandler rewriterRequestHandler = (QuerqyRewriterRequestHandler) requestHandler;
+
+            final QuerqyRewriterRequestHandler rewriterRequestHandler = getQuerqyRequestHandler(req.getCore());
             final String[] rewriterIds = rewritersParam.split(",");
             final List<RewriterFactory> factories = new ArrayList<>(rewriterIds.length);
             for (final String rewriterId: rewriterIds) {
@@ -268,5 +261,19 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
             }
 
         }
+    }
+
+    private QuerqyRewriterRequestHandler getQuerqyRequestHandler(SolrCore core){
+        final SolrRequestHandler requestHandler = core.getRequestHandler(rewriterRequestHandlerName);
+        if (requestHandler == null) {
+            throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+                    "Could not find QuerqyRewriterRequestHandler for name " + rewriterRequestHandlerName);
+        }
+        if (!(requestHandler instanceof QuerqyRewriterRequestHandler)) {
+            throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+                    rewriterRequestHandlerName + " is not a " + QuerqyRewriterRequestHandler.class);
+        }
+
+        return (QuerqyRewriterRequestHandler) requestHandler;
     }
 }

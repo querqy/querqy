@@ -1,12 +1,9 @@
 package querqy.solr;
 
-import org.apache.solr.common.SolrException;
-import org.apache.solr.core.SolrResourceLoader;
 import querqy.rewrite.RewriterFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class SolrRewriterFactoryAdapter {
 
