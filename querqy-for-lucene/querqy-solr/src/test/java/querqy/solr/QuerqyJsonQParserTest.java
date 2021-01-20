@@ -8,9 +8,9 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.model.builder.converter.MapConverter;
-import querqy.model.builder.impl.BooleanQueryBuilder;
-import querqy.model.builder.impl.ExpandedQueryBuilder;
+import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.builder.BooleanQueryBuilder;
+import querqy.model.convert.builder.ExpandedQueryBuilder;
 import querqy.rewrite.experimental.QueryRewritingHandler;
 
 import java.io.IOException;
@@ -21,14 +21,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static querqy.model.builder.impl.BooleanQueryBuilder.bq;
-import static querqy.model.builder.impl.BoostQueryBuilder.boost;
-import static querqy.model.builder.impl.DisjunctionMaxQueryBuilder.dmq;
-import static querqy.model.builder.impl.ExpandedQueryBuilder.expanded;
-import static querqy.model.builder.impl.MatchAllQueryBuilder.matchall;
-import static querqy.model.builder.impl.StringRawQueryBuilder.raw;
-import static querqy.model.builder.impl.TermBuilder.term;
-import static querqy.model.builder.model.Occur.MUST;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
+import static querqy.model.convert.builder.BoostQueryBuilder.boost;
+import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
+import static querqy.model.convert.builder.ExpandedQueryBuilder.expanded;
+import static querqy.model.convert.builder.MatchAllQueryBuilder.matchall;
+import static querqy.model.convert.builder.StringRawQueryBuilder.raw;
+import static querqy.model.convert.builder.TermBuilder.term;
+import static querqy.model.convert.model.Occur.MUST;
 
 public class QuerqyJsonQParserTest extends SolrJettyTestBase {
 

@@ -1,7 +1,7 @@
 package querqy.lucene;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.builder.impl.ExpandedQueryBuilder;
+import querqy.model.convert.builder.ExpandedQueryBuilder;
 import java.util.Map;
 
 public class JsonQueryParsingController extends QueryParsingController {

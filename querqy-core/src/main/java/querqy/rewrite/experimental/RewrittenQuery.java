@@ -2,7 +2,7 @@ package querqy.rewrite.experimental;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import querqy.model.builder.impl.ExpandedQueryBuilder;
+import querqy.model.convert.builder.ExpandedQueryBuilder;
 
 import java.util.Collections;
 import java.util.Map;

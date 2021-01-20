@@ -12,7 +12,7 @@ import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.InputSequenceElement;
 import querqy.model.Query;
-import querqy.model.builder.impl.BooleanQueryBuilder;
+import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;

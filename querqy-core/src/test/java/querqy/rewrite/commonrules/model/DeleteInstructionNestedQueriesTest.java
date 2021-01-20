@@ -4,16 +4,16 @@ import org.junit.Test;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
-import querqy.model.builder.impl.BooleanQueryBuilder;
+import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static querqy.model.builder.impl.BooleanQueryBuilder.bq;
-import static querqy.model.builder.impl.DisjunctionMaxQueryBuilder.dmq;
-import static querqy.model.builder.impl.TermBuilder.term;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
+import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
+import static querqy.model.convert.builder.TermBuilder.term;
 
 public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest {
 
@@ -67,7 +67,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     }
 
 
-    // TODO: move subsequent tests to DeleteInstructionTest as soon as the builder lib is more established
+    // TODO: move subsequent tests to DeleteInstructionTest as soon as the convert lib is more established
 
     @Test
     public void testThatDmqContainingTheSameTermMultipleTimesIsFullyRemoved() {
@@ -100,7 +100,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
     }
 
 
-    // TODO: move subsequent tests as soon as the builder lib is more established
+    // TODO: move subsequent tests as soon as the convert lib is more established
 
     @Test
     public void testThatSynonymsAreAppliedOnDuplicateSequences() {

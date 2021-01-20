@@ -1,7 +1,7 @@
 package querqy.rewrite.experimental;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.builder.impl.ExpandedQueryBuilder;
+import querqy.model.convert.builder.ExpandedQueryBuilder;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;

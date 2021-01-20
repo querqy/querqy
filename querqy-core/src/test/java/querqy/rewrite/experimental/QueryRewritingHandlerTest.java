@@ -7,10 +7,10 @@ import java.util.AbstractMap;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static querqy.model.builder.impl.BooleanQueryBuilder.bq;
-import static querqy.model.builder.impl.DisjunctionMaxQueryBuilder.dmq;
-import static querqy.model.builder.impl.ExpandedQueryBuilder.expanded;
-import static querqy.model.builder.impl.TermBuilder.term;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
+import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
+import static querqy.model.convert.builder.ExpandedQueryBuilder.expanded;
+import static querqy.model.convert.builder.TermBuilder.term;
 
 public class QueryRewritingHandlerTest {
 
