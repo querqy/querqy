@@ -124,7 +124,7 @@ public class FieldBoostTermQueryBuilderTest extends LuceneTestCase {
 
         TopDocs topDocs = indexSearcher.search(query, 10);
         final Weight weight = query.createWeight(indexSearcher, ScoreMode.COMPLETE, 4.5f);
-        final Explanation explain = weight.explain(indexReader.getContext().leaves().get(0), topDocs.scoreDocs[0].doc);
+        final Explanation explain = weight.explain(indexSearcher.getIndexReader().leaves().get(0), topDocs.scoreDocs[0].doc);
 
         String explainText = explain.toString();
 
