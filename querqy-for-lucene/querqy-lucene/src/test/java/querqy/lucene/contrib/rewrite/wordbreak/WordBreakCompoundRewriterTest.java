@@ -11,7 +11,6 @@ import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.must;
 import static querqy.QuerqyMatchers.term;
 
-import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.CombineSuggestion;
@@ -30,7 +29,6 @@ import querqy.trie.TrieMap;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +43,9 @@ public class WordBreakCompoundRewriterTest {
     @Mock
     IndexReader indexReader;
 
+    private static final TrieMap<Boolean> NO_TRIGGERWORDS = new TrieMap<>();
+    private static final TrieMap<Boolean> NO_PROTECTEDWORDS = new TrieMap<>();
+
     @Test
     public void testNoDecompoundForSingleToken() throws IOException {
 
@@ -54,8 +55,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", false);
 
@@ -83,8 +84,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", false);
 
@@ -113,8 +114,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", true);
 
@@ -147,8 +148,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", true);
@@ -186,8 +187,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", true);
         addTerm(query, "w2", false);
@@ -225,8 +226,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2g", true);
@@ -266,8 +267,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", false);
 
@@ -304,8 +305,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 2, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 2, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w3w4", false);
 
@@ -345,8 +346,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
@@ -382,8 +383,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
@@ -421,8 +422,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, true, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, true, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
@@ -466,7 +467,7 @@ public class WordBreakCompoundRewriterTest {
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
                 indexReader, false, false, triggerWords, 5, false,
-                CharArraySet.EMPTY_SET);
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "trigger", false);
@@ -509,7 +510,7 @@ public class WordBreakCompoundRewriterTest {
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
                 indexReader, false, false, triggerWords, 5, false,
-                CharArraySet.EMPTY_SET);
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "Trigger_Upper", false);
@@ -599,7 +600,7 @@ public class WordBreakCompoundRewriterTest {
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
                 indexReader, true, false, triggerWords, 5, false,
-                CharArraySet.EMPTY_SET);
+                NO_PROTECTEDWORDS);
 
         Query query1 = new Query();
         addTerm(query1, "w1", false);
@@ -667,7 +668,7 @@ public class WordBreakCompoundRewriterTest {
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
                 indexReader,false, false, triggerWords, 5, false,
-                CharArraySet.EMPTY_SET);
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w0", false);
         addTerm(query, "w1", false);
@@ -711,8 +712,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "W1w2", false);
 
@@ -732,8 +733,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", true),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", true),
-                indexReader, true, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, true, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "W1w2", false);
 
@@ -753,8 +754,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", true),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", true),
-                indexReader, true, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, true, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "W1", false);
         addTerm(query, "W2", false);
@@ -776,8 +777,8 @@ public class WordBreakCompoundRewriterTest {
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                CharArraySet.EMPTY_SET);
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "W1", false);
         addTerm(query, "W2", false);
@@ -800,12 +801,13 @@ public class WordBreakCompoundRewriterTest {
         suggestions.put(Arrays.asList("w1", "w2"), new CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
         setupWordBreakMockWithCombinations(suggestions);
 
-        CharArraySet protWord = new CharArraySet(Collections.singletonList("w1w2"), false);
+        TrieMap<Boolean> protWord = new TrieMap<>();
+        protWord.put("w1w2", true);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, true, false, new TrieMap<>(), 5, false,
+                indexReader, true, false, NO_TRIGGERWORDS, 5, false,
                 protWord);
 
         Query query = new Query();
@@ -833,8 +835,10 @@ public class WordBreakCompoundRewriterTest {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
                 .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
 
-        WordBreakCompoundRewriter rewriterWithNoProtectedWords = rewriter(CharArraySet.EMPTY_SET);
-        CharArraySet protectedTerm = new CharArraySet(Collections.singletonList("w1w2"), false);
+        WordBreakCompoundRewriter rewriterWithNoProtectedWords = rewriter(NO_PROTECTEDWORDS);
+
+        TrieMap<Boolean> protectedTerm = new TrieMap<>();
+        protectedTerm.put("w1w2", true);
         WordBreakCompoundRewriter rewriterWhereW1W2IsProtected = rewriter(protectedTerm);
 
         final ExpandedQuery rewrittenNoProtected = rewriterWithNoProtectedWords.rewrite(new ExpandedQuery(query("w1w2")));
@@ -862,7 +866,7 @@ public class WordBreakCompoundRewriterTest {
         );
     }
 
-    private WordBreakCompoundRewriter rewriter(CharArraySet protectedTerms) {
+    private WordBreakCompoundRewriter rewriter(TrieMap<Boolean> protectedTerms) {
         return new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),

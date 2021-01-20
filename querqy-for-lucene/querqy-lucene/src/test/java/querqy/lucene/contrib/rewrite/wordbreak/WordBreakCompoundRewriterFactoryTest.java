@@ -51,8 +51,8 @@ public class WordBreakCompoundRewriterFactoryTest {
                 Morphology.DEFAULT, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
                 Collections.singletonList("Protected"));
 
-        Assert.assertTrue(factory.getProtectedWords().contains("Protected"));
-        Assert.assertTrue(factory.getProtectedWords().contains("protected"));
+        final TrieMap<Boolean> protectedWords = factory.getProtectedWords();
+        Assert.assertTrue(protectedWords.get("protected").getStateForCompleteSequence().isFinal());
 
     }
 
@@ -62,8 +62,9 @@ public class WordBreakCompoundRewriterFactoryTest {
                 Morphology.GERMAN, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
                 Collections.singletonList("Protected"));
 
-        Assert.assertTrue(factory.getProtectedWords().contains("Protected"));
-        Assert.assertFalse(factory.getProtectedWords().contains("protected"));
+        final TrieMap<Boolean> protectedWords = factory.getProtectedWords();
+        Assert.assertTrue(protectedWords.get("Protected").getStateForCompleteSequence().isFinal());
+        Assert.assertFalse(protectedWords.get("protected").getStateForCompleteSequence().isFinal());
 
     }
 
