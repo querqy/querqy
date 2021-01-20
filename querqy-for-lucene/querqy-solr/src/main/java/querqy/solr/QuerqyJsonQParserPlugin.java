@@ -6,7 +6,7 @@ import org.apache.solr.search.QParser;
 import querqy.infologging.InfoLogging;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 
-public class JsonQuerqyDismaxQParserPlugin extends AbstractQuerqyDismaxQParserPlugin {
+public class QuerqyJsonQParserPlugin extends AbstractQuerqyDismaxQParserPlugin {
 
    @Override
    public QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params,

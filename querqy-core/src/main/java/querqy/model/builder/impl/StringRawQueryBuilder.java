@@ -19,8 +19,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Objects.isNull;
-import static querqy.model.builder.converter.MapConverter.DEFAULT_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.OCCUR_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.DEFAULT_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.OCCUR_MV_CONVERTER;
 import static querqy.model.builder.model.Occur.SHOULD;
 import static querqy.model.builder.model.Occur.getOccurByClauseObject;
 
@@ -30,7 +30,8 @@ import static querqy.model.builder.model.Occur.getOccurByClauseObject;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class StringRawQueryBuilder implements QuerqyQueryBuilder<StringRawQueryBuilder, StringRawQuery, DisjunctionMaxQuery> {
+public class StringRawQueryBuilder implements
+        QuerqyQueryBuilder<StringRawQueryBuilder, StringRawQuery, DisjunctionMaxQuery> {
 
     public static final String NAME_OF_QUERY_TYPE = "string_raw_query";
 
@@ -75,12 +76,12 @@ public class StringRawQueryBuilder implements QuerqyQueryBuilder<StringRawQueryB
     }
 
     @Override
-    public StringRawQuery buildObject(DisjunctionMaxQuery parent) {
+    public StringRawQuery buildObject(final DisjunctionMaxQuery parent) {
         return new StringRawQuery(parent, this.rawQuery, this.occur.objectForClause, this.isGenerated);
     }
 
     @Override
-    public StringRawQueryBuilder setAttributesFromObject(StringRawQuery stringRawQuery) {
+    public StringRawQueryBuilder setAttributesFromObject(final StringRawQuery stringRawQuery) {
         this.setRawQuery(stringRawQuery.getQueryString());
         this.setOccur(getOccurByClauseObject(stringRawQuery.getOccur()));
         this.setIsGenerated(stringRawQuery.isGenerated());
@@ -89,18 +90,18 @@ public class StringRawQueryBuilder implements QuerqyQueryBuilder<StringRawQueryB
     }
 
     @Override
-    public Map<String, Object> attributesToMap(MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_RAW_QUERY, this.rawQuery, DEFAULT_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_RAW_QUERY, this.rawQuery, DEFAULT_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }
 
     @Override
-    public StringRawQueryBuilder setAttributesFromMap(Map map) {
+    public StringRawQueryBuilder setAttributesFromMap(final Map map) {
         TypeCastingUtils.castString(map.get(FIELD_NAME_RAW_QUERY)).ifPresent(this::setRawQuery);
         TypeCastingUtils.castOccurByTypeName(map.get(FIELD_NAME_OCCUR)).ifPresent(this::setOccur);
         TypeCastingUtils.castStringOrBooleanToBoolean(map.get(FIELD_NAME_IS_GENERATED)).ifPresent(this::setIsGenerated);

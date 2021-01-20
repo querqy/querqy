@@ -93,7 +93,7 @@ public class QueryRewritingHandler {
                     new WhiteSpaceQuerqyParserFactory(),
                     true,
                     Collections.emptyMap(),
-                    new ExpressionCriteriaSelectionStrategyFactory()));
+                    new ExpressionCriteriaSelectionStrategyFactory(), false));
 
             return this;
         }

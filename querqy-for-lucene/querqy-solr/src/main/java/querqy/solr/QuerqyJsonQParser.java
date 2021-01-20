@@ -17,8 +17,8 @@ import static org.apache.solr.common.SolrException.ErrorCode.BAD_REQUEST;
 
 public class QuerqyJsonQParser extends QuerqyDismaxQParser {
 
-    private static final String QUERY_FIELD = "query";
-    private static final String DEF_TYPE_FIELD = "type";
+    private static final String FIELD_QUERY = "query";
+    private static final String FIELD_TYPE = "type";
 
     public QuerqyJsonQParser(final String qstr, final SolrParams localParams, final SolrParams params,
                              final SolrQueryRequest req, final QuerqyParser querqyParser,
@@ -30,34 +30,34 @@ public class QuerqyJsonQParser extends QuerqyDismaxQParser {
     @Override
     public QueryParsingController createQueryParsingController() {
 
-        final Object solrQueryObj = req.getJSON().get(QUERY_FIELD);
+        final Object solrQueryObj = req.getJSON().get(FIELD_QUERY);
         if (isNull(solrQueryObj)) {
             throw new SolrException(BAD_REQUEST, "Solr query not defined");
         }
 
-        final Map solrQuery = castMap(solrQueryObj);
+        final Map solrQuery = asMap(solrQueryObj);
 
-        final String defType = localParams.get(DEF_TYPE_FIELD);
-        final Object querqyRequestObj = solrQuery.get(defType);
+        final String queryType = localParams.get(FIELD_TYPE);
+        final Object querqyRequestObj = solrQuery.get(queryType);
 
         if (isNull(querqyRequestObj)) {
-            throw new SolrException(BAD_REQUEST, "Defined query parser varies from JSON input");
+            throw new SolrException(BAD_REQUEST, "Could not find request object in JSON for query type: " + queryType);
         }
 
-        final Map querqyRequest = castMap(querqyRequestObj);
+        final Map querqyRequest = asMap(querqyRequestObj);
 
-        final Object querqyQueryObj = querqyRequest.get(QUERY_FIELD);
+        final Object querqyQueryObj = querqyRequest.get(FIELD_QUERY);
 
         if (isNull(querqyQueryObj)) {
             throw new SolrException(BAD_REQUEST, "Missing query for querqy request");
         }
 
-        final Map querqyQuery = castMap(querqyQueryObj);
+        final Map querqyQuery = asMap(querqyQueryObj);
 
         return new JsonQueryParsingController(querqyQuery, requestAdapter);
     }
 
-    private Map castMap(final Object obj) {
+    private Map asMap(final Object obj) {
         if (obj instanceof Map) {
             return (Map) obj;
 

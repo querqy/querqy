@@ -13,17 +13,17 @@ import static java.util.Objects.isNull;
 
 public class MapConverter {
 
-    private boolean parseBooleanToString = false;
-    private boolean includeNullValues = false;
+    public static final MapConverter DEFAULT_MAP_CONVERTER = new MapConverter(false, false);
+    public static final MapConverter MAP_CONVERTER_NULL_VALUES = new MapConverter(false, true);
+    public static final MapConverter MAP_CONVERTER_BOOL_STRING = new MapConverter(true, false);
+    public static final MapConverter MAP_CONVERTER_BOOL_STRING_NULL_VALUES = new MapConverter(true, true);
 
-    public MapConverter enableParseBooleanToString() {
-        this.parseBooleanToString = true;
-        return this;
-    }
+    private final boolean parseBooleanToString;
+    private final boolean includeNullValues;
 
-    public MapConverter enableIncludeNullValues() {
-        this.includeNullValues = true;
-        return this;
+    protected MapConverter(final boolean parseBooleanToString, final boolean includeNullValues) {
+        this.parseBooleanToString = parseBooleanToString;
+        this.includeNullValues = includeNullValues;
     }
 
     public Map convertQueryBuilderToMap(final QueryNodeBuilder queryBuilder) {
@@ -42,26 +42,26 @@ public class MapConverter {
         }
 
         if (parseBooleanToString && value instanceof Boolean) {
-            map.put(fieldName, String.valueOf(value));
+            map.put(fieldName, value.toString());
             return;
         }
 
         map.put(fieldName, mapValueConverter.toMapValue(value, this));
     }
 
-    public static final MapValueConverter DEFAULT_CONVERTER = (obj, converter) -> obj;
+    public static final MapValueConverter DEFAULT_MV_CONVERTER = (obj, converter) -> obj;
 
-    public static final MapValueConverter QUERY_NODE_CONVERTER = (obj, converter) ->
+    public static final MapValueConverter QUERY_NODE_MV_CONVERTER = (obj, converter) ->
             TypeCastingUtils.castQueryNodeBuilder(obj).toMap(converter);
 
-    public static final MapValueConverter LIST_OF_QUERY_NODE_CONVERTER = (obj, converter) ->
+    public static final MapValueConverter LIST_OF_QUERY_NODE_MV_CONVERTER = (obj, converter) ->
             TypeCastingUtils.castListOfQueryNodeBuilders(obj).stream()
                     .map(queryNodeBuilder -> queryNodeBuilder.toMap(converter))
                     .collect(Collectors.toList());
 
-    public static final MapValueConverter OCCUR_CONVERTER = (obj, converter) -> ((Occur) obj).typeName;
+    public static final MapValueConverter OCCUR_MV_CONVERTER = (obj, converter) -> ((Occur) obj).typeName;
 
-    public static final MapValueConverter FLOAT_CONVERTER = (obj, converter) -> {
+    public static final MapValueConverter FLOAT_MV_CONVERTER = (obj, converter) -> {
         final Optional<Float> optionalFloat = TypeCastingUtils.castFloatOrDoubleToFloat(obj);
 
         if (optionalFloat.isPresent()) {

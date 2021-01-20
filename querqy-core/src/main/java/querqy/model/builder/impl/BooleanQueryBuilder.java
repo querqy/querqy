@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static querqy.model.builder.converter.MapConverter.DEFAULT_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.LIST_OF_QUERY_NODE_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.OCCUR_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.DEFAULT_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.LIST_OF_QUERY_NODE_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.OCCUR_MV_CONVERTER;
 import static querqy.model.builder.model.Occur.SHOULD;
 import static querqy.model.builder.model.Occur.getOccurByClauseObject;
 
@@ -97,7 +97,8 @@ public class BooleanQueryBuilder implements DisjunctionMaxClauseBuilder<BooleanQ
                         return new DisjunctionMaxQueryBuilder((DisjunctionMaxQuery) clause);
 
                     } else {
-                        throw new QueryBuilderException("The structure of this query is currently not supported by builders");
+                        throw new QueryBuilderException("The structure of this query is currently not supported " +
+                                "by builders");
                     }})
 
                 .collect(Collectors.toList());
@@ -110,19 +111,20 @@ public class BooleanQueryBuilder implements DisjunctionMaxClauseBuilder<BooleanQ
     }
 
     @Override
-    public Map<String, Object> attributesToMap(MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_CLAUSES, this.clauses, LIST_OF_QUERY_NODE_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_CLAUSES, this.clauses, LIST_OF_QUERY_NODE_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }
 
     @Override
     public BooleanQueryBuilder setAttributesFromMap(final Map map) {
-        this.setClauses(TypeCastingUtils.castAndParseListOfMaps(map.get(FIELD_NAME_CLAUSES), DisjunctionMaxQueryBuilder::new));
+        this.setClauses(TypeCastingUtils.castAndParseListOfMaps(map.get(FIELD_NAME_CLAUSES),
+                DisjunctionMaxQueryBuilder::new));
 
         TypeCastingUtils.castOccurByTypeName(map.get(FIELD_NAME_OCCUR)).ifPresent(this::setOccur);
         TypeCastingUtils.castStringOrBooleanToBoolean(map.get(FIELD_NAME_IS_GENERATED)).ifPresent(this::setIsGenerated);
@@ -130,7 +132,8 @@ public class BooleanQueryBuilder implements DisjunctionMaxClauseBuilder<BooleanQ
         return this;
     }
 
-    public static BooleanQueryBuilder bq(final List<DisjunctionMaxQueryBuilder> dmqs, final Occur occur, boolean isGenerated) {
+    public static BooleanQueryBuilder bq(final List<DisjunctionMaxQueryBuilder> dmqs, final Occur occur,
+                                         boolean isGenerated) {
         return new BooleanQueryBuilder(dmqs, occur, isGenerated);
     }
 

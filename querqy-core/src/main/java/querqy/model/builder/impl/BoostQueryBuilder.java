@@ -20,8 +20,8 @@ import java.util.Optional;
 import static java.util.Objects.isNull;
 import static querqy.model.builder.TypeCastingUtils.castFloatOrDoubleToFloat;
 import static querqy.model.builder.TypeCastingUtils.castMap;
-import static querqy.model.builder.converter.MapConverter.FLOAT_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.QUERY_NODE_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.FLOAT_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.QUERY_NODE_MV_CONVERTER;
 
 @Accessors(chain = true)
 @Getter
@@ -60,14 +60,15 @@ public class BoostQueryBuilder implements QueryNodeBuilder<BoostQueryBuilder, Bo
     public BoostQueryBuilder checkMandatoryFieldValues() {
         if (isNull(querqyQueryBuilder)) {
             throw new QueryBuilderException(
-                    String.format("Field %s is mandatory for builder %s", "querqyQueryBuilder", this.getClass().getName()));
+                    String.format("Field %s is mandatory for builder %s", "querqyQueryBuilder", this.getClass()
+                            .getName()));
         }
 
         return this;
     }
 
     @Override
-    public BoostQuery buildObject(Object parent) {
+    public BoostQuery buildObject(final Object parent) {
         return new BoostQuery(querqyQueryBuilder.buildQuerqyQuery(), this.boost);
     }
 
@@ -80,11 +81,11 @@ public class BoostQueryBuilder implements QueryNodeBuilder<BoostQueryBuilder, Bo
     }
 
     @Override
-    public Map<String, Object> attributesToMap(MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_QUERY, this.querqyQueryBuilder, QUERY_NODE_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_BOOST, this.boost, FLOAT_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_QUERY, this.querqyQueryBuilder, QUERY_NODE_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_BOOST, this.boost, FLOAT_MV_CONVERTER);
 
         return map;
     }

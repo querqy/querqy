@@ -23,9 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static querqy.model.builder.converter.MapConverter.DEFAULT_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.LIST_OF_QUERY_NODE_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.OCCUR_CONVERTER;
+import static java.util.stream.Collectors.toList;
+import static querqy.model.builder.converter.MapConverter.DEFAULT_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.LIST_OF_QUERY_NODE_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.OCCUR_MV_CONVERTER;
 import static querqy.model.builder.model.Occur.SHOULD;
 import static querqy.model.builder.model.Occur.getOccurByClauseObject;
 
@@ -82,7 +83,7 @@ public class DisjunctionMaxQueryBuilder implements
     public DisjunctionMaxQueryBuilder setAttributesFromObject(final DisjunctionMaxQuery dmq) {
         final List<DisjunctionMaxClauseBuilder> clausesFromObject = dmq.getClauses().stream()
                 .map(BuilderFactory::createDisjunctionMaxClauseBuilderFromObject)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         this.setClauses(clausesFromObject);
         this.setOccur(getOccurByClauseObject(dmq.getOccur()));
@@ -105,9 +106,9 @@ public class DisjunctionMaxQueryBuilder implements
     public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_CLAUSES, this.clauses, LIST_OF_QUERY_NODE_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_CLAUSES, this.clauses, LIST_OF_QUERY_NODE_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }
@@ -127,10 +128,10 @@ public class DisjunctionMaxQueryBuilder implements
     }
 
     public static DisjunctionMaxQueryBuilder dmq(final ComparableCharSequence... terms) {
-        return new DisjunctionMaxQueryBuilder(Arrays.stream(terms).map(TermBuilder::term).collect(Collectors.toList()));
+        return new DisjunctionMaxQueryBuilder(Arrays.stream(terms).map(TermBuilder::term).collect(toList()));
     }
 
     public static DisjunctionMaxQueryBuilder dmq(final String... terms) {
-        return new DisjunctionMaxQueryBuilder(Arrays.stream(terms).map(TermBuilder::term).collect(Collectors.toList()));
+        return new DisjunctionMaxQueryBuilder(Arrays.stream(terms).map(TermBuilder::term).collect(toList()));
     }
 }

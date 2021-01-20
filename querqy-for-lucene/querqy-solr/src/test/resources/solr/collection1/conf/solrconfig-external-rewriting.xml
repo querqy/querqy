@@ -27,14 +27,6 @@
 			<int name="rows">10</int>
 			<str name="df">id</str>
 		</lst>
-        <lst name="appends">
-        <!--
-            <str name="additional_boost_queries">{!func}max(query({!lucene df=f1 v='television'}),1000)</str>
-            <str name="additional_boost_queries">{!func}field(id)</str>
-            <str name="additional_boost_queries">{!func}field(id)</str>
-            <str name="additional_boost_queries">f1:television</str>
-        -->
-        </lst>
     </requestHandler>
 
 	<requestHandler name="/analysis/field" startup="lazy"
@@ -42,7 +34,7 @@
 
 	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 	
-	<queryParser name="querqy" class="querqy.solr.JsonQuerqyDismaxQParserPlugin" />
+	<queryParser name="querqy" class="querqy.solr.QuerqyJsonQParserPlugin" />
 
 	<admin>
 		<defaultQuery>solr</defaultQuery>

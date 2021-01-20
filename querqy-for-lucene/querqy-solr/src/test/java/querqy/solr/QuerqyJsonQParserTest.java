@@ -239,9 +239,7 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
     }
 
     private static Map<String, Object> createRequestToTestMatching(ExpandedQueryBuilder expandedQuery) {
-        Map expandedQueryMap = new MapConverter()
-                .enableParseBooleanToString()
-                .convertQueryBuilderToMap(expandedQuery);
+        Map expandedQueryMap = MapConverter.MAP_CONVERTER_BOOL_STRING.convertQueryBuilderToMap(expandedQuery);
 
         Map<String, Object> request = new HashMap<>();
         request.put("mm", "100%");
@@ -254,9 +252,7 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
     }
 
     private static Map<String, Object> createRequestToTestScoring(ExpandedQueryBuilder expandedQuery) {
-        Map expandedQueryMap = new MapConverter()
-                .enableParseBooleanToString()
-                .convertQueryBuilderToMap(expandedQuery);
+        Map expandedQueryMap = MapConverter.MAP_CONVERTER_BOOL_STRING.convertQueryBuilderToMap(expandedQuery);
 
         Map<String, Object> request = new HashMap<>();
         request.put("mm", "100%");

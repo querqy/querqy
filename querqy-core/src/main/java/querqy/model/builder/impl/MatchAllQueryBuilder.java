@@ -17,8 +17,8 @@ import querqy.model.builder.model.Occur;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static querqy.model.builder.converter.MapConverter.DEFAULT_CONVERTER;
-import static querqy.model.builder.converter.MapConverter.OCCUR_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.DEFAULT_MV_CONVERTER;
+import static querqy.model.builder.converter.MapConverter.OCCUR_MV_CONVERTER;
 import static querqy.model.builder.model.Occur.SHOULD;
 import static querqy.model.builder.model.Occur.getOccurByClauseObject;
 
@@ -29,7 +29,8 @@ import static querqy.model.builder.model.Occur.getOccurByClauseObject;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class MatchAllQueryBuilder implements QuerqyQueryBuilder<MatchAllQueryBuilder, MatchAllQuery, DisjunctionMaxQuery> {
+public class MatchAllQueryBuilder implements
+        QuerqyQueryBuilder<MatchAllQueryBuilder, MatchAllQuery, DisjunctionMaxQuery> {
 
     public static final String NAME_OF_QUERY_TYPE = "match_all_query";
 
@@ -48,12 +49,12 @@ public class MatchAllQueryBuilder implements QuerqyQueryBuilder<MatchAllQueryBui
     }
 
     @Override
-    public MatchAllQuery buildObject(DisjunctionMaxQuery parent) {
+    public MatchAllQuery buildObject(final DisjunctionMaxQuery parent) {
         return new MatchAllQuery(parent, this.occur.objectForClause, isGenerated);
     }
 
     @Override
-    public MatchAllQueryBuilder setAttributesFromObject(MatchAllQuery matchAllQuery) {
+    public MatchAllQueryBuilder setAttributesFromObject(final MatchAllQuery matchAllQuery) {
         this.setOccur(getOccurByClauseObject(matchAllQuery.getOccur()));
         this.setIsGenerated(matchAllQuery.isGenerated());
         return this;
@@ -70,18 +71,18 @@ public class MatchAllQueryBuilder implements QuerqyQueryBuilder<MatchAllQueryBui
     }
 
     @Override
-    public MatchAllQueryBuilder setAttributesFromMap(Map map) {
+    public MatchAllQueryBuilder setAttributesFromMap(final Map map) {
         TypeCastingUtils.castOccurByTypeName(map.get(FIELD_NAME_OCCUR)).ifPresent(this::setOccur);
         TypeCastingUtils.castStringOrBooleanToBoolean(map.get(FIELD_NAME_IS_GENERATED)).ifPresent(this::setIsGenerated);
         return this;
     }
 
     @Override
-    public Map<String, Object> attributesToMap(MapConverter mapConverter) {
-        final Map<String, Object> map = new LinkedHashMap<>();
+    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
+        final Map<String, Object> map = new LinkedHashMap<>(2);
 
-        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
+        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }

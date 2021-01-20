@@ -1,5 +1,8 @@
 package querqy.model.builder.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import querqy.model.Clause;
 import querqy.model.builder.QueryBuilderException;
@@ -10,32 +13,31 @@ public enum Occur {
     SHOULD("should", Clause.Occur.SHOULD),
     MUST_NOT("must_not", Clause.Occur.MUST_NOT);
 
+    private static final Map<String, Occur> MAP_FROM_TYPE_NAME = new HashMap<>(3);
+    static {
+        MAP_FROM_TYPE_NAME.put(SHOULD.typeName, SHOULD);
+        MAP_FROM_TYPE_NAME.put(MUST.typeName, MUST);
+        MAP_FROM_TYPE_NAME.put(MUST_NOT.typeName, MUST_NOT);
+    }
+
     public final String typeName;
     public final Clause.Occur objectForClause;
 
     public static Occur getOccurByTypeName(final String typeName) {
-        if (SHOULD.typeName.equals(typeName)) {
-            return SHOULD;
-
-        } else if (MUST.typeName.equals(typeName)) {
-            return MUST;
-
-        } else if (MUST_NOT.typeName.equals(typeName)) {
-            return MUST_NOT;
-
-        }
-
-        throw new QueryBuilderException(String.format("Occur of type %s is unknown", typeName));
+        return MAP_FROM_TYPE_NAME.computeIfAbsent(typeName, key -> {
+            throw new QueryBuilderException(String.format("Occur of type %s is unknown", typeName));
+        });
     }
 
     public static Occur getOccurByClauseObject(final Clause.Occur clauseObject) {
-        if (SHOULD.objectForClause.equals(clauseObject)) {
+
+        if (SHOULD.objectForClause == clauseObject) {
             return SHOULD;
 
-        } else if (MUST.objectForClause.equals(clauseObject)) {
+        } else if (MUST.objectForClause == clauseObject) {
             return MUST;
 
-        } else if (MUST_NOT.objectForClause.equals(clauseObject)) {
+        } else if (MUST_NOT.objectForClause == clauseObject) {
             return MUST_NOT;
 
         }
