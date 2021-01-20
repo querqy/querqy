@@ -39,7 +39,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
         ActionParam() {
             final Map<String, String[]> params = new HashMap<>(1);
-            params.put(PARAM_ACTION, new String[] {name()});
+            params.put(PARAM_ACTION, new String[]{name()});
             this.params = new MultiMapSolrParams(params);
         }
 
@@ -67,7 +67,8 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
                 switch (actionParam.get()) {
                     case SAVE:
-                    case DELETE: return actionParam;
+                    case DELETE:
+                        return actionParam;
                     default:
                         throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "HTTP POST must not be combined " +
                                 "with " + PARAM_ACTION + "=" + actionString);
@@ -183,16 +184,16 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     public void inform(final SolrCore core) {
 
         final SolrResourceLoader resourceLoader = core.getResourceLoader();
-
-        if (resourceLoader instanceof ZkSolrResourceLoader) {
+        Boolean inMemory = (Boolean) initArgs.get("inMemory");
+        if (inMemory != null && inMemory) {
+            rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader);
+        } else if (resourceLoader instanceof ZkSolrResourceLoader) {
             rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader);
 
         } else {
             rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader);
         }
         rewriterContainer.init(initArgs);
-
-
     }
 
     public Optional<RewriterFactory> getRewriterFactory(final String rewriterId) {
@@ -202,8 +203,6 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     public synchronized Collection<RewriterFactory> getRewriterFactories(final RewriterContainer.RewritersChangeListener listener) {
         return rewriterContainer.getRewriterFactories(listener);
     }
-
-
 
 
     @Override

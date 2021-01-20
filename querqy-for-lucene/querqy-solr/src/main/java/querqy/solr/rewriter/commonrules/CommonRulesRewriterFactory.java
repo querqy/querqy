@@ -1,7 +1,6 @@
 package querqy.solr.rewriter.commonrules;
 
-import com.google.common.io.Files;
-import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.commons.fileupload.util.Streams;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrResourceLoader;
@@ -10,22 +9,18 @@ import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
-import querqy.solr.rewriter.ClassicConfigurationParser;
-import querqy.solr.utils.ConfigUtils;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.SolrRewriterFactoryAdapter;
+import querqy.solr.rewriter.ClassicConfigurationParser;
+import querqy.solr.utils.ConfigUtils;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
-import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_RULES;
 
 public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
@@ -138,18 +133,32 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     }
 
     @Override
-    public Map<String, Object> parseConfiguration(NamedList<?> configuration, SolrResourceLoader resourceLoader) throws IOException {
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<?> configuration, SolrResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
 
-        // TODO: Auslagern als interface an die Factories, da es das nur in dem CommonRules gibt
-        final Object rulesFile = configuration.remove("rules");
-        if (rulesFile != null) {
-            String rules = Files.asCharSource(Paths.get(resourceLoader.getConfigDir(), (String) rulesFile).toFile(), UTF_8).read();
-            HashMap<Object, Object> ruleMap = new HashMap<>();
-            ruleMap.put(CONF_RULES, rules);
-            result.put(CONF_CONFIG, ruleMap);
-        }
+        ifNotNull((String) configuration.get("rules"), rulesFile -> {
+            try {
+                final String rules = Streams.asString(resourceLoader.openResource(rulesFile));
+                final HashMap<Object, Object> ruleMap = new HashMap<>();
+                ruleMap.put(CONF_RULES, rules);
+                result.put(CONF_CONFIG, ruleMap);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not load file: " + rulesFile + " because " + e.getMessage());
+            }
+        });
+
+        ifNotNull(configuration.get(CONF_IGNORE_CASE), v -> result.put(CONF_IGNORE_CASE, v));
+        ifNotNull(configuration.get(CONF_RHS_QUERY_PARSER), v -> result.put(CONF_RHS_QUERY_PARSER, v));
+        ifNotNull(configuration.get(CONF_RULE_SELECTION_STRATEGIES), v -> result.put(CONF_RULE_SELECTION_STRATEGIES, v));
+        ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
+
         return result;
+    }
+
+    private static <T> void ifNotNull(T value, Consumer<T> supplier) {
+        if (value != null) {
+            supplier.accept(value);
+        }
     }
 }

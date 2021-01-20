@@ -1,6 +1,5 @@
 package querqy.solr;
 
-import com.google.common.collect.Lists;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.ContentStreamBase;
@@ -15,16 +14,18 @@ import querqy.infologging.InfoLogging;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.rewrite.RewriteChain;
 import querqy.solr.rewriter.ClassicConfigurationParser;
-import querqy.solr.utils.ConfigUtils;
 import querqy.solr.utils.JsonUtil;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.SAVE;
 import static querqy.solr.QuerqyRewriterRequestHandler.PARAM_ACTION;
-import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
 
 /**
  * Querqy's default QParserPlugin. The produced QParser combines query rewriting with (e)dismax query QParserPlugin
@@ -32,16 +33,17 @@ import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
  */
 public class ClassicQuerqyDismaxQParserPlugin extends QuerqyQParserPlugin {
 
+    private final AtomicBoolean alreadyLoaded = new AtomicBoolean(false);
+
     public QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params,
                                 final SolrQueryRequest req, final RewriteChain rewriteChain,
                                 final InfoLogging infoLogging, final TermQueryCache termQueryCache) {
-        QuerqyDismaxQParser querqyDismaxQParser = new QuerqyDismaxQParser(qstr, localParams, params, req,
+        if (alreadyLoaded.compareAndSet(false, true)) {
+            loadRewriteChain(req.getCore());
+        }
+
+        return new QuerqyDismaxQParser(qstr, localParams, params, req,
                 createQuerqyParser(qstr, localParams, params, req), rewriteChain, infoLogging, termQueryCache);
-
-        // do the magic
-        loadRewriteChain(req.getCore());
-
-        return querqyDismaxQParser;
     }
 
     /**
@@ -71,45 +73,26 @@ public class ClassicQuerqyDismaxQParserPlugin extends QuerqyQParserPlugin {
                         throw new RuntimeException("Rewriter id: " + id + "already defined.");
                     }
 
-                    //TODO pre checks?
-
                     try {
                         final ModifiableSolrParams params = new ModifiableSolrParams();
                         params.set(PARAM_ACTION, SAVE.name());
+
+                        final String className = (String) config.get("class");
+
+                        final Map<String, Object> jsonBody = ((ClassicConfigurationParser) SolrRewriterFactoryAdapter
+                                .loadInstance(id, className))
+                                .parseConfigurationToRequestHandlerBody(config, resourceLoader);
+
                         final SolrQueryRequestBase req = new SolrQueryRequestBase(core, params) {
                         };
-                        final Map<String, Object> jsonBody = new HashMap<>();
-                        final String className = (String) config.remove("class");
-                        jsonBody.put(CONF_CLASS, className);
+                        req.setContentStreams(newArrayList(new ContentStreamBase.StringStream(JsonUtil.toJson(jsonBody), UTF_8.name())));
 
-                        ConfigUtils
-                                .newInstance(className, ClassicConfigurationParser.class)
-                                .parseConfiguration(config, resourceLoader);
-
-                        for (Map.Entry<String, ?> e : config.asShallowMap().entrySet()) {
-                            logger.warn("{}: Parameter that needs to be handled in the #parseConfiguration function:{}/{}", className, e.getKey(), e.getValue());
-                        }
-
-                        req.setContentStreams(newArrayList(new ContentStreamBase.StringStream(JsonUtil.toJson(jsonBody), StandardCharsets.UTF_8.name())));
-
-                        final SolrQueryResponse rsp = new SolrQueryResponse();
-                        requestHandler.getSubHandler(id).handleRequest(req, rsp);
-                    } catch (Exception e) {
-                        // TODO
+                        requestHandler.getSubHandler(id).handleRequest(req, new SolrQueryResponse());
+                        //TODO Check the response?
+                    } catch (RuntimeException e) {
+                        logger.error("Could not parse rewrite entry: {}", config, e);
+                        throw e;
                     }
-
-                    //TODO Check the response
-
-                    /**
-                     http://localhost:8983/solr/CORE/querqy/rewriter/commonrules1?action=save' \
-                     --data-raw '{
-                     "class": "querqy.solr.rewriter.commonrules.CommonRulesRewriterFactory",
-                     "config": {
-                     "rules" : "notebook =>\nSYNONYM: laptop"
-                     }
-                     }'
-                     **/
-
                 }
             }
         }
