@@ -1,6 +1,5 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.index.IndexReader;
 import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
@@ -46,7 +45,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompoundCollation;
 
-    private final CharArraySet protectedWords;
+    private final TrieMap<Boolean> protectedWords;
 
     /**
      * @param wordBreaker The word breaker to use
@@ -64,7 +63,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
                                      final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
                                      final int maxDecompoundExpansions, final boolean verifyDecompoundCollation,
-                                     final CharArraySet protectedWords) {
+                                     final TrieMap<Boolean> protectedWords) {
 
         if (reverseCompoundTriggerWords == null) {
             throw new IllegalArgumentException("reverseCompoundTriggerWords must not be null");
@@ -155,10 +154,10 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         // don't handle generated terms
         if (!term.isGenerated()) {
 
-            if (isReverseCompoundTriggerWord(term)) {
+            if (isReverseCompoundTriggerWord(term.getValue())) {
                 termsToDelete.add(term);
             } else {
-                if (!protectedWords.contains(term.getValue())) {
+                if (!isProtectedWord(term.getValue())) {
                     decompound(term);
                 }
                 compound(term);
@@ -168,11 +167,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         }
 
         return term;
-    }
-
-    private boolean isReverseCompoundTriggerWord(final Term term) {
-        return reverseCompoundTriggerWords.get(lowerCaseInput ? new LowerCaseCharSequence(term) : term)
-                .getStateForCompleteSequence().isFinal();
     }
 
     protected void decompound(final Term term) {
@@ -217,7 +211,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             Term previousTerm = null;
             while (previousTermsIterator.hasNext() && previousTerm == null) {
                 final Term maybePreviousTerm = previousTermsIterator.next();
-                if (isReverseCompoundTriggerWord(maybePreviousTerm)) {
+                if (isReverseCompoundTriggerWord(maybePreviousTerm.getValue())) {
                     reverseCompound = true;
                 } else {
                     previousTerm = maybePreviousTerm;
@@ -244,13 +238,23 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private void addCompounds(final Term[] terms, final boolean reverse) throws IOException {
 
         for (final LuceneCompounder.CompoundTerm compoundTerm : compounder.combine(terms, indexReader, reverse)) {
-            if (!protectedWords.contains(compoundTerm.value)) {
+            if (!isProtectedWord(compoundTerm.value)) {
                 for (final Term sibling: compoundTerm.originalTerms) {
                     nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
                 }
             }
         }
 
+    }
+
+    private boolean isReverseCompoundTriggerWord(final CharSequence chars) {
+        return reverseCompoundTriggerWords.get(lowerCaseInput ? new LowerCaseCharSequence(chars) : chars)
+                .getStateForCompleteSequence().isFinal();
+    }
+
+    private boolean isProtectedWord(final CharSequence chars) {
+        return protectedWords.get(lowerCaseInput ? new LowerCaseCharSequence(chars) : chars)
+                .getStateForCompleteSequence().isFinal();
     }
 
     @Override
