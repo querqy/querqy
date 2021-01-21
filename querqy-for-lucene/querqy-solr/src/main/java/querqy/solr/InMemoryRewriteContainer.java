@@ -34,8 +34,6 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
             throw new SolrException(NOT_FOUND, "No such rewriter: " + rewriterId);
         }
         rewriters = newRewriters;
-
-        notifyRewritersChangeListener();
     }
 
     @Override
@@ -49,6 +47,5 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
         store.put(rewriterId, instanceDescription);
 
         loadRewriter(rewriterId, instanceDescription);
-        notifyRewritersChangeListener();
     }
 }
