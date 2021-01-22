@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -50,6 +52,11 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
         loadRewriteChain(newSearcher.getCore());
     }
 
+    @VisibleForTesting
+    String getRewriterRequestHandler() {
+        return this.rewriterRequestHandlerName;
+    }
+
     private void loadRewriteChain(SolrCore core) {
 
         final NamedList<?> chainConfig = (NamedList<?>) getArgs().get("rewriteChain");
@@ -66,6 +73,9 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
                 for (NamedList<?> config : rewriterConfigs) {
 
                     final String id = (String) config.get("id");
+                    if (id == null) {
+                        throw new IllegalArgumentException("Rewriter missing id field!");
+                    }
 
                     if (!seenRewriterIds.add(id)) {
                         throw new RuntimeException("Rewriter id: " + id + "already defined.");
@@ -85,7 +95,12 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
                         };
                         req.setContentStreams(newArrayList(new ContentStreamBase.StringStream(JsonUtil.toJson(jsonBody), UTF_8.name())));
 
-                        requestHandler.getSubHandler(id).handleRequest(req, new SolrQueryResponse());
+                        SolrQueryResponse response = new SolrQueryResponse();
+                        requestHandler.getSubHandler(id).handleRequest(req, response);
+                        response.toString();
+                        if (response.getException() != null) {
+                            throw new IllegalStateException("Could not upload rewriter " + id, response.getException());
+                        }
                         //TODO Check the response?
                     } catch (RuntimeException e) {
                         LOG.error("Could not parse rewrite entry: {}", config, e);
