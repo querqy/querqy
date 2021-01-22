@@ -3,7 +3,7 @@ package querqy.solr.rewriter.commonrules;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.core.SolrResourceLoader;
+import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
@@ -16,7 +16,10 @@ import querqy.solr.utils.ConfigUtils;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
@@ -133,7 +136,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     }
 
     @Override
-    public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<?> configuration, SolrResourceLoader resourceLoader) throws RuntimeException {
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<?> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
 

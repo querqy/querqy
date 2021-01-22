@@ -82,7 +82,6 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     public void inform(final ResourceLoader solrResourceLoader) throws IOException {
 
         final ResourceLoader loader = new GZIPAwareResourceLoader(solrResourceLoader);
-
         infoLogging = loadInfoLogging(loader);
 
         termQueryCacheName = (String) initArgs.get(CONF_CACHE_NAME);
