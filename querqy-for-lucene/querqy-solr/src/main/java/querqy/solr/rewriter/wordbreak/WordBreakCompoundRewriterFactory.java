@@ -4,6 +4,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.solr.request.SolrRequestInfo;
 import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter {
+public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_DICTIONARY_FIELD = "dictionaryField";
     public static final String CONF_MIN_SUGGESTION_FREQ = "minSuggestionFrequency";

@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * RewriterFactoryLoader for {@link ShingleRewriterFactory}
  */
-public class ShingleRewriterFactory extends SolrRewriterFactoryAdapter {
+public class ShingleRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_ACCEPT_GENERATED_TERMS = "acceptGeneratedTerms";
 

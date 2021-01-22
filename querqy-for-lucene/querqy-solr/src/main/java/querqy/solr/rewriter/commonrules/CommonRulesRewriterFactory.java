@@ -137,11 +137,11 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     }
 
     @Override
-    public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<?> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<Object> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
 
-        ifNotNull((String) configuration.get("rules"), rulesFile -> {
+        ifNotNull((String) configuration.get(CONF_RULES), rulesFile -> {
             try {
                 final String rules = IOUtils.toString(resourceLoader.openResource(rulesFile), UTF_8);
                 final HashMap<Object, Object> ruleMap = new HashMap<>();

@@ -4,6 +4,7 @@ import org.apache.solr.common.SolrException;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
@@ -14,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter {
+public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_RULES = "rules";
     public static final String CONF_RHS_QUERY_PARSER = "querqyParser";

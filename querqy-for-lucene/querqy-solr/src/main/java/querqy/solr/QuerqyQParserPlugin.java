@@ -66,10 +66,9 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
 
         // This element is not allowed any more here and must be removed
-        Object rewriters = args.get("rewriters");
-        if (rewriters != null) {
+        if (args.get("rewriters") != null) {
             throw new IllegalArgumentException("'rewriters' configuration is not allowed anymore in the query parser configuration. " +
-                    "You have to move it to an Querqy listener or change the rewriter deployment. See upgrade info.");
+                    "You have to move it to a Querqy listener or change the rewriter deployment. See upgrade info.");
         }
 
         rewriterRequestHandlerName = name != null ? name : QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;

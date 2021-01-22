@@ -4,6 +4,7 @@ import org.apache.solr.common.util.NamedList;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,6 +13,12 @@ import java.util.Map;
  */
 public interface ClassicConfigurationParser {
 
-    Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<?> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException;
+    default Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<Object> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
+        Map<String, Object> result = new HashMap<>();
+        if (configuration != null) {
+            result = configuration.asShallowMap(true);
+        }
+        return result;
+    }
 
 }

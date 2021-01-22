@@ -1,25 +1,24 @@
 package querqy.solr.rewriter.numberunit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.util.NamedList;
+import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.contrib.numberunit.model.FieldDefinition;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.UnitDefinition;
 import querqy.solr.SolrRewriterFactoryAdapter;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.rewriter.numberunit.NumberUnitConfigObject.NumberUnitDefinitionObject;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.utils.JsonUtil;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
+public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_PROPERTY = "config";
 
@@ -211,4 +210,5 @@ public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
     public RewriterFactory getRewriterFactory() {
         return delegate;
     }
+
 }

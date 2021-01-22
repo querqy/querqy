@@ -31,7 +31,7 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TermQueryCachePreloader.class);
 
-    private String rewriterRequestHandlerName = DEFAULT_HANDLER_NAME;
+    private String rewriterRequestHandlerName;
 
     public ClassicRewriteChainLoader(SolrCore core) {
         super(core);
@@ -42,9 +42,7 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
         super.init(args);
 
         final String rewriteHandlerName = (String) getArgs().get(CONF_REWRITER_REQUEST_HANDLER);
-        if (!isNullOrEmpty(rewriteHandlerName)) {
-            rewriterRequestHandlerName = rewriteHandlerName;
-        }
+        rewriterRequestHandlerName = !isNullOrEmpty(rewriteHandlerName) ? rewriteHandlerName : DEFAULT_HANDLER_NAME;
     }
 
     @Override
@@ -52,10 +50,6 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
         loadRewriteChain(newSearcher.getCore());
     }
 
-    /**
-     * TODO-1: Es dürfen keine rewriteChains definiert werden in dem anderen Parser.
-     * TODO-2: Alles als Interface an die Factories auslagern
-     */
     private void loadRewriteChain(SolrCore core) {
 
         final NamedList<?> chainConfig = (NamedList<?>) getArgs().get("rewriteChain");
@@ -85,7 +79,7 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
 
                         final Map<String, Object> jsonBody = ((ClassicConfigurationParser) SolrRewriterFactoryAdapter
                                 .loadInstance(id, className))
-                                .parseConfigurationToRequestHandlerBody(config, resourceLoader);
+                                .parseConfigurationToRequestHandlerBody((NamedList<Object>) config, resourceLoader);
 
                         final SolrQueryRequestBase req = new SolrQueryRequestBase(core, params) {
                         };
