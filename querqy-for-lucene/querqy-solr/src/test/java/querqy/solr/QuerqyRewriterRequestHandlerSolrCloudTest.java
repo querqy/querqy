@@ -316,7 +316,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             assertThat(conf1, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
                     rewriterName1));
 
-            final Map<String, Object> conf2 = (Map<String, Object>) rewriters.get(rewriterName2);
+            final Map<String, Object> conf2= (Map<String, Object>) rewriters.get(rewriterName2);
             assertNotNull(conf2);
             assertThat(conf2, hasEntry("id", rewriterName2));
             assertThat(conf2, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
@@ -336,35 +336,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
         assertEquals(0, response.getStatus());
-        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
-
-    }
-
-    @Test
-    public void testGetAllConfig() throws IOException, SolrServerException {
-
-        final String rewriterName = "conf_common_rules";
-        final SolrClient client = getRandClient();
-        final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
-
-        assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
-                .process(client).getStatus());
-
-        final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(client);
-        assertEquals(0, response.getStatus());
-        Map<Object, Object> expectedResult = new HashMap<>();
-        expectedResult.put("id", rewriterName);
-        expectedResult.put("path", "/querqy/rewriter/" + rewriterName);
-        assertEquals(expectedResult, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
-
-    }
-
-    @Test
-    public void testGetAllEmptyConfig() throws IOException, SolrServerException {
-
-        final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
-        assertEquals(0, response.getStatus());
-        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+        assertEquals(0, ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
 
     }
 
