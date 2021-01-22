@@ -1,6 +1,6 @@
 package querqy.solr.rewriter.commonrules;
 
-import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
 import querqy.lucene.GZIPAwareResourceLoader;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
 
@@ -142,7 +143,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         ifNotNull((String) configuration.get("rules"), rulesFile -> {
             try {
-                final String rules = Streams.asString(resourceLoader.openResource(rulesFile));
+                final String rules = IOUtils.toString(resourceLoader.openResource(rulesFile), UTF_8);
                 final HashMap<Object, Object> ruleMap = new HashMap<>();
                 ruleMap.put(CONF_RULES, rules);
                 result.put(CONF_CONFIG, ruleMap);

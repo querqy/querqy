@@ -12,6 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.solr.common.SolrException.ErrorCode.NOT_FOUND;
 
+/**
+ * Store the rewriters only in memory. The Map which stores the rewriters is only used to return the rewriter descriptions.
+ * Due to the design, the rewriters are stored in memory in the parent rewriters variable.
+ */
 public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoader> {
 
     private final Map<String, Map<String, Object>> store = new ConcurrentHashMap<>();
@@ -43,7 +47,7 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
 
     @Override
     protected synchronized void doSaveRewriter(String rewriterId, Map instanceDescription) {
-        // this is for rewrite description...
+        // this is only for rewrite description...
         store.put(rewriterId, instanceDescription);
 
         loadRewriter(rewriterId, instanceDescription);
