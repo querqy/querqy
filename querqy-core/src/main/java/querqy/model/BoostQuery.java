@@ -3,10 +3,13 @@
  */
 package querqy.model;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * @author René Kriegler, @renekrie
  *
  */
+@EqualsAndHashCode
 public class BoostQuery {
 
    final QuerqyQuery<?> query;
