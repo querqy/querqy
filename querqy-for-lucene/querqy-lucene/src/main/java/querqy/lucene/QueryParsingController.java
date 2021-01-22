@@ -158,23 +158,23 @@ public class QueryParsingController {
 
     }
 
-    public LuceneQueries process() throws SyntaxException {
-
-
-        final ExpandedQuery parsedInput;
+    public ExpandedQuery createExpandedQuery() {
         if (requestAdapter.isMatchAllQuery(queryString)) {
-
-            parsedInput = new ExpandedQuery(new MatchAllQuery());
+            return new ExpandedQuery(new MatchAllQuery());
 
         } else {
-
             final QuerqyParser parser = requestAdapter.createQuerqyParser()
                     .orElseGet(QueryParsingController::newDefaultQuerqyParser);
             if (debugQuery) {
                 parserDebugInfo = parser.getClass().getName();
             }
-            parsedInput = new ExpandedQuery(parser.parse(queryString));
+
+            return new ExpandedQuery(parser.parse(queryString));
         }
+    }
+
+    public LuceneQueries process() throws SyntaxException {
+        final ExpandedQuery parsedInput = createExpandedQuery();
 
         final List<Query> additiveBoosts;
         final List<Query> multiplicativeBoosts;
@@ -468,7 +468,7 @@ public class QueryParsingController {
         }
     }
 
-    private static QuerqyParser newDefaultQuerqyParser() {
+    protected static QuerqyParser newDefaultQuerqyParser() {
         try {
             return DEFAULT_PARSER_CLASS.newInstance();
         } catch (final InstantiationException | IllegalAccessException e) {
