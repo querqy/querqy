@@ -60,7 +60,7 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
     }
 
     @Override
-    public synchronized Map<String, Object> readRewriterDescription(final String rewriterId)
+    public synchronized Map<String, Object> readRewriterDefinition(final String rewriterId)
             throws IOException {
 
         final ManagedResourceStorage.StorageIO storageIO = ManagedResourceStorage.newStorageIO(core.getCoreDescriptor()

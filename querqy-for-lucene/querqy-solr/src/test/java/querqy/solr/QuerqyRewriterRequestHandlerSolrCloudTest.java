@@ -1,8 +1,10 @@
 package querqy.solr;
 
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.RewriterConfigRequestBuilder.buildDeleteRequest;
 import static querqy.solr.RewriterConfigRequestBuilder.buildGetRequest;
+import static querqy.solr.RewriterConfigRequestBuilder.buildListRequest;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrClient;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 @SolrTestCaseJ4.SuppressSSL
@@ -123,79 +126,90 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     @Test
     public void testSaveAndUpdateRewriter() throws Exception {
 
-        final SaveRewriterConfigSolrResponse response = new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b").buildSaveRequest("rewriter_test_save").process(getRandClient());
+        try {
 
-        assertEquals(0, response.getStatus());
+            final SaveRewriterConfigSolrResponse response = new CommonRulesConfigRequestBuilder()
+                    .rules("a =>\n SYNONYM: b").buildSaveRequest("rewriter_test_save").process(getRandClient());
 
-        final SolrParams params = params("collection", COLLECTION,
-                "q", "a",
-                "defType", "querqy",
-                PARAM_REWRITERS, "rewriter_test_save",
-                DisMaxParams.QF, "f1 f2",
-                QueryParsing.OP, "OR"
-        );
+            assertEquals(0, response.getStatus());
 
-        QueryResponse rsp = waitForRewriterAndQuery(params, getRandClient());
+            final SolrParams params = params("collection", COLLECTION,
+                    "q", "a",
+                    "defType", "querqy",
+                    PARAM_REWRITERS, "rewriter_test_save",
+                    DisMaxParams.QF, "f1 f2",
+                    QueryParsing.OP, "OR"
+            );
 
-        assertEquals(2L, rsp.getResults().getNumFound());
+            QueryResponse rsp = waitForRewriterAndQuery(params, getRandClient());
 
-        final SaveRewriterConfigSolrResponse response2 = new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b\n SYNONYM: c")
-                .buildSaveRequest("rewriter_test_save").process(getRandClient());
+            assertEquals(2L, rsp.getResults().getNumFound());
 
-        assertEquals(0, response2.getStatus());
+            final SaveRewriterConfigSolrResponse response2 = new CommonRulesConfigRequestBuilder()
+                    .rules("a =>\n SYNONYM: b\n SYNONYM: c")
+                    .buildSaveRequest("rewriter_test_save").process(getRandClient());
 
-        QueryResponse rsp2 = waitForRewriterAndQuery(params, getRandClient());
-        assertEquals(3L, rsp2.getResults().getNumFound());
+            assertEquals(0, response2.getStatus());
+
+            QueryResponse rsp2 = waitForRewriterAndQuery(params, getRandClient());
+            assertEquals(3L, rsp2.getResults().getNumFound());
+
+        } finally {
+            buildDeleteRequest("rewriter_test_save").process(getRandClient());
+        }
 
     }
 
     @Test
     public void testRewriteChain() throws Exception {
 
-        assertEquals(0, new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b").buildSaveRequest("chain_common_rules").process(getRandClient())
-                .getStatus());
+        try {
+            assertEquals(0, new CommonRulesConfigRequestBuilder()
+                    .rules("a =>\n SYNONYM: b").buildSaveRequest("chain_common_rules").process(getRandClient())
+                    .getStatus());
 
-        assertEquals(0, new ReplaceConfigRequestBuilder()
-                .rules("sd => a").buildSaveRequest("chain_replace").process(getRandClient())
-                .getStatus());
+            assertEquals(0, new ReplaceConfigRequestBuilder()
+                    .rules("sd => a").buildSaveRequest("chain_replace").process(getRandClient())
+                    .getStatus());
 
-        // common rules rewriter only
-        QueryResponse rsp = waitForRewriterAndQuery(
+            // common rules rewriter only
+            QueryResponse rsp = waitForRewriterAndQuery(
 
-                params("collection", COLLECTION,
-                        "q", "a",
-                        "defType", "querqy",
-                        PARAM_REWRITERS, "chain_common_rules",
-                        DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR"),
-                getRandClient());
+                    params("collection", COLLECTION,
+                            "q", "a",
+                            "defType", "querqy",
+                            PARAM_REWRITERS, "chain_common_rules",
+                            DisMaxParams.QF, "f1 f2",
+                            QueryParsing.OP, "OR"),
+                    getRandClient());
 
-        assertEquals(2L, rsp.getResults().getNumFound());
+            assertEquals(2L, rsp.getResults().getNumFound());
 
-        // replace rewriter first, supplies input to following common rules rewriter
-        QueryResponse rsp2 = waitForRewriterAndQuery(
-                params("collection", COLLECTION,
-                        "q", "sd",
-                        "defType", "querqy",
-                        PARAM_REWRITERS, "chain_replace,chain_common_rules",
-                        DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR"),
-                getRandClient());
-        assertEquals(2L, rsp2.getResults().getNumFound());
+            // replace rewriter first, supplies input to following common rules rewriter
+            QueryResponse rsp2 = waitForRewriterAndQuery(
+                    params("collection", COLLECTION,
+                            "q", "sd",
+                            "defType", "querqy",
+                            PARAM_REWRITERS, "chain_replace,chain_common_rules",
+                            DisMaxParams.QF, "f1 f2",
+                            QueryParsing.OP, "OR"),
+                    getRandClient());
+            assertEquals(2L, rsp2.getResults().getNumFound());
 
-        // common rules first (but no match), followed by replace rewriter
-        QueryResponse rsp3 = waitForRewriterAndQuery(
-                params("collection", COLLECTION,
-                        "q", "sd",
-                        "defType", "querqy",
-                        PARAM_REWRITERS, "chain_common_rules,chain_replace",
-                        DisMaxParams.QF, "f1 f2",
-                        QueryParsing.OP, "OR"),
-                getRandClient());
-        assertEquals(1L, rsp3.getResults().getNumFound());
+            // common rules first (but no match), followed by replace rewriter
+            QueryResponse rsp3 = waitForRewriterAndQuery(
+                    params("collection", COLLECTION,
+                            "q", "sd",
+                            "defType", "querqy",
+                            PARAM_REWRITERS, "chain_common_rules,chain_replace",
+                            DisMaxParams.QF, "f1 f2",
+                            QueryParsing.OP, "OR"),
+                    getRandClient());
+            assertEquals(1L, rsp3.getResults().getNumFound());
+        } finally {
+            buildDeleteRequest("chain_replace").process(getRandClient());
+            buildDeleteRequest("chain_common_rules").process(getRandClient());
+        }
 
     }
 
@@ -245,16 +259,84 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     @Test
     public void testGetConfig() throws IOException, SolrServerException {
 
-        final String rewriterName = "conf_common_rules";
-        final SolrClient client = getRandClient();
-        final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
+        try {
 
-        assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
-                .process(client).getStatus());
+            final String rewriterName = "conf_common_rules";
+            final SolrClient client = getRandClient();
+            final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
 
-        final GetRewriterConfigSolrResponse response = buildGetRequest(rewriterName).process(client);
+            assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
+                    .process(client).getStatus());
+
+            final GetRewriterConfigSolrResponse response = buildGetRequest(rewriterName).process(client);
+            assertEquals(0, response.getStatus());
+            final Map<String, Object> conf = (Map<String, Object>) response.getResponse().get("rewriter");
+            assertNotNull(conf);
+            assertThat(conf, hasEntry("id", rewriterName));
+            assertThat(conf, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" + rewriterName));
+
+            assertEquals(configBuilder.buildDefinition(), conf.get("definition"));
+
+        } finally {
+            buildDeleteRequest("conf_common_rules").process(getRandClient());
+        }
+
+    }
+
+    @Test
+    public void testListConfigs() throws IOException, SolrServerException {
+
+        final String rewriterName1 = "rewriter1";
+        final String rewriterName2 = "rewriter2";
+
+        try {
+            final SolrClient client = getRandClient();
+            final CommonRulesConfigRequestBuilder commonRulesConfigBuilder = new CommonRulesConfigRequestBuilder();
+
+            assertEquals(0, commonRulesConfigBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName1)
+                    .process(client).getStatus());
+
+            final ReplaceConfigRequestBuilder replaceConfigBuilder = new ReplaceConfigRequestBuilder();
+            assertEquals(0, replaceConfigBuilder
+                    .rules("sd => a").buildSaveRequest(rewriterName2).process(getRandClient())
+                    .getStatus());
+
+            final RewriterConfigRequestBuilder.ListRewriterConfigsSolrResponse response = buildListRequest()
+                    .process(client);
+
+            assertEquals(0, response.getStatus());
+
+            final Map<String, Object> rewriters = (HashMap<String, Object>) ((HashMap<String, Object>) response
+                    .getResponse().get("response")).get("rewriters");
+            assertNotNull(rewriters);
+
+            final Map<String, Object> conf1 = (Map<String, Object>) rewriters.get(rewriterName1);
+            assertNotNull(conf1);
+            assertThat(conf1, hasEntry("id", rewriterName1));
+            assertThat(conf1, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
+                    rewriterName1));
+
+            final Map<String, Object> conf2= (Map<String, Object>) rewriters.get(rewriterName2);
+            assertNotNull(conf2);
+            assertThat(conf2, hasEntry("id", rewriterName2));
+            assertThat(conf2, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
+                    rewriterName2));
+
+        } finally {
+            try {
+                buildDeleteRequest(rewriterName1).process(getRandClient());
+            } finally {
+                buildDeleteRequest(rewriterName2).process(getRandClient());
+            }
+        }
+    }
+
+    @Test
+    public void testListAllEmptyConfig() throws IOException, SolrServerException {
+
+        final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
         assertEquals(0, response.getStatus());
-        assertEquals(configBuilder.buildDescription(), response.getResponse().get(rewriterName));
+        assertEquals(0, ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
 
     }
 
@@ -270,7 +352,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(client);
         assertEquals(0, response.getStatus());
-        assertEquals(configBuilder.buildDescription(), ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
+        assertEquals(configBuilder.buildDefinition(), ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
 
     }
 
@@ -311,6 +393,19 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
         } catch (final SolrException e) {
             assertEquals(SolrException.ErrorCode.BAD_REQUEST.code, e.code());
         }
+    }
+
+    @Test
+    public void testFor400WhenGettingUnknownRewriter() throws IOException, SolrServerException {
+
+        try {
+
+            buildGetRequest("thisrewriterdoesnotexist").process(getRandClient());
+            fail("404 expected");
+        } catch (final SolrException e) {
+            assertEquals(SolrException.ErrorCode.NOT_FOUND.code, e.code());
+        }
+
     }
 
     private SolrClient getRandClient() {

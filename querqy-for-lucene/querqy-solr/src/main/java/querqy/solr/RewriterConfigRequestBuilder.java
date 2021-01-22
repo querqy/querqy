@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.request.RequestWriter;
 import org.apache.solr.client.solrj.response.SolrResponseBase;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import querqy.solr.utils.JsonUtil;
 
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +36,10 @@ public abstract class RewriterConfigRequestBuilder {
     public abstract Map<String, Object> buildConfig();
 
     public String buildJson() {
-        return JsonUtil.toJson(buildDescription());
+        return JsonUtil.toJson(buildDefinition());
     }
 
-    public Map<String, Object> buildDescription() {
+    public Map<String, Object> buildDefinition() {
         final Map<String, Object> config = buildConfig();
 
         final List<String> errors = SolrRewriterFactoryAdapter
@@ -88,6 +90,14 @@ public abstract class RewriterConfigRequestBuilder {
     public static GetRewriterConfigSolrRequest buildGetRequest(final String requestHandlerName,
                                                                final String rewriterId) {
         return new GetRewriterConfigSolrRequest(requestHandlerName, rewriterId);
+    }
+
+    public static ListRewriterConfigsSolrRequest buildListRequest() {
+        return buildListRequest(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME);
+    }
+
+    public static ListRewriterConfigsSolrRequest buildListRequest(final String requestHandlerName) {
+        return new ListRewriterConfigsSolrRequest(requestHandlerName);
     }
 
     public static class SaveRewriterConfigSolrRequest extends SolrRequest<SaveRewriterConfigSolrResponse> {
@@ -165,12 +175,31 @@ public abstract class RewriterConfigRequestBuilder {
 
     }
 
+    public static class ListRewriterConfigsSolrRequest extends SolrRequest<ListRewriterConfigsSolrResponse> {
+
+        public ListRewriterConfigsSolrRequest(final String requestHandlerName) {
+            super(SolrRequest.METHOD.GET, requestHandlerName);
+        }
+
+        @Override
+        public SolrParams getParams() {
+            return new MapSolrParams(Collections.emptyMap());
+        }
+
+        @Override
+        protected ListRewriterConfigsSolrResponse createResponse(final SolrClient client) {
+            return new ListRewriterConfigsSolrResponse();
+        }
+    }
+
 
     public static class SaveRewriterConfigSolrResponse extends SolrResponseBase { }
 
     public static class DeleteRewriterConfigSolrSolrResponse extends SolrResponseBase { }
 
     public static class GetRewriterConfigSolrResponse extends SolrResponseBase { }
+
+    public static class ListRewriterConfigsSolrResponse extends SolrResponseBase {}
 
 
 }

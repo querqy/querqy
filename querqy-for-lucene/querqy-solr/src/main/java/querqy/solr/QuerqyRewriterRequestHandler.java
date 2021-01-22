@@ -1,10 +1,12 @@
 package querqy.solr;
 
+import static java.util.stream.Collectors.toMap;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.*;
 import static querqy.solr.utils.JsonUtil.readJson;
 
 import org.apache.solr.cloud.ZkSolrResourceLoader;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.MultiMapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.ContentStream;
@@ -15,6 +17,7 @@ import org.apache.solr.handler.NestedRequestHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.servlet.SolrRequestParsers;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -128,8 +132,8 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
             if (GET.name().equalsIgnoreCase(str)) {
                 return Optional.of(GET);
             }
-            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
-                    "Unknown action value: " + str);
+
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "Unknown action value: " + str);
         }
 
         public SolrParams params() {
@@ -152,17 +156,22 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     @Override
     public void handleRequest(final SolrQueryRequest req, final SolrQueryResponse rsp) {
         final Map<String, RewriterFactory> rewriters = rewriterContainer.rewriters;
-        try {
-            final Map<String, Object> result = new HashMap<>();
-            final Map<String, Map<String, Object>> rewritersResult = new HashMap<>();
-            for (String rewriterId : rewriters.keySet()) {
-                rewritersResult.put(rewriterId, rewriterContainer.readRewriterDescription(rewriterId));
-            }
+        final Map<String, Object> result = new HashMap<>();
+        final Map<String, Map<String, Object>> rewritersResult = rewriters.entrySet().stream().collect(
+                toMap(Map.Entry::getKey, entry -> {
+
+                    final Map<String, Object> rewriterMap = new LinkedHashMap<>(2);
+                    final String id = entry.getKey();
+                    rewriterMap.put("id", id);
+                    final String queryType = req.getParams().get(CommonParams.QT);
+                    final String prefix = queryType == null ? req.getPath() : queryType;
+                    rewriterMap.put("path", prefix.endsWith("/") ? prefix + id : prefix + "/" + id);
+                    return rewriterMap;
+
+            }));
+
             result.put("rewriters", rewritersResult);
             rsp.add("response", result);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -235,7 +244,13 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
                             rewriterContainer.deleteRewriter(rewriterId);
                             break;
                         case GET:
-                            rsp.add(rewriterId, rewriterContainer.readRewriterDescription(rewriterId));
+                            final Map<String, Object> definition = rewriterContainer.readRewriterDefinition(rewriterId);
+                            final Map<String, Object> conf = new LinkedHashMap<>(3);
+                            conf.put("id", rewriterId);
+                            final String queryType = req.getParams().get(CommonParams.QT);
+                            conf.put("path", queryType == null ? req.getPath() : queryType);
+                            conf.put("definition", definition);
+                            rsp.add("rewriter", conf);
                             break;
                     }
                 } catch (final IOException e) {

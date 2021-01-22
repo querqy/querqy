@@ -41,7 +41,7 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
     }
 
     @Override
-    public synchronized Map<String, Object> readRewriterDescription(String rewriterId) {
+    public synchronized Map<String, Object> readRewriterDefinition(String rewriterId) {
         return store.get(rewriterId);
     }
 
