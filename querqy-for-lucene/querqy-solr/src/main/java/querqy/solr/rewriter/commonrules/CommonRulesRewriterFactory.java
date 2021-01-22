@@ -20,11 +20,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
+import static querqy.solr.utils.ConfigUtils.ifNotNull;
 
 public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
@@ -140,29 +140,22 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<Object> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
+        final HashMap<Object, Object> conf = new HashMap<>();
+        result.put(CONF_CONFIG, conf);
 
         ifNotNull((String) configuration.get(CONF_RULES), rulesFile -> {
             try {
                 final String rules = IOUtils.toString(resourceLoader.openResource(rulesFile), UTF_8);
-                final HashMap<Object, Object> ruleMap = new HashMap<>();
-                ruleMap.put(CONF_RULES, rules);
-                result.put(CONF_CONFIG, ruleMap);
+                conf.put(CONF_RULES, rules);
             } catch (IOException e) {
                 throw new RuntimeException("Could not load file: " + rulesFile + " because " + e.getMessage());
             }
         });
 
-        ifNotNull(configuration.get(CONF_IGNORE_CASE), v -> result.put(CONF_IGNORE_CASE, v));
-        ifNotNull(configuration.get(CONF_RHS_QUERY_PARSER), v -> result.put(CONF_RHS_QUERY_PARSER, v));
-        ifNotNull(configuration.get(CONF_RULE_SELECTION_STRATEGIES), v -> result.put(CONF_RULE_SELECTION_STRATEGIES, v));
+        ifNotNull(configuration.get(CONF_IGNORE_CASE), v -> conf.put(CONF_IGNORE_CASE, v));
+        ifNotNull(configuration.get(CONF_RHS_QUERY_PARSER), v -> conf.put(CONF_RHS_QUERY_PARSER, v));
+        ifNotNull(configuration.get(CONF_RULE_SELECTION_STRATEGIES), v -> conf.put(CONF_RULE_SELECTION_STRATEGIES, v));
         ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
-
         return result;
-    }
-
-    private static <T> void ifNotNull(T value, Consumer<T> supplier) {
-        if (value != null) {
-            supplier.accept(value);
-        }
     }
 }

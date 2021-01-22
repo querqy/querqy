@@ -115,5 +115,10 @@ public class QuerqyQParserPluginTest {
 
     }
 
-
+    @Test(expected = IllegalArgumentException.class)
+    public void testThatInitShouldFailIfThereIsDeprecatedRewritersDefined() {
+        NamedList<String> args = new NamedList<>();
+        args.add("rewriters", "foo");
+        plugin.init(args);
+    }
 }

@@ -2,6 +2,7 @@ package querqy.solr.utils;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public interface ConfigUtils {
 
@@ -68,6 +69,11 @@ public interface ConfigUtils {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    static <T> void ifNotNull(T value, Consumer<T> supplier) {
+        if (value != null) {
+            supplier.accept(value);
+        }
     }
 }

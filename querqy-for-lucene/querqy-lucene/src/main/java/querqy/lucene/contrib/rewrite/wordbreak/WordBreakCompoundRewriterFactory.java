@@ -33,7 +33,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompundCollation;
-    final LuceneWordBreaker wordBreaker; // package visible for testing
+    public final LuceneWordBreaker wordBreaker; // package visible for testing
     private final LuceneCompounder compounder;
 
     /**
