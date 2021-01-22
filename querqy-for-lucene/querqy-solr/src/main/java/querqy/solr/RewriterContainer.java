@@ -53,7 +53,6 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
     protected abstract void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException;
     protected abstract void deleteRewriter(final String rewriterId) throws IOException;
-    public abstract Map<String, Object> readRewriterDefinition(String rewriterId) throws IOException;
 
     /**
      * The rewriter description is used for the rest endpoints to get detailed information to the rewriter chains.
