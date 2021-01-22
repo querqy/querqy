@@ -1,13 +1,5 @@
 package querqy.solr;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
@@ -15,8 +7,12 @@ import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
 
 public class ClassicRewriteChainLoaderTest extends AbstractQuerqySolrCloudTestCase {
 
@@ -63,10 +59,8 @@ public class ClassicRewriteChainLoaderTest extends AbstractQuerqySolrCloudTestCa
         // classic rewriter config
         Map<String, Object> classic = (Map<String, Object>) rewriters.get("classic");
         assertThat(classic, not(nullValue()));
-        assertThat(classic, Matchers.aMapWithSize(4));
-        assertThat(classic.get("querqyParser"), is("querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory"));
-        assertThat(classic.get("ignoreCase"), is(Boolean.TRUE));
-        assertThat(classic.get("class"), is("querqy.solr.rewriter.commonrules.CommonRulesRewriterFactory"));
-        assertThat(classic.get("config"), not(nullValue()));
+        assertThat(classic, Matchers.aMapWithSize(2));
+        assertThat(classic.get("id"), is("classic"));
+        assertThat(classic.get("path"), is("/querqy/rewriter/classic"));
     }
 }
