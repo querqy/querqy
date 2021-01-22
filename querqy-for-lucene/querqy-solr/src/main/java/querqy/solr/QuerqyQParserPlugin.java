@@ -25,11 +25,7 @@ import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
@@ -67,6 +63,13 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
             if (name.isEmpty()) {
                 throw new IllegalArgumentException("'" + CONF_REWRITER_REQUEST_HANDLER + "' must not be empty");
             }
+        }
+
+        // This element is not allowed any more here and must be removed
+        Object rewriters = args.get("rewriters");
+        if (rewriters != null) {
+            throw new IllegalArgumentException("'rewriters' configuration is not allowed anymore in the query parser configuration. " +
+                    "You have to move it to an Querqy listener or change the rewriter deployment. See upgrade info.");
         }
 
         rewriterRequestHandlerName = name != null ? name : QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
