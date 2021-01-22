@@ -1,8 +1,8 @@
 package querqy.model.convert.converter;
 
+import lombok.Builder;
 import querqy.model.convert.QueryBuilderException;
 import querqy.model.convert.TypeCastingUtils;
-import querqy.model.convert.model.QueryNodeBuilder;
 import querqy.model.convert.model.Occur;
 
 import java.util.Map;
@@ -11,24 +11,16 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 
-public class MapConverter {
+@Builder
+public class MapConverterConfig {
 
-    public static final MapConverter DEFAULT_MAP_CONVERTER = new MapConverter(false, false);
-    public static final MapConverter MAP_CONVERTER_NULL_VALUES = new MapConverter(false, true);
-    public static final MapConverter MAP_CONVERTER_BOOL_STRING = new MapConverter(true, false);
-    public static final MapConverter MAP_CONVERTER_BOOL_STRING_NULL_VALUES = new MapConverter(true, true);
+    public static final MapConverterConfig DEFAULT_MAP_CONVERTER_CONFIG = MapConverterConfig.builder().build();
 
-    private final boolean parseBooleanToString;
-    private final boolean includeNullValues;
+    @Builder.Default
+    private boolean parseBooleanToString = false;
 
-    protected MapConverter(final boolean parseBooleanToString, final boolean includeNullValues) {
-        this.parseBooleanToString = parseBooleanToString;
-        this.includeNullValues = includeNullValues;
-    }
-
-    public Map convertQueryBuilderToMap(final QueryNodeBuilder queryBuilder) {
-        return queryBuilder.toMap(this);
-    }
+    @Builder.Default
+    private boolean includeNullValues = false;
 
     public void convertAndPut(final Map<String, Object> map, final String fieldName, final Object value,
                               final MapValueConverter mapValueConverter) {

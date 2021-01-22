@@ -8,7 +8,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.converter.MapConverterConfig;
 import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.model.convert.builder.ExpandedQueryBuilder;
 import querqy.rewrite.experimental.QueryRewritingHandler;
@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 import static querqy.model.convert.builder.BoostQueryBuilder.boost;
 import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
@@ -239,7 +238,7 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
     }
 
     private static Map<String, Object> createRequestToTestMatching(ExpandedQueryBuilder expandedQuery) {
-        Map expandedQueryMap = MapConverter.MAP_CONVERTER_BOOL_STRING.convertQueryBuilderToMap(expandedQuery);
+        Map expandedQueryMap = expandedQuery.toMap(MapConverterConfig.builder().parseBooleanToString(true).build());
 
         Map<String, Object> request = new HashMap<>();
         request.put("mm", "100%");
@@ -252,7 +251,7 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
     }
 
     private static Map<String, Object> createRequestToTestScoring(ExpandedQueryBuilder expandedQuery) {
-        Map expandedQueryMap = MapConverter.MAP_CONVERTER_BOOL_STRING.convertQueryBuilderToMap(expandedQuery);
+        Map expandedQueryMap = expandedQuery.toMap(MapConverterConfig.builder().parseBooleanToString(true).build());
 
         Map<String, Object> request = new HashMap<>();
         request.put("mm", "100%");

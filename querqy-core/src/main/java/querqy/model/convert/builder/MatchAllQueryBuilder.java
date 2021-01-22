@@ -11,14 +11,14 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.convert.TypeCastingUtils;
 import querqy.model.convert.model.QuerqyQueryBuilder;
-import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.converter.MapConverterConfig;
 import querqy.model.convert.model.Occur;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static querqy.model.convert.converter.MapConverter.DEFAULT_MV_CONVERTER;
-import static querqy.model.convert.converter.MapConverter.OCCUR_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.DEFAULT_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.OCCUR_MV_CONVERTER;
 import static querqy.model.convert.model.Occur.SHOULD;
 import static querqy.model.convert.model.Occur.getOccurByClauseObject;
 
@@ -78,11 +78,11 @@ public class MatchAllQueryBuilder implements
     }
 
     @Override
-    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverterConfig mapConverterConfig) {
         final Map<String, Object> map = new LinkedHashMap<>(2);
 
-        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }

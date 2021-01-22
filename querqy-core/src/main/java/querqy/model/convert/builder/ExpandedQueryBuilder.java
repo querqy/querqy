@@ -14,7 +14,7 @@ import querqy.model.convert.TypeCastingUtils;
 import querqy.model.convert.model.QuerqyQueryBuilder;
 import querqy.model.convert.QueryBuilderException;
 import querqy.model.convert.model.QueryNodeBuilder;
-import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.converter.MapConverterConfig;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -27,8 +27,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static querqy.model.convert.converter.MapConverter.LIST_OF_QUERY_NODE_MV_CONVERTER;
-import static querqy.model.convert.converter.MapConverter.QUERY_NODE_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.LIST_OF_QUERY_NODE_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.QUERY_NODE_MV_CONVERTER;
 
 @Accessors(chain = true)
 @Getter
@@ -125,15 +125,15 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
     }
 
     @Override
-    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverterConfig mapConverterConfig) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_USER_QUERY, this.userQuery, QUERY_NODE_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_FILTER_QUERIES, this.filterQueries,
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_USER_QUERY, this.userQuery, QUERY_NODE_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_FILTER_QUERIES, this.filterQueries,
                 LIST_OF_QUERY_NODE_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_BOOST_UP_QUERIES, this.boostUpQueries,
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_BOOST_UP_QUERIES, this.boostUpQueries,
                 LIST_OF_QUERY_NODE_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_BOOST_DOWN_QUERIES, this.boostDownQueries,
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_BOOST_DOWN_QUERIES, this.boostDownQueries,
                 LIST_OF_QUERY_NODE_MV_CONVERTER);
 
         return map;

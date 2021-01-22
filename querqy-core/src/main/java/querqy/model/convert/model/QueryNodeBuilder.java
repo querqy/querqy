@@ -2,7 +2,7 @@ package querqy.model.convert.model;
 
 import querqy.model.Node;
 import querqy.model.convert.QueryBuilderException;
-import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.converter.MapConverterConfig;
 
 import java.util.Collections;
 import java.util.Map;
@@ -37,16 +37,16 @@ public interface QueryNodeBuilder<B extends QueryNodeBuilder, T, P> {
     B setAttributesFromObject(final T o);
 
     default Map<String, Object> toMap() {
-        return toMap(MapConverter.DEFAULT_MAP_CONVERTER);
+        return toMap(MapConverterConfig.DEFAULT_MAP_CONVERTER_CONFIG);
     }
 
-    default Map<String, Object> toMap(final MapConverter mapConverter) {
+    default Map<String, Object> toMap(final MapConverterConfig mapConverterConfig) {
         checkMandatoryFieldValues();
 
-        return Collections.singletonMap(getNameOfQueryType(), attributesToMap(mapConverter));
+        return Collections.singletonMap(getNameOfQueryType(), attributesToMap(mapConverterConfig));
     }
 
-    Map<String, Object> attributesToMap(final MapConverter mapConverter);
+    Map<String, Object> attributesToMap(final MapConverterConfig mapConverterConfig);
 
     /**
      * Expects a map containing an entry for key {@link #getNameOfQueryType()}. The value of that

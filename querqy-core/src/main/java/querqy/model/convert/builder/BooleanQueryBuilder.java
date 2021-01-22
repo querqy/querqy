@@ -14,7 +14,7 @@ import querqy.model.convert.TypeCastingUtils;
 import querqy.model.convert.model.DisjunctionMaxClauseBuilder;
 import querqy.model.convert.model.QuerqyQueryBuilder;
 import querqy.model.convert.QueryBuilderException;
-import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.converter.MapConverterConfig;
 import querqy.model.convert.model.Occur;
 
 import java.util.Arrays;
@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static querqy.model.convert.converter.MapConverter.DEFAULT_MV_CONVERTER;
-import static querqy.model.convert.converter.MapConverter.LIST_OF_QUERY_NODE_MV_CONVERTER;
-import static querqy.model.convert.converter.MapConverter.OCCUR_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.DEFAULT_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.LIST_OF_QUERY_NODE_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.OCCUR_MV_CONVERTER;
 import static querqy.model.convert.model.Occur.SHOULD;
 import static querqy.model.convert.model.Occur.getOccurByClauseObject;
 
@@ -111,12 +111,12 @@ public class BooleanQueryBuilder implements DisjunctionMaxClauseBuilder<BooleanQ
     }
 
     @Override
-    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverterConfig mapConverterConfig) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_CLAUSES, this.clauses, LIST_OF_QUERY_NODE_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_CLAUSES, this.clauses, LIST_OF_QUERY_NODE_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_OCCUR, this.occur, OCCUR_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }

@@ -13,13 +13,13 @@ import querqy.model.Term;
 import querqy.model.convert.QueryBuilderException;
 import querqy.model.convert.TypeCastingUtils;
 import querqy.model.convert.model.DisjunctionMaxClauseBuilder;
-import querqy.model.convert.converter.MapConverter;
+import querqy.model.convert.converter.MapConverterConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Objects.isNull;
-import static querqy.model.convert.converter.MapConverter.DEFAULT_MV_CONVERTER;
+import static querqy.model.convert.converter.MapConverterConfig.DEFAULT_MV_CONVERTER;
 
 @Accessors(chain = true)
 @Getter
@@ -86,12 +86,12 @@ public class TermBuilder implements DisjunctionMaxClauseBuilder<TermBuilder, Ter
     }
 
     @Override
-    public Map<String, Object> attributesToMap(final MapConverter mapConverter) {
+    public Map<String, Object> attributesToMap(final MapConverterConfig mapConverterConfig) {
         final Map<String, Object> map = new LinkedHashMap<>();
 
-        mapConverter.convertAndPut(map, FIELD_NAME_VALUE, this.value, DEFAULT_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_SEARCH_FIELD, this.field, DEFAULT_MV_CONVERTER);
-        mapConverter.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_VALUE, this.value, DEFAULT_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_SEARCH_FIELD, this.field, DEFAULT_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_IS_GENERATED, this.isGenerated, DEFAULT_MV_CONVERTER);
 
         return map;
     }
