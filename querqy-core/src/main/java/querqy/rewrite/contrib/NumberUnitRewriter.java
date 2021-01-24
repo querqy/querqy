@@ -16,6 +16,7 @@ import querqy.trie.State;
 import querqy.trie.TrieMap;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -76,15 +77,21 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
     @Override
     public Node visit(final Term term) {
 
+        if (term.isGenerated()) {
+            return null;
+        }
+
         final ComparableCharSequence seq = term.getValue();
 
         if (incompleteNumberUnitQueryInput != null) {
-            final Optional<List<PerUnitNumberUnitDefinition>> unitDefLookup = lookupUnitDef(seq);
+            final List<PerUnitNumberUnitDefinition> unitDefinitions = lookupUnitDef(seq);
 
-            if (unitDefLookup.isPresent()) {
+            if (unitDefinitions.isEmpty()) {
+                incompleteNumberUnitQueryInput = null;
 
+            } else {
                 final NumberUnitQueryInput completeNumberUnitQueryInput = incompleteNumberUnitQueryInput;
-                completeNumberUnitQueryInput.addPerUnitNumberUnitDefinitions(unitDefLookup.get());
+                completeNumberUnitQueryInput.addPerUnitNumberUnitDefinitions(unitDefinitions);
                 completeNumberUnitQueryInput.addOriginDisjunctionMaxQuery(term.getParent());
 
                 numberUnitQueryInputs.add(completeNumberUnitQueryInput);
@@ -92,9 +99,6 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
                 incompleteNumberUnitQueryInput = null;
 
                 return null;
-
-            } else {
-                incompleteNumberUnitQueryInput = null;
             }
         }
 
@@ -140,13 +144,13 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
 
                 final ComparableCharSequence unit = seq.subSequence(i, seq.length());
 
-                final Optional<List<PerUnitNumberUnitDefinition>> unitDefLookup = lookupUnitDef(unit);
-                return unitDefLookup.isPresent()
-                        ? Optional.of(
+                final List<PerUnitNumberUnitDefinition> unitDefinitions = lookupUnitDef(unit);
+                return unitDefinitions.isEmpty()
+                        ? Optional.empty()
+                        : Optional.of(
                                 new NumberUnitQueryInput(
                                         parseNumber(seq.subSequence(0, i), floatDelimiter),
-                                        unitDefLookup.get()))
-                        : Optional.empty();
+                                        unitDefinitions));
             }
         }
 
@@ -179,8 +183,8 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
                 numberUnitQueryCreator.getRoundingMode());
     }
 
-    private Optional<List<PerUnitNumberUnitDefinition>> lookupUnitDef(final ComparableCharSequence seq) {
+    private List<PerUnitNumberUnitDefinition> lookupUnitDef(final ComparableCharSequence seq) {
         final State<List<PerUnitNumberUnitDefinition>> state = numberUnitMap.get(seq).getStateForCompleteSequence();
-        return state.isFinal() ? Optional.of(state.value) : Optional.empty();
+        return state.isFinal() ? state.value : Collections.emptyList();
     }
 }
