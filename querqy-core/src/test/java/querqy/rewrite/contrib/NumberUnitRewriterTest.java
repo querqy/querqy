@@ -12,6 +12,7 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitQueryInput;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
@@ -26,6 +27,10 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
+import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
+import static querqy.model.convert.builder.ExpandedQueryBuilder.expanded;
+import static querqy.model.convert.builder.TermBuilder.term;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NumberUnitRewriterTest {
@@ -45,6 +50,42 @@ public class NumberUnitRewriterTest {
 
         doReturn(3).when(numberUnitQueryCreator).getScale();
         doReturn(RoundingMode.HALF_UP).when(numberUnitQueryCreator).getRoundingMode();
+    }
+
+    @Test
+    public void testThatGeneratedTermsDoNotAffectNumberUnitLookups() {
+        doReturn(new PerUnitNumberUnitDefinition[0]).when(perUnitNumberUnitDefinitions).toArray();
+
+        BooleanQueryBuilder query = bq(
+                dmq("term"),
+                dmq(term("12"), term("generatedTerm", true)),
+                dmq(term("zoll"), term("generatedTerm", true))
+        );
+
+        NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+
+        ExpandedQuery expandedQuery = numberUnitRewriter.rewrite(expanded(query).build());
+        BooleanQueryBuilder rewrittenQuery = bq((Query) expandedQuery.getUserQuery());
+
+        assertThat(rewrittenQuery).isEqualTo(
+                bq("term"));
+    }
+
+    @Test
+    public void testThatGeneratedTermsAreNotConsideredByNumberUnitLookups() {
+        BooleanQueryBuilder query = bq(
+                dmq("term"),
+                dmq(term("term"), term("12", true)),
+                dmq(term("term"), term("zoll", true))
+        );
+
+        NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+
+        ExpandedQuery expandedQuery = numberUnitRewriter.rewrite(expanded(query).build());
+        BooleanQueryBuilder rewrittenQuery = bq((Query) expandedQuery.getUserQuery());
+
+        assertThat(rewrittenQuery).isEqualTo(
+                query);
     }
 
     @Test
