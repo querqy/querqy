@@ -16,3 +16,8 @@ Check out [Querqy.org](https://querqy.org) for related projects that help you sp
 
 Querqy is licensed under the [Apache License, Version 2](http://www.apache.org/licenses/LICENSE-2.0.html).
 
+## Contributing
+
+Please read our [developer guidelines](contributing.md) before contributing.
+
+

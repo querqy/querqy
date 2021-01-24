@@ -119,7 +119,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                         getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
                         StandardCharsets.UTF_8)),
                 new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
-                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
+                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
+                true);
 
         ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
                 searchEngineRequestAdapter);
@@ -357,7 +358,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                        getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
                        StandardCharsets.UTF_8)),
                new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
-               (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY);
+               (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
+               true);
 
        ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
                searchEngineRequestAdapter);

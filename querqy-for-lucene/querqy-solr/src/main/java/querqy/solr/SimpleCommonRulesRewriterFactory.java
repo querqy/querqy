@@ -68,6 +68,8 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
 
 
         final Boolean ignoreCase = args.getBooleanArg("ignoreCase");
+        
+        final Boolean buildTermCache = args.getBooleanArg("buildTermCache");
 
         // querqy parser for queries that are part of the instructions in the
         // rules
@@ -86,7 +88,8 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
 
         return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(id,
                 new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"), querqyParser,
-                ignoreCase == null || ignoreCase, selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY);
+                ignoreCase == null || ignoreCase, selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY,
+                buildTermCache == null || buildTermCache);
     }
 
     @Override

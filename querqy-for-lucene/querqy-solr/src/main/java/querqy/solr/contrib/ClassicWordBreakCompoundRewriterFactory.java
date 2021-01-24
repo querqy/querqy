@@ -53,13 +53,16 @@ public class ClassicWordBreakCompoundRewriterFactory implements FactoryAdapter<R
         // define whether we should always try to add a reverse compound
         final boolean alwaysAddReverseCompounds = getOrDefault(args, "alwaysAddReverseCompounds", Boolean.FALSE);
 
+        // terms triggering a reversal of the surrounding compound, e.g. "tasche AUS samt" -> samttasche
+        final List<String> protectedWords = (List<String>) args.get("protectedWords");
+
         // the indexReader has to be supplied on a per-request basis from a request thread-local
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
         return new querqy.lucene.contrib.rewrite.wordbreak.ClassicWordBreakCompoundRewriterFactory(id, indexReaderSupplier, indexField,
                 lowerCaseInput, minSuggestionFreq, maxCombineLength, minBreakLength, reverseCompoundTriggerWords,
-                alwaysAddReverseCompounds, maxDecompoundExpansions, verifyDecompoundCollation);
+                alwaysAddReverseCompounds, maxDecompoundExpansions, verifyDecompoundCollation, protectedWords);
     }
 
     @Override

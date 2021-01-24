@@ -1,0 +1,5 @@
+def any_template():
+1
+
+
+<< non_existing_template >>

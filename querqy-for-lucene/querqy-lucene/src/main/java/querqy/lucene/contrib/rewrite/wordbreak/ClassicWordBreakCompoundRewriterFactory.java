@@ -2,11 +2,6 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.spell.WordBreakSpellChecker;
-import querqy.lucene.contrib.rewrite.wordbreak.LuceneCompounder;
-import querqy.lucene.contrib.rewrite.wordbreak.LuceneWordBreaker;
-import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerCompounder;
-import querqy.lucene.contrib.rewrite.wordbreak.SpellCheckerWordBreaker;
-import querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -14,6 +9,7 @@ import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -38,6 +34,7 @@ public class ClassicWordBreakCompoundRewriterFactory extends RewriterFactory {
     private final boolean verifyDecompundCollation;
     private final LuceneWordBreaker wordBreaker;
     private final LuceneCompounder compounder;
+    private final TrieMap<Boolean> protectedWords;
 
     /**
      * @param rewriterId The id of the rewriter
@@ -62,7 +59,8 @@ public class ClassicWordBreakCompoundRewriterFactory extends RewriterFactory {
                                                    final List<String> reverseCompoundTriggerWords,
                                                    final boolean alwaysAddReverseCompounds,
                                                    final int maxDecompoundExpansions,
-                                                   final boolean verifyDecompoundCollation) {
+                                                   final boolean verifyDecompoundCollation,
+                                                   final List<String> protectedWords) {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.lowerCaseInput = lowerCaseInput;
@@ -74,16 +72,9 @@ public class ClassicWordBreakCompoundRewriterFactory extends RewriterFactory {
         }
         this.maxDecompoundExpansions = maxDecompoundExpansions;
 
-        this.reverseCompoundTriggerWords = new TrieMap<>();
-        if (reverseCompoundTriggerWords != null) {
-            if (lowerCaseInput) {
-                reverseCompoundTriggerWords
-                        .forEach(word -> this.reverseCompoundTriggerWords.put(word.toLowerCase(), true));
-            } else {
-                reverseCompoundTriggerWords.forEach(word -> this.reverseCompoundTriggerWords.put(word, true));
-            }
+        this.reverseCompoundTriggerWords = buildWordLookup(reverseCompoundTriggerWords, lowerCaseInput);
 
-        }
+        this.protectedWords = buildWordLookup(protectedWords, lowerCaseInput);
 
         final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
         spellChecker.setMaxChanges(MAX_CHANGES);
@@ -101,15 +92,27 @@ public class ClassicWordBreakCompoundRewriterFactory extends RewriterFactory {
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new WordBreakCompoundRewriter(wordBreaker, compounder, indexReaderSupplier.get(),
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
-                verifyDecompundCollation);
+                verifyDecompundCollation, protectedWords);
     }
 
     @Override
-    public Set<Term> getGenerableTerms() {
+    public Set<Term> getCacheableGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
 
     TrieMap<Boolean> getReverseCompoundTriggerWords() {
         return reverseCompoundTriggerWords;
+    }
+
+    TrieMap<Boolean> getProtectedWords() {
+        return protectedWords;
+    }
+
+    private static TrieMap<Boolean> buildWordLookup(Collection<String> words, boolean lowerCase) {
+        TrieMap<Boolean> result = new TrieMap<>();
+        if (words != null) {
+            words.forEach(word -> result.put(lowerCase ? word.toLowerCase() : word, true));
+        }
+        return result;
     }
 }
