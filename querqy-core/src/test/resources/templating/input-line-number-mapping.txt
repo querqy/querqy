@@ -1,0 +1,29 @@
+<< template_at_end >>
+
+rule before templates =>
+  SYNONYM: b
+
+
+def single_line():
+1
+
+def multi_line():
+2
+3
+4
+
+rule after templates =>
+  SYNONYM: bb
+
+<< single_line >>
+
+rule after single_line =>
+  SYNONYM: bbb
+
+<< multi_line >>
+
+rule after multi_line =>
+  SYNONYM: bbbb
+
+def template_at_end():
+5

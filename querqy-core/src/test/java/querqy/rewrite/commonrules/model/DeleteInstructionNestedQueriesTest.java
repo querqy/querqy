@@ -4,19 +4,18 @@ import org.junit.Test;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
-import querqy.model.builder.QueryBuilder;
+import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static querqy.model.builder.BooleanQueryBuilder.bool;
-import static querqy.model.builder.DisjunctionMaxQueryBuilder.dmq;
-import static querqy.model.builder.QueryBuilder.query;
-import static querqy.model.builder.TermBuilder.term;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
+import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
+import static querqy.model.convert.builder.TermBuilder.term;
 
 public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest {
-
-    // TODO: redefine assertions not to use string comparisons anymore as soon as the builder lib is enhanced
 
     @Test
     public void testDeletionOfNestedBooleanQuery() {
@@ -25,11 +24,11 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                         delete("a", "b"))
         );
 
-        QueryBuilder q =
-                query(
+        BooleanQueryBuilder q =
+                bq(
                         dmq(
                                 term("ab"),
-                                bool(
+                                BooleanQueryBuilder.bq(
                                         dmq("a"),
                                         dmq("b")
                                 )
@@ -37,11 +36,10 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                         dmq("b")
                 );
 
-        ExpandedQuery query = new ExpandedQuery(q.build());
+        ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
-        assertThat(QueryBuilder.fromQuery(rewritten).toString())
-                .isEqualTo(query(dmq("ab"), dmq("b")).toString());
+        assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(bq(dmq("ab"), dmq("b")));
     }
 
     @Test
@@ -52,25 +50,24 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                     delete("a", "b"))
         );
 
-        QueryBuilder q =
-                query(
+        BooleanQueryBuilder q =
+                bq(
                         dmq(
                                 term("a"),
-                                bool(
+                                BooleanQueryBuilder.bq(
                                         dmq("b")
                                 )
                         )
                 );
 
-        ExpandedQuery query = new ExpandedQuery(q.build());
+        ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
-        assertThat(QueryBuilder.fromQuery(rewritten).toString())
-                .isEqualTo(q.toString());
+        assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(q);
     }
 
 
-    // TODO: move subsequent tests to DeleteInstructionTest as soon as the builder lib is more established
+    // TODO: move subsequent tests to DeleteInstructionTest as soon as the convert lib is more established
 
     @Test
     public void testThatDmqContainingTheSameTermMultipleTimesIsFullyRemoved() {
@@ -79,13 +76,12 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                         delete("a"))
         );
 
-        QueryBuilder q = query(dmq("a", "a", "a"));
+        BooleanQueryBuilder q = bq(dmq("a", "a", "a"));
 
-        ExpandedQuery query = new ExpandedQuery(q.build());
+        ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
-        assertThat(QueryBuilder.fromQuery(rewritten).toString())
-                .isEqualTo(query().toString());
+        assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(bq(Collections.emptyList()));
     }
 
     @Test
@@ -95,17 +91,16 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                         delete("a"))
         );
 
-        QueryBuilder q = query("a", "a", "a");
+        BooleanQueryBuilder q = bq("a", "a", "a");
 
-        ExpandedQuery query = new ExpandedQuery(q.build());
+        ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
-        assertThat(QueryBuilder.fromQuery(rewritten).toString())
-                .isEqualTo(query().toString());
+        assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(bq(Collections.emptyList()));
     }
 
 
-    // TODO: move subsequent tests as soon as the builder lib is more established
+    // TODO: move subsequent tests as soon as the convert lib is more established
 
     @Test
     public void testThatSynonymsAreAppliedOnDuplicateSequences() {
@@ -114,17 +109,17 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                         synonym("c"))
         );
 
-        QueryBuilder q = query("a", "b", "a", "b");
+        BooleanQueryBuilder q = bq("a", "b", "a", "b");
 
-        ExpandedQuery query = new ExpandedQuery(q.build());
+        ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
 
-        assertThat(QueryBuilder.fromQuery(rewritten).toString())
-                .isEqualTo(query(
-                        dmq("a", "c"),
-                        dmq("b", "c"),
-                        dmq("a", "c"),
-                        dmq("b", "c")
-                ).toString());
+        assertThat(new BooleanQueryBuilder(rewritten))
+                .isEqualTo(
+                        bq(
+                            dmq(term("a"), term("c", true)),
+                            dmq(term("b"), term("c", true)),
+                            dmq(term("a"), term("c", true)),
+                            dmq(term("b"), term("c", true))));
     }
 }

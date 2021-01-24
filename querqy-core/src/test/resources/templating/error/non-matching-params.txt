@@ -1,0 +1,4 @@
+def template(a, b):
+1
+
+<< template: a = 1 >>

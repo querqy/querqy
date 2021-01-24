@@ -106,7 +106,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener {
             
                 final TermSubQueryBuilder termSubQueryBuilder = new TermSubQueryBuilder(newSearcher.getSchema().getQueryAnalyzer(), cache);
                 for (final RewriterFactory factory : factories) {
-                    for (final Term term: factory.getGenerableTerms()) {
+                    for (final Term term: factory.getCacheableGenerableTerms()) {
                         final String field = term.getField();
                         if (field != null) {
                             if (preloadFields.containsKey(field)) {
