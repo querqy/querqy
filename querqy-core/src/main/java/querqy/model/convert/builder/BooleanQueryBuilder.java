@@ -145,6 +145,10 @@ public class BooleanQueryBuilder implements DisjunctionMaxClauseBuilder<BooleanQ
         return bq(Arrays.stream(dmqs).collect(Collectors.toList()));
     }
 
+    public static BooleanQueryBuilder bq(final BooleanQuery bq) {
+        return new BooleanQueryBuilder(bq);
+    }
+
     public static BooleanQueryBuilder bq(final String... dmqs) {
         return bq(Arrays.stream(dmqs).map(DisjunctionMaxQueryBuilder::dmq).collect(Collectors.toList()));
     }
