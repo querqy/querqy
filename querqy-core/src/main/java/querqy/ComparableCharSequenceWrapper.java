@@ -70,7 +70,7 @@ public class ComparableCharSequenceWrapper implements ComparableCharSequence {
 
    @Override
    public String toString() {
-      return new StringBuilder(sequence).toString();
+      return sequence.toString();
    }
 
 }

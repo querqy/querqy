@@ -125,7 +125,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
          if (other.value != null) {
             return false;
          }
-      } else if (! CharSequenceUtil.equals(this, other.value)) {
+      } else if (! CharSequenceUtil.equals(value, other.value)) {
          return false;
       }
       return true;

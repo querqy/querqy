@@ -83,7 +83,7 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
 
             try {
                 rewritten = new ClassicWordBreakCompoundRewriterFactory("WordBreakCompoundRewriter", () -> reader, "dict",
-                        false, 1, 2, 1, Collections.emptyList(), false, 2, true)
+                        false, 1, 2, 1, Collections.emptyList(), false, 2, true, Collections.emptyList())
                         .createRewriter(expandedQuery, new EmptySearchEngineRequestAdapter())
                         .rewrite(expandedQuery);
             } finally {

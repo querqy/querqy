@@ -36,7 +36,7 @@
 		class="solr.FieldAnalysisRequestHandler" />
 
 	<queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
-	
+
 		<lst name="rewriteChain">
 		   	<lst name="rewriter">
 		   		<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
@@ -52,15 +52,15 @@
 						<str>aus</str>
 					</arr>
 			    <bool name="decompound.verifyCollation">true</bool>
-				<bool name="lowerCaseInput">true</bool>
+					<bool name="lowerCaseInput">true</bool>
 		   	</lst>
 		 </lst>
-     	 
+
 		 <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
      	 </lst>
-     	 
+
 	</queryParser>
 
 	<queryParser name="querqyDE" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
@@ -92,30 +92,52 @@
 
 	</queryParser>
 
-    <queryParser name="querqyNoCollationNoLowerCase" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+	<queryParser name="querqyNoCollationNoLowerCase" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
 
-        <lst name="rewriteChain">
-            <lst name="rewriter">
-                <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-                <str name="rules">rules-before-wordbreaks.txt</str>
-                <bool name="ignoreCase">true</bool>
-                <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-            </lst>
-            <lst name="rewriter">
-                <str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
-                <str name="dictionaryField">f1</str>
-                <bool name="decompound.verifyCollation">false</bool>
-                <bool name="lowerCaseInput">false</bool>
-            </lst>
+			<lst name="rewriteChain">
+					<lst name="rewriter">
+							<str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+							<str name="rules">rules-before-wordbreaks.txt</str>
+							<bool name="ignoreCase">true</bool>
+							<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+					</lst>
+					<lst name="rewriter">
+							<str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
+							<str name="dictionaryField">f1</str>
+							<bool name="decompound.verifyCollation">false</bool>
+							<bool name="lowerCaseInput">false</bool>
+					</lst>
 
-        </lst>
+			</lst>
 
-        <lst name="parser">
-            <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-            <str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
-        </lst>
+			<lst name="parser">
+					<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+					<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+			</lst>
 
-    </queryParser>
+	</queryParser>
+
+	<queryParser name="querqyWithProtectedWords" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
+		<lst name="rewriteChain">
+			<lst name="rewriter">
+				<str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
+				<str name="dictionaryField">f1</str>
+				<bool name="decompound.verifyCollation">false</bool>
+				<bool name="lowerCaseInput">true</bool>
+				<arr name="protectedWords">
+					<str>wissenschaft</str>
+				</arr>
+			</lst>
+		</lst>
+
+		<lst name="parser">
+			<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+			<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+		</lst>
+
+	</queryParser>
+
 	<admin>
 		<defaultQuery>solr</defaultQuery>
 	</admin>
