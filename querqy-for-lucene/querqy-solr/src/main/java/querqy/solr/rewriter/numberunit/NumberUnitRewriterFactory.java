@@ -2,6 +2,7 @@ package querqy.solr.rewriter.numberunit;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.rewrite.RewriterFactory;
@@ -219,7 +220,7 @@ public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter implem
     }
 
     @Override
-    public Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<Object> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
         final Map<String, Object> conf = new HashMap<>();

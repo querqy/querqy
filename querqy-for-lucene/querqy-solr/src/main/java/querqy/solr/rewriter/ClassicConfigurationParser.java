@@ -1,7 +1,7 @@
 package querqy.solr.rewriter;
 
+import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
-import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
 import java.util.HashMap;
@@ -17,8 +17,8 @@ import static querqy.solr.utils.ConfigUtils.ifNotNull;
  */
 public interface ClassicConfigurationParser {
 
-    default Map<String, Object> parseConfigurationToRequestHandlerBody(NamedList<Object> configuration, GZIPAwareResourceLoader resourceLoader) throws RuntimeException {
-        Map<String, Object> result = new HashMap<>();
+    default Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
+        final Map<String, Object> result = new HashMap<>();
         if (configuration != null) {
             result.put(CONF_CONFIG, configuration.asShallowMap(true));
             ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));

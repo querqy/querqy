@@ -20,17 +20,21 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
 
     private final Map<String, Map<String, Object>> store = new ConcurrentHashMap<>();
 
-    public InMemoryRewriteContainer(SolrCore core, SolrResourceLoader resourceLoader) {
+    public InMemoryRewriteContainer(final SolrCore core, final SolrResourceLoader resourceLoader) {
         super(core, resourceLoader);
     }
 
     @Override
-    protected void init(NamedList args) {
+    protected void init(final NamedList args) {
         // nothing to do
     }
 
     @Override
-    protected synchronized void deleteRewriter(String rewriterId) {
+    protected void doClose() {
+    }
+
+    @Override
+    protected synchronized void deleteRewriter(final String rewriterId) {
         store.remove(rewriterId);
 
         final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);

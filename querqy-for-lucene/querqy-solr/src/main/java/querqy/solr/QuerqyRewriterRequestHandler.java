@@ -43,7 +43,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
         ActionParam() {
             final Map<String, String[]> params = new HashMap<>(1);
-            params.put(PARAM_ACTION, new String[]{name()});
+            params.put(PARAM_ACTION, new String[] {name()});
             this.params = new MultiMapSolrParams(params);
         }
 
@@ -193,7 +193,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     public void inform(final SolrCore core) {
 
         final SolrResourceLoader resourceLoader = core.getResourceLoader();
-        Boolean inMemory = (Boolean) initArgs.get("inMemory");
+        final Boolean inMemory = (Boolean) initArgs.get("inMemory");
         if (inMemory != null && inMemory) {
             rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader);
         } else if (resourceLoader instanceof ZkSolrResourceLoader) {

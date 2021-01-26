@@ -60,6 +60,10 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
     }
 
     @Override
+    protected void doClose() {
+    }
+
+    @Override
     public synchronized Map<String, Object> readRewriterDefinition(final String rewriterId)
             throws IOException {
 

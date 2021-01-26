@@ -30,8 +30,6 @@ import querqy.lucene.rewrite.prms.PRMSQuery;
 import querqy.model.Term;
 import querqy.rewrite.RewriterFactory;
 
-import static querqy.solr.QuerqyQParserPlugin.CONF_REWRITER_REQUEST_HANDLER;
-
 /**
  * @author rene
  *
@@ -44,6 +42,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener implement
     public static final String CONF_PRELOAD_FIELDS = "fields";
     public static final String CONF_CACHE_NAME = "cacheName";
     public static final String CONF_TEST_FOR_HITS = "testForHits";
+    public static final String CONF_REWRITER_REQUEST_HANDLER = "rewriterRequestHandler";
 
     private Set<String> preloadFields = Collections.emptySet();
     private String cacheName = null;

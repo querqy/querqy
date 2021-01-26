@@ -35,12 +35,12 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
 
     private String rewriterRequestHandlerName;
 
-    public ClassicRewriteChainLoader(SolrCore core) {
+    public ClassicRewriteChainLoader(final SolrCore core) {
         super(core);
     }
 
     @Override
-    public void init(NamedList args) {
+    public void init(final NamedList args) {
         super.init(args);
 
         final String rewriteHandlerName = (String) getArgs().get(CONF_REWRITER_REQUEST_HANDLER);
@@ -48,8 +48,10 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
     }
 
     @Override
-    public void newSearcher(SolrIndexSearcher newSearcher, SolrIndexSearcher currentSearcher) {
-        loadRewriteChain(newSearcher.getCore());
+    public void newSearcher(final SolrIndexSearcher newSearcher, final SolrIndexSearcher currentSearcher) {
+        if (currentSearcher == null) {
+            loadRewriteChain(newSearcher.getCore());
+        }
     }
 
     @VisibleForTesting
@@ -57,13 +59,13 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
         return this.rewriterRequestHandlerName;
     }
 
-    private void loadRewriteChain(SolrCore core) {
+    private void loadRewriteChain(final SolrCore core) {
 
         final NamedList<?> chainConfig = (NamedList<?>) getArgs().get("rewriteChain");
         if (chainConfig != null) {
 
-            GZIPAwareResourceLoader resourceLoader = new GZIPAwareResourceLoader(core.getResourceLoader());
-            QuerqyRewriterRequestHandler requestHandler = (QuerqyRewriterRequestHandler) core.getRequestHandler(rewriterRequestHandlerName);
+            final GZIPAwareResourceLoader resourceLoader = new GZIPAwareResourceLoader(core.getResourceLoader());
+            final QuerqyRewriterRequestHandler requestHandler = (QuerqyRewriterRequestHandler) core.getRequestHandler(rewriterRequestHandlerName);
 
             @SuppressWarnings("unchecked") final List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
             if (rewriterConfigs != null) {
@@ -95,13 +97,12 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
                         };
                         req.setContentStreams(newArrayList(new ContentStreamBase.StringStream(JsonUtil.toJson(jsonBody), UTF_8.name())));
 
-                        SolrQueryResponse response = new SolrQueryResponse();
+                        final SolrQueryResponse response = new SolrQueryResponse();
                         requestHandler.getSubHandler(id).handleRequest(req, response);
                         response.toString();
                         if (response.getException() != null) {
                             throw new IllegalStateException("Could not upload rewriter " + id, response.getException());
                         }
-                        //TODO Check the response?
                     } catch (RuntimeException e) {
                         LOG.error("Could not parse rewrite entry: {}", config, e);
                         throw e;

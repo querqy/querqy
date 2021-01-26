@@ -25,7 +25,11 @@ import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public abstract class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
@@ -264,7 +268,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
     }
 
-    private QuerqyRewriterRequestHandler getQuerqyRequestHandler(SolrCore core){
+    private QuerqyRewriterRequestHandler getQuerqyRequestHandler(final SolrCore core){
         final SolrRequestHandler requestHandler = core.getRequestHandler(rewriterRequestHandlerName);
         if (requestHandler == null) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,

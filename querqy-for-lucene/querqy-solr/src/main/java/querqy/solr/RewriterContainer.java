@@ -47,8 +47,7 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
     /**
      * Close hook that will be triggered on close.
      */
-    protected void doClose() {
-    }
+    protected abstract void doClose();
 
     protected abstract void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException;
