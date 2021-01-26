@@ -7,7 +7,7 @@ package querqy.model;
  * @author René Kriegler, @renekrie
  *
  */
-abstract class AbstractNode<P extends Node> implements CloneableNode<P> {
+public abstract class AbstractNode<P extends Node> implements CloneableNode<P> {
 	
 	protected final P parent;
 	

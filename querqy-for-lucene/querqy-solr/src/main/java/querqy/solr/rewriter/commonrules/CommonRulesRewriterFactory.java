@@ -37,6 +37,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     static final QuerqyParserFactory DEFAULT_RHS_QUERY_PARSER = new WhiteSpaceQuerqyParserFactory();
     static final SelectionStrategyFactory DEFAULT_SELECTION_STRATEGY_FACTORY =
             new ExpressionCriteriaSelectionStrategyFactory();
+    public static final String CONF_BUILD_TERM_CACHE = "buildTermCache";
 
     private RewriterFactory delegate = null;
 
@@ -55,12 +56,14 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final String rules = ConfigUtils.getStringArg(config, CONF_RULES, "");
 
+        final Boolean buildTermCache = ConfigUtils.getArg(config, CONF_BUILD_TERM_CACHE, true);
+
         final Map<String, SelectionStrategyFactory> selectionStrategyFactories = loadSelectionStrategyFactories(config);
 
         try {
             delegate = new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
                     new StringReader(rules), querqyParser, ignoreCase, selectionStrategyFactories,
-                    DEFAULT_SELECTION_STRATEGY_FACTORY);
+                    DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
         } catch (final IOException e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
                     "Could not create delegate factory ", e);
@@ -93,10 +96,13 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
+
+        final Boolean buildTermCache = ConfigUtils.getArg(config, CONF_BUILD_TERM_CACHE, true);
+
         try {
             new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
                     new StringReader(rules), querqyParser, ignoreCase, selectionStrategyFactories,
-                    DEFAULT_SELECTION_STRATEGY_FACTORY);
+                    DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
         } catch (final IOException e) {
             return Collections.singletonList("Cannot create rewriter: " + e.getMessage());
         }

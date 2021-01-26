@@ -8,7 +8,10 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.Query;
+import org.apache.solr.common.params.AppendedSolrParams;
 import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.MapSolrParams;
+import org.apache.solr.common.params.MultiMapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.FieldType;
@@ -28,6 +31,7 @@ import querqy.lucene.QuerySimilarityScoring;
 import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.model.ParametrizedRawQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
@@ -91,6 +95,8 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     private final Map<String, Object> context;
     private final QParser qParser;
     private final InfoLoggingContext infoLoggingContext;
+
+    private Map<String, String> additionalParams = null;
 
     public DismaxSearchEngineRequestAdapter(final QParser qParser, final SolrQueryRequest request,
                                             final String queryString, final SolrParams solrParams,
@@ -284,10 +290,27 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     @Override
     public Query parseRawQuery(final RawQuery rawQuery) throws SyntaxException {
         try {
-
             if (rawQuery instanceof StringRawQuery) {
                 return QParser.getParser(((StringRawQuery) rawQuery).getQueryString(),
                         null, request).getQuery();
+
+            } else if (rawQuery instanceof ParametrizedRawQuery) {
+                if (this.additionalParams == null) {
+                    this.additionalParams = new HashMap<>();
+                    request.setParams(AppendedSolrParams.wrapAppended(request.getParams(),
+                            new MapSolrParams(this.additionalParams)));
+                }
+
+                final String queryString = ((ParametrizedRawQuery) rawQuery).buildQueryString(
+                        param -> {
+                            final String paramReference = "querqy.internal.param." + this.additionalParams.size();
+                            this.additionalParams.put(paramReference, param);
+                            return "$" + paramReference;
+                        });
+
+                return QParser.getParser(queryString,null, request).getQuery();
+
+
             } else {
                 throw new UnsupportedOperationException("Implementation type of RawQuery is not supported for this adapter");
             }

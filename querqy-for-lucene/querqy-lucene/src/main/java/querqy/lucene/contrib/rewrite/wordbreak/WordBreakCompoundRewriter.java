@@ -45,6 +45,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompoundCollation;
 
+    private final TrieMap<Boolean> protectedWords;
+
     /**
      * @param wordBreaker The word breaker to use
      * @param compounder The compounder to use
@@ -54,12 +56,14 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
      * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param protectedWords The "false-positive" set of terms that should never be split or be result of a combination
      */
     public WordBreakCompoundRewriter(final LuceneWordBreaker wordBreaker, final LuceneCompounder compounder,
                                      final IndexReader indexReader,
                                      final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
-                                     final int maxDecompoundExpansions, final boolean verifyDecompoundCollation) {
+                                     final int maxDecompoundExpansions, final boolean verifyDecompoundCollation,
+                                     final TrieMap<Boolean> protectedWords) {
 
         if (reverseCompoundTriggerWords == null) {
             throw new IllegalArgumentException("reverseCompoundTriggerWords must not be null");
@@ -74,6 +78,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         this.verifyDecompoundCollation = verifyDecompoundCollation;
         this.indexReader = indexReader;
         this.lowerCaseInput = lowerCaseInput;
+        this.protectedWords = protectedWords;
     }
 
     @Override
@@ -141,7 +146,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             }
         }
         return null;
-        
+
     }
 
     @Override
@@ -149,10 +154,12 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         // don't handle generated terms
         if (!term.isGenerated()) {
 
-            if (isReverseCompoundTriggerWord(term)) {
+            if (isReverseCompoundTriggerWord(term.getValue())) {
                 termsToDelete.add(term);
             } else {
-                decompound(term);
+                if (!isProtectedWord(term.getValue())) {
+                    decompound(term);
+                }
                 compound(term);
             }
 
@@ -160,11 +167,6 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         }
 
         return term;
-    }
-
-    private boolean isReverseCompoundTriggerWord(final Term term) {
-        return reverseCompoundTriggerWords.get(lowerCaseInput ? new LowerCaseCharSequence(term) : term)
-                .getStateForCompleteSequence().isFinal();
     }
 
     protected void decompound(final Term term) {
@@ -209,7 +211,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             Term previousTerm = null;
             while (previousTermsIterator.hasNext() && previousTerm == null) {
                 final Term maybePreviousTerm = previousTermsIterator.next();
-                if (isReverseCompoundTriggerWord(maybePreviousTerm)) {
+                if (isReverseCompoundTriggerWord(maybePreviousTerm.getValue())) {
                     reverseCompound = true;
                 } else {
                     previousTerm = maybePreviousTerm;
@@ -236,11 +238,23 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     private void addCompounds(final Term[] terms, final boolean reverse) throws IOException {
 
         for (final LuceneCompounder.CompoundTerm compoundTerm : compounder.combine(terms, indexReader, reverse)) {
-            for (final Term sibling: compoundTerm.originalTerms) {
-                nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
+            if (!isProtectedWord(compoundTerm.value)) {
+                for (final Term sibling: compoundTerm.originalTerms) {
+                    nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
+                }
             }
         }
 
+    }
+
+    private boolean isReverseCompoundTriggerWord(final CharSequence chars) {
+        return reverseCompoundTriggerWords.get(lowerCaseInput ? new LowerCaseCharSequence(chars) : chars)
+                .getStateForCompleteSequence().isFinal();
+    }
+
+    private boolean isProtectedWord(final CharSequence chars) {
+        return protectedWords.get(lowerCaseInput ? new LowerCaseCharSequence(chars) : chars)
+                .getStateForCompleteSequence().isFinal();
     }
 
     @Override

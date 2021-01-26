@@ -940,7 +940,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 }
 
                 @Override
-                public Set<Term> getGenerableTerms() {
+                public Set<Term> getCacheableGenerableTerms() {
                     return Collections.emptySet();
                 }
             };

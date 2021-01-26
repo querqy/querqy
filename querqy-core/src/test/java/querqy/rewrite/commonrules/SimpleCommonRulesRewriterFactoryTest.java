@@ -70,7 +70,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
     public void testThatDefaultSelectionStrategyFactoryMustBeSet() {
         try {
             new SimpleCommonRulesRewriterFactory("someId", new StringReader(""), querqyParserFactory, true,
-                    namedStrategyFactories, null);
+                    namedStrategyFactories, null, true);
         } catch (final IOException e) {
             fail("Unexpected IOException");
         }
@@ -79,14 +79,14 @@ public class SimpleCommonRulesRewriterFactoryTest {
     @Test(expected = IOException.class)
     public void testThatInvalidRulesTriggerException() throws IOException {
             new SimpleCommonRulesRewriterFactory("someId", new StringReader("This is not a parsable rule"),
-                    querqyParserFactory, true, namedStrategyFactories, defaultSelectionStrategyFactory);
+                    querqyParserFactory, true, namedStrategyFactories, defaultSelectionStrategyFactory, true);
     }
 
     @Test
     public void testThatRulesAreParsed() throws IOException {
         final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
                 new StringReader("input =>\n DECORATE: deco1"), querqyParserFactory, true, namedStrategyFactories,
-                defaultSelectionStrategyFactory);
+                defaultSelectionStrategyFactory, true);
         final RulesCollection rules = factory.getRules();
         assertEquals(1, rules.getInstructions().size());
     }
@@ -98,7 +98,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
                 new StringReader("input =>\n DECORATE: deco1"), querqyParserFactory, true, namedStrategyFactories,
-                defaultSelectionStrategyFactory);
+                defaultSelectionStrategyFactory, true);
 
         final QueryRewriter rewriter = factory.createRewriter(query, requestAdapter);
         assertTrue(rewriter instanceof CommonRulesRewriter);
@@ -116,7 +116,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
                 new StringReader("input =>\n DECORATE: deco1"), querqyParserFactory, true, namedStrategyFactories,
-                defaultSelectionStrategyFactory);
+                defaultSelectionStrategyFactory, true);
         final QueryRewriter rewriter = factory.createRewriter(query, requestAdapter);
         assertTrue(rewriter instanceof CommonRulesRewriter);
 
@@ -133,7 +133,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
                 new StringReader("input =>\n DECORATE: deco1"), querqyParserFactory, true, namedStrategyFactories,
-                defaultSelectionStrategyFactory);
+                defaultSelectionStrategyFactory, true);
         factory.createRewriter(query, requestAdapter);
 
     }
@@ -143,15 +143,27 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
                 new StringReader("input1 =>\n SYNONYM: t1 t2\ninput2 =>\n SYNONYM: t3 t4"),
-                querqyParserFactory, true, namedStrategyFactories, defaultSelectionStrategyFactory);
+                querqyParserFactory, true, namedStrategyFactories, defaultSelectionStrategyFactory, true);
 
-        final Set<Term> terms = factory.getGenerableTerms();
+        final Set<Term> terms = factory.getCacheableGenerableTerms();
 
         assertThat(terms, Matchers.containsInAnyOrder(
                 new Term(null, "t1"),
                 new Term(null, "t2"),
                 new Term(null, "t3"),
                 new Term(null, "t4")));
+    }
+    
+    @Test
+    public void testThatTermCacheIsNotPopulated() throws IOException {
+
+        final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
+                new StringReader("input1 =>\n SYNONYM: t1 t2\ninput2 =>\n SYNONYM: t3 t4"),
+                querqyParserFactory, true, namedStrategyFactories, defaultSelectionStrategyFactory, false);
+
+        final Set<Term> terms = factory.getCacheableGenerableTerms();
+
+        assertThat(terms, Matchers.empty());
     }
 
 }

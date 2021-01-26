@@ -4,6 +4,7 @@ import static org.apache.solr.common.SolrException.ErrorCode.*;
 
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
@@ -27,6 +28,7 @@ import querqy.infologging.InfoLogging;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class QuerqyDismaxQParser extends QParser {
 
@@ -58,9 +60,11 @@ public class QuerqyDismaxQParser extends QParser {
                                final TermQueryCache termQueryCache) {
         super(qstr, localParams, params, req);
         final String q = Objects.requireNonNull(qstr).trim();
+
         if (q.isEmpty()) {
             throw new SolrException(BAD_REQUEST, "Query string must not be empty");
         }
+
         this.userQueryString = q;
         this.querqyParser = querqyParser;
 
@@ -68,8 +72,12 @@ public class QuerqyDismaxQParser extends QParser {
                 SolrParams.wrapDefaults(localParams, params), querqyParser, rewriteChain, infoLogging, termQueryCache);
 
 
-        controller = new QueryParsingController(requestAdapter);
+        controller = createQueryParsingController();
 
+    }
+
+    public QueryParsingController createQueryParsingController() {
+        return new QueryParsingController(requestAdapter);
     }
 
 
@@ -80,27 +88,7 @@ public class QuerqyDismaxQParser extends QParser {
 
             luceneQueries = controller.process();
 
-            if (luceneQueries.querqyBoostQueries != null && luceneQueries.querqyBoostQueries.size() > 0) {
-                // add as rerank query
-                final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-
-                for (final Query q : luceneQueries.querqyBoostQueries) {
-                    builder.add(q, BooleanClause.Occur.SHOULD);
-                }
-
-                processedQuery = new QuerqyReRankQuery(maybeWrapQuery(luceneQueries.mainQuery),
-                        maybeWrapQuery(builder.build()), requestAdapter.getReRankNumDocs(), 1.0);
-
-            } else {
-                // an external rank query (parsed from querqy.rq) is only applied if no querqy boost queries have been applied
-                // (either by applying them on the main query as optional clauses or by wrapping the main query in a QuerqyReRankQuery)
-                if (luceneQueries.rankQuery != null && !luceneQueries.isMainQueryBoosted) {
-                    processedQuery = ((RankQuery) luceneQueries.rankQuery).wrap(luceneQueries.mainQuery);
-                } else {
-                    processedQuery = maybeWrapQuery(luceneQueries.mainQuery);
-                }
-            }
-
+            processedQuery = maybeWrapQuery(luceneQueries.mainQuery);
 
         } catch (final LuceneSearchEngineRequestAdapter.SyntaxException e) {
             throw new SyntaxError("Syntax error", e);
@@ -193,5 +181,28 @@ public class QuerqyDismaxQParser extends QParser {
 
     public List<Query> getFilterQueries() {
         return luceneQueries == null ? null : luceneQueries.filterQueries;
+    }
+
+    public Optional<RankQuery> getRankQuery() {
+        // there are two cases this QParser returns a RankQuery here:
+        //   1) the parsed query contains boosts and querqy.solr.QuerqyDismaxParams.QBOOST_METHOD is set to "rerank", or
+        //   2) a rank query was supplied via parameter querqy.rq and there is no boosting already on the main query
+        if (luceneQueries.querqyBoostQueries != null && luceneQueries.querqyBoostQueries.size() > 0) {
+            final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+
+            for (final Query q : luceneQueries.querqyBoostQueries) {
+                builder.add(q, BooleanClause.Occur.SHOULD);
+            }
+
+            return Optional.of(new QuerqyReRankQuery(new MatchAllDocsQuery(), maybeWrapQuery(builder.build()),
+                    requestAdapter.getReRankNumDocs(), 1.0));
+
+        } else if (luceneQueries.rankQuery != null && !luceneQueries.isMainQueryBoosted) {
+            // an external rank query (parsed from querqy.rq) is only applied if no querqy boost queries have been applied
+            // (either by applying them on the main query as optional clauses or by wrapping the main query in a QuerqyReRankQuery)
+            return Optional.of((RankQuery) luceneQueries.rankQuery);
+        }
+
+        return Optional.empty();
     }
 }

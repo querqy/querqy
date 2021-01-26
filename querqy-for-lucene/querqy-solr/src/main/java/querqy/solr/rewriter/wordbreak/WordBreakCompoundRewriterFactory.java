@@ -8,6 +8,7 @@ import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
     public static final String CONF_DECOMPOUND = "decompound";
     public static final String CONF_DECOMPOUND_MAX_EXPANSIONS = "maxExpansions";
     public static final String CONF_DECOMPOUND_VERIFY_COLLATION = "verifyCollation";
+    public static final String CONF_PROTECTED_WORDS = "protectedWords";
 
 
     private static final int DEFAULT_MIN_SUGGESTION_FREQ = 1;
@@ -86,6 +88,9 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final Morphology morphology = ConfigUtils.getEnumArg(config, CONF_MORPHOLOGY, Morphology.class)
                 .orElse(Morphology.DEFAULT);
 
+        // terms that are "protected", i.e. false positives that should never be split and never be result of a combination
+        final List<String> protectedWords = ConfigUtils.getArg(config, CONF_PROTECTED_WORDS, new ArrayList<>());
+
         // the indexReader has to be supplied on a per-request basis from a request thread-local
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
@@ -93,7 +98,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         delegate  = new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(rewriterId,
                 indexReaderSupplier, morphology, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength,
                 minBreakLength,reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
-                verifyDecompoundCollation);
+                verifyDecompoundCollation, protectedWords);
     }
 
     @Override

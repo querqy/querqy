@@ -1,8 +1,11 @@
 package querqy.model;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * A top-level {@link Query} matching all documents
  */
+@EqualsAndHashCode(callSuper = true)
 public class MatchAllQuery extends Clause<BooleanParent> implements QuerqyQuery<BooleanParent> {
 
     public MatchAllQuery() {

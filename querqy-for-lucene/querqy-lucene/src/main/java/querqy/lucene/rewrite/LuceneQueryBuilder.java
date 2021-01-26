@@ -16,6 +16,7 @@ import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
+import querqy.model.BoostedTerm;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
@@ -272,6 +273,11 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             if (fieldBoost == null) {
                 // TODO: move to else clause of inner if above
                 throw new RuntimeException("Could not get FieldBoost for term: " + term);
+            }
+
+            // check for field boost override in BoostedTerm
+            if (termToUse instanceof BoostedTerm) {
+                fieldBoost = new BoostedDelegatingFieldBoost(fieldBoost, ((BoostedTerm) termToUse).getBoost());
             }
           
             for (final String searchField: searchFieldsAndBoosting.getSearchFields(termToUse)) {

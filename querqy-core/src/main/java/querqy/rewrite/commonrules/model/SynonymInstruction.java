@@ -10,6 +10,7 @@ import java.util.Set;
 
 import querqy.ComparableCharSequence;
 import querqy.model.BooleanQuery;
+import querqy.model.BoostedTerm;
 import querqy.model.Clause.Occur;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
@@ -22,17 +23,31 @@ import querqy.rewrite.SearchEngineRequestAdapter;
  */
 public class SynonymInstruction implements Instruction {
     
+    public static final float DEFAULT_TERM_BOOST = 1f;
+
     final List<querqy.rewrite.commonrules.model.Term> synonym;
+    final float boost;
 
     /**
      * @param synonym The terms of the synonym expansion.
      */
-    public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym) {
+    public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym, final float boost) {
         if (synonym == null || synonym.isEmpty()) {
             throw new IllegalArgumentException("Synonym expansion required");
         }
+        if (boost < 0f) {
+            throw new IllegalArgumentException("Negative Synonym boosts not allowed");
+        }
         
         this.synonym = synonym;
+        this.boost = boost;
+    }
+    
+    /**
+     * @param synonym The terms of the synonym expansion.
+     */
+    public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym) {
+        this(synonym, DEFAULT_TERM_BOOST);
     }
 
     /* (non-Javadoc)
@@ -97,11 +112,19 @@ public class SynonymInstruction implements Instruction {
         final List<String> fieldNames = synTerm.getFieldNames();
         final ComparableCharSequence charSequence = synTerm.fillPlaceholders(termMatches);
         if (fieldNames == null || fieldNames.isEmpty()) {
-            dmq.addClause(new Term(dmq, charSequence, true));
+            dmq.addClause(createTermFrom(dmq, charSequence, null));
         } else {
             for (final String fieldName: fieldNames) {
-                dmq.addClause(new Term(dmq, fieldName, charSequence, true));
+                dmq.addClause(createTermFrom(dmq, charSequence, fieldName));
             }
+        }
+    }
+
+    protected Term createTermFrom(final DisjunctionMaxQuery dmq, final ComparableCharSequence charSequence, final String fieldName) {
+        if (Float.compare(this.boost, 1f) != 0) {
+            return new BoostedTerm(dmq, fieldName, charSequence, boost);
+        } else {
+            return new Term(dmq, fieldName, charSequence, true);
         }
     }
 
@@ -121,6 +144,10 @@ public class SynonymInstruction implements Instruction {
             }
         }
         return result;
+    }
+
+    public float getTermBoost() {
+        return boost;
     }
     
     @Override
@@ -150,9 +177,9 @@ public class SynonymInstruction implements Instruction {
 
     @Override
     public String toString() {
+        if (boost != DEFAULT_TERM_BOOST) {
+            return "SynonymInstruction [boost=" + boost + ", synonym=" + synonym + "]";
+        }
         return "SynonymInstruction [synonym=" + synonym + "]";
     }
-
-
-    
 }

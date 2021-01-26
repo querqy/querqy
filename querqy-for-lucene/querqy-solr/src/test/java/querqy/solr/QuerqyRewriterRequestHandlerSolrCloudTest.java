@@ -109,6 +109,8 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             buildDeleteRequest("chain_common_rules").process(c);
             buildDeleteRequest("conf_common_rules").process(c);
             buildDeleteRequest("rewriter_test_save").process(c);
+            buildDeleteRequest("rewriter1").process(c);
+            buildDeleteRequest("rewriter2").process(c);
         } catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
             // nothing to do
         }

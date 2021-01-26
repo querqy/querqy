@@ -1,15 +1,12 @@
 package querqy.model;
 
 public class StringRawQuery extends RawQuery {
+    private final String queryString;
 
-    final String queryString;
     public StringRawQuery(final BooleanParent parent, final String queryString, final Occur occur, final boolean isGenerated) {
-
         super(parent, occur, isGenerated);
-
         this.queryString = queryString;
     }
-
 
     @Override
     public RawQuery clone(final BooleanParent newParent) {

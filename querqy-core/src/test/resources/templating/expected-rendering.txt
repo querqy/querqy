@@ -1,0 +1,21 @@
+5
+
+rule before templates =>
+  SYNONYM: b
+
+
+rule after templates =>
+  SYNONYM: bb
+
+1
+
+rule after single_line =>
+  SYNONYM: bbb
+
+2
+3
+4
+
+rule after multi_line =>
+  SYNONYM: bbbb
+
