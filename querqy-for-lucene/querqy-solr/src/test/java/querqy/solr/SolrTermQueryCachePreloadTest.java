@@ -35,7 +35,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                "stats", "true"
                );
         // the cache is prefilled asynchronously - try 3 times to see the cache before giving up
-        int attempts = 3;
+        int attempts = 20;
         try {
 
             do {
@@ -43,10 +43,10 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                 try {
                     assertQ("Missing querqy cache",
                        req,
-                       "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']");
+                       "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache'][text()='1']");
                     attempts = 0;
-                }  catch (RuntimeException e) {
-                    if ((!"Exception during query".equals(e.getMessage())) || (attempts <= 1)) {
+                }  catch (Exception e) {
+                    if (attempts <= 1) {
                         throw e;
                     }
                     attempts--;
@@ -130,7 +130,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         );
 
         // the cache is prefilled asynchronously - try 3 times to see the cache update before giving up
-        attempts = 3;
+        attempts = 20;
         try {
 
             do {
@@ -143,8 +143,8 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                                     "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='4']");
                     attempts = 0;
 
-                }  catch (RuntimeException e) {
-                    if ((!"Exception during query".equals(e.getMessage())) || (attempts <= 1)) {
+                }  catch (Exception e) {
+                    if (attempts <= 1) {
                         throw e;
                     }
                     attempts--;
