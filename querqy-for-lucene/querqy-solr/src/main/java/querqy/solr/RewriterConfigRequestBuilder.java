@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class RewriterConfigRequestBuilder {
 
@@ -199,7 +200,25 @@ public abstract class RewriterConfigRequestBuilder {
 
     public static class GetRewriterConfigSolrResponse extends SolrResponseBase { }
 
-    public static class ListRewriterConfigsSolrResponse extends SolrResponseBase {}
+    public static class ListRewriterConfigsSolrResponse extends SolrResponseBase {
+
+        public Map<String, Object> getRewritersConfigMap() {
+            final Map<String, Object> rewriters = (Map<String, Object>) ((Map<String, Object>) getResponse()
+                    .get("response")).get("rewriters");
+            return rewriters == null ? Collections.emptyMap() : rewriters;
+        }
+
+        public Optional<Map<String, Object>> getRewriterConfigMap(final String rewriterId) {
+            final Map<String, Object> rewriters = getRewritersConfigMap();
+            if (rewriters == null) {
+                return Optional.empty();
+            } else {
+                return Optional.ofNullable((Map<String, Object>) rewriters.get(rewriterId));
+            }
+        }
+
+
+    }
 
 
 }

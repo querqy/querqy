@@ -21,7 +21,6 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QueryParsing;
 import org.junit.*;
 import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
-import querqy.solr.RewriterConfigRequestBuilder.ListRewriterConfigsSolrResponse;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
@@ -90,7 +89,6 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final SolrClient randClient = getRandClient();
         randClient.deleteByQuery("*:*");
-        cleanupRewriterChains(randClient);
         randClient.commit(true, true);
 
         randClient.add(Arrays.asList(
@@ -101,19 +99,6 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         randClient.commit(true, true);
 
-    }
-
-    public void cleanupRewriterChains(SolrClient c) throws IOException {
-        try {
-            buildDeleteRequest("chain_replace").process(c);
-            buildDeleteRequest("chain_common_rules").process(c);
-            buildDeleteRequest("conf_common_rules").process(c);
-            buildDeleteRequest("rewriter_test_save").process(c);
-            buildDeleteRequest("rewriter1").process(c);
-            buildDeleteRequest("rewriter2").process(c);
-        } catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
-            // nothing to do
-        }
     }
 
     @Test
@@ -156,7 +141,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             assertEquals(3L, rsp2.getResults().getNumFound());
 
         } finally {
-            buildDeleteRequest("rewriter_test_save").process(getRandClient());
+            cleanUpRewriters("rewriter_test_save");
         }
 
     }
@@ -208,8 +193,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                     getRandClient());
             assertEquals(1L, rsp3.getResults().getNumFound());
         } finally {
-            buildDeleteRequest("chain_replace").process(getRandClient());
-            buildDeleteRequest("chain_common_rules").process(getRandClient());
+            cleanUpRewriters("chain_replace", "chain_common_rules");
         }
 
     }
@@ -258,7 +242,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     }
 
     @Test
-    public void testGetConfig() throws IOException, SolrServerException {
+    public void testGetConfig() throws Exception {
 
         try {
 
@@ -279,13 +263,13 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             assertEquals(configBuilder.buildDefinition(), conf.get("definition"));
 
         } finally {
-            buildDeleteRequest("conf_common_rules").process(getRandClient());
+            cleanUpRewriters("conf_common_rules");
         }
 
     }
 
     @Test
-    public void testListConfigs() throws IOException, SolrServerException {
+    public void testListConfigs() throws Exception {
 
         final String rewriterName1 = "rewriter1";
         final String rewriterName2 = "rewriter2";
@@ -302,14 +286,11 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                     .rules("sd => a").buildSaveRequest(rewriterName2).process(getRandClient())
                     .getStatus());
 
-            final ListRewriterConfigsSolrResponse response = buildListRequest()
-                    .process(client);
-
-            assertEquals(0, response.getStatus());
-
-            final Map<String, Object> rewriters = (HashMap<String, Object>) ((HashMap<String, Object>) response
-                    .getResponse().get("response")).get("rewriters");
-            assertNotNull(rewriters);
+            final Map<String, Object> rewriters = waitFor(buildListRequest(), client, response -> {
+                assertEquals(0, response.getStatus());
+                return (Map<String, Object>) ((Map<String, Object>) response.getResponse()
+                        .get("response")).get("rewriters");
+            });
 
             final Map<String, Object> conf1 = (Map<String, Object>) rewriters.get(rewriterName1);
             assertNotNull(conf1);
@@ -324,25 +305,26 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                     rewriterName2));
 
         } finally {
-            try {
-                buildDeleteRequest(rewriterName1).process(getRandClient());
-            } finally {
-                buildDeleteRequest(rewriterName2).process(getRandClient());
-            }
+            cleanUpRewriters(rewriterName1, rewriterName2);
         }
     }
 
     @Test
-    public void testListAllEmptyConfig() throws IOException, SolrServerException {
+    public void testListAllEmptyConfig() throws Exception {
 
-        final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
-        assertEquals(0, response.getStatus());
-        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+        final Map<String, Object> rewriters = waitFor(buildGetRequest(null), getRandClient(), response -> {
+            assertEquals(0, response.getStatus());
+            return (Map<String, Object>) ((Map<String, Object>) response.getResponse()
+                    .get("response")).get("rewriters");
+        });
+
+        assertEquals(0, rewriters.size());
 
     }
 
     @Test
     public void testFor404WhenDeletingUnknownRewriter() throws IOException, SolrServerException {
+
         try {
             buildDeleteRequest("delete_the_void")
                     .process(getRandClient());
@@ -385,36 +367,93 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     }
 
     @Test
-    public void testGetAllConfig() throws IOException, SolrServerException {
+    public void testGetAllConfig() throws Exception {
 
         final String rewriterName = "conf_common_rules";
-        final SolrClient client = getRandClient();
-        final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
+        try {
+            final SolrClient client = getRandClient();
+            final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
 
-        assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
-                .process(client).getStatus());
+            assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
+                    .process(client).getStatus());
 
-        final ListRewriterConfigsSolrResponse response = buildListRequest().process(client);
-        assertEquals(0, response.getStatus());
-        Map<Object, Object> expectedResult = new HashMap<>();
-        expectedResult.put("id", rewriterName);
-        expectedResult.put("path", "/querqy/rewriter/" + rewriterName);
-        assertEquals(expectedResult, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
+            //final ListRewriterConfigsSolrResponse response = .process(client);
+
+            Map<String, Object> expectedResult = new HashMap<>();
+            expectedResult.put("id", rewriterName);
+            expectedResult.put("path", "/querqy/rewriter/" + rewriterName);
+
+            final Map<String, Object> confResult = waitFor(buildListRequest(), client, response -> {
+                assertEquals(0, response.getStatus());
+                return (Map<String, Object>) ((Map<String, Object>) ((Map<String, Object>) response.getResponse()
+                        .get("response")).get("rewriters")).get(rewriterName);
+            });
+
+            assertEquals(expectedResult, confResult);
+
+        } finally {
+            cleanUpRewriters(rewriterName);
+        }
+
+
 
     }
 
     @Test
-    public void testGetAllEmptyConfig() throws IOException, SolrServerException {
+    public void testGetAllEmptyConfig() throws Exception {
 
-        final ListRewriterConfigsSolrResponse response = buildListRequest().process(getRandClient());
-        assertEquals(0, response.getStatus());
-        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+        final Map<String, Object> rewriters = waitFor(buildListRequest(), getRandClient(), response -> {
+            assertEquals(0, response.getStatus());
+            return (Map<String, Object>) ((Map<String, Object>) response.getResponse()
+                    .get("response")).get("rewriters");
+        });
 
+        assertEquals(0, rewriters.size());
+
+    }
+
+    private void cleanUpRewriters(final String... rewriterId) throws Exception {
+
+        Exception exception = null;
+
+        for (final String rewriter : rewriterId) {
+            try {
+                buildDeleteRequest(rewriter).process(CLOUD_CLIENT);
+            } catch (Exception e) {
+                exception = e;
+            }
+        }
+
+        if (exception != null) {
+            throw exception;
+        }
+
+        int attempts = 20;
+
+        // wait until rewriters disappeared from all clients
+        for (final SolrClient client: CLIENTS) {
+
+            for (final String rewriter : rewriterId) {
+                boolean found = false;
+                while (attempts > 0 && (found = buildListRequest().process(client).getRewritersConfigMap()
+                        .containsKey(rewriter))) {
+                    synchronized (this) {
+                        wait(100L);
+                    }
+                    attempts--;
+                }
+
+                if (found) {
+                    throw new IllegalStateException("Rewriter still visible: " + rewriter);
+                }
+            }
+
+        }
 
     }
 
     private SolrClient getRandClient() {
-        return getRandClient(random(), CLIENTS, CLOUD_CLIENT);
+        return getRandClient(random(), CLIENTS);
     }
 
 }

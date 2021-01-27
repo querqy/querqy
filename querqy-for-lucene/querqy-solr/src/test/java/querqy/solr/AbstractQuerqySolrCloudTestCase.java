@@ -2,6 +2,8 @@ package querqy.solr;
 
 import org.apache.lucene.util.TestUtil;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -12,18 +14,15 @@ import org.apache.solr.common.params.SolrParams;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
     /**
-     * returns a random SolrClient -- either a CloudSolrClient, or an HttpSolrClient pointed
-     * at a node in our cluster
+     * returns a random SolrClient
      */
-    public static SolrClient getRandClient(final Random rand, final List<? extends SolrClient> clients,
-                                           final SolrClient cloudClient) {
-        int numClients = clients.size();
-        int idx = TestUtil.nextInt(rand, 0, numClients);
+    public static SolrClient getRandClient(final Random rand, final List<? extends SolrClient> clients) {
 
-        return (idx == numClients) ? cloudClient : clients.get(idx);
+        return clients.get(TestUtil.nextInt(rand, 0, clients.size() - 1));
     }
 
     public static void waitForRecoveriesToFinish(final CloudSolrClient client) throws Exception {
@@ -56,5 +55,33 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
             }
         } while (attempts > 0);
         throw new TimeoutException("Rewriter didn't come up");
+    }
+
+    protected <T, R extends SolrResponse> T waitFor(final SolrRequest<R> req, final SolrClient client,
+                                                    final Function<R,T> extractor) throws Exception {
+        // It will take a bit to propagate a rewriter config to the nodes. We try to apply the extractor max. 3 times
+        // and wait for a bit between the attempts
+
+        int attempts = 20;
+        do {
+            synchronized (this) {
+                wait(100L);
+            }
+
+
+            try {
+                final T result = extractor.apply(req.process(client));
+                if (result != null) {
+                    return result;
+                }
+
+            } catch (final Exception e) {
+                if ((attempts <= 1)) {
+                    throw e;
+                }
+                attempts--;
+            }
+        } while (attempts > 0);
+        throw new TimeoutException("Expected object couldn't be found");
     }
 }

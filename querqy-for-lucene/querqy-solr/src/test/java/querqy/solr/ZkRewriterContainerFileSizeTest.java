@@ -150,7 +150,7 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
     }
 
     private SolrClient getRandClient() {
-        return getRandClient(random(), CLIENTS, CLOUD_CLIENT);
+        return getRandClient(random(), CLIENTS);
     }
 
 }
