@@ -3,14 +3,17 @@ package querqy.rewrite.commonrules;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import querqy.model.Clause;
 import querqy.model.Clause.Occur;
+import querqy.model.ParametrizedRawQuery;
+import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-
-import javax.swing.text.html.Option;
 
 /**
  * @author René Kriegler, @renekrie
@@ -100,8 +103,14 @@ public class LineParser {
                 if (filterString.length() == 1) {
                     return new ValidationError("Missing raw query after * in line: " + line);
                 }
-                String rawQuery = filterString.substring(1).trim();
-                return new FilterInstruction(new StringRawQuery(null, rawQuery, Occur.MUST, false));
+
+                final String rawQueryString = filterString.substring(1).trim();
+                try {
+                    return new FilterInstruction(parseRawQuery(rawQueryString, Occur.MUST));
+                } catch (RuleParseException e) {
+                    return new ValidationError(e.getMessage());
+                }
+
             } else if (querqyParserFactory == null) {
                 return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' if you want to pass this line as a raw query String to your search engine. Line: " + line);
             } else {
@@ -125,6 +134,27 @@ public class LineParser {
             }
 
             String synonymString = line.substring(7).trim();
+            float boost = SynonymInstruction.DEFAULT_TERM_BOOST;
+
+            // check for boost (optional)
+            if (synonymString.charAt(0) == '(') {
+                synonymString = synonymString.substring(1).trim();
+                int boostEndBracket = synonymString.indexOf(')');
+                if (boostEndBracket < 0) {
+                    return new ValidationError("Cannot parse line. No closing bracket found: " + line);
+                }
+                try {
+                    boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
+                } catch (final NumberFormatException e) {
+                    return new ValidationError("Cannot parse line. Invalid boost in: " + line + ". Threw: " + e.getMessage());
+                }
+
+                if (boost < 0) {
+                    return new ValidationError("Cannot parse line. Negative boost not allowed: " + line);
+                }
+                synonymString = synonymString.substring(boostEndBracket + 1).trim();
+            }
+
             if (synonymString.charAt(0) != ':') {
                 return new ValidationError("Cannot parse line, ':' expetcted in " + line);
             }
@@ -148,9 +178,8 @@ public class LineParser {
                 // should never happen
                 return new ValidationError("Cannot parse line: " + line);
             } else {
-                return new SynonymInstruction(synonymTerms);
+                return new SynonymInstruction(synonymTerms, boost);
             }
-
         }
 
         if (lcLine.startsWith(INSTR_DECORATE)) {
@@ -159,6 +188,31 @@ public class LineParser {
 
         return line;
 
+    }
+
+    protected static RawQuery parseRawQuery(final String rawQuery, final Clause.Occur occur) throws RuleParseException {
+        final List<String> rawQueryParts = Arrays.asList(rawQuery.split("%%", -1));
+
+        final int size = rawQueryParts.size();
+
+        if (size % 2 == 0) {
+            throw new RuleParseException("Invalid use of parametrization in the definition of a RawQuery. " +
+                    "Parameters must begin and end with %%");
+        }
+
+        if (size == 1) {
+            return new StringRawQuery(null, rawQuery, occur, false);
+        } else {
+            final List<ParametrizedRawQuery.Part> parts = IntStream.range(0, size)
+                    .mapToObj(index -> index % 2 == 0
+                            ? new ParametrizedRawQuery.Part(rawQueryParts.get(index),
+                                ParametrizedRawQuery.Part.Type.QUERY_PART)
+                            : new ParametrizedRawQuery.Part(rawQueryParts.get(index),
+                                ParametrizedRawQuery.Part.Type.PARAMETER))
+                    .collect(Collectors.toList());
+
+            return new ParametrizedRawQuery(null, parts, occur, false);
+        }
     }
 
     private static final String DECORATE_ERROR_MESSAGE_TEMPLATE = "Invalid decorate rule %s. Decorate rules must either " +
@@ -255,10 +309,12 @@ public class LineParser {
                 return new ValidationError("Missing raw query after " + RAWQUERY + " in line: " + line);
             }
 
-            String rawQuery = boostLine.substring(1).trim();
-            return new BoostInstruction(
-                    new StringRawQuery(null, rawQuery, Occur.SHOULD, false),
-                    direction, boost);
+            final String rawQueryString = boostLine.substring(1).trim();
+            try {
+                return new BoostInstruction(parseRawQuery(rawQueryString, Occur.SHOULD), direction, boost);
+            } catch (RuleParseException e) {
+                return new ValidationError(e.getMessage());
+            }
 
         } else if (querqyParserFactory == null) {
 

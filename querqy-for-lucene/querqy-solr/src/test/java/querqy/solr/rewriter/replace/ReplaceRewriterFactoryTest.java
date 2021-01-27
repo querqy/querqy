@@ -1,22 +1,37 @@
 package querqy.solr.rewriter.replace;
 
-import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
-import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
-import static querqy.solr.StandaloneSolrTestSupport.withRewriter;
-import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_RULES;
-
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
+import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.lucene.GZIPAwareResourceLoader;
+import querqy.rewrite.RewriterFactory;
+import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.solr.StandaloneSolrTestSupport;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+import static querqy.solr.StandaloneSolrTestSupport.withRewriter;
+import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.*;
+
 @SolrTestCaseJ4.SuppressSSL
 public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
+
+    private static final String FILE_NAME = "f1";
+    private final ReplaceRewriterFactory factory = new ReplaceRewriterFactory("test");
 
     @BeforeClass
     public static void beforeTests() throws Exception {
@@ -206,5 +221,27 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
         req.close();
     }
 
+    @Test
+    public void testThatDeprecatedConfigurationIsCorrectlyParsed() throws IOException {
 
+        final GZIPAwareResourceLoader resourceLoader = mock(GZIPAwareResourceLoader.class);
+
+        when(resourceLoader.openResource(FILE_NAME)).thenReturn(IOUtils.toInputStream("mobiles; ombile; mo bile => mobile\n" +
+                "cheapest smartphones => cheap smartphone", UTF_8));
+
+        NamedList<Object> configuration = new NamedList<>();
+        configuration.add(CONF_CLASS, ReplaceRewriterFactory.class.getName());
+        configuration.add(CONF_IGNORE_CASE, true);
+        configuration.add(CONF_RHS_QUERY_PARSER, WhiteSpaceQuerqyParserFactory.class.getName());
+        configuration.add(CONF_RULES, "f1");
+
+        Map<String, Object> parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
+        // no exceptions!
+        factory.configure((Map<String, Object>) parsed.get(CONF_CONFIG));
+
+        RewriterFactory rewriterFactory = factory.getRewriterFactory();
+
+        Assertions.assertThat(rewriterFactory).isInstanceOf(querqy.rewrite.contrib.ReplaceRewriterFactory.class);
+        Assertions.assertThat(factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG))).isNull();
+    }
 }

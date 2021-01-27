@@ -21,6 +21,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QueryParsing;
 import org.junit.*;
 import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
+import querqy.solr.RewriterConfigRequestBuilder.ListRewriterConfigsSolrResponse;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
@@ -37,10 +38,14 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
     final static String COLLECTION = "basic1";
 
-    /** A basic client for operations at the cloud level, default collection will be set */
+    /**
+     * A basic client for operations at the cloud level, default collection will be set
+     */
     private static CloudSolrClient CLOUD_CLIENT;
 
-    /** One client per node */
+    /**
+     * One client per node
+     */
     private static final List<HttpSolrClient> CLIENTS = new ArrayList<>(5);
 
 
@@ -85,7 +90,8 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final SolrClient randClient = getRandClient();
         randClient.deleteByQuery("*:*");
-        randClient.commit();
+        cleanupRewriterChains(randClient);
+        randClient.commit(true, true);
 
         randClient.add(Arrays.asList(
                 sdoc("id", "1", "f1", "a"),
@@ -93,8 +99,21 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                 sdoc("id", "3", "f2", "c")
         ));
 
-        randClient.commit();
+        randClient.commit(true, true);
 
+    }
+
+    public void cleanupRewriterChains(SolrClient c) throws IOException {
+        try {
+            buildDeleteRequest("chain_replace").process(c);
+            buildDeleteRequest("chain_common_rules").process(c);
+            buildDeleteRequest("conf_common_rules").process(c);
+            buildDeleteRequest("rewriter_test_save").process(c);
+            buildDeleteRequest("rewriter1").process(c);
+            buildDeleteRequest("rewriter2").process(c);
+        } catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
+            // nothing to do
+        }
     }
 
     @Test
@@ -283,7 +302,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                     .rules("sd => a").buildSaveRequest(rewriterName2).process(getRandClient())
                     .getStatus());
 
-            final RewriterConfigRequestBuilder.ListRewriterConfigsSolrResponse response = buildListRequest()
+            final ListRewriterConfigsSolrResponse response = buildListRequest()
                     .process(client);
 
             assertEquals(0, response.getStatus());
@@ -298,7 +317,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             assertThat(conf1, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
                     rewriterName1));
 
-            final Map<String, Object> conf2= (Map<String, Object>) rewriters.get(rewriterName2);
+            final Map<String, Object> conf2 = (Map<String, Object>) rewriters.get(rewriterName2);
             assertNotNull(conf2);
             assertThat(conf2, hasEntry("id", rewriterName2));
             assertThat(conf2, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
@@ -318,7 +337,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         final GetRewriterConfigSolrResponse response = buildGetRequest(null).process(getRandClient());
         assertEquals(0, response.getStatus());
-        assertEquals(0, ((HashMap<String, Object>)((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
 
     }
 
@@ -362,6 +381,35 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
         } catch (final SolrException e) {
             assertEquals(SolrException.ErrorCode.NOT_FOUND.code, e.code());
         }
+
+    }
+
+    @Test
+    public void testGetAllConfig() throws IOException, SolrServerException {
+
+        final String rewriterName = "conf_common_rules";
+        final SolrClient client = getRandClient();
+        final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
+
+        assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
+                .process(client).getStatus());
+
+        final ListRewriterConfigsSolrResponse response = buildListRequest().process(client);
+        assertEquals(0, response.getStatus());
+        Map<Object, Object> expectedResult = new HashMap<>();
+        expectedResult.put("id", rewriterName);
+        expectedResult.put("path", "/querqy/rewriter/" + rewriterName);
+        assertEquals(expectedResult, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).get(rewriterName));
+
+    }
+
+    @Test
+    public void testGetAllEmptyConfig() throws IOException, SolrServerException {
+
+        final ListRewriterConfigsSolrResponse response = buildListRequest().process(getRandClient());
+        assertEquals(0, response.getStatus());
+        assertEquals(0, ((HashMap<String, Object>) ((HashMap<String, Object>) response.getResponse().get("response")).get("rewriters")).size());
+
 
     }
 

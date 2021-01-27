@@ -10,6 +10,9 @@ import java.util.List;
  * @author René Kriegler, @renekrie
  *
  */
+
+// TODO: Methods equals & hashcode should be redefined, as they are currently only comparing clauses but not super
+//  attributes. Therefore equals is true even if occur or isGenerated differ.
 public abstract class SubQuery<P extends Node, C extends Node> extends Clause<P> {
 
 	protected final List<C> clauses = new LinkedList<>();

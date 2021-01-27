@@ -14,9 +14,14 @@ import org.assertj.core.api.Assertions;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import querqy.model.Clause;
+import querqy.model.ParametrizedRawQuery;
+import querqy.model.RawQuery;
+import querqy.model.StringRawQuery;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
@@ -32,6 +37,89 @@ public class LineParserTest {
     @After
     public void restoreDefaultLocale() {
         Locale.setDefault(locale);
+    }
+
+    @Test(expected = RuleParseException.class)
+    public void testInvalidDefinitionOfParametrizedRawQueryForMissingClosingChars() throws RuleParseException {
+        LineParser.parseRawQuery(" query %% query", Clause.Occur.SHOULD);
+    }
+
+    @Test(expected = RuleParseException.class)
+    public void testInvalidDefinitionOfParametrizedRawQueryForMissingClosingChars2() throws RuleParseException {
+        LineParser.parseRawQuery(" query %% param %% query %%", Clause.Occur.SHOULD);
+    }
+
+    @Test(expected = RuleParseException.class)
+    public void testInvalidDefinitionOfParametrizedRawQueryForEmptyQuery() throws RuleParseException {
+        LineParser.parseRawQuery("%%", Clause.Occur.SHOULD);
+    }
+
+    @Test
+    public void testRawQueryParsingFromRule() {
+        final Input input = new Input(Collections.singletonList(new Term("a".toCharArray(), 0, 1, null)), "a");
+        final WhiteSpaceQuerqyParserFactory factory = new WhiteSpaceQuerqyParserFactory();
+
+        Object result;
+
+        result = LineParser.parse("FILTER: * query", input, factory);
+        Assertions.assertThat(result).isInstanceOf(FilterInstruction.class);
+        Assertions.assertThat(result).isEqualTo(new FilterInstruction(
+                new StringRawQuery(null, "query", Clause.Occur.MUST, false)));
+
+        result = LineParser.parse("FILTER: * q %% param %% q", input, factory);
+        Assertions.assertThat(result).isInstanceOf(FilterInstruction.class);
+        Assertions.assertThat(result).isEqualTo(new FilterInstruction(
+                new ParametrizedRawQuery(null,
+                        Arrays.asList(
+                                new ParametrizedRawQuery.Part("q ", ParametrizedRawQuery.Part.Type.QUERY_PART),
+                                new ParametrizedRawQuery.Part(" param ", ParametrizedRawQuery.Part.Type.PARAMETER),
+                                new ParametrizedRawQuery.Part(" q", ParametrizedRawQuery.Part.Type.QUERY_PART)),
+                        Clause.Occur.MUST,
+                        false)));
+
+        result = LineParser.parse("UP(1.0): * q %% param %% q", input, factory);
+        Assertions.assertThat(result).isInstanceOf(BoostInstruction.class);
+        Assertions.assertThat(result).isEqualTo(new BoostInstruction(
+                new ParametrizedRawQuery(
+                        null,
+                        Arrays.asList(
+                                new ParametrizedRawQuery.Part("q ", ParametrizedRawQuery.Part.Type.QUERY_PART),
+                                new ParametrizedRawQuery.Part(" param ", ParametrizedRawQuery.Part.Type.PARAMETER),
+                                new ParametrizedRawQuery.Part(" q", ParametrizedRawQuery.Part.Type.QUERY_PART)),
+                        Clause.Occur.SHOULD,
+                        false),
+                BoostDirection.UP,
+                1.0f));
+    }
+
+    @Test
+    public void testParseRawQuery() throws RuleParseException {
+        RawQuery rawQuery;
+
+        rawQuery = LineParser.parseRawQuery("query %% param %% query2", Clause.Occur.SHOULD);
+        Assertions.assertThat(rawQuery).isInstanceOf(ParametrizedRawQuery.class);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(3);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(0).part).isEqualTo("query ");
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(1).part).isEqualTo(" param ");
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(2).part).isEqualTo(" query2");
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(0).type)
+                .isEqualTo(ParametrizedRawQuery.Part.Type.QUERY_PART);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(1).type)
+                .isEqualTo(ParametrizedRawQuery.Part.Type.PARAMETER);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts().get(2).type)
+                .isEqualTo(ParametrizedRawQuery.Part.Type.QUERY_PART);
+
+        rawQuery = LineParser.parseRawQuery("query%%param%%query2", Clause.Occur.SHOULD);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(3);
+
+        rawQuery = LineParser.parseRawQuery(" %%  %% \n\t\r %% param %%query2", Clause.Occur.SHOULD);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(5);
+
+        rawQuery = LineParser.parseRawQuery("query %% param %% query1 %% param2 %% query2", Clause.Occur.SHOULD);
+        Assertions.assertThat(((ParametrizedRawQuery) rawQuery).getParts()).hasSize(5);
+
+        rawQuery = LineParser.parseRawQuery("query query2", Clause.Occur.SHOULD);
+        Assertions.assertThat(rawQuery).isInstanceOf(StringRawQuery.class);
     }
 
     @Test
@@ -221,6 +309,48 @@ public class LineParserTest {
                 .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof BoostInstruction);
         assertTrue(((BoostInstruction) instruction).hasPlaceHolderInBoostQuery());
+    }
+    
+    @Test
+    public void testUnweightedSynonym() {
+        String line = "SYNONYM: 3$1";
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof SynonymInstruction);
+        assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
+    }
+    
+    @Test
+    public void testFallbackToUnweightedSynonym() {
+        String line = "SYNONYM(1.0): 3$1";
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof SynonymInstruction);
+        assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
+    }
+
+    @Test
+    public void testWeightedSynonym() {
+        String line = "SYNONYM(0.5): 3$1";
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof SynonymInstruction);
+        assertThat(((SynonymInstruction) instruction).getTermBoost(), is(0.5f));
+    }
+        
+    @Test
+    public void testMalformedWeightedSynonym() {
+        Object instruction = LineParser.parse("SYNONYM(): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(-): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(-0.5): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(3e): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
+        
+        instruction = LineParser.parse("SYNONYM(sausage): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        assertTrue(instruction instanceof ValidationError);
     }
 
     @SuppressWarnings("unchecked")

@@ -1,9 +1,14 @@
 package querqy.solr.rewriter.replace;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.util.NamedList;
+import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
@@ -11,10 +16,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
+import static querqy.solr.utils.ConfigUtils.ifNotNull;
+
+public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_RULES = "rules";
     public static final String CONF_RHS_QUERY_PARSER = "querqyParser";
@@ -87,5 +98,29 @@ public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter {
     @Override
     public RewriterFactory getRewriterFactory() {
         return delegate;
+    }
+
+    @Override
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
+
+        final Map<String, Object> result = new HashMap<>();
+        final Map<Object, Object> conf = new HashMap<>();
+        result.put(CONF_CONFIG, conf);
+
+        ifNotNull((String) configuration.get(CONF_RULES), rulesFile -> {
+            try {
+                final String rules = IOUtils.toString(resourceLoader.openResource(rulesFile), UTF_8);
+                conf.put(CONF_RULES, rules);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not load file: " + rulesFile + " because " + e.getMessage());
+            }
+        });
+
+        ifNotNull(configuration.get(CONF_IGNORE_CASE), v -> conf.put(CONF_IGNORE_CASE, v));
+        ifNotNull(configuration.get(CONF_RHS_QUERY_PARSER), v -> conf.put(CONF_RHS_QUERY_PARSER, v));
+        ifNotNull(configuration.get(CONF_INPUT_DELIMITER), v -> conf.put(CONF_INPUT_DELIMITER, v));
+        ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
+
+        return result;
     }
 }

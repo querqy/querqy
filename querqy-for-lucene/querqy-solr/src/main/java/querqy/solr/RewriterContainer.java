@@ -43,13 +43,20 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
     }
 
     protected abstract void init(@SuppressWarnings({"rawtypes"}) NamedList args);
+
+    /**
+     * Close hook that will be triggered on close.
+     */
     protected abstract void doClose();
+
     protected abstract void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException;
     protected abstract void deleteRewriter(final String rewriterId) throws IOException;
+
+    /**
+     * The rewriter description is used for the rest endpoints to get detailed information to the rewriter chains.
+     */
     public abstract Map<String, Object> readRewriterDefinition(String rewriterId) throws IOException;
-
-
 
     public void saveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException {

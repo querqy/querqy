@@ -2,6 +2,7 @@ package querqy.rewrite.commonrules;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -9,9 +10,11 @@ import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
+import querqy.rewrite.QuerqyTemplateEngine;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.TemplateParseException;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
@@ -26,6 +29,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     private final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
     private final String strategyParam;
     private final SelectionStrategyFactory defaultSelectionStrategyFactory;
+    private final boolean buildTermCache;
 
 
     /**
@@ -43,7 +47,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                             final Reader reader, final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
-                                            final SelectionStrategyFactory defaultSelectionStrategyFactory)
+                                            final SelectionStrategyFactory defaultSelectionStrategyFactory,
+                                            final boolean buildTermCache)
             throws IOException {
 
         super(rewriterId);
@@ -54,9 +59,14 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
         this.defaultSelectionStrategyFactory = Objects.requireNonNull(defaultSelectionStrategyFactory);
 
+        this.buildTermCache = buildTermCache;
+
         try {
-            rules = new SimpleCommonRulesParser(reader, querqyParserFactory, ignoreCase).parse();
-        } catch (final RuleParseException e) {
+            final QuerqyTemplateEngine querqyTemplateEngine = new QuerqyTemplateEngine(reader);
+            rules = new SimpleCommonRulesParser(querqyTemplateEngine.renderedRules.reader, querqyParserFactory, ignoreCase)
+                    .setLineNumberMapper(querqyTemplateEngine.renderedRules.lineNumberMapping::get)
+                    .parse();
+        } catch (final RuleParseException | TemplateParseException e) {
             throw new IOException(e);
         } finally {
             try {
@@ -86,8 +96,12 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public Set<Term> getGenerableTerms() {
-        return rules.getGenerableTerms();
+    public Set<Term> getCacheableGenerableTerms() {
+        if (buildTermCache) {
+            return rules.getGenerableTerms();
+        }
+
+        return Collections.emptySet();
     }
 
     RulesCollection getRules() {

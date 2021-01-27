@@ -3,18 +3,16 @@ package querqy.rewrite.commonrules;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.InputSequenceElement;
 import querqy.model.Query;
-import querqy.model.builder.QueryBuilder;
+import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
@@ -87,14 +85,14 @@ public abstract class AbstractCommonRulesTest {
         return new Rule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
     }
 
-    public QueryBuilder rewrite(QueryBuilder queryBuilder, CommonRulesRewriter rewriter) {
+    public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter) {
         return rewrite(queryBuilder, rewriter, new EmptySearchEngineRequestAdapter());
     }
 
-    public QueryBuilder rewrite(QueryBuilder queryBuilder, CommonRulesRewriter rewriter,
+    public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter,
                          SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        ExpandedQuery query = new ExpandedQuery(queryBuilder.build());
-        return QueryBuilder.fromQuery((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getUserQuery());
+        ExpandedQuery query = new ExpandedQuery(queryBuilder.buildQuerqyQuery());
+        return new BooleanQueryBuilder((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getUserQuery());
     }
 
     public static List<String> list(String... items) {

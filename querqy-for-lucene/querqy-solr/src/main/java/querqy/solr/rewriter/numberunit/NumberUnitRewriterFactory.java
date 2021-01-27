@@ -1,25 +1,32 @@
 package querqy.solr.rewriter.numberunit;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.solr.common.util.NamedList;
+import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.contrib.numberunit.model.FieldDefinition;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
 import querqy.rewrite.contrib.numberunit.model.UnitDefinition;
 import querqy.solr.SolrRewriterFactoryAdapter;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.rewriter.numberunit.NumberUnitConfigObject.NumberUnitDefinitionObject;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.utils.JsonUtil;
 
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
+import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
+import static querqy.solr.utils.ConfigUtils.ifNotNull;
+
+public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_PROPERTY = "config";
 
@@ -211,4 +218,25 @@ public class NumberUnitRewriterFactory extends SolrRewriterFactoryAdapter {
     public RewriterFactory getRewriterFactory() {
         return delegate;
     }
+
+    @Override
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
+
+        final Map<String, Object> result = new HashMap<>();
+        final Map<String, Object> conf = new HashMap<>();
+        result.put(CONF_CONFIG, conf);
+
+        ifNotNull((String) configuration.get(CONF_PROPERTY), configJsonFile -> {
+            try {
+                conf.put(CONF_CONFIG, IOUtils.toString(resourceLoader.openResource(configJsonFile), UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException("Could not load file: " + configJsonFile + " because " + e.getMessage());
+            }
+        });
+
+        ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
+
+        return result;
+    }
+
 }

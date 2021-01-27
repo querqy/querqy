@@ -27,9 +27,4 @@ public class LuceneQueries {
         this.areQueriesInterdependent = areQueriesInterdependent;
         this.isMainQueryBoosted = isMainQueryBoosted;
     }
-
-    public LuceneQueries(final Query mainQuery, final List<Query> filterQueries, final Query userQuery,
-                         final boolean areQueriesInterdependent, final boolean isMainQueryBoosted) {
-        this(mainQuery, filterQueries, null, userQuery, null, areQueriesInterdependent, isMainQueryBoosted);
-    }
 }

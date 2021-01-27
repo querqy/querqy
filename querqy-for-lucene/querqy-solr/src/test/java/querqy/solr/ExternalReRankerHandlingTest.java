@@ -18,6 +18,12 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
 
+    // org.apache.lucene.search.QueryRescorer#explain adds re-scorer classname in description
+    private static final String ASSERT_NO_RERANK_APPLIED = "//lst[@name='explain']/str[not(contains(.,'ReRank'))]";
+    private static final String ASSERT_SOLR_RERANK_APPLIED = "//lst[@name='explain']/str[contains(.,'solr.search.ReRankQParserPlugin$ReRankQueryRescorer')]";
+    private static final String ASSERT_NO_QUERQY_RERANK_APPLIED = "//lst[@name='explain']/str[not(contains(.,'QuerqyReRankQuery'))]";
+    private static final String ASSERT_QUERQY_RERANK_APPLIED = "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]";
+
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig.xml", "schema.xml");
@@ -44,7 +50,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "defType", "querqy",
                 "tie", "1",
                 "sort", "score DESC, id ASC",
-                PARAM_REWRITERS, "common_rules");
+                PARAM_REWRITERS, "common_rules",
+                "debug", "true");
 
         // same as above but with Solr rq/rqq reranking
         SolrQueryRequest reqReRanking = req("q", q,
@@ -54,14 +61,16 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "sort", "score DESC, id ASC",
                 "rq", "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
                 "rqq", "f1:a",
-                PARAM_REWRITERS, "common_rules");
+                PARAM_REWRITERS, "common_rules",
+                "debug", "true");
 
         // doc 2 gets a better as query matches in two fields and tie = 1
         assertQ("Result should be sorted by doc with more matches",
                 reqWithoutReRanking,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='2']",
-                "//doc[2]/str[@name='id'][text()='1']");
+                "//doc[2]/str[@name='id'][text()='1']",
+                ASSERT_NO_RERANK_APPLIED);
 
 
         // doc 1 wins as it is reranked by rqq=a
@@ -69,7 +78,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 reqReRanking,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='1']",
-                "//doc[2]/str[@name='id'][text()='2']");
+                "//doc[2]/str[@name='id'][text()='2']",
+                ASSERT_SOLR_RERANK_APPLIED);
 
         reqWithoutReRanking.close();
         reqReRanking.close();
@@ -81,7 +91,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 d("id", "2", "f1", "term b", "f2", "term"));
         String q = "term";
 
-        // same as with Solr's rerank processing, doc 1 wins despite doc2 having more matches
+        // same as with Solr's rerank parameter processing, doc 1 comes first despite doc2 having more matches
         SolrQueryRequest query = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 "defType", "querqy",
@@ -89,14 +99,16 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "sort", "score DESC, id ASC",
                 QRQ, "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
                 "rqq", "f1:a",
-                PARAM_REWRITERS, "common_rules");
+                PARAM_REWRITERS, "common_rules",
+                "debug", "true");
 
         // doc 1 wins as it is reranked by rqq=a
         assertQ("Result should be sorted with rerank query",
                 query,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='1']",
-                "//doc[2]/str[@name='id'][text()='2']");
+                "//doc[2]/str[@name='id'][text()='2']",
+                ASSERT_SOLR_RERANK_APPLIED);
 
         query.close();
     }
@@ -130,7 +142,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 PARAM_REWRITERS, "common_rules");
 
         // same as above but with Querqy rq/rqq instead
-        SolrQueryRequest reqWithBoostOnMainQueryAndQuerqyReRanking = req("q", q,
+        SolrQueryRequest reqWithBoostOnMainQueryAndQuerqyReRankParameter = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
                 "tie", "1",
@@ -141,7 +153,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 PARAM_REWRITERS, "common_rules");
 
         // boost added as QuerqyReRankQuery
-        SolrQueryRequest reqWithBoostAndRerankMethodAndNoReRanking = req("q", q,
+        SolrQueryRequest reqWithBoostAndRerankMethodAndNoReRankParameter = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
                 "tie", "1",
@@ -152,7 +164,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 PARAM_REWRITERS, "common_rules");
 
         // same as above but with Solr rq/rqq
-        SolrQueryRequest reqWithBoostAndRerankMethodAndSolrReRanking = req("q", q,
+        SolrQueryRequest reqWithBoostAndRerankMethodAndSolrReRankingParameter = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
                 "tie", "1",
@@ -165,7 +177,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 PARAM_REWRITERS, "common_rules");
 
         // same as above but with Querqy rq/rqq
-        SolrQueryRequest reqWithBoostAndRerankMethodAndQuerqyReRanking = req("q", q,
+        SolrQueryRequest reqWithBoostAndRerankMethodAndQuerqyReRankParameter = req("q", q,
                 DisMaxParams.QF, "f1 f2",
                 QueryParsing.OP, "OR",
                 "tie", "1",
@@ -177,55 +189,57 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "rqq", "f2:x",
                 PARAM_REWRITERS, "common_rules");
 
-        assertQ("Result should be sorted by boosted term",
+        assertQ("Result should be sorted by boosted term by an additional SHOULD clause on the main query, not by reranking",
                 reqWithBoostOnMainQueryAndNoSolrReRanking,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='2']",
                 "//doc[2]/str[@name='id'][text()='1']",
-                "//lst[@name='explain']/str[not(contains(.,'QuerqyReRankQuery'))]");
+                ASSERT_NO_RERANK_APPLIED);
 
         assertQ("Result should be sorted by external Solr reranking",
                 reqWithBoostOnMainQueryAndSolrReRanking,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='1']",
                 "//doc[2]/str[@name='id'][text()='2']",
-                "//lst[@name='explain']/str[not(contains(.,'QuerqyReRankQuery'))]");
+                ASSERT_SOLR_RERANK_APPLIED,
+                ASSERT_NO_QUERQY_RERANK_APPLIED);
 
-        assertQ("Result should be sorted by boosted term",
-                reqWithBoostOnMainQueryAndQuerqyReRanking,
+        assertQ("Result should be sorted by boosted term by an additional SHOULD clause on the main query, rerank parameter being ignored",
+                reqWithBoostOnMainQueryAndQuerqyReRankParameter,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='2']",
                 "//doc[2]/str[@name='id'][text()='1']",
-                "//lst[@name='explain']/str[not(contains(.,'QuerqyReRankQuery'))]");
+                ASSERT_NO_RERANK_APPLIED);
 
-        assertQ("Result should be sorted by boosted term",
-                reqWithBoostAndRerankMethodAndNoReRanking,
+        assertQ("Result should be sorted by boosted term by a Querqy rerank query",
+                reqWithBoostAndRerankMethodAndNoReRankParameter,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='2']",
                 "//doc[2]/str[@name='id'][text()='1']",
-                "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]");
+                ASSERT_QUERQY_RERANK_APPLIED);
 
         assertQ("Result should be sorted by external Solr reranking",
-                reqWithBoostAndRerankMethodAndSolrReRanking,
+                reqWithBoostAndRerankMethodAndSolrReRankingParameter,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='1']",
                 "//doc[2]/str[@name='id'][text()='2']",
-                "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]");
+                ASSERT_SOLR_RERANK_APPLIED,
+                ASSERT_NO_QUERQY_RERANK_APPLIED);
 
-        assertQ("Result should be sorted by boosted term",
-                reqWithBoostAndRerankMethodAndQuerqyReRanking,
+        assertQ("Result should be sorted by boosted term by external Querqy reranking",
+                reqWithBoostAndRerankMethodAndQuerqyReRankParameter,
                 "//result[@name='response'][@numFound='2']",
                 "//doc[1]/str[@name='id'][text()='2']",
                 "//doc[2]/str[@name='id'][text()='1']",
-                "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]");
+                ASSERT_QUERQY_RERANK_APPLIED);
 
         reqWithBoostOnMainQueryAndNoSolrReRanking.close();
         reqWithBoostOnMainQueryAndSolrReRanking.close();
-        reqWithBoostOnMainQueryAndQuerqyReRanking.close();
+        reqWithBoostOnMainQueryAndQuerqyReRankParameter.close();
 
-        reqWithBoostAndRerankMethodAndNoReRanking.close();
-        reqWithBoostAndRerankMethodAndSolrReRanking.close();
-        reqWithBoostAndRerankMethodAndQuerqyReRanking.close();
+        reqWithBoostAndRerankMethodAndNoReRankParameter.close();
+        reqWithBoostAndRerankMethodAndSolrReRankingParameter.close();
+        reqWithBoostAndRerankMethodAndQuerqyReRankParameter.close();
     }
 
     private void index(String[]... docs) {
@@ -238,4 +252,6 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
     private static String[] d(String... strings) {
         return strings;
     }
+
+
 }

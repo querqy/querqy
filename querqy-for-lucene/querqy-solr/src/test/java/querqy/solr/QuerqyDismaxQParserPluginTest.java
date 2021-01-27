@@ -11,6 +11,7 @@ import org.apache.lucene.search.Query;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.WrappedQuery;
@@ -18,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.infologging.InfoLogging;
+import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -26,11 +28,9 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.solr.rewriter.ClassicConfigurationParser;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SolrTestCaseJ4.SuppressSSL
 public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
@@ -68,20 +68,20 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         clearIndex();
         index();
     }
-   
+
     @Test
     public void testLocalParams() {
         SolrQueryRequest req = req("q", "{!querqy qf='f1 f2'}a b");
-    
+
         assertQ("local params don't work",
              req,"//result[@name='response' and @numFound='4']");
 
         req.close();
     }
-   
+
     @Test
     public void testThatFilterRulesFromCollationDontEndUpInMainQuery() {
-        
+
         SolrQueryRequest req0 = req("q", "spellcheck test",
                 DisMaxParams.QF, "f1 f2",
                 DisMaxParams.MM, "2",
@@ -97,7 +97,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 );
 
         req0.close();
-        
+
         SolrQueryRequest req = req("q", "spellhceck test",
                 DisMaxParams.QF, "f1 f2",
                 DisMaxParams.MM, "2",
@@ -109,7 +109,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 "debugQuery", "true",
                 PARAM_REWRITERS, "common_rules"
                 );
-        
+
         assertQ("Combination with collations doesn't work",
                 req,
                 "//result[@name='response' and @numFound='0']",
@@ -534,7 +534,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         req.close();
     }
-   
+
     @Test
     public void testThatGeneratedQueryFieldBoostsAreApplied() {
         SolrQueryRequest req = req("q", "a",
@@ -551,7 +551,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         );
         req.close();
     }
-   
+
     @Test
     public void testThatGeneratedQueryFieldsAreApplied() {
         SolrQueryRequest req = req("q", "a",
@@ -912,7 +912,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         return bq;
     }
 
-    public static class MatchAllRewriter extends SolrRewriterFactoryAdapter {
+    public static class MatchAllRewriter extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
         public MatchAllRewriter(final String rewriterId) {
             super(rewriterId);
@@ -940,11 +940,10 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 }
 
                 @Override
-                public Set<Term> getGenerableTerms() {
+                public Set<Term> getCacheableGenerableTerms() {
                     return Collections.emptySet();
                 }
             };
         }
-
     }
 }
