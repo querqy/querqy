@@ -1,5 +1,7 @@
 package querqy.solr.it;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -7,8 +9,9 @@ import java.util.stream.Collectors;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.SolrClientUtils;
 import org.testcontainers.containers.SolrContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -16,26 +19,28 @@ public class QuerqySolrContainer extends SolrContainer {
 
     private static final String PROP_PROJECT_BUILD_FINALNAME = "project.build.finalName";
     private static final String PROP_PROJECT_BUILD_DIRECTORY = "project.build.directory";
-    private static final String PROP_QUERQY_SOLR_TEST_IMAGES = "solr.test.version";
+    private static final String PROP_QUERQY_SOLR_TEST_IMAGES = "solr.test.versions";
 
-    public static final String QUERQY_IT_CONFIGSET = "querqy-it";
-    public static final String QUERQY_IT_COLLECTION_NAME = "querqy";
+    // for the sake of simplicity we always create the same collection
+    public static final String QUERQY_IT_CONFIGSET = "chorus";
+    public static final String QUERQY_IT_COLLECTION_NAME = "chorus";
 
     /**
      * Returns the image names that have been configured to test with.
      */
     public static Collection<DockerImageName> getSolrTestVersions() {
         return Arrays.asList(System.getProperty(QuerqySolrContainer.PROP_QUERQY_SOLR_TEST_IMAGES).split(",")).stream()
-            .map(image -> DockerImageName.parse(image))
-            .collect(Collectors.toList());
+                .map(image -> DockerImageName.parse(image)).collect(Collectors.toList());
     }
 
+    private final int numShards;
 
     /**
      * Sets up a Solr Docker container running the current querqy version
      */
-    public QuerqySolrContainer(DockerImageName image) {
+    public QuerqySolrContainer(DockerImageName image, int numShards) {
         super(image);
+        this.numShards = numShards;
 
         checkMavenFailsafeSetup();
 
@@ -45,7 +50,8 @@ public class QuerqySolrContainer extends SolrContainer {
                 System.getProperty(PROP_PROJECT_BUILD_DIRECTORY), QUERQY_IT_CONFIGSET);
 
         // link querqy binary into container
-        addFileSystemBind(querqyBinaryPath, "/opt/solr/server/solr-webapp/webapp/WEB-INF/lib/querqy.jar", BindMode.READ_ONLY);
+        addFileSystemBind(querqyBinaryPath, "/opt/solr/server/solr-webapp/webapp/WEB-INF/lib/querqy.jar",
+                BindMode.READ_ONLY);
 
         // link conf directory into container
         addFileSystemBind(querqyConfigurationPath,
@@ -79,10 +85,40 @@ public class QuerqySolrContainer extends SolrContainer {
             }
 
             // create collection with said configset
-            SolrClientUtils.createCollection(getContainerIpAddress(), getSolrPort(), QUERQY_IT_COLLECTION_NAME,
-                    QUERQY_IT_CONFIGSET);
+            QuerqySolrClientUtils.createCollection(this, QUERQY_IT_COLLECTION_NAME, QUERQY_IT_CONFIGSET, numShards);
+
+            // import product data set
+            QuerqySolrClientUtils.importChorusDataset(this, QUERQY_IT_COLLECTION_NAME);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Returns a http url builder pointing to this Solr instance
+     */
+    public String getSolrUrl() {
+        return String.format("http://%s:%s/solr", getContainerIpAddress(), getSolrPort());
+    }
+
+    /**
+     * returns a new SolrClient usable by tests
+     */
+    public SolrClient newSolrClient() {
+        return new Http2SolrClient.Builder(getSolrUrl()).build();
+    }
+
+    public Path getTestDataPath() {
+        return Paths.get(String.format("%s/integration-test-data/icecat-products-w_price-19k-20201127.json",
+                System.getProperty(PROP_PROJECT_BUILD_DIRECTORY)));
+    }
+
+    /**
+     * returns the number of shards in the test collection.
+     */
+    public int getNumShards() {
+        return this.numShards;
+    }
+
 }

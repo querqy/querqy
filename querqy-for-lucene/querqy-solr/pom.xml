@@ -100,7 +100,6 @@
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -134,6 +133,37 @@
                 </executions>
             </plugin>
 
+            <!-- Downloads and unzips test product data for integration-tests -->
+            <!--
+                This is temporarily disabled until the file below is recompressed
+                and re-uploaded. It's currently uncompressed and treated as corrupt
+                by this plugin.
+
+                Download manually and place the json in ${project.build.directory}/integration-test-data
+            -->
+            <!--
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.6.1</version>
+                <executions>
+                    <execution>
+                        <id>download-test-product-data</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://querqy.org/datasets/icecat/icecat-products-w_price-19k-20201127.tar.gz</url>
+                            <unpack>true</unpack>
+                            <outputDirectory>${project.build.directory}/integration-test-data</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            -->
+
+            <!-- Execute Docker integration tests -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${maven-failsafe-plugin.version}</version>
@@ -146,7 +176,7 @@
                         <project.build.directory>${project.build.directory}</project.build.directory>
                         <project.build.finalName>${project.build.finalName}</project.build.finalName>
                         <project.version>${project.version}</project.version>
-                        <solr.test.version>solr:8.1,solr:8.2,solr:8.3,solr:8.4,solr:8.5,solr:8.6,solr:8.7</solr.test.version>
+                        <solr.test.versions>solr:8.7,solr:8.6,solr:8.5,solr:8.4,solr:8.3,solr:8.2,solr:8.1</solr.test.versions> 
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
