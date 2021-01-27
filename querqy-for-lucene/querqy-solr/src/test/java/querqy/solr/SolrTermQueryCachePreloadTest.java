@@ -34,8 +34,8 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                "cat", "CACHE",
                "stats", "true"
                );
-        // the cache is prefilled asynchronously - try 3 times to see the cache before giving up
-        int attempts = 20;
+        // the cache is prefilled asynchronously - try 10 times to see the cache before giving up
+        int attempts = 10;
         try {
 
             do {
@@ -43,24 +43,20 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                 try {
                     assertQ("Missing querqy cache",
                        req,
-                       "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache'][text()='1']");
+                            "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']/lst[@name='stats']/" +
+                            "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
                     attempts = 0;
-                }  catch (Exception e) {
+                }  catch (final RuntimeException e) {
                     if (attempts <= 1) {
                         throw e;
                     }
                     attempts--;
                     synchronized(this) {
-                        wait(100L);
+                        wait(200L);
                     }
                 }
             } while (attempts > 0);
 
-             // only one generated term in one field is preloaded for firstSearcher:
-            assertQ("Querqy cache not prefilled",
-                     req,
-                    "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                            + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
         } finally {
             req.close();
         }
@@ -130,7 +126,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         );
 
         // the cache is prefilled asynchronously - try 3 times to see the cache update before giving up
-        attempts = 20;
+        attempts = 10;
         try {
 
             do {
@@ -143,13 +139,13 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                                     "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='4']");
                     attempts = 0;
 
-                }  catch (Exception e) {
+                }  catch (final RuntimeException e) {
                     if (attempts <= 1) {
                         throw e;
                     }
                     attempts--;
                     synchronized(this) {
-                        wait(100L);
+                        wait(200L);
                     }
                 }
             } while (attempts > 0);
