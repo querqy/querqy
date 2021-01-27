@@ -1,6 +1,5 @@
 package querqy.solr;
 
-import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.hamcrest.MatcherAssert;
@@ -33,13 +32,11 @@ public class ClassicRewriteChainLoaderInitTest {
         MatcherAssert.assertThat(testee.getRewriterRequestHandler(), Matchers.is("/my/crazy/endpoint"));
     }
     
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldNotConfigureEmptyRewriterRequestHandler() {
         NamedList<String> args = new NamedList<>();
         args.add("rewriterRequestHandler", "");
         testee.init(args);
-
-        MatcherAssert.assertThat(testee.getRewriterRequestHandler(), Matchers.is(QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME));
     }
 
 }

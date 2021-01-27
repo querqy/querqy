@@ -1,5 +1,7 @@
 package querqy.solr.utils;
 
+import org.apache.solr.common.util.NamedList;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -75,5 +77,10 @@ public interface ConfigUtils {
         if (value != null) {
             supplier.accept(value);
         }
+    }
+
+    static <T> T get(final NamedList<?> list, final String key, final T defaultValue) {
+        final Object value = list.get(key);
+        return value == null ? defaultValue : (T) value;
     }
 }

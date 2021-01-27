@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.solr.rewriter.ClassicConfigurationParser;
+import querqy.solr.utils.ConfigUtils;
 import querqy.solr.utils.JsonUtil;
 
 import java.util.HashSet;
@@ -19,32 +20,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Lists.newArrayList;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singleton;
 import static querqy.solr.QuerqyQParserPlugin.CONF_REWRITER_REQUEST_HANDLER;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.SAVE;
 import static querqy.solr.QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
 import static querqy.solr.QuerqyRewriterRequestHandler.PARAM_ACTION;
 
+@Deprecated
 public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TermQueryCachePreloader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClassicRewriteChainLoader.class);
 
     private String rewriterRequestHandlerName;
 
     public ClassicRewriteChainLoader(final SolrCore core) {
         super(core);
+        LOG.warn("You are using a temporary and deprecated solution to load rewriters. Please migrate to the rewriter " +
+                "API soon");
     }
 
     @Override
     public void init(final NamedList args) {
         super.init(args);
-
-        final String rewriteHandlerName = (String) getArgs().get(CONF_REWRITER_REQUEST_HANDLER);
-        rewriterRequestHandlerName = !isNullOrEmpty(rewriteHandlerName) ? rewriteHandlerName : DEFAULT_HANDLER_NAME;
+        final String name = ConfigUtils.get(getArgs(), CONF_REWRITER_REQUEST_HANDLER, DEFAULT_HANDLER_NAME).trim();
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException(CONF_REWRITER_REQUEST_HANDLER + " cannot be empty");
+        }
+        rewriterRequestHandlerName = name;
     }
 
     @Override
@@ -54,7 +57,6 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
         }
     }
 
-    @VisibleForTesting
     String getRewriterRequestHandler() {
         return this.rewriterRequestHandlerName;
     }
@@ -65,7 +67,8 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
         if (chainConfig != null) {
 
             final GZIPAwareResourceLoader resourceLoader = new GZIPAwareResourceLoader(core.getResourceLoader());
-            final QuerqyRewriterRequestHandler requestHandler = (QuerqyRewriterRequestHandler) core.getRequestHandler(rewriterRequestHandlerName);
+            final QuerqyRewriterRequestHandler requestHandler = (QuerqyRewriterRequestHandler) core
+                    .getRequestHandler(rewriterRequestHandlerName);
 
             @SuppressWarnings("unchecked") final List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
             if (rewriterConfigs != null) {
@@ -95,21 +98,20 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
 
                         final SolrQueryRequestBase req = new SolrQueryRequestBase(core, params) {
                         };
-                        req.setContentStreams(newArrayList(new ContentStreamBase.StringStream(JsonUtil.toJson(jsonBody), UTF_8.name())));
+                        req.setContentStreams(singleton(new ContentStreamBase.StringStream(JsonUtil.toJson(jsonBody),
+                                UTF_8.name())));
 
                         final SolrQueryResponse response = new SolrQueryResponse();
                         requestHandler.getSubHandler(id).handleRequest(req, response);
-                        response.toString();
                         if (response.getException() != null) {
                             throw new IllegalStateException("Could not upload rewriter " + id, response.getException());
                         }
-                    } catch (RuntimeException e) {
+                    } catch (final RuntimeException e) {
                         LOG.error("Could not parse rewrite entry: {}", config, e);
                         throw e;
                     }
                 }
             }
         }
-
     }
 }

@@ -15,9 +15,11 @@ import static querqy.solr.utils.ConfigUtils.ifNotNull;
  * By implementing this interface, a {@link SolrRewriterFactoryAdapter} can also be used in the 'old' / backwards
  * compatible rewriter configuration parsing (solrconfig.xml configuration instead of the REST rules uploading).
  */
+@Deprecated
 public interface ClassicConfigurationParser {
 
-    default Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
+    default Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration,
+                                                                       final ResourceLoader resourceLoader) {
         final Map<String, Object> result = new HashMap<>();
         if (configuration != null) {
             result.put(CONF_CONFIG, configuration.asShallowMap(true));

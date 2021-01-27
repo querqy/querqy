@@ -71,8 +71,9 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
 
         // This element is not allowed any more here and must be removed
         if (args.get("rewriters") != null) {
-            throw new IllegalArgumentException("'rewriters' configuration is not allowed anymore in the query parser configuration. " +
-                    "You have to move it to a Querqy listener or change the rewriter deployment. See upgrade info.");
+            throw new IllegalArgumentException("'rewriters' configuration is no longer allowed in the query parser " +
+                    "configuration. You can move the config to a " + ClassicRewriteChainLoader.class + ". This option" +
+                    " will be removed in the near future and you will have to use the rewriter API. See upgrade info.");
         }
 
         rewriterRequestHandlerName = name != null ? name : QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
@@ -276,7 +277,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
         if (!(requestHandler instanceof QuerqyRewriterRequestHandler)) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-                    rewriterRequestHandlerName + " is not a " + QuerqyRewriterRequestHandler.class);
+                    rewriterRequestHandlerName + " is not a " + QuerqyRewriterRequestHandler.class.getName());
         }
 
         return (QuerqyRewriterRequestHandler) requestHandler;
