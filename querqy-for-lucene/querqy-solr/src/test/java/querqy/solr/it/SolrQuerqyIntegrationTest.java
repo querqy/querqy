@@ -13,6 +13,7 @@ import org.apache.solr.client.solrj.request.SolrPing;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -62,7 +63,8 @@ public class SolrQuerqyIntegrationTest {
         // querqy rules get applied
         ModifiableSolrParams params = new ModifiableSolrParams();
         params.set(CommonParams.Q, "laptop");
-        params.set(CommonParams.QT, "querqy");
+        params.set("defType", "querqy");
+        params.set(DisMaxParams.QF, "name title product_type short_description ean search_attributes");
         QueryResponse query = client.query(QuerqySolrContainer.QUERQY_IT_COLLECTION_NAME, params);
         MatcherAssert.assertThat(query.getResults().getNumFound(), Matchers.is(42L));
     }

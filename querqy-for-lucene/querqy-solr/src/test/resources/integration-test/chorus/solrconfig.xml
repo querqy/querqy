@@ -97,7 +97,13 @@
   the legacy qt=querqy parameter we need to change to what's below.
   <requestHandler name="/select" class="solr.SearchHandler">
   -->
-  <requestHandler name="search" class="solr.SearchHandler" default="true">
+  <requestHandler name="/select" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="indent">true</str>
+    </lst>
+  </requestHandler>
+  <requestHandler name="search" class="solr.SearchHandler">
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <str name="indent">true</str>
