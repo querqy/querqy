@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -70,12 +69,12 @@ public class LineParserTest {
 
         Object result;
 
-        result = LineParser.parse("FILTER: * query", input, factory);
+        result = LineParser.parse("FILTER: * query", input, null, factory);
         Assertions.assertThat(result).isInstanceOf(FilterInstruction.class);
         Assertions.assertThat(result).isEqualTo(new FilterInstruction(
                 new StringRawQuery(null, "query", Clause.Occur.MUST, false)));
 
-        result = LineParser.parse("FILTER: * q %% param %% q", input, factory);
+        result = LineParser.parse("FILTER: * q %% param %% q", input, null, factory);
         Assertions.assertThat(result).isInstanceOf(FilterInstruction.class);
         Assertions.assertThat(result).isEqualTo(new FilterInstruction(
                 new ParametrizedRawQuery(null,
@@ -86,7 +85,7 @@ public class LineParserTest {
                         Clause.Occur.MUST,
                         false)));
 
-        result = LineParser.parse("UP(1.0): * q %% param %% q", input, factory);
+        result = LineParser.parse("UP(1.0): * q %% param %% q", input, null, factory);
         Assertions.assertThat(result).isInstanceOf(BoostInstruction.class);
         Assertions.assertThat(result).isEqualTo(new BoostInstruction(
                 new ParametrizedRawQuery(
@@ -346,7 +345,8 @@ public class LineParserTest {
     @Test
     public void testUnweightedSynonym() {
         String line = "SYNONYM: 3$1";
-        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
         assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
     }
@@ -354,7 +354,8 @@ public class LineParserTest {
     @Test
     public void testFallbackToUnweightedSynonym() {
         String line = "SYNONYM(1.0): 3$1";
-        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
         assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
     }
@@ -362,26 +363,32 @@ public class LineParserTest {
     @Test
     public void testWeightedSynonym() {
         String line = "SYNONYM(0.5): 3$1";
-        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        final Object instruction = LineParser.parse(line, new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
         assertThat(((SynonymInstruction) instruction).getTermBoost(), is(0.5f));
     }
         
     @Test
     public void testMalformedWeightedSynonym() {
-        Object instruction = LineParser.parse("SYNONYM(): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        Object instruction = LineParser.parse("SYNONYM(): 3$1", new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(-): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(-): 3$1", new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(-0.5): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(-0.5): 3$1", new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(3e): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(3e): 3$1", new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(sausage): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(sausage): 3$1", new Input(null, "test"), null,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
     }
 

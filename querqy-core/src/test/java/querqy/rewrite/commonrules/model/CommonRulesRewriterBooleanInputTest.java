@@ -3,7 +3,6 @@ package querqy.rewrite.commonrules.model;
 import org.junit.Test;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
-import querqy.model.builder.QueryBuilder;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
@@ -11,7 +10,7 @@ import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static querqy.model.builder.QueryBuilder.query;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 
 public class CommonRulesRewriterBooleanInputTest extends AbstractCommonRulesTest {
 
@@ -21,9 +20,9 @@ public class CommonRulesRewriterBooleanInputTest extends AbstractCommonRulesTest
         booleanInput(literals, filter("f"));
 
         CommonRulesRewriter rewriter = rewriter(literals);
-        QueryBuilder q = query("a", "b", "c");
 
-        ExpandedQuery expandedQuery = rewriter.rewrite(new ExpandedQuery(q.build()), new EmptySearchEngineRequestAdapter());
+        ExpandedQuery expandedQuery = rewriter.rewrite(new ExpandedQuery(bq("a", "b", "c").buildQuerqyQuery()),
+                new EmptySearchEngineRequestAdapter());
 
         assertThat(expandedQuery.getFilterQueries()).isNotNull();
         assertThat(expandedQuery.getFilterQueries()).hasSize(1);
@@ -41,31 +40,31 @@ public class CommonRulesRewriterBooleanInputTest extends AbstractCommonRulesTest
         ExpandedQuery expandedQuery;
 
         expandedQuery= rewriter.rewrite(
-                new ExpandedQuery(query("a", "b").build()), new EmptySearchEngineRequestAdapter());
+                new ExpandedQuery(bq("a", "b").buildQuerqyQuery()), new EmptySearchEngineRequestAdapter());
 
         assertThat(expandedQuery.getFilterQueries()).isNotNull();
         assertThat(expandedQuery.getFilterQueries()).hasSize(1);
 
         expandedQuery= rewriter.rewrite(
-                new ExpandedQuery(query("a", "b", "c").build()), new EmptySearchEngineRequestAdapter());
+                new ExpandedQuery(bq("a", "b", "c").buildQuerqyQuery()), new EmptySearchEngineRequestAdapter());
 
         assertThat(expandedQuery.getFilterQueries()).isNotNull();
         assertThat(expandedQuery.getFilterQueries()).hasSize(2);
 
         expandedQuery= rewriter.rewrite(
-                new ExpandedQuery(query("b", "c").build()), new EmptySearchEngineRequestAdapter());
+                new ExpandedQuery(bq("b", "c").buildQuerqyQuery()), new EmptySearchEngineRequestAdapter());
 
         assertThat(expandedQuery.getFilterQueries()).isNotNull();
         assertThat(expandedQuery.getFilterQueries()).hasSize(1);
 
         expandedQuery= rewriter.rewrite(
-                new ExpandedQuery(query("b", "c", "d").build()), new EmptySearchEngineRequestAdapter());
+                new ExpandedQuery(bq("b", "c", "d").buildQuerqyQuery()), new EmptySearchEngineRequestAdapter());
 
         assertThat(expandedQuery.getFilterQueries()).isNotNull();
         assertThat(expandedQuery.getFilterQueries()).hasSize(2);
 
         expandedQuery= rewriter.rewrite(
-                new ExpandedQuery(query("a", "b", "c", "d").build()), new EmptySearchEngineRequestAdapter());
+                new ExpandedQuery(bq("a", "b", "c", "d").buildQuerqyQuery()), new EmptySearchEngineRequestAdapter());
 
         assertThat(expandedQuery.getFilterQueries()).isNotNull();
         assertThat(expandedQuery.getFilterQueries()).hasSize(3);

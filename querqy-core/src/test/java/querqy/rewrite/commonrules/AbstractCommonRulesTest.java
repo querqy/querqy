@@ -1,10 +1,11 @@
 package querqy.rewrite.commonrules;
 
 import static org.mockito.Mockito.mock;
-import static querqy.model.builder.QueryBuilder.query;
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,7 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public FilterInstruction filter(String... terms) {
-        return new FilterInstruction(query(terms).build());
+        return new FilterInstruction(bq(terms).build());
     }
 
     public Input input(String... terms) {
