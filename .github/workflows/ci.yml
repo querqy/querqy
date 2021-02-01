@@ -33,9 +33,3 @@ jobs:
       run: mvn install --file pom.xml
     - name: Dependecy Analysis
       run: mvn dependency:tree --file pom.xml -Dverbose
-
-    # Run integration tests in one jdk only
-    - name: Integration Tests
-      if: matrix.jdk == '1.8'
-      run: mvn verify -DskipITs=false --file pom.xml
-
