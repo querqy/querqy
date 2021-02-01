@@ -19,6 +19,7 @@ public class QuerqyJsonQParser extends QuerqyDismaxQParser {
 
     private static final String FIELD_QUERY = "query";
     private static final String FIELD_TYPE = "type";
+    private static final String FIELD_DEFAULT_TYPE = "defType";
 
     public QuerqyJsonQParser(final String qstr, final SolrParams localParams, final SolrParams params,
                              final SolrQueryRequest req, final QuerqyParser querqyParser,
@@ -27,20 +28,43 @@ public class QuerqyJsonQParser extends QuerqyDismaxQParser {
         super(qstr, localParams, params, req, querqyParser, rewriteChain, infoLogging, termQueryCache);
     }
 
+    public String getQueryParserName() {
+        if (super.localParams != null) {
+            final String queryParser = super.localParams.get(FIELD_TYPE);
+
+            if (queryParser != null) {
+                return queryParser;
+            }
+
+        } else if (super.params != null) {
+            final String queryParser = super.params.get(FIELD_TYPE);
+            if (queryParser != null) {
+                return queryParser;
+            }
+
+            final String defaultQueryParser = super.params.get(FIELD_DEFAULT_TYPE);
+            if (defaultQueryParser != null) {
+                return defaultQueryParser;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public QueryParsingController createQueryParsingController() {
 
         final Object solrQueryObj = req.getJSON().get(FIELD_QUERY);
-        if (isNull(solrQueryObj)) {
+        if (solrQueryObj == null) {
             throw new SolrException(BAD_REQUEST, "Solr query not defined");
         }
 
         final Map solrQuery = asMap(solrQueryObj);
 
-        final String queryType = localParams.get(FIELD_TYPE);
+        final String queryType = getQueryParserName();
         final Object querqyRequestObj = solrQuery.get(queryType);
 
-        if (isNull(querqyRequestObj)) {
+        if (querqyRequestObj == null) {
             throw new SolrException(BAD_REQUEST, "Could not find request object in JSON for query type: " + queryType);
         }
 
@@ -48,7 +72,7 @@ public class QuerqyJsonQParser extends QuerqyDismaxQParser {
 
         final Object querqyQueryObj = querqyRequest.get(FIELD_QUERY);
 
-        if (isNull(querqyQueryObj)) {
+        if (querqyQueryObj == null) {
             throw new SolrException(BAD_REQUEST, "Missing query for querqy request");
         }
 

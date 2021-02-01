@@ -37,7 +37,7 @@
 	<requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler" />
 
 	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
-	
+
 		 <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>

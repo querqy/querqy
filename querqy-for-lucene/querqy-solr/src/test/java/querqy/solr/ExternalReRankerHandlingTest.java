@@ -1,12 +1,5 @@
 package querqy.solr;
 
-import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
-import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
-import static querqy.solr.QuerqyDismaxParams.QBOOST_RERANK_NUMDOCS;
-import static querqy.solr.QuerqyDismaxParams.QRQ;
-import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
-import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
-
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -14,6 +7,13 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
+import static querqy.solr.QuerqyDismaxParams.QBOOST_RERANK_NUMDOCS;
+import static querqy.solr.QuerqyDismaxParams.QRQ;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 @SolrTestCaseJ4.SuppressSSL
 public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
@@ -98,8 +98,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "tie", "1",
                 "sort", "score DESC, id ASC",
                 QRQ, "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
-                "rqq", "f1:a",
                 PARAM_REWRITERS, "common_rules",
+                "rqq", "f1:a",
                 "debug", "true");
 
         // doc 1 wins as it is reranked by rqq=a
