@@ -2,22 +2,15 @@ package querqy.solr.it;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.Http2SolrClient;
-import org.eclipse.jetty.client.HttpClient;
 import org.testcontainers.containers.SolrClientUtils;
 
 /**
@@ -25,8 +18,6 @@ import org.testcontainers.containers.SolrClientUtils;
  * extension :-/
  */
 public class QuerqySolrClientUtils extends SolrClientUtils {
-
-    private static final String CHORUS_DATASET_URL = "https://querqy.org/datasets/icecat/icecat-products-w_price-19k-20201127.tar.gz";
 
     /**
      * 
