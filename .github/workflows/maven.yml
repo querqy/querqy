@@ -1,17 +1,28 @@
-name: Build
+name: Build Querqy
 
-on: [push]
+# Build every push and every pull request
+on: [push, pull_request]
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        jdk: [ 1.8, 9, 10, 11, 12, 13, 14, 15 ]
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
+    - name: Select JDK
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+        java-version: ${{ matrix.jdk }}
+    - name: Dependecy Analysis
+      run: mvn dependency:tree --file pom.xml -Dverbose
+    - name: Build
+      run: mvn package --file pom.xml
+    - name: Integration Tests
+      if: matrix.jdk == '1.8'
+      run: mvn verify -DskipITs=false --file pom.xml
+
