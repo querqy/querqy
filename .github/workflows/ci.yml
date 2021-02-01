@@ -19,7 +19,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.m2/repository
-        key: maven-${{ hashFiles('**/pom.xml') }}
+        key: maven-${{ matrix.jdk }}-${{ hashFiles('**/pom.xml') }}
 
     - name: Select JDK
       uses: actions/setup-java@v1
