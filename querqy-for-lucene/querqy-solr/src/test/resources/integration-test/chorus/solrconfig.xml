@@ -1,0 +1,203 @@
+<?xml version="1.0" ?>
+
+<!-- Minimal solrconfig.xml with /select, /admin and /update only -->
+<config>
+  <dataDir>${solr.data.dir:}</dataDir>
+
+  <directoryFactory name="DirectoryFactory"
+                    class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
+  <schemaFactory class="ClassicIndexSchemaFactory"/>
+
+  <luceneMatchVersion>8.1</luceneMatchVersion>
+
+  <updateHandler class="solr.DirectUpdateHandler2" />
+
+  <!--
+      Add the Querqy query parser.
+   -->
+  <queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
+
+      <!--
+          Querqy has to parse the user's query text into a query object.
+          We use WhiteSpaceQuerqyParser, which only provides a very
+          limited syntax (no field names, just -/+ as boolean
+          operators).
+
+          Note that the Querqy query parser must not be confused with
+          Solr or Lucene query parsers: it is completely independent
+          from Lucene/Solr and parses the input into Querqy's internal
+          query object model.
+      -->
+      <lst name="parser">
+        <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
+        <!--
+          The parser is provided by a factory, in our case
+          by a SimpleQuerqyQParserFactory, which is a very generic
+          factory that just creates an instance for the configured class:
+        -->
+        <str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
+      </lst>
+
+
+      <!--
+          Define a chain of query rewriters. We'll use just one rewriter
+          - SimpleCommonRulesRewriter - which provides 'Common Rules'
+          preprocessing.
+      -->
+      <lst name="rewriteChain">
+
+           <lst name="rewriter">
+                <str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
+                <str name="dictionaryField">dictionary</str>
+                <bool name="decompound.verifyCollation">true</bool>
+                <bool name="lowerCaseInput">true</bool>
+          </lst>
+
+          <lst name="rewriter">
+              <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
+              <!--
+                 The file that contains rules for synonyms,
+                 boosting etc.
+
+                 This file connects to SMUI config (@see /chorus/docker-compose.yml)
+              -->
+              <str name="rules">rules.txt</str>
+              <!--
+                 If true, case will be ignored while trying to find
+                 rules that match the user query input:
+              -->
+              <bool name="ignoreCase">true</bool>
+              <!--
+                  Some rules in the rules file declare boost queries,
+                  synonym queries or filter queries that need to be added
+                  to the user query. This query parser parses the
+                  additional queries from the rules file:
+              -->
+              <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+          </lst>
+
+          <!-- @see https://querqy.org/docs/querqy/rewriters/replace.html#querqy-rewriters-replace -->
+          <lst name="rewriter">
+            <str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
+            <!-- This file connects to SMUI config (@see /chorus/docker-compose.yml) -->
+            <str name="rules">replace-rules.txt</str>
+            <str name="ignoreCase">true</str>
+            <str name="inputDelimiter">;</str>
+            <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+          </lst>
+
+     </lst>
+
+  </queryParser>
+
+  <!-- Override the default QueryComponent -->
+  <searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+
+  <!-- The default handler should be specified this way, however to support
+  the legacy qt=querqy parameter we need to change to what's below.
+  <requestHandler name="/select" class="solr.SearchHandler">
+  -->
+  <requestHandler name="/select" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="indent">true</str>
+    </lst>
+  </requestHandler>
+  <requestHandler name="search" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="indent">true</str>
+      <!-- we actually don't want to use the default field -->
+      <str name="df">id</str>
+      <str name="qf">name title product_type short_description ean search_attributes</str>
+      <str name="defType">edismax</str>
+      <str name="tie">0.01</str>
+
+    </lst>
+    <lst name="appends">
+      <str name="fq">price:*</str>
+      <str name="fq">-img_500x500:""</str>
+    </lst>
+  </requestHandler>
+
+  <!-- for the purposes of understanding the impact of "light switch", we want to have
+  a mm=100% version.   Today, this is done via change to the front end GUI and changing
+  the requestHandler.  In the future, this should be a paramSet that lives in ZK and no
+  hardcoding of the front end!  Just a useParams=mustmatchall
+  -->
+  <!-- &qt=mustmatchall -->
+  <requestHandler name="mustmatchall" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="indent">true</str>
+      <!-- we actually don't want to use the default field -->
+      <str name="df">id</str>
+      <str name="qf">name title product_type short_description ean search_attributes</str>
+
+      <str name="defType">edismax</str>
+      <str name="tie">0.01</str>
+      <str name="mm">100&#37;</str>
+    </lst>
+    <lst name="appends">
+      <str name="fq">price:*</str>
+      <str name="fq">-img_500x500:""</str>
+    </lst>
+  </requestHandler>
+
+  <!-- &qt=querqy -->
+  <requestHandler name="querqy" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="indent">true</str>
+
+      <!-- we actually don't want to use the default field -->
+      <str name="df">id</str>
+      <str name="qf">name title product_type short_description ean search_attributes</str>
+
+      <str name="defType">querqy</str>
+
+      <str name="tie">0.01</str>
+      <str name="mm">100&#37;</str>
+    </lst>
+    <lst name="appends">
+      <str name="fq">price:*</str>
+      <str name="fq">-img_500x500:""</str>
+    </lst>
+  </requestHandler>
+
+  <searchComponent name="suggest" class="solr.SuggestComponent">
+    <lst name="suggester">
+      <str name="name">mySuggester</str>
+      <str name="lookupImpl">FuzzyLookupFactory</str>
+      <str name="suggestAnalyzerFieldType">text_general</str>
+      <str name="buildOnCommit">true</str>
+      <str name="field">dictionary</str>
+    </lst>
+  </searchComponent>
+
+  <requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
+    <lst name="defaults">
+      <str name="suggest">true</str>
+      <str name="suggest.count">5</str>
+      <str name="suggest.dictionary">mySuggester</str>
+    </lst>
+    <arr name="components">
+      <str>suggest</str>
+    </arr>
+  </requestHandler>
+
+  <!-- This is required to support the legacy behavior of the parameter qt=/query-select -->
+  <requestDispatcher handleSelect="true" >
+    <!--
+    bump up the upload amount to allow us to use the Solr Admin UI to upload the .json data,
+    with room to grow.
+    -->
+    <requestParsers enableRemoteStreaming="false" multipartUploadLimitInKB="512000" />
+  </requestDispatcher>
+
+  <queryResponseWriter name="json" class="solr.JSONResponseWriter">
+    <str name="content-type">text/javascript; charset=UTF-8</str>
+  </queryResponseWriter>
+
+
+</config>

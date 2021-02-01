@@ -12,6 +12,7 @@ target/*
 **/.project
 **/.settings
 **/target
+**/.factorypath
 
 #files
 *.iml

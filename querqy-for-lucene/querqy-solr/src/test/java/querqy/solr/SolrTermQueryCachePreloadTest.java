@@ -1,5 +1,7 @@
 package querqy.solr;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -14,6 +16,9 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTest() throws Exception{
         initCore("solrconfig-cache-preloaded.xml", "schema.xml");
+
+        // wait for cache propagation
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3l));
     }
      
     @Test
