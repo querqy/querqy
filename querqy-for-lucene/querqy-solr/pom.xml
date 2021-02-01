@@ -146,7 +146,7 @@
                             <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>https://space.thiswayup.de/icecat-products-w_price-19k-20201127.tgz </url>
+                            <url>https://querqy.org/datasets/icecat/icecat-products-w_price-19k-20201127.tgz</url>
                             <unpack>true</unpack>
                             <outputDirectory>${project.build.directory}/integration-test-data</outputDirectory>
                         </configuration>
