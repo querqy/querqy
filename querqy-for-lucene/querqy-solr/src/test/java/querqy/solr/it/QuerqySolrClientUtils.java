@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -67,7 +69,7 @@ public class QuerqySolrClientUtils extends SolrClientUtils {
     public static void importChorusDataset(QuerqySolrContainer solr, String collectionName) throws IOException {
 
         // read chorus data set
-        String chorusDataSet = Files.readString(solr.getTestDataPath());
+        String chorusDataSet = FileUtils.readFileToString(solr.getTestDataPath().toFile(), "UTF-8");
 
         // compose create collection url
         HttpPost importData = new HttpPost(String.format(
