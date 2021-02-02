@@ -1,5 +1,6 @@
 package querqy.rewrite.commonrules;
 
+import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.mock;
 import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
@@ -10,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import querqy.model.EmptySearchEngineRequestAdapter;
@@ -62,7 +62,7 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public DeleteInstruction delete(String... terms) {
-        return new DeleteInstruction(Arrays.stream(terms).map(this::mkTerm).collect(Collectors.toList()));
+        return new DeleteInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
     }
 
     public DecorateInstruction decorate(String key, String value) {
@@ -70,7 +70,7 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public SynonymInstruction synonym(String... terms) {
-        return new SynonymInstruction(Arrays.stream(terms).map(this::mkTerm).collect(Collectors.toList()));
+        return new SynonymInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
     }
 
     public FilterInstruction filter(String... terms) {
@@ -78,11 +78,11 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public Input input(String... terms) {
-        return new Input(Arrays.stream(terms).map(this::mkTerm).collect(Collectors.toList()), false, false, "");
+        return new Input(Arrays.stream(terms).map(this::mkTerm).collect(toList()), false, false, "");
     }
 
     public Input input(List<String> terms) {
-        return new Input(terms.stream().map(this::mkTerm).collect(Collectors.toList()), false, false, "");
+        return new Input(terms.stream().map(this::mkTerm).collect(toList()), false, false, "");
     }
 
     public void addRule(RulesCollectionBuilder builder, Input input, Instruction... instructions) {
@@ -151,10 +151,10 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public void booleanInput(List<BooleanInputLiteral> literals, Instructions instructions) {
-        BooleanInput.BooleanInputBuilder builder = BooleanInput.builder();
+        BooleanInput.BooleanInputBuilder builder = BooleanInput.builder("input");
         literals.forEach(builder::addLiteralAndCreateReferenceId);
-        builder.setPredicate(createConjunctionPredicate(literals.size()))
-                .linkToInstructions(instructions)
+        builder.withPredicate(createConjunctionPredicate(literals.size()))
+                .withInstructions(instructions)
                 .build();
     }
 
@@ -164,7 +164,7 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public List<BooleanInputLiteral> literals(final int size) {
-        return IntStream.range(0, size).mapToObj(number -> literal(String.valueOf(number))).collect(Collectors.toList());
+        return IntStream.range(0, size).mapToObj(number -> literal(Integer.toString(number))).collect(toList());
     }
 
     public BooleanInputLiteral literal(final String term) {
@@ -172,7 +172,7 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public List<BooleanInputLiteral> literals(final String... terms) {
-        return Arrays.stream(terms).map(this::literal).collect(Collectors.toList());
+        return Arrays.stream(terms).map(this::literal).collect(toList());
     }
 
     public static class Rule {

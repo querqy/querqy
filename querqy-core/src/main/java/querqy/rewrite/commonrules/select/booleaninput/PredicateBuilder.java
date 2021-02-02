@@ -9,7 +9,7 @@ import querqy.rewrite.commonrules.RuleParseException;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement.Type;
 
-public class PredicateCreator {
+public class PredicateBuilder {
 
     private final List<BooleanInputElement> elements;
     private final ToIntFunction<List<String>> createReferenceIdFunction;
@@ -17,8 +17,8 @@ public class PredicateCreator {
     private BooleanInputElement nextHighestPriorityElement = null;
     private int indexOfNextHighestPriorityElement = -1;
 
-    public PredicateCreator(final List<BooleanInputElement> elements, final ToIntFunction<List<String>> createReferenceIdFunction)
-            throws RuleParseException {
+    protected PredicateBuilder(final List<BooleanInputElement> elements,
+                            final ToIntFunction<List<String>> createReferenceIdFunction) throws RuleParseException {
         this.elements = removeEncapsulatingParentheses(elements);
         this.createReferenceIdFunction = createReferenceIdFunction;
 
@@ -31,20 +31,27 @@ public class PredicateCreator {
         }
     }
 
+    public static Predicate<boolean[]> build(final List<BooleanInputElement> elements,
+                                             final ToIntFunction<List<String>> createReferenceIdFunction)
+            throws RuleParseException {
+        return new PredicateBuilder(elements, createReferenceIdFunction).build();
+    }
+
+
     public Predicate<boolean[]> build() throws RuleParseException {
         switch (nextHighestPriorityElement.type) {
             case AND:
             case OR:
-                final Predicate<boolean[]> left = new PredicateCreator(
+                final Predicate<boolean[]> left = new PredicateBuilder(
                         elements.subList(0, indexOfNextHighestPriorityElement), createReferenceIdFunction).build();
 
-                final Predicate<boolean[]> right = new PredicateCreator(
-                        elements.subList(indexOfNextHighestPriorityElement + 1, elements.size()), createReferenceIdFunction).build();
+                final Predicate<boolean[]> right = new PredicateBuilder( elements.subList(
+                        indexOfNextHighestPriorityElement + 1, elements.size()), createReferenceIdFunction).build();
 
                 return nextHighestPriorityElement.type == Type.AND ? left.and(right) : left.or(right);
 
             case NOT:
-                final Predicate<boolean[]> predicate = new PredicateCreator(
+                final Predicate<boolean[]> predicate = new PredicateBuilder(
                         elements.subList(1, elements.size()), createReferenceIdFunction).build();
 
                 return predicate.negate();
@@ -57,7 +64,8 @@ public class PredicateCreator {
             default:
                 // should not happen
                 throw new RuleParseException(
-                        String.format("Something unexpected happened while parsing a boolean input string: %s", elements));
+                        String.format("Something unexpected happened while parsing a boolean input string: %s",
+                                elements));
         }
     }
 
@@ -74,8 +82,8 @@ public class PredicateCreator {
     private void findNextHighestPriorityElement() {
         int numberOpenGroups = 0;
 
-        for (int i = 0; i < elements.size(); i++) {
-            BooleanInputElement element = elements.get(i);
+        for (int i = 0, len = elements.size(); i < len; i++) {
+            final BooleanInputElement element = elements.get(i);
 
             if (element.type == Type.LEFT_PARENTHESIS) {
                 numberOpenGroups++;

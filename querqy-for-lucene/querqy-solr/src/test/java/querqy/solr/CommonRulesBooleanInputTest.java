@@ -23,6 +23,9 @@ public class CommonRulesBooleanInputTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "5", "f1", "gh i", "f2", "k"));
         assertU(adoc("id", "6", "f1", "l m", "f2", "n"));
         assertU(adoc("id", "7", "f1", "l m", "f2", "o"));
+        assertU(adoc("id", "8", "f1", "abc no ise", "f2", "xyz"));
+        assertU(adoc("id", "9", "f1", "abc", "f2", "not boosted"));
+        assertU(adoc("id", "10", "f1", "uvw", "f2", "not boosted"));
 
         assertU(commit());
     }
@@ -117,6 +120,23 @@ public class CommonRulesBooleanInputTest extends SolrTestCaseJ4 {
                 "//result[@name='response' and @numFound='2']");
         req.close();
 
+    }
+
+    @Test
+    public void testMixedBooleanNonBooleanInput() {
+        try (final SolrQueryRequest req = req( "q", "abc def",
+                DisMaxParams.QF, "f1 f2",
+                "fl", "id,score",
+                DisMaxParams.MM, "1",
+                "debugQuery", "on",
+                "defType", "querqy"
+
+        )) {
+            assertQ("Mixed input not working", req,
+                    "//result[@name='response' and @numFound='3']",
+                    "//result/doc[1]/str[@name='id'][text()='8']"
+                    );
+        }
     }
 
 }

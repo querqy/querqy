@@ -21,7 +21,6 @@ import querqy.trie.TrieMap;
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     final TrieMap<InstructionsSupplier> map = new TrieMap<>();
-    private final Set<Object> seenInstructionIds = new HashSet<>();
 
     final boolean ignoreCase;
     
@@ -34,12 +33,12 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      */
     @Override
     public void addRule(final Input input, final Instructions instructions) {
-        this.addOrMergeInstructionsSupplier(input, new InstructionsSupplier().addInstructions(instructions));
+        addOrMergeInstructionsSupplier(input, new InstructionsSupplier(instructions));
     }
 
     @Override
     public void addRule(final Input input, final BooleanInputLiteral literal) {
-        this.addOrMergeInstructionsSupplier(input, new InstructionsSupplier().setLiteral(literal));
+        addOrMergeInstructionsSupplier(input, new InstructionsSupplier(literal));
     }
 
     public void addOrMergeInstructionsSupplier(final Input input, final InstructionsSupplier instructionsSupplier) {

@@ -1,5 +1,6 @@
 package querqy.rewrite.commonrules.select.booleaninput.model;
 
+import querqy.CharSequenceUtil;
 import querqy.rewrite.commonrules.model.Instructions;
 
 import java.util.ArrayList;
@@ -24,6 +25,10 @@ public class BooleanInput {
             final Predicate<boolean[]> predicate,
             final Instructions instructions) {
 
+        // booleanInputString works like it is part of an ID -> let's not allow null so that users do think about it
+        if (booleanInputString == null) {
+            throw new IllegalArgumentException("booleanInputString must not be null");
+        }
         this.booleanInputString = booleanInputString;
         this.literals = literals;
         this.predicate = predicate;
@@ -37,11 +42,11 @@ public class BooleanInput {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BooleanInput that = (BooleanInput) o;
-        return Objects.equals(booleanInputString, that.booleanInputString) &&
+        final BooleanInput that = (BooleanInput) o;
+        return CharSequenceUtil.equals(booleanInputString, that.booleanInputString) &&
                 Objects.equals(instructions, that.instructions);
     }
 
@@ -50,8 +55,8 @@ public class BooleanInput {
         return cachedHashCode;
     }
 
-    public static BooleanInputBuilder builder() {
-        return new BooleanInputBuilder();
+    public static BooleanInputBuilder builder(final String booleanInputString) {
+        return new BooleanInputBuilder(booleanInputString);
     }
 
     public static class BooleanInputBuilder {
@@ -60,11 +65,11 @@ public class BooleanInput {
         private Instructions instructions;
         private Predicate<boolean[]> predicate;
 
-        private BooleanInputBuilder() {}
-
-        public BooleanInputBuilder setBooleanInputString(final String booleanInputString) {
+        private BooleanInputBuilder(final String booleanInputString) {
+            if (booleanInputString == null) {
+                throw new IllegalArgumentException("booleanInputString must not be null");
+            }
             this.booleanInputString = booleanInputString;
-            return this;
         }
 
         public String getBooleanInputString() {
@@ -73,65 +78,32 @@ public class BooleanInput {
 
         public int addLiteralAndCreateReferenceId(final BooleanInputLiteral literal) {
             final int referenceId = this.references.size();
-            this.references.add(new Reference().setLiteral(literal).setReferenceId(referenceId));
+            this.references.add(new Reference(literal, referenceId));
             return referenceId;
         }
 
-        public BooleanInputBuilder setPredicate(final Predicate<boolean[]> predicate) {
+        public BooleanInputBuilder withPredicate(final Predicate<boolean[]> predicate) {
             this.predicate = predicate;
             return this;
         }
 
-        public BooleanInputBuilder linkToInstructions(final Instructions instructions) {
+        public BooleanInputBuilder withInstructions(final Instructions instructions) {
             this.instructions = instructions;
             return this;
         }
 
-        public List<BooleanInputLiteral> getLiterals() {
-            return this.references.stream().map(Reference::getLiteral).collect(Collectors.toList());
-        }
-
         public BooleanInput build() {
-            final BooleanInput booleanInput =
-                    new BooleanInput(this.booleanInputString, getLiterals(), this.predicate, this.instructions);
+            final BooleanInput booleanInput = new BooleanInput(booleanInputString, getLiterals(), predicate,
+                    instructions);
 
-            this.references.forEach(reference -> reference.getLiteral().addReference(
-                    reference.setBooleanInput(booleanInput)));
+            references.forEach(reference -> reference.setBooleanInput(booleanInput));
 
             return booleanInput;
         }
-    }
 
-    public static class Reference {
-        private BooleanInput booleanInput;
-        private BooleanInputLiteral literal;
-        private int referenceId;
-
-        public BooleanInput getBooleanInput() {
-            return booleanInput;
-        }
-
-        public Reference setBooleanInput(BooleanInput booleanInput) {
-            this.booleanInput = booleanInput;
-            return this;
-        }
-
-        public BooleanInputLiteral getLiteral() {
-            return literal;
-        }
-
-        public Reference setLiteral(BooleanInputLiteral literal) {
-            this.literal = literal;
-            return this;
-        }
-
-        public int getReferenceId() {
-            return referenceId;
-        }
-
-        public Reference setReferenceId(int referenceId) {
-            this.referenceId = referenceId;
-            return this;
+        private List<BooleanInputLiteral> getLiterals() {
+            return references.stream().map(Reference::getLiteral).collect(Collectors.toList());
         }
     }
+
 }

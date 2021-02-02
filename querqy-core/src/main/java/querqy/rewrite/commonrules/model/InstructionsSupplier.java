@@ -2,39 +2,51 @@ package querqy.rewrite.commonrules.model;
 
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 public class InstructionsSupplier {
 
-    private final List<Instructions> instructionsList;
+    private final List<Instructions> instructionsList = new LinkedList<>();
     private BooleanInputLiteral literal = null;
 
-    public InstructionsSupplier() {
-        this.instructionsList = new LinkedList<>();
-    }
-
-    public InstructionsSupplier addInstructions(final Instructions instructions) {
-        this.instructionsList.add(instructions);
-        return this;
-    }
-
-    public InstructionsSupplier setLiteral(final BooleanInputLiteral literal) {
+    public InstructionsSupplier(final List<Instructions> instructionsList, final BooleanInputLiteral literal) {
+        if (instructionsList != null) {
+            this.instructionsList.addAll(instructionsList);
+        }
         this.literal = literal;
-        return this;
+    }
+
+    public InstructionsSupplier(final Instructions instructions) {
+        instructionsList.add(instructions);
+    }
+
+    public InstructionsSupplier(final BooleanInputLiteral literal) {
+        this(Collections.emptyList(), literal);
     }
 
     public void merge(final InstructionsSupplier instructionsSupplier) {
-        this.instructionsList.addAll(instructionsSupplier.getInstructionsList());
 
-        if (this.literal == null) {
+        if (this.literal != null) {
+            instructionsSupplier.getLiteral().ifPresent(otherLiteral -> {
+                if (!literal.equals(otherLiteral)) {
+                    throw new IllegalArgumentException(String.format("Literals not equal: %s != %s",
+                            String.join(" ", literal.getTerms()),
+                            String.join(" ", otherLiteral.getTerms())
+                    ));
+                }
+            });
+        } else {
             this.literal = instructionsSupplier.literal;
         }
+
+        this.instructionsList.addAll(instructionsSupplier.getInstructionsList());
     }
 
     public boolean hasInstructions() {
-        return !this.instructionsList.isEmpty();
+        return !instructionsList.isEmpty();
     }
     public List<Instructions> getInstructionsList() {
         return instructionsList;

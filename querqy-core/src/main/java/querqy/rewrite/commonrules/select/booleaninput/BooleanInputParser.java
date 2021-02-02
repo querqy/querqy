@@ -10,6 +10,7 @@ import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -33,8 +34,11 @@ public class BooleanInputParser {
             .map(Type::getName)
             .collect(Collectors.toMap(typeName -> "\\" + typeName, typeName -> typeName));
 
-    public BooleanInputBuilder parseBooleanInput(final BooleanInputString booleanInputString) throws RuleParseException {
-        return this.parseBooleanInput(booleanInputString.booleanInputString);
+    private static final String MSG_BOOLEAN_ERR_BASE = "Cannot parse boolean expression '%s'. %s";
+
+    public BooleanInputBuilder parseBooleanInput(final BooleanInputString booleanInputString)
+            throws RuleParseException {
+        return this.parseBooleanInput(booleanInputString.value);
     }
 
     public BooleanInputBuilder parseBooleanInput(final String booleanInputString) throws RuleParseException {
@@ -42,8 +46,7 @@ public class BooleanInputParser {
 
         validateBooleanInput(elements, booleanInputString);
 
-        final BooleanInputBuilder booleanInputBuilder = BooleanInput.builder();
-        booleanInputBuilder.setBooleanInputString(booleanInputString);
+        final BooleanInputBuilder booleanInputBuilder = BooleanInput.builder(booleanInputString);
 
         final ToIntFunction<List<String>> createReferenceIdFunction = literalTerms -> {
             final BooleanInputLiteral literal = literalRegister.computeIfAbsent(
@@ -52,11 +55,8 @@ public class BooleanInputParser {
             return booleanInputBuilder.addLiteralAndCreateReferenceId(literal);
         };
 
-        final PredicateCreator predicateCreator = new PredicateCreator(elements, createReferenceIdFunction);
+        return booleanInputBuilder.withPredicate(PredicateBuilder.build(elements, createReferenceIdFunction));
 
-        booleanInputBuilder.setPredicate(predicateCreator.build());
-
-        return booleanInputBuilder;
     }
 
     protected List<BooleanInputElement> parseInputStringToElements(final String booleanInputString) {
@@ -64,7 +64,7 @@ public class BooleanInputParser {
                 .flatMap(this::separateParenthesesFromElements)
                 .map(element -> new BooleanInputElement(
                         unescapeElement(element),
-                        Type.getType(element.toUpperCase())))
+                        Type.getType(element.toUpperCase(Locale.ROOT))))
                 .collect(Collectors.toList());
     }
 
@@ -74,16 +74,17 @@ public class BooleanInputParser {
                 .replace("\\)", ")");
     }
 
-    protected Stream<String> separateParenthesesFromElements(String element) {
+    protected Stream<String> separateParenthesesFromElements(final String element) {
         return Arrays.stream(
                 element.split("(?<=(?<!\\\\)\\()|(?=(?<!\\\\)\\()|(?<=(?<!\\\\)\\))|(?=(?<!\\\\)\\))"));
     }
 
-    public void validateBooleanInput(final List<BooleanInputElement> elements, final String booleanInput) throws RuleParseException {
-        final String baseMessage = String.format("Cannot parse boolean expression \'%s\'. ", booleanInput);
+    public void validateBooleanInput(final List<BooleanInputElement> elements, final String booleanInput)
+            throws RuleParseException {
+
 
         if (elements.isEmpty()) {
-            throw new RuleParseException(baseMessage + "Expression is empty.");
+            throw new RuleParseException(MSG_BOOLEAN_ERR_BASE + "Expression is empty.");
         }
 
         BooleanInputElement.Type priorType = null;
@@ -94,26 +95,26 @@ public class BooleanInputParser {
             switch (element.type) {
                 case LEFT_PARENTHESIS:
                     if (priorType == Type.TERM || priorType == Type.RIGHT_PARENTHESIS) {
-                        throw new RuleParseException(
-                                baseMessage + "A left parenthesis opening a boolean group must be defined at the " +
-                                        "beginning of a statement or prepended by an operator, e. g. " +
-                                        "(term OR term) AND (term OR term) AND NOT (term OR term).");
+                        throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                                "A left parenthesis opening a boolean group  must be defined at the beginning of a " +
+                                        "statement or prepended by an operator,  e.g. (term OR term) AND " +
+                                        "(term OR term) AND NOT (term OR term)."));
                     }
                     numberOpenGroups++;
                     break;
 
                 case RIGHT_PARENTHESIS:
                     if (priorType != Type.TERM && priorType != Type.RIGHT_PARENTHESIS) {
-                        throw new RuleParseException(
-                                baseMessage + "A right parenthesis closing a boolean group must be prepended " +
-                                        "by a term, e. g. (term OR term)");
+                        throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                                "A right parenthesis closing a boolean group must be prepended by a term, e.g. " +
+                                        "(term OR term)"));
                     }
 
                     numberOpenGroups--;
 
                     if (numberOpenGroups < 0) {
-                        throw new RuleParseException(baseMessage + "The boolean expression misses at least one " +
-                                "left parenthesis to open a group.");
+                        throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                                "The boolean expression misses at least one left parenthesis to open a group."));
                     }
 
                     break;
@@ -121,24 +122,24 @@ public class BooleanInputParser {
                 case OR:
                 case AND:
                     if (priorType != Type.TERM && priorType != Type.RIGHT_PARENTHESIS) {
-                        throw new RuleParseException(
-                                baseMessage + "The operators AND and OR are expected to be prepended by a " +
-                                        "term or a right parenthesis, e. g. (term OR term) AND term");
+                        throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                                "The operators AND and OR are expected to be prepended by a term or a right " +
+                                        "parenthesis, e.g. (term OR term) AND term"));
                     }
                     break;
 
                 case NOT:
                     if (priorType == Type.NOT || priorType == Type.RIGHT_PARENTHESIS || priorType == Type.TERM) {
-                        throw new RuleParseException(
-                                baseMessage + "The operator NOT must be defined at the beginning of a statement or prepended " +
-                                        "by a left parenthesis, AND or OR, e. g. NOT term AND NOT (NOT term)");
+                        throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                                "The operator NOT must be defined at the beginning of a statement or prepended by a " +
+                                        "left parenthesis, AND or OR, e.g. NOT term AND NOT (NOT term)"));
                     }
                     break;
 
                 case TERM:
                     if (priorType == Type.RIGHT_PARENTHESIS) {
-                        throw new RuleParseException(
-                                baseMessage + "A term must not be prepended by a right parenthesis closing a group.");
+                        throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                                "A term must not be prepended by a right parenthesis closing a group."));
                     }
             }
 
@@ -147,19 +148,18 @@ public class BooleanInputParser {
 
         final BooleanInputElement lastElement = elements.get(elements.size() - 1);
         if (lastElement.type != Type.TERM && lastElement.type != Type.RIGHT_PARENTHESIS) {
-            throw new RuleParseException(
-                    baseMessage + "The last element in a boolean expression must be a term or a right parenthesis " +
-                            "closing a group.");
+            throw new RuleParseException(String.format(MSG_BOOLEAN_ERR_BASE, booleanInput,
+                    "The last element in a boolean expression must be a term or a right parenthesis closing a group."));
         }
 
         if (numberOpenGroups > 0) {
-            throw new RuleParseException("The boolean expression \'%s\' misses at least one right parenthesis to " +
-                    "close a group.");
+            throw new RuleParseException(String.format("The boolean expression '%s' misses at least one right " +
+                            "parenthesis to close a group.", booleanInput));
         }
 
         if (numberOpenGroups < 0) {
-            throw new RuleParseException("The boolean expression \'%s\' misses at least one left parenthesis to open " +
-                    "a group.");
+            throw new RuleParseException(String.format("The boolean expression '%s' misses at least one left " +
+                    "parenthesis to open a group.", booleanInput));
         }
 
     }
@@ -169,9 +169,9 @@ public class BooleanInputParser {
     }
 
     public static class BooleanInputString {
-        public final String booleanInputString;
-        public BooleanInputString(final String booleanInputString) {
-            this.booleanInputString = booleanInputString;
+        public final String value;
+        public BooleanInputString(final String value) {
+            this.value = value;
         }
     }
 

@@ -13,3 +13,10 @@
 %% "m m m" OR "l l l" =>
   FILTER: * f2:n
 
+abc =>
+  SYNONYM: uvw
+
+%% abc AND def =>
+  UP(1000): xyz
+
+

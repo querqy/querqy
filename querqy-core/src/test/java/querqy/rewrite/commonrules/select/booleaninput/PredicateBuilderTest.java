@@ -14,7 +14,7 @@ import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement.
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class PredicateCreatorTest {
+public class PredicateBuilderTest {
 
     @Test
     public void testOperatorOr() throws RuleParseException {
@@ -108,9 +108,7 @@ public class PredicateCreatorTest {
 
     private Predicate<boolean[]> predicate(final String booleanString) throws RuleParseException {
         final AtomicInteger integer = new AtomicInteger();
-        return new PredicateCreator(
-                elements(booleanString),
-                terms -> integer.getAndIncrement()).build();
+        return PredicateBuilder.build(elements(booleanString), terms -> integer.getAndIncrement());
     }
 
     private List<BooleanInputElement> elements(final String booleanString) {

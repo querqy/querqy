@@ -281,7 +281,9 @@ public class LineParser {
 
     }
 
-    public static Object parseBoostInstruction(String line, String lcLine, int lengthPredicate, BoostDirection direction, QuerqyParserFactory querqyParserFactory) {
+    public static Object parseBoostInstruction(final String line, final String lcLine, final int lengthPredicate,
+                                               final BoostDirection direction,
+                                               final QuerqyParserFactory querqyParserFactory) {
 
         if (lcLine.length() == lengthPredicate) {
             return new ValidationError("Cannot parse line: " + line);

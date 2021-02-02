@@ -134,22 +134,22 @@ public class LineParserTest {
     public void testThatBooleanInputOnlyAllowsCertainInstructions() {
         final WhiteSpaceQuerqyParserFactory factory = new WhiteSpaceQuerqyParserFactory();
 
-        Assertions.assertThat(LineParser.parse("FILTER: f", null, BooleanInput.builder(), factory))
+        Assertions.assertThat(LineParser.parse("FILTER: f", null, BooleanInput.builder("input"), factory))
                 .isInstanceOf(Instruction.class);
 
-        Assertions.assertThat(LineParser.parse("UP: f", null, BooleanInput.builder(), factory))
+        Assertions.assertThat(LineParser.parse("UP: f", null, BooleanInput.builder("input"), factory))
                 .isInstanceOf(Instruction.class);
 
-        Assertions.assertThat(LineParser.parse("DOWN: f", null, BooleanInput.builder(), factory))
+        Assertions.assertThat(LineParser.parse("DOWN: f", null, BooleanInput.builder("input"), factory))
                 .isInstanceOf(Instruction.class);
 
-        Assertions.assertThat(LineParser.parse("DECORATE: f", null, BooleanInput.builder(), factory))
+        Assertions.assertThat(LineParser.parse("DECORATE: f", null, BooleanInput.builder("input"), factory))
                 .isInstanceOf(Instruction.class);
 
-        Assertions.assertThat(LineParser.parse("SYNONYM: f", null, BooleanInput.builder(), factory))
+        Assertions.assertThat(LineParser.parse("SYNONYM: f", null, BooleanInput.builder("input"), factory))
                 .isInstanceOf(ValidationError.class);
 
-        Assertions.assertThat(LineParser.parse("DELETE: f", null, BooleanInput.builder(), factory))
+        Assertions.assertThat(LineParser.parse("DELETE: f", null, BooleanInput.builder("input"), factory))
                 .isInstanceOf(ValidationError.class);
     }
 

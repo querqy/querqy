@@ -98,15 +98,14 @@ public class SimpleCommonRulesParser {
             } else if (parsingResult instanceof ValidationError) {
                 throw new RuleParseException(lineNumber, ((ValidationError) parsingResult).getMessage());
             } else {
-                throw new RuleParseException(String.format(
-                        "Something unexpected happened parsing boolean input %s",
+                throw new RuleParseException(String.format("Something unexpected happened parsing boolean input %s",
                         String.join(" ", literal.getTerms())));
             }
         }
     }
 
     private void putRule() throws RuleParseException {
-        if (input != null || booleanInputBuilder != null) {
+        if ((input != null) || (booleanInputBuilder != null)) {
             if (instructionList.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
@@ -114,7 +113,7 @@ public class SimpleCommonRulesParser {
             final int ord = instructionsCount++;
 
             final String defaultId = input != null
-                    ? String.valueOf(input.getMatchExpression()) + "#" + ord
+                    ? input.getMatchExpression() + "#" + ord
                     : booleanInputBuilder.getBooleanInputString() + "#" + ord;
 
             final Object id = propertiesBuilder.addPropertyIfAbsent(ID, defaultId).orElse(defaultId);
@@ -134,8 +133,7 @@ public class SimpleCommonRulesParser {
                 seenInstructionIds.add(instructions.getId());
 
                 if (booleanInputBuilder != null) {
-                    booleanInputBuilder.linkToInstructions(instructions).build();
-//                    builder.addRule(new Rule(booleanInputBuilder.build(), instructions));
+                    booleanInputBuilder.withInstructions(instructions).build();
                 } else {
                     builder.addRule(input, instructions);
                 }
@@ -163,21 +161,6 @@ public class SimpleCommonRulesParser {
             } else if (lineObject instanceof BooleanInputString) {
                 putRule();
                 booleanInputBuilder = booleanInputParser.parseBooleanInput((BooleanInputString) lineObject);
-
-//                for (final BooleanInputLiteral literal : booleanInputBuilder.getLiterals()) {
-//                    if (!literal.hasInput()) {
-//                        final Object parsingResult = LineParser.parseInput(String.join(" ", literal.getTerms()));
-//
-//                        if (parsingResult instanceof Input) {
-//                            literal.setInput((Input) parsingResult);
-//
-//                        } else if (parsingResult instanceof ValidationError) {
-//                            throw new RuleParseException(lineNumber, ((ValidationError) parsingResult).getMessage());
-//                        } else {
-//                            throw new RuleParseException(String.format("Something unexpected happened parsing line %s", line));
-//                        }
-//                    }
-//                }
 
                 instructionList = new LinkedList<>();
                 propertiesBuilder.reset();
