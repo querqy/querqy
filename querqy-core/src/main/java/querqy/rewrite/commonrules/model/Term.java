@@ -188,8 +188,7 @@ public class Term implements ComparableCharSequence, ComparableCharSequenceConta
 
     @Override
     public String toString() {
-        return "Term [fieldNames="
-                + fieldNames + ", value=" + new String(value, start, length) + "]";
+        return new String(value, start, length);
     }
 
     public Term findFirstMatch(final Collection<? extends Term> haystack) {
