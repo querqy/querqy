@@ -75,7 +75,7 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
 
    @Override
    public String toString() {
-      return ((field == null) ? "*" : field) + ":" + getValue();
+      return value.toString();
    }
 
    @Override

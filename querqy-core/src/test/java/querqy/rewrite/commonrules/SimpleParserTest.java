@@ -549,8 +549,7 @@ ts6 =>
             createRulesFromResource("rules-with-errors01.txt", false);
             fail();
         } catch (RuleParseException e) {
-            assertEquals("Line 5: Condition doesn't contain the term to delete: "
-                    + "Term [fieldNames=null, value=c]", e.getMessage());
+            assertEquals("Line 5: Condition doesn't contain the term to delete: c", e.getMessage());
         }
     }
 

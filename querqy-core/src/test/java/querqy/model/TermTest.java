@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -23,6 +24,12 @@ public class TermTest {
             new Term(null, "x", "A"),
             new Term(null, "*", "a")
     );
+
+    @Test
+    public void testThatToStringReturnsValidCharSequence() {
+        assertEquals("abcde", new Term(null, "abcde").toString());
+    }
+
 
     @Test
     public void sameInstanceIsEqual() {
