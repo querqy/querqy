@@ -98,7 +98,7 @@ public class TermBuilder implements DisjunctionMaxClauseBuilder<TermBuilder, Ter
 
     @Override
     public TermBuilder setAttributesFromObject(final Term term) {
-        this.setValue(term.getComparableCharSequence().toString());
+        this.setValue(term.toString());
         this.setField(term.getField());
         this.setIsGenerated(term.isGenerated());
 
