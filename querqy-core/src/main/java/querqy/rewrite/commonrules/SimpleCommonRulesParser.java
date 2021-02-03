@@ -96,7 +96,7 @@ public class SimpleCommonRulesParser {
                 builder.addRule((Input) parsingResult, literal);
 
             } else if (parsingResult instanceof ValidationError) {
-                throw new RuleParseException(lineNumber, ((ValidationError) parsingResult).getMessage());
+                throw new RuleParseException(((ValidationError) parsingResult).getMessage());
             } else {
                 throw new RuleParseException(String.format("Something unexpected happened parsing boolean input %s",
                         String.join(" ", literal.getTerms())));
