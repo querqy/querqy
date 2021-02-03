@@ -17,7 +17,7 @@ public class InputTest {
       char[] s1 = "test".toCharArray();
       Term term1 = new Term(s1, 0, s1.length, null);
 
-      Input input = new Input(Collections.singletonList(term1), false, false, "test");
+      Input input = new Input(Collections.singletonList(term1), false, false);
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
@@ -36,7 +36,7 @@ public class InputTest {
       char[] s2 = "test2".toCharArray();
       Term term2 = new Term(s2, 0, s2.length, null);
 
-      Input input = new Input(Arrays.asList(term1, term2), false, false, "test test2");
+      Input input = new Input(Arrays.asList(term1, term2), false, false);
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
@@ -50,9 +50,9 @@ public class InputTest {
    @Test
    public void testGetInputSequencesForSingleTermWithFieldName() {
       char[] s1 = "test".toCharArray();
-      Term term1 = new Term(s1, 0, s1.length, Arrays.asList("name1"));
+      Term term1 = new Term(s1, 0, s1.length, Collections.singletonList("name1"));
 
-      Input input = new Input(Collections.singletonList(term1), false, false, "name1:test");
+      Input input = new Input(Collections.singletonList(term1), false, false);
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(1, sequences.size());
@@ -68,7 +68,7 @@ public class InputTest {
       char[] s1 = "test".toCharArray();
       Term term1 = new Term(s1, 0, s1.length, Arrays.asList("name1", "name2"));
 
-      Input input = new Input(Collections.singletonList(term1), false, false, "name1:test name2:test");
+      Input input = new Input(Collections.singletonList(term1), false, false);
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(2, sequences.size());
@@ -91,7 +91,7 @@ public class InputTest {
       Term term2 = new Term(s2, 0, s2.length, Arrays.asList("name3", "name4"));
 
       // making up a syntax
-      Input input = new Input(Arrays.asList(term1, term2), false, false, "[name1,name2]:test [name3,name4]:test2");
+      Input input = new Input(Arrays.asList(term1, term2), false, false);
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(4, sequences.size());
@@ -122,7 +122,7 @@ public class InputTest {
       Term term2 = new Term(s2, 0, s2.length, null);
 
       // making up a syntax
-      Input input = new Input(Arrays.asList(term1, term2), false, false, "[name1,name2]:test test2");
+      Input input = new Input(Arrays.asList(term1, term2), false, false);
       List<ComparableCharSequence> sequences = input.getInputSequences(false);
       assertNotNull(sequences);
       assertEquals(2, sequences.size());
@@ -136,18 +136,5 @@ public class InputTest {
 
    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testThatANullMatchExpressionIsNotAccepted4x() {
-        char[] s1 = "test2".toCharArray();
-        Term term1 = new Term(s1, 0, s1.length, null);
-        new Input(Collections.singletonList(term1), false, false, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testThatANullMatchExpressionIsNotAccepted2x() {
-        char[] s1 = "test2".toCharArray();
-        Term term1 = new Term(s1, 0, s1.length, null);
-        new Input(Collections.singletonList(term1), null);
-    }
 
 }

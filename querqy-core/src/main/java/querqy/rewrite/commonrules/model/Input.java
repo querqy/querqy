@@ -3,6 +3,7 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,15 +21,13 @@ public class Input {
     final List<Term> inputTerms;
     final boolean requiresLeftBoundary;
     final boolean requiresRightBoundary;
-    private final String matchExpression;
 
     /**
-     * Same as {@link #Input(List, boolean, boolean, String)} with both boundaries not required (set to false)
+     * Same as {@link #Input(List, boolean, boolean)} with both boundaries not required (set to false)
      * @param inputTerms The sequence of terms to match
-     * @param matchExpression A string that represents the input match condition (i.e. the left-hand side in rules.txt)
      */
-    public Input(final List<Term> inputTerms, final String matchExpression) {
-        this(inputTerms, false, false, matchExpression);
+    public Input(final List<Term> inputTerms) {
+        this(inputTerms, false, false);
     }
 
     /**
@@ -36,24 +35,18 @@ public class Input {
      * @param inputTerms The sequence of terms to match
      * @param requiresLeftBoundary true iff the first input term must be the first term in the query
      * @param requiresRightBoundary true iff the last input term must be the last term in the query
-     * @param matchExpression A string that represents the input match condition (i.e. the left hand-side in rules.txt)
      */
-    public Input(final List<Term> inputTerms, final boolean requiresLeftBoundary, final boolean requiresRightBoundary,
-                 final String matchExpression) {
-        if (matchExpression == null) {
-            throw new IllegalArgumentException("matchExpression must not be null");
-        }
-        this.inputTerms = inputTerms;
+    public Input(final List<Term> inputTerms, final boolean requiresLeftBoundary, final boolean requiresRightBoundary) {
+        this.inputTerms = inputTerms == null ? Collections.emptyList() : inputTerms;
         this.requiresLeftBoundary = requiresLeftBoundary;
         this.requiresRightBoundary = requiresRightBoundary;
-        this.matchExpression = matchExpression;
     }
 
    public boolean isEmpty() {
-      return inputTerms == null || inputTerms.isEmpty();
+      return inputTerms.isEmpty();
    }
 
-   public List<ComparableCharSequence> getInputSequences(boolean lowerCaseValues) {
+   public List<ComparableCharSequence> getInputSequences(final boolean lowerCaseValues) {
 
       if (inputTerms.size() == 1) {
          return inputTerms.get(0).getCharSequences(lowerCaseValues);
@@ -61,29 +54,29 @@ public class Input {
 
       LinkedList<List<ComparableCharSequence>> slots = new LinkedList<>();
 
-      for (Term inputTerm : inputTerms) {
+      for (final Term inputTerm : inputTerms) {
          slots.add(inputTerm.getCharSequences(lowerCaseValues));
       }
 
-      List<ComparableCharSequence> seqs = new LinkedList<>();
+      final List<ComparableCharSequence> seqs = new LinkedList<>();
       collectTails(new LinkedList<>(), slots, seqs);
       return seqs;
 
    }
 
-   void collectTails(List<ComparableCharSequence> prefix, List<List<ComparableCharSequence>> tailSlots,
-         List<ComparableCharSequence> result) {
+   void collectTails(final List<ComparableCharSequence> prefix, List<List<ComparableCharSequence>> tailSlots,
+         final List<ComparableCharSequence> result) {
       if (tailSlots.size() == 1) {
-         for (ComparableCharSequence sequence : tailSlots.get(0)) {
-            List<ComparableCharSequence> combined = new LinkedList<>(prefix);
+         for (final ComparableCharSequence sequence : tailSlots.get(0)) {
+            final List<ComparableCharSequence> combined = new LinkedList<>(prefix);
             combined.add(sequence);
             result.add(new CompoundCharSequence(" ", combined));
          }
       } else {
 
-         List<List<ComparableCharSequence>> newTail = tailSlots.subList(1, tailSlots.size());
-         for (ComparableCharSequence sequence : tailSlots.get(0)) {
-            List<ComparableCharSequence> newPrefix = new LinkedList<>(prefix);
+         final List<List<ComparableCharSequence>> newTail = tailSlots.subList(1, tailSlots.size());
+         for (final ComparableCharSequence sequence : tailSlots.get(0)) {
+            final List<ComparableCharSequence> newPrefix = new LinkedList<>(prefix);
             newPrefix.add(sequence);
             collectTails(newPrefix, newTail, result);
          }
@@ -107,7 +100,4 @@ public class Input {
        return requiresRightBoundary;
    }
 
-   public String getMatchExpression() {
-      return matchExpression;
-   }
 }

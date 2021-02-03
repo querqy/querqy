@@ -22,7 +22,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     public void testThatSingleTermIsExpandedWithSingleTerm() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("a"))),
                 new Instructions(1, "1", Collections.singletonList(synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -47,11 +47,11 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
         SynonymInstruction synInstruction1 = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
         SynonymInstruction synInstruction2 = new SynonymInstruction(Collections.singletonList(mkTerm("s2")));
         SynonymInstruction synInstruction3 = new SynonymInstruction(Collections.singletonList(mkTerm("s3")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("a"))),
                 new Instructions(1, "1", Collections.singletonList(synInstruction1)));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("b")), "b"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("b"))),
                 new Instructions(2, "2", Collections.singletonList(synInstruction2)));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("c")), "c"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("c"))),
                 new Instructions(3, "3", Collections.singletonList(synInstruction3)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -85,7 +85,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     public void testThatSingleTermIsExpandedByMany() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1_1"), mkTerm("s1_2")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), "a"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("a"))),
                 new Instructions(1, "1", Collections.singletonList(synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -110,7 +110,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     public void testThatMultipleTermsAreExpandedBySingle() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b")), "a b"),
+        builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b"))),
                 new Instructions(1, "1", Collections.singletonList( synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -138,7 +138,7 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
     public void testThatMultipleTermsAreExpandedByMany() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "s1_1"), mkTerm("s1_2")));
-        builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b")), "a b"),
+        builder.addRule(new Input(Arrays.asList(mkTerm("a"), mkTerm("b"))),
                 new Instructions(1, "1", Collections.singletonList(synInstruction)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

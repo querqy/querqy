@@ -1,22 +1,22 @@
-%% a AND b OR c =>
+a AND b OR c =>
   FILTER: * f2:e
 
-%% g* AND i =>
+g* AND i =>
   FILTER: * f2:k
 
-%% "l l AND m =>
+"l l AND m =>
   FILTER: * f2:n
 
-%% m m" AND l =>
+m m" AND l =>
   FILTER: * f2:n
 
-%% "m m m" OR "l l l" =>
+"m m m" OR "l l l" =>
   FILTER: * f2:n
 
 abc =>
   SYNONYM: uvw
 
-%% abc AND def =>
+abc AND def =>
   UP(1000): xyz
 
 

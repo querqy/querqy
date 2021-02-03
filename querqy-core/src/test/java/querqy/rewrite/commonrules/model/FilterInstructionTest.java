@@ -30,7 +30,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a b").getUserQuery());
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
@@ -60,7 +60,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("-ab").getUserQuery());
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
@@ -96,7 +96,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();
@@ -124,7 +124,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(filterInstruction)));
 
         RulesCollection rules = builder.build();

@@ -44,7 +44,9 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      * @throws IOException if rules cannot be read or parsed
      */
     public SimpleCommonRulesRewriterFactory(final String rewriterId,
-                                            final Reader reader, final QuerqyParserFactory querqyParserFactory,
+                                            final Reader reader,
+                                            final boolean allowBooleanInput,
+                                            final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
                                             final SelectionStrategyFactory defaultSelectionStrategyFactory,
@@ -63,7 +65,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
         try {
             final QuerqyTemplateEngine querqyTemplateEngine = new QuerqyTemplateEngine(reader);
-            rules = new SimpleCommonRulesParser(querqyTemplateEngine.renderedRules.reader, querqyParserFactory, ignoreCase)
+            rules = new SimpleCommonRulesParser(querqyTemplateEngine.renderedRules.reader, allowBooleanInput,
+                    querqyParserFactory, ignoreCase)
                     .setLineNumberMapper(querqyTemplateEngine.renderedRules.lineNumberMapping::get)
                     .parse();
         } catch (final RuleParseException | TemplateParseException e) {

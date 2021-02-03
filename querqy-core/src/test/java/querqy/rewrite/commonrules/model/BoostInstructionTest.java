@@ -30,7 +30,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -60,7 +60,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(),
                 BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -91,7 +91,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a +b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -122,7 +122,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(),
                 BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -154,7 +154,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a").getUserQuery(), BoostDirection.UP,
                 0.5f);
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -183,7 +183,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();
@@ -197,11 +197,11 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
     }
 
     @Test
-    public void testThatUpQueriesAreOfTypeQuery() throws Exception {
+    public void testThatUpQueriesAreOfTypeQuery() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP, 0.5f);
-        builder.addRule(new Input(Arrays.asList(mkTerm("x")), false, false, "a"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false),
                 new Instructions(1, "1", Collections.singletonList(boostInstruction)));
 
         RulesCollection rules = builder.build();

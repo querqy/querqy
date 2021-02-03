@@ -8,8 +8,6 @@ import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
-import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser.BooleanInputString;
-import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInput.BooleanInputBuilder;
 
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.ID;
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.LOG_MESSAGE;
@@ -40,8 +38,7 @@ public class SimpleCommonRulesParser {
     private int lineNumber = 0;
     private final RulesCollectionBuilder builder;
     private final BooleanInputParser booleanInputParser;
-    private Input input = null;
-    private BooleanInputBuilder booleanInputBuilder = null;
+    private InputPattern inputPattern = null;
     private int instructionsCount = 0;
     private List<Instruction> instructionList = null;
     private PropertiesBuilder propertiesBuilder = null;
@@ -49,18 +46,19 @@ public class SimpleCommonRulesParser {
     private final Set<Object> seenInstructionIds = new HashSet<>();
     private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;
 
-    public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
-                                   final boolean ignoreCase) {
-        this(in, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase));
+    public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
+                                   final QuerqyParserFactory querqyParserFactory, final boolean ignoreCase) {
+        this(in, allowBooleanInput, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase));
     }
 
-    public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
+    public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
+                                   final QuerqyParserFactory querqyParserFactory,
                                    final RulesCollectionBuilder builder) {
         this.reader = new BufferedReader(in);
         this.querqyParserFactory = querqyParserFactory;
         this.builder = builder;
         this.propertiesBuilder = new PropertiesBuilder();
-        this.booleanInputParser = new BooleanInputParser();
+        this.booleanInputParser = allowBooleanInput ? new BooleanInputParser() : null;
     }
 
     public SimpleCommonRulesParser setLineNumberMapper(final IntUnaryOperator lineNumberMapper) {
@@ -77,7 +75,9 @@ public class SimpleCommonRulesParser {
                 nextLine(line);
             }
             putRule();
-            addLiterals();
+            if (booleanInputParser != null) {
+                addLiterals();
+            }
             return builder.build();
         } finally {
             try {
@@ -89,7 +89,7 @@ public class SimpleCommonRulesParser {
     }
 
     private void addLiterals() throws RuleParseException {
-        for (final BooleanInputLiteral literal : this.booleanInputParser.getLiteralRegister().values()) {
+        for (final BooleanInputLiteral literal : booleanInputParser.getLiteralRegister().values()) {
             final Object parsingResult = LineParser.parseInput(String.join(" ", literal.getTerms()));
 
             if (parsingResult instanceof Input) {
@@ -105,16 +105,14 @@ public class SimpleCommonRulesParser {
     }
 
     private void putRule() throws RuleParseException {
-        if ((input != null) || (booleanInputBuilder != null)) {
+        if (inputPattern != null) {
             if (instructionList.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
 
             final int ord = instructionsCount++;
 
-            final String defaultId = input != null
-                    ? input.getMatchExpression() + "#" + ord
-                    : booleanInputBuilder.getBooleanInputString() + "#" + ord;
+            final String defaultId = inputPattern.getIdPrefix() + "#" + ord;
 
             final Object id = propertiesBuilder.addPropertyIfAbsent(ID, defaultId).orElse(defaultId);
 
@@ -125,6 +123,7 @@ public class SimpleCommonRulesParser {
             propertiesBuilder.addPropertyIfAbsent(LOG_MESSAGE, id);
 
             try {
+
                 final Instructions instructions = new Instructions(ord, id, instructionList, propertiesBuilder.build());
 
                 if (seenInstructionIds.contains(instructions.getId())) {
@@ -132,17 +131,12 @@ public class SimpleCommonRulesParser {
                 }
                 seenInstructionIds.add(instructions.getId());
 
-                if (booleanInputBuilder != null) {
-                    booleanInputBuilder.withInstructions(instructions).build();
-                } else {
-                    builder.addRule(input, instructions);
-                }
+                inputPattern.applyInstructions(instructions, builder);
 
             } catch (final Exception e) {
                 throw new RuleParseException(e);
             }
-            input = null;
-            booleanInputBuilder = null;
+            inputPattern = null;
             instructionList = null;
             propertiesBuilder.reset();
         }
@@ -151,28 +145,36 @@ public class SimpleCommonRulesParser {
     private void nextLine(final String newLine) throws RuleParseException {
         final String line = stripLine(newLine);
         if (line.length() > 0) {
-            Object lineObject = LineParser.parse(line, input, booleanInputBuilder, querqyParserFactory);
-            if (lineObject instanceof Input) {
-                putRule();
-                input = (Input) lineObject;
-                instructionList = new LinkedList<>();
-                propertiesBuilder.reset();
+            final Object lineObject = LineParser.parse(line, inputPattern, querqyParserFactory);
 
-            } else if (lineObject instanceof BooleanInputString) {
-                putRule();
-                booleanInputBuilder = booleanInputParser.parseBooleanInput((BooleanInputString) lineObject);
+            if (lineObject instanceof InputString) {
 
-                instructionList = new LinkedList<>();
-                propertiesBuilder.reset();
+                final Object patternObject = InputPattern.fromString(((InputString) lineObject).value,
+                        booleanInputParser);
 
+                if (patternObject instanceof ValidationError) {
+
+                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
+                            ((ValidationError) patternObject).getMessage());
+
+                } else if (patternObject instanceof InputPattern) {
+
+                    putRule();
+                    inputPattern = (InputPattern) patternObject;
+                    instructionList = new LinkedList<>();
+                    propertiesBuilder.reset();
+
+                }
             } else if (lineObject instanceof ValidationError) {
-                throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber), ((ValidationError) lineObject).getMessage());
+                throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
+                        ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
                 instructionList.add((Instruction) lineObject);
             } else if (lineObject instanceof String) {
                 final Optional<ValidationError> optionalError = propertiesBuilder.nextLine(line);
                 if (optionalError.isPresent()) {
-                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber), optionalError.map(ValidationError::getMessage).orElse(""));
+                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
+                            optionalError.map(ValidationError::getMessage).orElse(""));
                 }
             }
 

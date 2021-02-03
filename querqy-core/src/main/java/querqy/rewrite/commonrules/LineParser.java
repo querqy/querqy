@@ -18,8 +18,6 @@ import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
-import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser.BooleanInputString;
-import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInput.BooleanInputBuilder;
 
 /**
  * @author René Kriegler, @renekrie
@@ -39,69 +37,58 @@ public class LineParser {
 
     static final char RAWQUERY = '*';
 
-    public static Object parse(final String line,
-                               final Input previousInput,
-                               final BooleanInputBuilder booleanInputBuilder,
+    public static Object parse(final String line, final InputPattern inputPattern,
                                final QuerqyParserFactory querqyParserFactory) {
 
 
         if (line.endsWith("=>")) {
-            if (line.length() == 2) {
-                return new ValidationError("Empty input");
-            }
 
-            if (line.startsWith("%%")) {
-                final String booleanInputString = line.substring(2, line.length() - 2).trim();
-                if (booleanInputString.isEmpty()) {
-                    return new ValidationError("Empty boolean input");
-                } else {
-                    return new BooleanInputString(booleanInputString);
-                }
+            final String trimmed = line.substring(0, line.length() - 2).trim();
+            return (trimmed.isEmpty())
+                    ? new ValidationError("Empty input")
+                    : new InputString(trimmed);
 
-            } else {
-                return parseInput(line.substring(0, line.length() - 2));
-            }
         }
 
-        if (previousInput == null && booleanInputBuilder == null) {
+        if (inputPattern == null ) {
             return new ValidationError("Missing input for instruction");
         }
 
         final String lcLine = line.toLowerCase(Locale.ROOT).trim();
 
         if (lcLine.startsWith(INSTR_DELETE)) {
-            if (booleanInputBuilder != null) {
-                return new ValidationError("DELETE instruction is not allowed for boolean input");
-            }
 
-            if (lcLine.length() == 6) {
-                return new DeleteInstruction(previousInput.getInputTerms());
-            }
+            return inputPattern.getInputTerms().map(inputTerms -> {
 
-            String instructionTerms = line.substring(6).trim();
-            if (instructionTerms.charAt(0) != ':') {
-                return new ValidationError("Cannot parse line: " + line);
-            }
-
-            if (instructionTerms.length() == 1) {
-                return new DeleteInstruction(previousInput.getInputTerms());
-            }
-
-            instructionTerms = instructionTerms.substring(1).trim();
-            final Object expr = parseTermExpression(instructionTerms);
-            if (expr instanceof ValidationError) {
-                return new ValidationError("Cannot parse line: " + line + " : " + ((ValidationError) expr).getMessage());
-            }
-            @SuppressWarnings("unchecked")
-            final List<Term> deleteTerms = (List<Term>) expr;
-            final List<Term> inputTerms = previousInput.getInputTerms();
-            for (final Term term : deleteTerms) {
-                if (term.findFirstMatch(inputTerms) == null) {
-                    return new ValidationError("Condition doesn't contain the term to delete: " + term);
+                if (lcLine.length() == 6) {
+                    return new DeleteInstruction(inputTerms);
                 }
-            }
 
-            return new DeleteInstruction(deleteTerms);
+                String instructionTerms = line.substring(6).trim();
+                if (instructionTerms.charAt(0) != ':') {
+                    return new ValidationError("Cannot parse line: " + line);
+                }
+
+                if (instructionTerms.length() == 1) {
+                    return new DeleteInstruction(inputTerms);
+                }
+
+                instructionTerms = instructionTerms.substring(1).trim();
+                final Object expr = parseTermExpression(instructionTerms);
+                if (expr instanceof ValidationError) {
+                    return new ValidationError("Cannot parse line: " + line + " : " + ((ValidationError) expr).getMessage());
+                }
+                @SuppressWarnings("unchecked")
+                final List<Term> deleteTerms = (List<Term>) expr;
+                for (final Term term : deleteTerms) {
+                    if (term.findFirstMatch(inputTerms) == null) {
+                        return new ValidationError("Condition doesn't contain the term to delete: " + term);
+                    }
+                }
+
+                return new DeleteInstruction(deleteTerms);
+
+            }).orElse(new ValidationError("DELETE instruction is not allowed for boolean input"));
 
         }
 
@@ -150,61 +137,64 @@ public class LineParser {
         }
 
         if (lcLine.startsWith(INSTR_SYNONYM)) {
-            if (booleanInputBuilder != null) {
-                return new ValidationError("SYNONYM instruction is not allowed for boolean input");
-            }
 
-            if (lcLine.length() == 7) {
-                return new ValidationError("Cannot parse line: " + line);
-            }
+            return inputPattern.getInputTerms().map(inputTerms -> {
 
-            String synonymString = line.substring(7).trim();
-            float boost = SynonymInstruction.DEFAULT_TERM_BOOST;
-
-            // check for boost (optional)
-            if (synonymString.charAt(0) == '(') {
-                synonymString = synonymString.substring(1).trim();
-                int boostEndBracket = synonymString.indexOf(')');
-                if (boostEndBracket < 0) {
-                    return new ValidationError("Cannot parse line. No closing bracket found: " + line);
-                }
-                try {
-                    boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
-                } catch (final NumberFormatException e) {
-                    return new ValidationError("Cannot parse line. Invalid boost in: " + line + ". Threw: " + e.getMessage());
+                if (lcLine.length() == 7) {
+                    return new ValidationError("Cannot parse line: " + line);
                 }
 
-                if (boost < 0) {
-                    return new ValidationError("Cannot parse line. Negative boost not allowed: " + line);
-                }
-                synonymString = synonymString.substring(boostEndBracket + 1).trim();
-            }
+                String synonymString = line.substring(7).trim();
+                float boost = SynonymInstruction.DEFAULT_TERM_BOOST;
 
-            if (synonymString.charAt(0) != ':') {
-                return new ValidationError("Cannot parse line, ':' expetcted in " + line);
-            }
-
-            synonymString = synonymString.substring(1).trim();
-            if (synonymString.length() == 0) {
-                return new ValidationError("Cannot parse line: " + line);
-            }
-
-            List<Term> synonymTerms = new LinkedList<>();
-            for (String token : synonymString.split("\\s+")) {
-                if (token.length() > 0) {
-                    Term term = parseTerm(token);
-                    if (term.getMaxPlaceHolderRef() > 1) {
-                        return new ValidationError("Max. wild card reference is 1: " + line);
+                // check for boost (optional)
+                if (synonymString.charAt(0) == '(') {
+                    synonymString = synonymString.substring(1).trim();
+                    int boostEndBracket = synonymString.indexOf(')');
+                    if (boostEndBracket < 0) {
+                        return new ValidationError("Cannot parse line. No closing bracket found: " + line);
                     }
-                    synonymTerms.add(term);
+                    try {
+                        boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
+                    } catch (final NumberFormatException e) {
+                        return new ValidationError("Cannot parse line. Invalid boost in: " + line + ". Threw: " + e.getMessage());
+                    }
+
+                    if (boost < 0) {
+                        return new ValidationError("Cannot parse line. Negative boost not allowed: " + line);
+                    }
+                    synonymString = synonymString.substring(boostEndBracket + 1).trim();
                 }
-            }
-            if (synonymTerms.isEmpty()) {
-                // should never happen
-                return new ValidationError("Cannot parse line: " + line);
-            } else {
-                return new SynonymInstruction(synonymTerms, boost);
-            }
+
+                if (synonymString.charAt(0) != ':') {
+                    return new ValidationError("Cannot parse line, ':' expetcted in " + line);
+                }
+
+                synonymString = synonymString.substring(1).trim();
+                if (synonymString.length() == 0) {
+                    return new ValidationError("Cannot parse line: " + line);
+                }
+
+                List<Term> synonymTerms = new LinkedList<>();
+                for (String token : synonymString.split("\\s+")) {
+                    if (token.length() > 0) {
+                        Term term = parseTerm(token);
+                        if (term.getMaxPlaceHolderRef() > 1) {
+                            return new ValidationError("Max. wild card reference is 1: " + line);
+                        }
+                        synonymTerms.add(term);
+                    }
+                }
+                if (synonymTerms.isEmpty()) {
+                    // should never happen
+                    return new ValidationError("Cannot parse line: " + line);
+                } else {
+                    return new SynonymInstruction(synonymTerms, boost);
+                }
+            }).orElse(new ValidationError("SYNONYM instruction is not allowed for boolean input"));
+
+
+
         }
 
         if (lcLine.startsWith(INSTR_DECORATE)) {
@@ -360,7 +350,6 @@ public class LineParser {
         boolean requiresRightBoundary = false;
 
         s = s.trim();
-        String rawInput = s;
         if (s.length() > 0 && s.charAt(0) == BOUNDARY) {
             requiresLeftBoundary = true;
             s = s.substring(1).trim();
@@ -383,12 +372,12 @@ public class LineParser {
         if (expr instanceof ValidationError) {
             return expr;
         } else {
-            return new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary, rawInput);
+            return new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary);
         }
 
     }
 
-    static Object parseTermExpression(String s) {
+    static Object parseTermExpression(final String s) {
 
         int len = s.length();
 

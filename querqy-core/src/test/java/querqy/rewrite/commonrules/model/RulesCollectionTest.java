@@ -27,7 +27,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1), false, false, s1);
+      Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions = instructions(1, "instruction1");
       builder.addRule(input, instructions);
@@ -49,7 +49,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1), false, false, s1);
+      Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions = instructions(1, "instruction1", "instruction2");
       builder.addRule(input, instructions);
@@ -71,7 +71,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1), false, false, s1);
+      Input input = new Input(inputTerms(null, s1), false, false);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input, instructions1);
@@ -99,8 +99,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1), false, false, s1);
-      Input input2 = new Input(inputTerms(null, s2), false, false, s2);
+      Input input1 = new Input(inputTerms(null, s1), false, false);
+      Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -147,8 +147,8 @@ public class RulesCollectionTest {
       String s2 = "test2";
       String s3 = "test3";
 
-      Input input1 = new Input(inputTerms(null, s1, s2), false, false, s1 + " " + s2);
-      Input input2 = new Input(inputTerms(null, s2, s3), false, false, s2 + " " + s3);
+      Input input1 = new Input(inputTerms(null, s1, s2), false, false);
+      Input input2 = new Input(inputTerms(null, s2, s3), false, false);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -195,8 +195,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1, s2), false, false, s1 + " " + s2);
-      Input input2 = new Input(inputTerms(null, s2), false, false, s2);
+      Input input1 = new Input(inputTerms(null, s1, s2), false, false);
+      Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions(1, "instruction1");
       Instructions instructions2 = instructions(2, "instruction2");
@@ -231,8 +231,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1), false, false, s1);
-      Input input2 = new Input(inputTerms(null, s2), false, false, s2);
+      Input input1 = new Input(inputTerms(null, s1), false, false);
+      Input input2 = new Input(inputTerms(null, s2), false, false);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -271,7 +271,7 @@ public class RulesCollectionTest {
                   new querqy.rewrite.commonrules.model.Term(s2.toCharArray(), 0, s2.length(), Arrays.asList("f21",
                         "f22"))
 
-                  ), false, false, s1 + " " + s2);
+                  ), false, false);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -367,11 +367,10 @@ public class RulesCollectionTest {
             return false;
          SimpleInstruction other = (SimpleInstruction) obj;
          if (name == null) {
-            if (other.name != null)
-               return false;
-         } else if (!name.equals(other.name))
-            return false;
-         return true;
+            return other.name == null;
+         } else {
+            return name.equals(other.name);
+         }
       }
 
       @Override

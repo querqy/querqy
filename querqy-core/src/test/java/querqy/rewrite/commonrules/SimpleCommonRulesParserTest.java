@@ -31,7 +31,7 @@ public class SimpleCommonRulesParserTest {
         final String rules = "input1 => \n" +
                 "SYNONYM: syn1";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
@@ -51,7 +51,7 @@ public class SimpleCommonRulesParserTest {
                 "SYNONYM: syn1\n" +
                 "@_id:\"The Id\"";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
@@ -71,7 +71,7 @@ public class SimpleCommonRulesParserTest {
                 "SYNONYM: syn1\n" +
                 "@prop1:[\"v1\",\"v2\"]";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
@@ -94,7 +94,7 @@ public class SimpleCommonRulesParserTest {
                 "   prop2:true" +
                 "}@";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
@@ -119,7 +119,7 @@ public class SimpleCommonRulesParserTest {
                 "   prop2:true" +
                 "}@";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
@@ -144,7 +144,7 @@ public class SimpleCommonRulesParserTest {
                 "@_id:\"1\"";
 
 
-        new SimpleCommonRulesParser(new StringReader(rules), parserFactory, true).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true).parse();
 
     }
 
@@ -156,7 +156,38 @@ public class SimpleCommonRulesParserTest {
                 "@_id:[\"1\"]";
 
 
-        new SimpleCommonRulesParser(new StringReader(rules), parserFactory, true).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true).parse();
+
+    }
+
+    @Test(expected = RuleParseException.class)
+    public void testThatInvalidBooleanInputIsRefusedIfBooleanIsEnabled() throws IOException, RuleParseException {
+
+        final String rules = "input1 AND OR => \n" +
+                "UP: juu";
+
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true).parse();
+
+    }
+
+    @Test
+    public void testThatInvalidBooleanInputIsAllowedIfBooleanIsDisabled() throws IOException, RuleParseException {
+
+        final String rules = "input1 AND OR => \n" +
+                "UP: juu";
+
+        new SimpleCommonRulesParser(new StringReader(rules), false, parserFactory, true).parse();
+
+    }
+
+    @Test
+    public void testThatNonBooleanInputIsParsedIfBooleanIsEnabled() throws IOException, RuleParseException {
+
+        new SimpleCommonRulesParser(new StringReader("input1 AND_THEN y => \nUP: juu"), true, parserFactory, true)
+                .parse();
+
+        new SimpleCommonRulesParser(new StringReader("input1 (c) => \nUP: juu"), true, parserFactory, true)
+                .parse();
 
     }
 

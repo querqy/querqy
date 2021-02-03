@@ -25,7 +25,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
                 new Instructions(1, "1", Collections.singletonList(delete)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -41,7 +41,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
     public void testThatTermIsRemovedIfThereIsAnotherTermInTheSameDMQ() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
+        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
                 new Instructions(1, "1", Collections.singletonList(delete)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -68,7 +68,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
    public void testThatTermIsRemovedIfThereASecondDMQWithoutTheTerm() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-      builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
+      builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
               new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -88,7 +88,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
    public void testThatAllTermsAreRemovedEvenIfASecondDMQWithTheSameTermAndNoOtherTermExists() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-      builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
+      builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
               new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);

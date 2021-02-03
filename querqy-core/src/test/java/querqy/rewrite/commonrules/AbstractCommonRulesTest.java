@@ -41,8 +41,6 @@ public abstract class AbstractCommonRulesTest {
 
     private int ruleCounter = 0;
 
-    public final static Map<String, Object> EMPTY_CONTEXT = new HashMap<>();
-
     protected ExpandedQuery makeQuery(String input) {
         return new ExpandedQuery(new WhiteSpaceQuerqyParser().parse(input));
     }
@@ -78,11 +76,11 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public Input input(String... terms) {
-        return new Input(Arrays.stream(terms).map(this::mkTerm).collect(toList()), false, false, "");
+        return new Input(Arrays.stream(terms).map(this::mkTerm).collect(toList()), false, false);
     }
 
     public Input input(List<String> terms) {
-        return new Input(terms.stream().map(this::mkTerm).collect(toList()), false, false, "");
+        return new Input(terms.stream().map(this::mkTerm).collect(toList()), false, false);
     }
 
     public void addRule(RulesCollectionBuilder builder, Input input, Instruction... instructions) {

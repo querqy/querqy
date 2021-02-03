@@ -61,7 +61,7 @@ public class BooleanInput {
 
     public static class BooleanInputBuilder {
         private final List<Reference> references = new ArrayList<>();
-        private String booleanInputString;
+        private final String booleanInputString;
         private Instructions instructions;
         private Predicate<boolean[]> predicate;
 
@@ -70,10 +70,6 @@ public class BooleanInput {
                 throw new IllegalArgumentException("booleanInputString must not be null");
             }
             this.booleanInputString = booleanInputString;
-        }
-
-        public String getBooleanInputString() {
-            return this.booleanInputString;
         }
 
         public int addLiteralAndCreateReferenceId(final BooleanInputLiteral literal) {

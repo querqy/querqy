@@ -36,17 +36,12 @@ public class BooleanInputParser {
 
     private static final String MSG_BOOLEAN_ERR_BASE = "Cannot parse boolean expression '%s'. %s";
 
-    public BooleanInputBuilder parseBooleanInput(final BooleanInputString booleanInputString)
-            throws RuleParseException {
-        return this.parseBooleanInput(booleanInputString.value);
-    }
+    public BooleanInputBuilder createInputBuilder(final List<BooleanInputElement> elements,
+                                                  final String inputString) throws RuleParseException {
 
-    public BooleanInputBuilder parseBooleanInput(final String booleanInputString) throws RuleParseException {
-        final List<BooleanInputElement> elements = parseInputStringToElements(booleanInputString);
+        validateBooleanInput(elements, inputString);
 
-        validateBooleanInput(elements, booleanInputString);
-
-        final BooleanInputBuilder booleanInputBuilder = BooleanInput.builder(booleanInputString);
+        final BooleanInputBuilder booleanInputBuilder = BooleanInput.builder(inputString);
 
         final ToIntFunction<List<String>> createReferenceIdFunction = literalTerms -> {
             final BooleanInputLiteral literal = literalRegister.computeIfAbsent(
@@ -56,10 +51,9 @@ public class BooleanInputParser {
         };
 
         return booleanInputBuilder.withPredicate(PredicateBuilder.build(elements, createReferenceIdFunction));
-
     }
 
-    protected List<BooleanInputElement> parseInputStringToElements(final String booleanInputString) {
+    public List<BooleanInputElement> parseInputStringToElements(final String booleanInputString) {
         return Arrays.stream(booleanInputString.split("\\s+"))
                 .flatMap(this::separateParenthesesFromElements)
                 .map(element -> new BooleanInputElement(
@@ -166,13 +160,6 @@ public class BooleanInputParser {
 
     public Map<List<String>, BooleanInputLiteral> getLiteralRegister() {
         return this.literalRegister;
-    }
-
-    public static class BooleanInputString {
-        public final String value;
-        public BooleanInputString(final String value) {
-            this.value = value;
-        }
     }
 
 
