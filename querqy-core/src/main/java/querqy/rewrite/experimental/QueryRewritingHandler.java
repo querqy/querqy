@@ -68,7 +68,7 @@ public class QueryRewritingHandler {
     }
 
     public static class Builder {
-        private List<RewriterFactory> rewriterFactories = new LinkedList<>();
+        final private List<RewriterFactory> rewriterFactories = new LinkedList<>();
         private int rewriterIdCounter = 0;
 
         // TODO: Replace these methods by a method addRewriterFactoryBuilder(...) and by builders in the respective
@@ -90,6 +90,7 @@ public class QueryRewritingHandler {
             rewriterFactories.add(new SimpleCommonRulesRewriterFactory(
                     rewriterId,
                     new StringReader(config),
+                    true,
                     new WhiteSpaceQuerqyParserFactory(),
                     true,
                     Collections.emptyMap(),

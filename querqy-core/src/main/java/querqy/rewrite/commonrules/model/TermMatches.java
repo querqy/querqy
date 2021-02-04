@@ -39,6 +39,12 @@ public class TermMatches extends LinkedList<TermMatch> {
         add(match);
     }
     
+    public TermMatches(final TermMatches termMatches) {
+        super();
+        addAll(termMatches);
+        this.replacements.putAll(termMatches.replacements);
+    }
+
     public ComparableCharSequence getReplacement(final int position) {
         if (replacements == null) {
             throw new IndexOutOfBoundsException(Integer.toString(position));
@@ -88,5 +94,35 @@ public class TermMatches extends LinkedList<TermMatch> {
         }
         replacements.put(replacements.size() + 1, match.getWildcardMatch());
     }
+
+    public static TermMatches empty() {
+        return EmptyTermMatches.EMPTY_TERM_MATCHES;
+    }
+
+    private static class EmptyTermMatches extends TermMatches {
+        private static final TermMatches EMPTY_TERM_MATCHES = new EmptyTermMatches();
+
+        @Override
+        public boolean add(final TermMatch match) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(final int index, final TermMatch match) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addFirst(final TermMatch match) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addAll(final Collection<? extends TermMatch> c) {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
 
 }

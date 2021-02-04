@@ -1,11 +1,11 @@
 package querqy.rewrite.commonrules;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -18,14 +18,31 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import querqy.model.Input;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.model.Clause;
 import querqy.model.ParametrizedRawQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.DecorateInstruction;
+import querqy.rewrite.commonrules.model.DeleteInstruction;
+import querqy.rewrite.commonrules.model.FilterInstruction;
+import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.PrefixTerm;
+import querqy.rewrite.commonrules.model.Term;
+import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
+import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement;
 
 public class LineParserTest {
+
+    static final Input SIMPLE_INPUT_PATTERN = new Input.SimpleInput(singletonList(new Term("a".toCharArray(), 0, 1,
+            null)), false, false, "a");
+
+    static final Input BOOLEAN_INPUT_PATTERN = new Input.BooleanInput(singletonList(new BooleanInputElement("input",
+            BooleanInputElement.Type.TERM)),
+            new BooleanInputParser(), "input");
 
     private Locale locale;
 
@@ -56,17 +73,16 @@ public class LineParserTest {
 
     @Test
     public void testRawQueryParsingFromRule() {
-        final Input input = new Input(Collections.singletonList(new Term("a".toCharArray(), 0, 1, null)), "a");
         final WhiteSpaceQuerqyParserFactory factory = new WhiteSpaceQuerqyParserFactory();
 
         Object result;
 
-        result = LineParser.parse("FILTER: * query", input, factory);
+        result = LineParser.parse("FILTER: * query", SIMPLE_INPUT_PATTERN, factory);
         Assertions.assertThat(result).isInstanceOf(FilterInstruction.class);
         Assertions.assertThat(result).isEqualTo(new FilterInstruction(
                 new StringRawQuery(null, "query", Clause.Occur.MUST, false)));
 
-        result = LineParser.parse("FILTER: * q %% param %% q", input, factory);
+        result = LineParser.parse("FILTER: * q %% param %% q", SIMPLE_INPUT_PATTERN, factory);
         Assertions.assertThat(result).isInstanceOf(FilterInstruction.class);
         Assertions.assertThat(result).isEqualTo(new FilterInstruction(
                 new ParametrizedRawQuery(null,
@@ -77,7 +93,7 @@ public class LineParserTest {
                         Clause.Occur.MUST,
                         false)));
 
-        result = LineParser.parse("UP(1.0): * q %% param %% q", input, factory);
+        result = LineParser.parse("UP(1.0): * q %% param %% q", SIMPLE_INPUT_PATTERN, factory);
         Assertions.assertThat(result).isInstanceOf(BoostInstruction.class);
         Assertions.assertThat(result).isEqualTo(new BoostInstruction(
                 new ParametrizedRawQuery(
@@ -123,23 +139,54 @@ public class LineParserTest {
     }
 
     @Test
+    public void testThatBooleanInputOnlyAllowsCertainInstructions() {
+        final WhiteSpaceQuerqyParserFactory factory = new WhiteSpaceQuerqyParserFactory();
+
+
+        Assertions.assertThat(LineParser.parse("FILTER: f", BOOLEAN_INPUT_PATTERN, factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("UP: f", BOOLEAN_INPUT_PATTERN, factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("DOWN: f", BOOLEAN_INPUT_PATTERN, factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("DECORATE: f", BOOLEAN_INPUT_PATTERN, factory))
+                .isInstanceOf(Instruction.class);
+
+        Assertions.assertThat(LineParser.parse("SYNONYM: f", BOOLEAN_INPUT_PATTERN, factory))
+                .isInstanceOf(ValidationError.class);
+
+        Assertions.assertThat(LineParser.parse("DELETE: f", BOOLEAN_INPUT_PATTERN, factory))
+                .isInstanceOf(ValidationError.class);
+    }
+
+    @Test
     public void testPredicatesWithVaryingLocales() {
 
-        final Input input = new Input(Collections.singletonList(new Term("a".toCharArray(), 0, 1, null)), "a");
         final WhiteSpaceQuerqyParserFactory rhsParserFactory = new WhiteSpaceQuerqyParserFactory();
 
         for (final Locale locale: Arrays.asList(Locale.ENGLISH, new Locale("tr", "CY"))) {
 
             Locale.setDefault(locale);
 
-            assertTrue(LineParser.parse("filter: f", input, rhsParserFactory) instanceof FilterInstruction);
-            assertTrue(LineParser.parse("FILTER: f", input, rhsParserFactory) instanceof FilterInstruction);
-            assertTrue(LineParser.parse("up: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("UP: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("down: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("DOWN: f", input, rhsParserFactory) instanceof BoostInstruction);
-            assertTrue(LineParser.parse("delete: a", input, rhsParserFactory) instanceof DeleteInstruction);
-            assertTrue(LineParser.parse("DELETE: a", input, rhsParserFactory) instanceof DeleteInstruction);
+            assertTrue(LineParser.parse("filter: f", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    FilterInstruction);
+            assertTrue(LineParser.parse("FILTER: f", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    FilterInstruction);
+            assertTrue(LineParser.parse("up: f", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    BoostInstruction);
+            assertTrue(LineParser.parse("UP: f", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    BoostInstruction);
+            assertTrue(LineParser.parse("down: f", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    BoostInstruction);
+            assertTrue(LineParser.parse("DOWN: f", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    BoostInstruction);
+            assertTrue(LineParser.parse("delete: a", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    DeleteInstruction);
+            assertTrue(LineParser.parse("DELETE: a", SIMPLE_INPUT_PATTERN, rhsParserFactory) instanceof
+                    DeleteInstruction);
 
         }
 
@@ -169,7 +216,7 @@ public class LineParserTest {
         assertEquals(3, term.length());
         assertArrayEquals(new char[] {'a', 'b', 'c'},new char[] {term.charAt(0), term.charAt(1), term.charAt(2)});
         assertFalse(term instanceof PrefixTerm);
-        assertEquals(Collections.singletonList("f1"), term.getFieldNames());
+        assertEquals(singletonList("f1"), term.getFieldNames());
     }
     
     @Test
@@ -178,7 +225,7 @@ public class LineParserTest {
         assertEquals(1, term.length());
         assertArrayEquals(new char[] {'a'},new char[] {term.charAt(0)});
         assertFalse(term instanceof PrefixTerm);
-        assertEquals(Collections.singletonList("f1"), term.getFieldNames());
+        assertEquals(singletonList("f1"), term.getFieldNames());
     }
     
     @Test
@@ -259,29 +306,38 @@ public class LineParserTest {
     @Test
     public void testThatWildcardCanBeCombinedWithLeftBoundary() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.WILDCARD);
-        assertTrue(parseResult instanceof Input);
-        Input input = (Input) parseResult;
-        assertTrue(input.requiresLeftBoundary());
-        assertFalse(input.requiresRightBoundary());
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+        assertFalse(input.isRequiresRightBoundary());
     }
     
     @Test
     public void testThatBoundariesAreParsedInInput() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.BOUNDARY);
-        assertTrue(parseResult instanceof Input);
-        Input input = (Input) parseResult;
-        assertTrue(input.requiresLeftBoundary());
-        assertTrue(input.requiresRightBoundary());
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+        assertTrue(input.isRequiresRightBoundary());
     }
     
     @Test
     public void testThatBoundariesAreParsedInOtherwiseEmptyInput() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY);
-        assertTrue(parseResult instanceof Input);
-        Input input = (Input) parseResult;
-        assertTrue(input.requiresLeftBoundary());
-        assertTrue(input.requiresRightBoundary());   
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+        assertTrue(input.isRequiresRightBoundary());
     }
+
+    @Test
+    public void testThatSpaceVsInput() {
+        assertEquals(new InputString("input"), LineParser.parse("input =>", null, null));
+        assertEquals(new InputString("in put"), LineParser.parse(" in put  =>", null, null));
+        assertEquals(new InputString("input"), LineParser.parse(" input=>", null, null));
+        assertTrue(LineParser.parse(" =>", null, null) instanceof ValidationError);
+    }
+
 
     @Test
     public void testThatBoostInstructionWithSingleLetterTermIsAccepted() {
@@ -314,7 +370,7 @@ public class LineParserTest {
     @Test
     public void testUnweightedSynonym() {
         String line = "SYNONYM: 3$1";
-        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        final Object instruction = LineParser.parse(line, SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
         assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
     }
@@ -322,7 +378,7 @@ public class LineParserTest {
     @Test
     public void testFallbackToUnweightedSynonym() {
         String line = "SYNONYM(1.0): 3$1";
-        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        final Object instruction = LineParser.parse(line, SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
         assertThat(((SynonymInstruction) instruction).getTermBoost(), is(SynonymInstruction.DEFAULT_TERM_BOOST));
     }
@@ -330,26 +386,28 @@ public class LineParserTest {
     @Test
     public void testWeightedSynonym() {
         String line = "SYNONYM(0.5): 3$1";
-        final Object instruction = LineParser.parse(line, new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        final Object instruction = LineParser.parse(line, SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof SynonymInstruction);
         assertThat(((SynonymInstruction) instruction).getTermBoost(), is(0.5f));
     }
         
     @Test
     public void testMalformedWeightedSynonym() {
-        Object instruction = LineParser.parse("SYNONYM(): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        Object instruction = LineParser.parse("SYNONYM(): 3$1", SIMPLE_INPUT_PATTERN,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(-): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(-): 3$1", SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(-0.5): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(-0.5): 3$1", SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(3e): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(3e): 3$1", SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
         
-        instruction = LineParser.parse("SYNONYM(sausage): 3$1", new Input(null, "test"), new WhiteSpaceQuerqyParserFactory());
+        instruction = LineParser.parse("SYNONYM(sausage): 3$1", SIMPLE_INPUT_PATTERN,
+                new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof ValidationError);
     }
 
@@ -384,66 +442,69 @@ public class LineParserTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testParseTermExpressionMixed() {
-        assertThat((List<Term>) LineParser.parseTermExpression("abc* def ghij* klmn"), contains(prefix("abc"), term("def"), prefix("ghij"), term("klmn")));
+        assertThat((List<Term>) LineParser.parseTermExpression("abc* def ghij* klmn"), contains(prefix("abc"),
+                term("def"), prefix("ghij"), term("klmn")));
     }
     
     @Test
     public void testInputWithWildcard() {
-        assertTrue("parseInput must not allow wildcard in the middle", LineParser.parseInput("abc* def ghij*") instanceof ValidationError);
+        assertTrue("parseInput must not allow wildcard in the middle",
+                LineParser.parseInput("abc* def ghij*") instanceof ValidationError);
 
     }
     
     @Test
     public void testParseTermExpressionDoesNotAllowAWildCardOnly() {
-        assertTrue("parseTermExpression must not allow single wild card", LineParser.parseTermExpression("*") instanceof ValidationError);
+        assertTrue("parseTermExpression must not allow single wild card",
+                LineParser.parseTermExpression("*") instanceof ValidationError);
     }
     
     @Test
     public void testThatCaseIsPreservedInDecorateInstruction() {
-        Input input = (Input) LineParser.parseInput("in");
-        assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", input, null));
+        assertEquals(new DecorateInstruction("Some Deco"), LineParser.parse("DECORATE: Some Deco", SIMPLE_INPUT_PATTERN,
+                null));
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfOpeningBracketIsMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATEkey): Some Deco", null,
-                null)).isInstanceOf(ValidationError.class);
+        Assertions.assertThat(LineParser.parse("DECORATEkey): Some Deco", SIMPLE_INPUT_PATTERN, null))
+                .isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfClosingBracketIsMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE(key: Some Deco", null,
-                null)).isInstanceOf(ValidationError.class);
+        Assertions.assertThat(LineParser.parse("DECORATE(key: Some Deco", SIMPLE_INPUT_PATTERN, null))
+                .isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfOpeningBracketAndKeyAreMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE):Deco", null,
-                null)).isInstanceOf(ValidationError.class);
+        Assertions.assertThat(LineParser.parse("DECORATE):Deco", SIMPLE_INPUT_PATTERN, null))
+                .isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfClosingBracketAndKeyAreMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE(: Some ):Deco", null,
-                null)).isInstanceOf(ValidationError.class);
+        Assertions.assertThat(LineParser.parse("DECORATE(: Some ):Deco", SIMPLE_INPUT_PATTERN, null))
+                .isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfKeyIsMissing() {
-        Assertions.assertThat(LineParser.parse("DECORATE():Deco", null,
-                null)).isInstanceOf(ValidationError.class);
+        Assertions.assertThat(LineParser.parse("DECORATE():Deco", SIMPLE_INPUT_PATTERN, null))
+                .isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testThatDecorateInputIsInvalidIfKeyContainsCharThatIsNotAllowed() {
-        Assertions.assertThat(LineParser.parse("DECORATE(k-ey):Deco", null,
-                null)).isInstanceOf(ValidationError.class);
+        Assertions.assertThat(LineParser.parse("DECORATE(k-ey):Deco", SIMPLE_INPUT_PATTERN, null))
+                .isInstanceOf(ValidationError.class);
     }
 
     @Test
     public void testValidDecorateKeyInput() {
-        Input input = (Input) LineParser.parseInput("in");
-        assertEquals(new DecorateInstruction("key", "value"), LineParser.parse("DECORATE(key): value", input, null));
+        assertEquals(new DecorateInstruction("key", "value"), LineParser.parse("DECORATE(key): value",
+                SIMPLE_INPUT_PATTERN, null));
     }
 
     TermMatcher term(String value, String...fieldNames) {
@@ -479,7 +540,8 @@ public class LineParserTest {
                         || 
                         ((fieldNames != null) 
                                 && (item.getFieldNames() != null)
-                                && new HashSet<String>(Arrays.asList(fieldNames)).equals(new HashSet<>(item.getFieldNames()))))
+                                && new HashSet<>(Arrays.asList(fieldNames)).equals(new HashSet<>(
+                                        item.getFieldNames()))))
                             ;
            
         }

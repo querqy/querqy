@@ -23,6 +23,7 @@ import querqy.model.ExpandedQuery;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.LineParser;
 
 public class DecorateInstructionTest extends AbstractCommonRulesTest {
@@ -92,7 +93,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", Collections.singletonList(deco)));
 
         RulesCollection rules = builder.build();
@@ -106,17 +107,17 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
         assertThat((Set<Object>)searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
               contains(
-                      equalTo((Object) "deco1")
+                      equalTo("deco1")
               ));
 
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testDecorationForEmptyInput() throws Exception {
+    public void testDecorationForEmptyInput() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DecorateInstruction deco = new DecorateInstruction("deco1");
-        builder.addRule((Input) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
+        builder.addRule((Input.SimpleInput) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
                     new Instructions(1, "1", Collections.singletonList( deco)));
 
         RulesCollection rules = builder.build();
@@ -130,7 +131,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
         assertThat((Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
               contains(
-                      equalTo((Object) "deco1")
+                      equalTo("deco1")
               ));
 
     }
@@ -144,9 +145,9 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         DecorateInstruction deco2 = new DecorateInstruction("deco2");
         DecorateInstruction deco3 = new DecorateInstruction("deco3");
 
-        builder.addRule(new Input(Collections.singletonList(mkTerm("x")), false, false, "x"),
+        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", Arrays.asList(deco1, deco2)));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false, "a"),
+        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
                 new Instructions(2, "2", Collections.singletonList(deco3)));
 
         RulesCollection rules = builder.build();
@@ -160,7 +161,7 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
         
         assertThat(
                 (Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
-                containsInAnyOrder((Object) "deco1", (Object) "deco2", (Object) "deco3")
+                containsInAnyOrder("deco1", "deco2", "deco3")
                               
               );
 

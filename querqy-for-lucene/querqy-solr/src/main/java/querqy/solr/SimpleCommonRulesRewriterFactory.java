@@ -5,6 +5,7 @@ package querqy.solr;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,8 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
 
 
         final Boolean ignoreCase = args.getBooleanArg("ignoreCase");
-        
+        final Boolean allowBooleanInput = args.getBooleanArg("allowBooleanInput");
+
         final Boolean buildTermCache = args.getBooleanArg("buildTermCache");
 
         // querqy parser for queries that are part of the instructions in the
@@ -87,9 +89,11 @@ public class SimpleCommonRulesRewriterFactory implements FactoryAdapter<Rewriter
         }
 
         return new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(id,
-                new InputStreamReader(resourceLoader.openResource(rulesResourceName), "UTF-8"), querqyParser,
-                ignoreCase == null || ignoreCase, selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY,
-                buildTermCache == null || buildTermCache);
+                new InputStreamReader(resourceLoader.openResource(rulesResourceName), StandardCharsets.UTF_8),
+                (allowBooleanInput == null) || allowBooleanInput,
+                querqyParser,
+                (ignoreCase == null) || ignoreCase, selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY,
+                (buildTermCache == null) || buildTermCache);
     }
 
     @Override

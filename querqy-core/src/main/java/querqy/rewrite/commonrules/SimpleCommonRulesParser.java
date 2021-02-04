@@ -1,5 +1,14 @@
 package querqy.rewrite.commonrules;
 
+import querqy.model.Input;
+import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
+import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
+
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.ID;
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.LOG_MESSAGE;
 
@@ -7,12 +16,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.IntUnaryOperator;
 
-import querqy.rewrite.commonrules.model.*;
 
 /**
  * This parser reads a set of rules in the Common Rules format and creates a {@link RulesCollection}.
@@ -27,24 +37,28 @@ public class SimpleCommonRulesParser {
     private final QuerqyParserFactory querqyParserFactory;
     private int lineNumber = 0;
     private final RulesCollectionBuilder builder;
-    private Input input = null;
+    private final BooleanInputParser booleanInputParser;
+    private Input inputPattern = null;
     private int instructionsCount = 0;
     private List<Instruction> instructionList = null;
-    private PropertiesBuilder propertiesBuilder = null;
+    private final PropertiesBuilder propertiesBuilder;
 
+    private final Set<Object> seenInstructionIds = new HashSet<>();
     private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;
 
-    public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
-                                   final boolean ignoreCase) {
-        this(in, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase));
+    public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
+                                   final QuerqyParserFactory querqyParserFactory, final boolean ignoreCase) {
+        this(in, allowBooleanInput, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase));
     }
 
-    public SimpleCommonRulesParser(final Reader in, final QuerqyParserFactory querqyParserFactory,
+    public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
+                                   final QuerqyParserFactory querqyParserFactory,
                                    final RulesCollectionBuilder builder) {
         this.reader = new BufferedReader(in);
         this.querqyParserFactory = querqyParserFactory;
         this.builder = builder;
         this.propertiesBuilder = new PropertiesBuilder();
+        this.booleanInputParser = allowBooleanInput ? new BooleanInputParser() : null;
     }
 
     public SimpleCommonRulesParser setLineNumberMapper(final IntUnaryOperator lineNumberMapper) {
@@ -61,6 +75,9 @@ public class SimpleCommonRulesParser {
                 nextLine(line);
             }
             putRule();
+            if (booleanInputParser != null) {
+                addLiterals();
+            }
             return builder.build();
         } finally {
             try {
@@ -71,15 +88,31 @@ public class SimpleCommonRulesParser {
         }
     }
 
+    private void addLiterals() throws RuleParseException {
+        for (final BooleanInputLiteral literal : booleanInputParser.getLiteralRegister().values()) {
+            final Object parsingResult = LineParser.parseInput(String.join(" ", literal.getTerms()));
+
+            if (parsingResult instanceof Input.SimpleInput) {
+                builder.addRule((Input.SimpleInput) parsingResult, literal);
+
+            } else if (parsingResult instanceof ValidationError) {
+                throw new RuleParseException(((ValidationError) parsingResult).getMessage());
+            } else {
+                throw new RuleParseException(String.format("Something unexpected happened parsing boolean input %s",
+                        String.join(" ", literal.getTerms())));
+            }
+        }
+    }
+
     private void putRule() throws RuleParseException {
-        if (input != null) {
+        if (inputPattern != null) {
             if (instructionList.isEmpty()) {
                 throw new RuleParseException(lineNumber, "Instruction expected");
             }
 
             final int ord = instructionsCount++;
 
-            final String defaultId = String.valueOf(input.getMatchExpression()) + "#" + ord;
+            final String defaultId = inputPattern.getIdPrefix() + "#" + ord;
 
             final Object id = propertiesBuilder.addPropertyIfAbsent(ID, defaultId).orElse(defaultId);
 
@@ -90,11 +123,20 @@ public class SimpleCommonRulesParser {
             propertiesBuilder.addPropertyIfAbsent(LOG_MESSAGE, id);
 
             try {
-                builder.addRule(input, new Instructions(ord, id, instructionList, propertiesBuilder.build()));
+
+                final Instructions instructions = new Instructions(ord, id, instructionList, propertiesBuilder.build());
+
+                if (seenInstructionIds.contains(instructions.getId())) {
+                    throw new IllegalStateException("Duplicate instructions ID " + instructions.getId());
+                }
+                seenInstructionIds.add(instructions.getId());
+
+                inputPattern.applyInstructions(instructions, builder);
+
             } catch (final Exception e) {
                 throw new RuleParseException(e);
             }
-            input = null;
+            inputPattern = null;
             instructionList = null;
             propertiesBuilder.reset();
         }
@@ -103,20 +145,36 @@ public class SimpleCommonRulesParser {
     private void nextLine(final String newLine) throws RuleParseException {
         final String line = stripLine(newLine);
         if (line.length() > 0) {
-            Object lineObject = LineParser.parse(line, input, querqyParserFactory);
-            if (lineObject instanceof Input) {
-                putRule();
-                input = (Input) lineObject;
-                instructionList = new LinkedList<>();
-                propertiesBuilder.reset();
+            final Object lineObject = LineParser.parse(line, inputPattern, querqyParserFactory);
+
+            if (lineObject instanceof InputString) {
+
+                final Object patternObject = Input.fromString(((InputString) lineObject).value,
+                        booleanInputParser);
+
+                if (patternObject instanceof ValidationError) {
+
+                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
+                            ((ValidationError) patternObject).getMessage());
+
+                } else if (patternObject instanceof Input) {
+
+                    putRule();
+                    inputPattern = (Input) patternObject;
+                    instructionList = new LinkedList<>();
+                    propertiesBuilder.reset();
+
+                }
             } else if (lineObject instanceof ValidationError) {
-                throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber), ((ValidationError) lineObject).getMessage());
+                throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
+                        ((ValidationError) lineObject).getMessage());
             } else if (lineObject instanceof Instruction) {
                 instructionList.add((Instruction) lineObject);
             } else if (lineObject instanceof String) {
                 final Optional<ValidationError> optionalError = propertiesBuilder.nextLine(line);
                 if (optionalError.isPresent()) {
-                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber), optionalError.map(ValidationError::getMessage).orElse(""));
+                    throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
+                            optionalError.map(ValidationError::getMessage).orElse(""));
                 }
             }
 
