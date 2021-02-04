@@ -41,7 +41,7 @@ public class SimpleCommonRulesParser {
     private Input inputPattern = null;
     private int instructionsCount = 0;
     private List<Instruction> instructionList = null;
-    private PropertiesBuilder propertiesBuilder;
+    private final PropertiesBuilder propertiesBuilder;
 
     private final Set<Object> seenInstructionIds = new HashSet<>();
     private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;

@@ -201,7 +201,6 @@ public class LineParser {
                     return new SynonymInstruction(synonymTerms, boost);
                 }
             }
-
         }
 
         if (lcLine.startsWith(INSTR_DECORATE)) {
