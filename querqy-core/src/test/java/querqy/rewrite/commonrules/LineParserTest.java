@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import querqy.model.Input;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.model.Clause;
 import querqy.model.ParametrizedRawQuery;
@@ -27,21 +28,19 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
-import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.PrefixTerm;
 import querqy.rewrite.commonrules.model.Term;
 import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
-import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInput;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement;
 
 public class LineParserTest {
 
-    static final InputPattern SIMPLE_INPUT_PATTERN = new InputPattern
-            .SimpleInputPattern(new Input(singletonList(new Term("a".toCharArray(), 0, 1, null))), "a");
+    static final Input SIMPLE_INPUT_PATTERN = new Input.SimpleInput(singletonList(new Term("a".toCharArray(), 0, 1,
+            null)), false, false, "a");
 
-    static final InputPattern BOOLEAN_INPUT_PATTERN = new InputPattern
-            .BooleanInputPattern(singletonList(new BooleanInputElement("input", BooleanInputElement.Type.TERM)),
+    static final Input BOOLEAN_INPUT_PATTERN = new Input.BooleanInput(singletonList(new BooleanInputElement("input",
+            BooleanInputElement.Type.TERM)),
             new BooleanInputParser(), "input");
 
     private Locale locale;
@@ -306,28 +305,28 @@ public class LineParserTest {
     @Test
     public void testThatWildcardCanBeCombinedWithLeftBoundary() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.WILDCARD);
-        assertTrue(parseResult instanceof Input);
-        Input input = (Input) parseResult;
-        assertTrue(input.requiresLeftBoundary());
-        assertFalse(input.requiresRightBoundary());
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+        assertFalse(input.isRequiresRightBoundary());
     }
     
     @Test
     public void testThatBoundariesAreParsedInInput() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "a" + LineParser.BOUNDARY);
-        assertTrue(parseResult instanceof Input);
-        Input input = (Input) parseResult;
-        assertTrue(input.requiresLeftBoundary());
-        assertTrue(input.requiresRightBoundary());
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+        assertTrue(input.isRequiresRightBoundary());
     }
     
     @Test
     public void testThatBoundariesAreParsedInOtherwiseEmptyInput() {
         Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY);
-        assertTrue(parseResult instanceof Input);
-        Input input = (Input) parseResult;
-        assertTrue(input.requiresLeftBoundary());
-        assertTrue(input.requiresRightBoundary());   
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+        assertTrue(input.isRequiresRightBoundary());
     }
 
     @Test
@@ -540,7 +539,8 @@ public class LineParserTest {
                         || 
                         ((fieldNames != null) 
                                 && (item.getFieldNames() != null)
-                                && new HashSet<>(Arrays.asList(fieldNames)).equals(new HashSet<>(item.getFieldNames()))))
+                                && new HashSet<>(Arrays.asList(fieldNames)).equals(new HashSet<>(
+                                        item.getFieldNames()))))
                             ;
            
         }

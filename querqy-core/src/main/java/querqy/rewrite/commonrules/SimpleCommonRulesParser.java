@@ -1,6 +1,6 @@
 package querqy.rewrite.commonrules;
 
-import querqy.rewrite.commonrules.model.Input;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
@@ -38,10 +38,10 @@ public class SimpleCommonRulesParser {
     private int lineNumber = 0;
     private final RulesCollectionBuilder builder;
     private final BooleanInputParser booleanInputParser;
-    private InputPattern inputPattern = null;
+    private Input inputPattern = null;
     private int instructionsCount = 0;
     private List<Instruction> instructionList = null;
-    private PropertiesBuilder propertiesBuilder = null;
+    private PropertiesBuilder propertiesBuilder;
 
     private final Set<Object> seenInstructionIds = new HashSet<>();
     private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;
@@ -92,8 +92,8 @@ public class SimpleCommonRulesParser {
         for (final BooleanInputLiteral literal : booleanInputParser.getLiteralRegister().values()) {
             final Object parsingResult = LineParser.parseInput(String.join(" ", literal.getTerms()));
 
-            if (parsingResult instanceof Input) {
-                builder.addRule((Input) parsingResult, literal);
+            if (parsingResult instanceof Input.SimpleInput) {
+                builder.addRule((Input.SimpleInput) parsingResult, literal);
 
             } else if (parsingResult instanceof ValidationError) {
                 throw new RuleParseException(((ValidationError) parsingResult).getMessage());
@@ -149,7 +149,7 @@ public class SimpleCommonRulesParser {
 
             if (lineObject instanceof InputString) {
 
-                final Object patternObject = InputPattern.fromString(((InputString) lineObject).value,
+                final Object patternObject = Input.fromString(((InputString) lineObject).value,
                         booleanInputParser);
 
                 if (patternObject instanceof ValidationError) {
@@ -157,10 +157,10 @@ public class SimpleCommonRulesParser {
                     throw new RuleParseException(lineNumberMapper.applyAsInt(lineNumber),
                             ((ValidationError) patternObject).getMessage());
 
-                } else if (patternObject instanceof InputPattern) {
+                } else if (patternObject instanceof Input) {
 
                     putRule();
-                    inputPattern = (InputPattern) patternObject;
+                    inputPattern = (Input) patternObject;
                     instructionList = new LinkedList<>();
                     propertiesBuilder.reset();
 

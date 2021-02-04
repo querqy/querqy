@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 
 import querqy.model.Clause;
 import querqy.model.Clause.Occur;
+import querqy.model.Input;
 import querqy.model.ParametrizedRawQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
@@ -37,7 +38,7 @@ public class LineParser {
 
     static final char RAWQUERY = '*';
 
-    public static Object parse(final String line, final InputPattern inputPattern,
+    public static Object parse(final String line, final Input inputPattern,
                                final QuerqyParserFactory querqyParserFactory) {
 
 
@@ -55,10 +56,13 @@ public class LineParser {
         }
 
         final String lcLine = line.toLowerCase(Locale.ROOT).trim();
+        final List<Term> inputTerms = inputPattern.getInputTerms();
 
         if (lcLine.startsWith(INSTR_DELETE)) {
 
-            return inputPattern.getInputTerms().map(inputTerms -> {
+            if (inputTerms.isEmpty()) {
+                return new ValidationError("DELETE instruction is not allowed for boolean input");
+            } else {
 
                 if (lcLine.length() == 6) {
                     return new DeleteInstruction(inputTerms);
@@ -76,7 +80,8 @@ public class LineParser {
                 instructionTerms = instructionTerms.substring(1).trim();
                 final Object expr = parseTermExpression(instructionTerms);
                 if (expr instanceof ValidationError) {
-                    return new ValidationError("Cannot parse line: " + line + " : " + ((ValidationError) expr).getMessage());
+                    return new ValidationError("Cannot parse line: " + line + " : " + ((ValidationError) expr)
+                            .getMessage());
                 }
                 @SuppressWarnings("unchecked")
                 final List<Term> deleteTerms = (List<Term>) expr;
@@ -88,7 +93,7 @@ public class LineParser {
 
                 return new DeleteInstruction(deleteTerms);
 
-            }).orElse(new ValidationError("DELETE instruction is not allowed for boolean input"));
+            }
 
         }
 
@@ -121,7 +126,8 @@ public class LineParser {
                 }
 
             } else if (querqyParserFactory == null) {
-                return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' if you want to pass this line as a raw query String to your search engine. Line: " + line);
+                return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' if you want " +
+                        "to pass this line as a raw query String to your search engine. Line: " + line);
             } else {
                 QuerqyParser parser = querqyParserFactory.createParser();
                 return new FilterInstruction(parser.parse(filterString));
@@ -138,7 +144,9 @@ public class LineParser {
 
         if (lcLine.startsWith(INSTR_SYNONYM)) {
 
-            return inputPattern.getInputTerms().map(inputTerms -> {
+            if (inputTerms.isEmpty()) {
+                return new ValidationError("SYNONYM instruction is not allowed for boolean input");
+            } else {
 
                 if (lcLine.length() == 7) {
                     return new ValidationError("Cannot parse line: " + line);
@@ -157,7 +165,8 @@ public class LineParser {
                     try {
                         boost = Float.parseFloat(synonymString.substring(0, boostEndBracket));
                     } catch (final NumberFormatException e) {
-                        return new ValidationError("Cannot parse line. Invalid boost in: " + line + ". Threw: " + e.getMessage());
+                        return new ValidationError("Cannot parse line. Invalid boost in: " + line + ". Threw: "
+                                + e.getMessage());
                     }
 
                     if (boost < 0) {
@@ -191,9 +200,7 @@ public class LineParser {
                 } else {
                     return new SynonymInstruction(synonymTerms, boost);
                 }
-            }).orElse(new ValidationError("SYNONYM instruction is not allowed for boolean input"));
-
-
+            }
 
         }
 
@@ -230,15 +237,15 @@ public class LineParser {
         }
     }
 
-    private static final String DECORATE_ERROR_MESSAGE_TEMPLATE = "Invalid decorate rule %s. Decorate rules must either " +
-            "be defined only with a value, e. g. DECORATE: value, or with a key surrounded by brackets and a value, " +
-            "e. g. DECORATE(key): value.";
+    private static final String DECORATE_ERROR_MESSAGE_TEMPLATE = "Invalid decorate rule %s. Decorate rules must " +
+            "either be defined only with a value, e. g. DECORATE: value, or with a key surrounded by brackets and a " +
+            "value, e.g. DECORATE(key): value.";
 
     private static String createDecorateErrorMessage(final String line) {
         return String.format(DECORATE_ERROR_MESSAGE_TEMPLATE, line);
     }
 
-    private static Pattern DECORATE_KEY_PATTERN = Pattern.compile("^\\(([\\w\\d_]+)\\):");
+    private static final Pattern DECORATE_KEY_PATTERN = Pattern.compile("^\\(([\\w\\d_]+)\\):");
 
     public static Object parseDecorateInstruction(String line) {
         if (line.length() == INSTR_DECORATE.length()) {
@@ -285,7 +292,8 @@ public class LineParser {
 
             case '(':
                 if (line.length() < 5) {
-                    return new ValidationError("Cannot parse line, expecting boost factor and ':' after '(' in " + line);
+                    return new ValidationError("Cannot parse line, expecting boost factor and ':' after '(' in " +
+                            line);
                 }
                 break;
 
@@ -335,7 +343,8 @@ public class LineParser {
 
         } else if (querqyParserFactory == null) {
 
-            return new ValidationError("No querqy parser factory to parse filter query. Prefix '" + RAWQUERY + "' you want to pass this line as a raw query String to your search engine. Line: " + line);
+            return new ValidationError("No querqy parser factory to parse filter query. Prefix '" + RAWQUERY +
+                    "' you want to pass this line as a raw query String to your search engine. Line: " + line);
 
         } else {
             QuerqyParser parser = querqyParserFactory.createParser();
@@ -344,12 +353,13 @@ public class LineParser {
     }
 
     @SuppressWarnings("unchecked")
-    public static Object parseInput(String s) {
+    public static Object parseInput(final String inputString) {
 
         boolean requiresLeftBoundary = false;
         boolean requiresRightBoundary = false;
 
-        s = s.trim();
+        final String trimmed = inputString.trim();
+        String s = trimmed;
         if (s.length() > 0 && s.charAt(0) == BOUNDARY) {
             requiresLeftBoundary = true;
             s = s.substring(1).trim();
@@ -372,7 +382,8 @@ public class LineParser {
         if (expr instanceof ValidationError) {
             return expr;
         } else {
-            return new Input((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary);
+            return new Input.SimpleInput((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary,
+                    trimmed);
         }
 
     }

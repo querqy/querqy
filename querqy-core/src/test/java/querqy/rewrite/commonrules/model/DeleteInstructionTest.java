@@ -15,6 +15,7 @@ import org.junit.Test;
 import querqy.model.*;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.LineParser;
 
 public class DeleteInstructionTest extends AbstractCommonRulesTest {
@@ -25,7 +26,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
+        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
                 new Instructions(1, "1", Collections.singletonList(delete)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -41,7 +42,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
     public void testThatTermIsRemovedIfThereIsAnotherTermInTheSameDMQ() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
+        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
                 new Instructions(1, "1", Collections.singletonList(delete)));
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -68,13 +69,14 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
    public void testThatTermIsRemovedIfThereASecondDMQWithoutTheTerm() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-      builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
+      builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
               new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
 
-       Query rewritten = (Query) rewriter.rewrite(makeQuery("a b"), new EmptySearchEngineRequestAdapter()).getUserQuery();
+       Query rewritten = (Query) rewriter.rewrite(makeQuery("a b"), new EmptySearchEngineRequestAdapter())
+               .getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -88,13 +90,14 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
    public void testThatAllTermsAreRemovedEvenIfASecondDMQWithTheSameTermAndNoOtherTermExists() {
       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
       DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-      builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, false),
+      builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
               new Instructions(1, "1", Collections.singletonList(delete)));
       RulesCollection rules = builder.build();
        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
 
-       Query rewritten = (Query) rewriter.rewrite(makeQuery("a a"), new EmptySearchEngineRequestAdapter()).getUserQuery();
+       Query rewritten = (Query) rewriter.rewrite(makeQuery("a a"), new EmptySearchEngineRequestAdapter())
+               .getUserQuery();
 
       assertThat(rewritten,
             bq(
@@ -107,7 +110,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
 
-       Input input = (Input) LineParser.parseInput("k*");
+       Input.SimpleInput input = (Input.SimpleInput) LineParser.parseInput("k*");
 
        DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
 
@@ -140,7 +143,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
 
-        Input input = (Input) LineParser.parseInput("ab k*");
+        Input.SimpleInput input = (Input.SimpleInput) LineParser.parseInput("ab k*");
 
         DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
 
@@ -170,7 +173,7 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
-        Input input = (Input) LineParser.parseInput("k*");
+        Input.SimpleInput input = (Input.SimpleInput) LineParser.parseInput("k*");
 
         DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
 

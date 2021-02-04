@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import querqy.rewrite.commonrules.model.Input;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 
@@ -37,7 +37,7 @@ public class SimpleCommonRulesParserTest {
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals("input1#0", instructions.getId());
@@ -57,7 +57,7 @@ public class SimpleCommonRulesParserTest {
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals("The Id", instructions.getId());
@@ -77,7 +77,7 @@ public class SimpleCommonRulesParserTest {
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals(Optional.of(Arrays.asList("v1", "v2")), instructions.getProperty("prop1"));
@@ -100,7 +100,7 @@ public class SimpleCommonRulesParserTest {
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals(Optional.of(Arrays.asList("v1", "v2")), instructions.getProperty("prop1"));
@@ -125,7 +125,7 @@ public class SimpleCommonRulesParserTest {
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals(Optional.of("some message"), instructions.getProperty("_log"));

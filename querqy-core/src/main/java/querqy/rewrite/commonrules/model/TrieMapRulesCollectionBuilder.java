@@ -3,12 +3,11 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.trie.State;
 import querqy.trie.States;
@@ -28,30 +27,29 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         this.ignoreCase = ignoreCase;
     }
 
-    /* (non-Javadoc)
-     * @see querqy.rewrite.commonrules.model.RulesCollectionBuilder#addRule(querqy.rewrite.commonrules.model.Input, querqy.rewrite.commonrules.model.Instructions)
-     */
     @Override
-    public void addRule(final Input input, final Instructions instructions) {
+    public void addRule(final Input.SimpleInput input, final Instructions instructions) {
         addOrMergeInstructionsSupplier(input, new InstructionsSupplier(instructions));
     }
 
     @Override
-    public void addRule(final Input input, final BooleanInputLiteral literal) {
+    public void addRule(final Input.SimpleInput input, final BooleanInputLiteral literal) {
         addOrMergeInstructionsSupplier(input, new InstructionsSupplier(literal));
     }
 
-    public void addOrMergeInstructionsSupplier(final Input input, final InstructionsSupplier instructionsSupplier) {
+    public void addOrMergeInstructionsSupplier(final Input.SimpleInput input,
+                                               final InstructionsSupplier instructionsSupplier) {
         final List<Term> inputTerms = input.getInputTerms();
         
         switch (inputTerms.size()) {
         
         case 0: {
-            if (!(input.requiresLeftBoundary && input.requiresRightBoundary)) {
+            if (!(input.isRequiresLeftBoundary() && input.isRequiresRightBoundary())) {
                 throw new IllegalArgumentException("Empty input!");
             }
 
-            final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, TrieMapRulesCollection.BOUNDARY_WORD);
+            final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD,
+                    TrieMapRulesCollection.BOUNDARY_WORD);
             final States<InstructionsSupplier> states = map.get(seq);
             final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
             if (state.value != null) {
@@ -71,7 +69,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
             
             for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
                 
-                seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
+                seq = applyBoundaries(seq, input.isRequiresLeftBoundary(), input.isRequiresRightBoundary());
 
                 final States<InstructionsSupplier> states = map.get(seq);
                 
@@ -109,11 +107,12 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         break;
         
         default:
-            final Term lastTerm = input.inputTerms.get(input.inputTerms.size() -1);
+
+            final Term lastTerm = inputTerms.get(inputTerms.size() -1);
             final boolean isPrefix = lastTerm instanceof PrefixTerm;
             for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
                 
-                seq = applyBoundaries(seq, input.requiresLeftBoundary, input.requiresRightBoundary);
+                seq = applyBoundaries(seq, input.isRequiresLeftBoundary(), input.isRequiresRightBoundary());
 
                 final States<InstructionsSupplier> states = map.get(seq);
                 
@@ -152,7 +151,8 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
 
     }
     
-    ComparableCharSequence applyBoundaries(ComparableCharSequence seq, boolean requiresLeftBoundary, boolean requiresRightBoundary) {
+    ComparableCharSequence applyBoundaries(final ComparableCharSequence seq, final boolean requiresLeftBoundary,
+                                           final boolean requiresRightBoundary) {
         if (requiresLeftBoundary == requiresRightBoundary) {
             if (requiresLeftBoundary) {
                 return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq, TrieMapRulesCollection.BOUNDARY_WORD);

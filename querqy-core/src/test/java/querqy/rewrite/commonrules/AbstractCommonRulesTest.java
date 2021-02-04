@@ -7,14 +7,13 @@ import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
+import querqy.model.Input;
 import querqy.model.InputSequenceElement;
 import querqy.model.Query;
 import querqy.model.convert.builder.BooleanQueryBuilder;
@@ -24,7 +23,6 @@ import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
-import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.PositionSequence;
@@ -53,7 +51,8 @@ public abstract class AbstractCommonRulesTest {
         return new Term(s.toCharArray(), 0, s.length(), Arrays.asList(fieldName));
     }
 
-    public static List<Action> getActions(final RulesCollection rules, final PositionSequence<InputSequenceElement> seq) {
+    public static List<Action> getActions(final RulesCollection rules,
+                                          final PositionSequence<InputSequenceElement> seq) {
         final TopRewritingActionCollector collector = DEFAULT_SELECTION_STRATEGY.createTopRewritingActionCollector();
         rules.collectRewriteActions(seq, collector);
         return collector.createActions();
@@ -75,15 +74,16 @@ public abstract class AbstractCommonRulesTest {
         return new FilterInstruction(bq(terms).build());
     }
 
-    public Input input(String... terms) {
-        return new Input(Arrays.stream(terms).map(this::mkTerm).collect(toList()), false, false);
+    public Input.SimpleInput input(String... terms) {
+        return new Input.SimpleInput(Arrays.stream(terms).map(this::mkTerm).collect(toList()), String.join(" ", terms));
     }
 
-    public Input input(List<String> terms) {
-        return new Input(terms.stream().map(this::mkTerm).collect(toList()), false, false);
+    public Input.SimpleInput input(List<String> terms) {
+        return new Input.SimpleInput(
+                terms.stream().map(this::mkTerm).collect(toList()), false, false, String.join(" ", terms));
     }
 
-    public void addRule(RulesCollectionBuilder builder, Input input, Instruction... instructions) {
+    public void addRule(RulesCollectionBuilder builder, Input.SimpleInput input, Instruction... instructions) {
         int ruleCount = ruleCounter++;
         builder.addRule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
     }
@@ -106,12 +106,12 @@ public abstract class AbstractCommonRulesTest {
         return new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
     }
 
-    public Rule rule(Input input, Instruction... instructions) {
+    public Rule rule(Input.SimpleInput input, Instruction... instructions) {
         int ruleCount = ruleCounter++;
         return new Rule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
     }
 
-    public Rule rule(Input input, BooleanInputLiteral literal) {
+    public Rule rule(Input.SimpleInput input, BooleanInputLiteral literal) {
         return new Rule(input, literal);
     }
 
@@ -174,19 +174,19 @@ public abstract class AbstractCommonRulesTest {
     }
 
     public static class Rule {
-        public final Input input;
+        public final Input.SimpleInput input;
         public final Instructions instructions;
         public final BooleanInputLiteral literal;
 
-        public Rule(Input input, Instructions instructions) {
+        public Rule(Input.SimpleInput input, Instructions instructions) {
             this(input, instructions, null);
         }
 
-        public Rule(Input input, BooleanInputLiteral literal) {
+        public Rule(Input.SimpleInput input, BooleanInputLiteral literal) {
             this(input, null, literal);
         }
 
-        private Rule(Input input, Instructions instructions, BooleanInputLiteral literal) {
+        private Rule(Input.SimpleInput input, Instructions instructions, BooleanInputLiteral literal) {
             this.input = input;
             this.instructions = instructions;
             this.literal = literal;
