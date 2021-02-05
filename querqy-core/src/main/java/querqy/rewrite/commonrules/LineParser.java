@@ -237,7 +237,7 @@ public class LineParser {
     }
 
     private static final String DECORATE_ERROR_MESSAGE_TEMPLATE = "Invalid decorate rule %s. Decorate rules must " +
-            "either be defined only with a value, e. g. DECORATE: value, or with a key surrounded by brackets and a " +
+            "either be defined only with a value, e.g. DECORATE: value, or with a key surrounded by brackets and a " +
             "value, e.g. DECORATE(key): value.";
 
     private static String createDecorateErrorMessage(final String line) {

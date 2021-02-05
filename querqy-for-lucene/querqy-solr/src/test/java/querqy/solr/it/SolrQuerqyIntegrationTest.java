@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.testcontainers.utility.DockerImageName;
+import querqy.solr.QuerqyQParserPlugin;
 
 @RunWith(Parameterized.class)
 @Category(IntegrationTest.class)
@@ -49,7 +50,7 @@ public class SolrQuerqyIntegrationTest {
     public SolrQuerqyIntegrationTest(DockerImageName solrImage) {
         this.solr = new QuerqySolrContainer(solrImage, numShards);
         
-        System.out.println(String.format("Testing Querqy in %s with %s shards", solr.getDockerImageName(), numShards));
+        System.out.printf("Testing Querqy in %s with %s shards%n", solr.getDockerImageName(), numShards);
     }
 
     @Test
@@ -64,6 +65,7 @@ public class SolrQuerqyIntegrationTest {
         ModifiableSolrParams params = new ModifiableSolrParams();
         params.set(CommonParams.Q, "laptop");
         params.set("defType", "querqy");
+        params.set(QuerqyQParserPlugin.PARAM_REWRITERS, "replace,word_break,common_rules");
         params.set(DisMaxParams.QF, "name title product_type short_description ean search_attributes");
         QueryResponse query = client.query(QuerqySolrContainer.QUERQY_IT_COLLECTION_NAME, params);
         MatcherAssert.assertThat(query.getResults().getNumFound(), Matchers.is(42L));

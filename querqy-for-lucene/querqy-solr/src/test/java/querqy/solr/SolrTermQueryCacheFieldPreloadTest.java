@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -24,6 +27,7 @@ public class SolrTermQueryCacheFieldPreloadTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTest() throws Exception{
         initCore("solrconfig-cache-field-preload.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules-cache-field-preload.txt");
     }
 
     @Override
@@ -40,14 +44,14 @@ public class SolrTermQueryCacheFieldPreloadTest extends SolrTestCaseJ4 {
 
         String q = "a";
         SolrQueryRequest req = req(
-                 
-                 CommonParams.Q, q,
-                 DisMaxParams.QF, "f1 f3",
-                 DisMaxParams.MM, "100%",
-                 QueryParsing.OP, "AND",
-                 "defType", "querqy",
-                 "debugQuery", "true"
-                 );
+                CommonParams.Q, q,
+                DisMaxParams.QF, "f1 f3",
+                DisMaxParams.MM, "100%",
+                QueryParsing.OP, "AND",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
+        );
          
 
         assertQ("Partial preload went wrong",
@@ -70,7 +74,8 @@ public class SolrTermQueryCacheFieldPreloadTest extends SolrTestCaseJ4 {
                 DisMaxParams.MM, "100%",
                 QueryParsing.OP, "AND",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
 

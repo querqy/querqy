@@ -3,8 +3,6 @@ package querqy.solr;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.search.QueryParsing;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -21,7 +19,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatFactoryConfigIsAvailable() throws Exception {
+    public void testThatFactoryConfigIsAvailable() {
         String q = "a";
 
         SolrQueryRequest req = req("q", q,
@@ -39,7 +37,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatParserClassConfigIsAvailable() throws Exception {
+    public void testThatParserClassConfigIsAvailable() {
         String q = "a";
 
         SolrQueryRequest req = req("q", q,
@@ -57,7 +55,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatParserConfigIsAvailable() throws Exception {
+    public void testThatParserConfigIsAvailable() {
         String q = "a";
 
         SolrQueryRequest req = req("q", q,
@@ -75,7 +73,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatWhiteSpaceQuerqyParserIsTheDefault() throws Exception {
+    public void testThatWhiteSpaceQuerqyParserIsTheDefault() {
         String q = "a";
 
         SolrQueryRequest req = req("q", q,

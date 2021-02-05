@@ -87,6 +87,9 @@ public class QuerqySolrContainer extends SolrContainer {
             // create collection with said configset
             QuerqySolrClientUtils.createCollection(this, QUERQY_IT_COLLECTION_NAME, QUERQY_IT_CONFIGSET, numShards);
 
+            // create the rewriters
+            QuerqySolrClientUtils.createRewriters(this, QUERQY_IT_COLLECTION_NAME);
+
             // import product data set
             QuerqySolrClientUtils.importChorusDataset(this, QUERQY_IT_COLLECTION_NAME);
 

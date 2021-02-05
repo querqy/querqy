@@ -32,7 +32,7 @@ public class QuerqyQueryComponentTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
     }
 
     @Before

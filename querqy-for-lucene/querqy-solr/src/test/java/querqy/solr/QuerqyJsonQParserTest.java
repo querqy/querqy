@@ -1,7 +1,6 @@
 package querqy.solr;
 
 import org.apache.solr.SolrJettyTestBase;
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.json.JsonQueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;

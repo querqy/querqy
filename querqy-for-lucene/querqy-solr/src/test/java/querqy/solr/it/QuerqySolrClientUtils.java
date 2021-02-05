@@ -11,7 +11,16 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.testcontainers.containers.SolrClientUtils;
+import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.solr.RewriterConfigRequestBuilder;
+import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
+import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
+import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
+import querqy.solr.rewriter.wordbreak.WordBreakCompoundConfigRequestBuilder;
 
 /**
  * Mostly copied code from {@link SolrClientUtils} as it's not open for
@@ -50,7 +59,44 @@ public class QuerqySolrClientUtils extends SolrClientUtils {
             }
 
         } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void createRewriters(QuerqySolrContainer solr, String collectionName) throws IOException {
+        try (final SolrClient solrClient = solr.newSolrClient()) {
+
+            if (new CommonRulesConfigRequestBuilder()
+                    .rules(QuerqySolrClientUtils.class.getClassLoader()
+                            .getResourceAsStream("integration-test/rewriter/rules.txt"))
+                    .ignoreCase(true)
+                    .rhsParser(WhiteSpaceQuerqyParserFactory.class)
+                    .buildSaveRequest("common_rules")
+                    .process(solrClient, collectionName).getStatus() != 0) {
+                throw new RuntimeException("Could not create common_rules rewriter");
+            }
+
+            if (new WordBreakCompoundConfigRequestBuilder()
+                    .dictionaryField("dictionary")
+                    .verifyDecompoundCollation(true)
+                    .lowerCaseInput(true)
+                    .buildSaveRequest("word_break")
+                    .process(solrClient, collectionName).getStatus() != 0) {
+                throw new RuntimeException("Could not create word_break rewriter");
+            }
+
+            if (new ReplaceConfigRequestBuilder()
+                .rules(QuerqySolrClientUtils.class.getClassLoader()
+                        .getResourceAsStream("integration-test/rewriter/replace-rules.txt"))
+                    .inputDelimiter(";")
+                    .ignoreCase(true).rhsParser(WhiteSpaceQuerqyParserFactory.class)
+                    .buildSaveRequest("replace")
+                    .process(solrClient, collectionName).getStatus() != 0) {
+                throw new RuntimeException("Could not create word_break rewriter");
+            }
+
+        } catch (final SolrServerException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -77,7 +123,7 @@ public class QuerqySolrClientUtils extends SolrClientUtils {
             }
 
         } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+            throw new RuntimeException(e);
         }
     }
 }

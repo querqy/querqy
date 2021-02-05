@@ -13,85 +13,13 @@
   <updateHandler class="solr.DirectUpdateHandler2" />
 
   <!--
-      Add the Querqy query parser.
+      Add the Querqy request handler, query parser and query component.
    -->
-  <queryParser name="querqy" class="querqy.solr.DefaultQuerqyDismaxQParserPlugin">
-
-      <!--
-          Querqy has to parse the user's query text into a query object.
-          We use WhiteSpaceQuerqyParser, which only provides a very
-          limited syntax (no field names, just -/+ as boolean
-          operators).
-
-          Note that the Querqy query parser must not be confused with
-          Solr or Lucene query parsers: it is completely independent
-          from Lucene/Solr and parses the input into Querqy's internal
-          query object model.
-      -->
-      <lst name="parser">
-        <str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
-        <!--
-          The parser is provided by a factory, in our case
-          by a SimpleQuerqyQParserFactory, which is a very generic
-          factory that just creates an instance for the configured class:
-        -->
-        <str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
-      </lst>
-
-
-      <!--
-          Define a chain of query rewriters. We'll use just one rewriter
-          - SimpleCommonRulesRewriter - which provides 'Common Rules'
-          preprocessing.
-      -->
-      <lst name="rewriteChain">
-
-           <lst name="rewriter">
-                <str name="class">querqy.solr.contrib.WordBreakCompoundRewriterFactory</str>
-                <str name="dictionaryField">dictionary</str>
-                <bool name="decompound.verifyCollation">true</bool>
-                <bool name="lowerCaseInput">true</bool>
-          </lst>
-
-          <lst name="rewriter">
-              <str name="class">querqy.solr.SimpleCommonRulesRewriterFactory</str>
-              <!--
-                 The file that contains rules for synonyms,
-                 boosting etc.
-
-                 This file connects to SMUI config (@see /chorus/docker-compose.yml)
-              -->
-              <str name="rules">rules.txt</str>
-              <!--
-                 If true, case will be ignored while trying to find
-                 rules that match the user query input:
-              -->
-              <bool name="ignoreCase">true</bool>
-              <!--
-                  Some rules in the rules file declare boost queries,
-                  synonym queries or filter queries that need to be added
-                  to the user query. This query parser parses the
-                  additional queries from the rules file:
-              -->
-              <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-          </lst>
-
-          <!-- @see https://querqy.org/docs/querqy/rewriters/replace.html#querqy-rewriters-replace -->
-          <lst name="rewriter">
-            <str name="class">querqy.solr.contrib.ReplaceRewriterFactory</str>
-            <!-- This file connects to SMUI config (@see /chorus/docker-compose.yml) -->
-            <str name="rules">replace-rules.txt</str>
-            <str name="ignoreCase">true</str>
-            <str name="inputDelimiter">;</str>
-            <str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
-          </lst>
-
-     </lst>
-
-  </queryParser>
-
+  <requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler" />
+  <queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin"/>
   <!-- Override the default QueryComponent -->
   <searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
+
 
   <!-- The default handler should be specified this way, however to support
   the legacy qt=querqy parameter we need to change to what's below.
