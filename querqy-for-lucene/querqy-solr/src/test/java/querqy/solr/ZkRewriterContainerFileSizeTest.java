@@ -37,8 +37,9 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
     private static CloudSolrClient CLOUD_CLIENT;
 
     /** One client per node */
-    private static final ArrayList<HttpSolrClient> CLIENTS = new ArrayList<>(5);
+    private static ArrayList<HttpSolrClient> CLIENTS = new ArrayList<>(5);
 
+    private static SolrZkClient ZK_CLIENT;
 
     @BeforeClass
     public static void setupCluster() throws Exception {
@@ -60,6 +61,8 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
             CLIENTS.add(getHttpSolrClient(jetty.getBaseUrl() + "/" + COLLECTION + "/"));
         }
 
+        ZK_CLIENT = zkClient();
+
     }
 
     @AfterClass
@@ -72,6 +75,12 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
             client.close();
         }
         CLIENTS.clear();
+        CLIENTS = null;
+        try {
+            ZK_CLIENT.close();
+        } finally {
+            ZK_CLIENT = null;
+        }
     }
 
     @Before
@@ -114,12 +123,11 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
 
         assertNotNull(rsp);
         assertEquals(1L, rsp.getResults().getNumFound());
-        final SolrZkClient zkClient = zkClient();
-        final List<String> children = zkClient.getChildren("/configs/fsize/" + IO_PATH + "/" + IO_DATA, null, true)
+        final List<String> children = ZK_CLIENT.getChildren("/configs/fsize/" + IO_PATH + "/" + IO_DATA, null, true)
                 .stream().filter(name -> name.contains("large_common_rules-")).collect(Collectors.toList());
         assertTrue(children.size() > 1);
         for (final String child : children) {
-            final byte[] data = zkClient.getData("/configs/fsize/" + IO_PATH + "/" + IO_DATA + "/" + child, null, null,
+            final byte[] data = ZK_CLIENT.getData("/configs/fsize/" + IO_PATH + "/" + IO_DATA + "/" + child, null, null,
                     true);
             assertTrue(data.length <= 1000); // 1000 is the max file size configured in solrconfig.xml
         }
@@ -135,8 +143,7 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
                 .process(getRandClient())
                 .getStatus());
 
-        final SolrZkClient zkClient = zkClient();
-        List<String> children = zkClient.getChildren("/configs/fsize/" + IO_PATH + "/" + IO_DATA, null, true);
+        List<String> children = ZK_CLIENT.getChildren("/configs/fsize/" + IO_PATH + "/" + IO_DATA, null, true);
         assertTrue(children.stream().anyMatch(name -> name.contains("delete_common_rules-")));
 
         assertEquals(0, RewriterConfigRequestBuilder.buildDeleteRequest("delete_common_rules")
@@ -145,7 +152,7 @@ public class ZkRewriterContainerFileSizeTest extends AbstractQuerqySolrCloudTest
 
 
         // test that the data files of the rewriter have been removed as well
-        children = zkClient.getChildren("/configs/fsize/" + IO_PATH + "/" + IO_DATA, null, true);
+        children = ZK_CLIENT.getChildren("/configs/fsize/" + IO_PATH + "/" + IO_DATA, null, true);
         assertFalse(children.stream().anyMatch(name -> name.contains("delete_common_rules-")));
     }
 

@@ -11,7 +11,6 @@ import org.apache.lucene.search.Query;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.HighlightParams;
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.WrappedQuery;
@@ -19,7 +18,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.infologging.InfoLogging;
-import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -28,7 +26,6 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.solr.rewriter.ClassicConfigurationParser;
 
 import java.util.*;
 
@@ -912,7 +909,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         return bq;
     }
 
-    public static class MatchAllRewriter extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
+    public static class MatchAllRewriter extends SolrRewriterFactoryAdapter {
 
         public MatchAllRewriter(final String rewriterId) {
             super(rewriterId);

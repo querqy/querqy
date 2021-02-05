@@ -124,7 +124,7 @@ public class DocumentFrequencyCorrectionTest extends LuceneTestCase {
     }
 
     int getRandomDf() {
-        return 1 + new Long(Math.round(50.0 * Math.random())).intValue();
+        return 1 + Long.valueOf(Math.round(50.0 * Math.random())).intValue();
     }
 
 }

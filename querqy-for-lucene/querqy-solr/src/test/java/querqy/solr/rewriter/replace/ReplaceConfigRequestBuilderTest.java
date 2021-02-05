@@ -1,7 +1,9 @@
 package querqy.solr.rewriter.replace;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_IGNORE_CASE;
 import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_RHS_QUERY_PARSER;
 import static querqy.solr.rewriter.replace.ReplaceRewriterFactory.CONF_RULES;

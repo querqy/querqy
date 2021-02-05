@@ -68,7 +68,6 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
                 wait(100L);
             }
 
-
             try {
                 final T result = extractor.apply(req.process(client));
                 if (result != null) {

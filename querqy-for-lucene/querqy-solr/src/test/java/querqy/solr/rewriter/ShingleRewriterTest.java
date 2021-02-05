@@ -100,7 +100,8 @@ public class ShingleRewriterTest extends SolrTestCaseJ4 {
         final Map<String, Object> config = new ShingleRewriterFactory.ShingleConfigRequestBuilder()
                 .acceptGeneratedTerms(true).buildConfig();
 
-        assertThat(config, IsMapContaining.hasEntry(ShingleRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.TRUE));
+        org.hamcrest.MatcherAssert.assertThat(config, IsMapContaining.hasEntry(
+                ShingleRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.TRUE));
 
         final ShingleRewriterFactory factory = new ShingleRewriterFactory("id");
 
@@ -119,7 +120,8 @@ public class ShingleRewriterTest extends SolrTestCaseJ4 {
         final Map<String, Object> config = new ShingleRewriterFactory.ShingleConfigRequestBuilder()
                 .acceptGeneratedTerms(false).buildConfig();
 
-        assertThat(config, IsMapContaining.hasEntry(ShingleRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.FALSE));
+        org.hamcrest.MatcherAssert.assertThat(config, IsMapContaining.hasEntry(
+                ShingleRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.FALSE));
 
         final ShingleRewriterFactory factory = new ShingleRewriterFactory("id");
 

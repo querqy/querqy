@@ -19,7 +19,10 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QueryParsing;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
@@ -45,7 +48,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
     /**
      * One client per node
      */
-    private static final List<HttpSolrClient> CLIENTS = new ArrayList<>(5);
+    private static List<HttpSolrClient> CLIENTS = new ArrayList<>(5);
 
 
     @BeforeClass
@@ -80,6 +83,7 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             client.close();
         }
         CLIENTS.clear();
+        CLIENTS = null;
     }
 
     @Before
@@ -224,19 +228,40 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
                 .process(getRandClient())
                 .getStatus());
 
-        try {
+        final QueryRequest request = new QueryRequest(params("collection", COLLECTION,
+                "q", "a",
+                "defType", "querqy",
+                PARAM_REWRITERS, "delete_common_rules",
+                DisMaxParams.QF, "f1 f2",
+                QueryParsing.OP, "OR"));
 
-            waitForRewriterAndQuery(
-                    params("collection", COLLECTION,
-                            "q", "a",
-                            "defType", "querqy",
-                            PARAM_REWRITERS, "delete_common_rules",
-                            DisMaxParams.QF, "f1 f2",
-                            QueryParsing.OP, "OR"),
-                    getRandClient());
-            fail("Expected bad request exception for deleted rewriter");
-        } catch (final SolrException e) {
-            assertEquals(SolrException.ErrorCode.BAD_REQUEST.code, e.code());
+        for (final SolrClient solrClient : CLIENTS) {
+
+            int attempts = 20;
+
+            while (attempts > 0) {
+
+                try {
+                    if (request.process(solrClient).getStatus() == 0) {
+                        if (attempts == 1) {
+                            fail("Expected bad request exception for deleted rewriter");
+                        }
+                        synchronized (this) {
+                            wait(100L);
+                        }
+                        attempts--;
+                    }
+
+                } catch (final SolrException e) {
+                    assertEquals(SolrException.ErrorCode.BAD_REQUEST.code, e.code());
+                    attempts = -1;
+                }
+
+            }
+
+            if (attempts == 0) {
+                fail("Expected bad request exception for deleted rewriter");
+            }
         }
 
     }
@@ -257,8 +282,9 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             assertEquals(0, response.getStatus());
             final Map<String, Object> conf = (Map<String, Object>) response.getResponse().get("rewriter");
             assertNotNull(conf);
-            assertThat(conf, hasEntry("id", rewriterName));
-            assertThat(conf, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" + rewriterName));
+            org.hamcrest.MatcherAssert.assertThat(conf, hasEntry("id", rewriterName));
+            org.hamcrest.MatcherAssert.assertThat(conf, hasEntry("path",
+                    QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" + rewriterName));
 
             assertEquals(configBuilder.buildDefinition(), conf.get("definition"));
 
@@ -294,15 +320,15 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
             final Map<String, Object> conf1 = (Map<String, Object>) rewriters.get(rewriterName1);
             assertNotNull(conf1);
-            assertThat(conf1, hasEntry("id", rewriterName1));
-            assertThat(conf1, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
-                    rewriterName1));
+            org.hamcrest.MatcherAssert.assertThat(conf1, hasEntry("id", rewriterName1));
+            org.hamcrest.MatcherAssert.assertThat(conf1, hasEntry("path",
+                    QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" + rewriterName1));
 
             final Map<String, Object> conf2 = (Map<String, Object>) rewriters.get(rewriterName2);
             assertNotNull(conf2);
-            assertThat(conf2, hasEntry("id", rewriterName2));
-            assertThat(conf2, hasEntry("path", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" +
-                    rewriterName2));
+            org.hamcrest.MatcherAssert.assertThat(conf2, hasEntry("id", rewriterName2));
+            org.hamcrest.MatcherAssert.assertThat(conf2, hasEntry("path",
+                    QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME + "/" + rewriterName2));
 
         } finally {
             cleanUpRewriters(rewriterName1, rewriterName2);

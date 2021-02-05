@@ -1,7 +1,7 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.stringContainsInOrder;
 import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.GERMAN;
 import static querqy.lucene.rewrite.TestUtil.addNumDocsWithTextField;
 
@@ -16,7 +16,6 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 public class GermanWordBreakerTest extends LuceneTestCase {
@@ -95,7 +94,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("abcdef", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"ab", "cdef"}),
                     equalTo(new CharSequence[] {"abcd","ef"}))
             );
@@ -126,7 +125,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("hundefutter", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"hund", "futter"}))
             );
 
@@ -156,7 +155,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("mattenladen", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"matte", "laden"}))
             );
 
@@ -186,7 +185,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("arbeitsmatten", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"arbeit", "matten"}))
             );
 
@@ -217,7 +216,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 1, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("schiller", indexReader, 2, true);
             // We don't care which strategy produces this but let's make sure, we don't crash.
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"s", "chiller"}))
             );
 
@@ -251,7 +250,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("fanshirt", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"fan", "shirt"}),
                     equalTo(new CharSequence[] {"fan","hirt"}))
             );
@@ -284,14 +283,14 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
 
             // use higher weight for morph-syntax structure first
-            assertThat(
+            org.hamcrest.MatcherAssert.assertThat(
                     new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100, 0.8f).breakWord("fanshirt", indexReader,
-                            1, true),  Matchers.contains(equalTo(new CharSequence[] {"fan", "shirt"})));
+                            1, true),  contains(equalTo(new CharSequence[] {"fan", "shirt"})));
 
             // use low weight for morph-syntax structure first
-            assertThat(
+            org.hamcrest.MatcherAssert.assertThat(
                     new MorphologicalWordBreaker(GERMAN, "f1", true, 1, 2, 100, 0.1f).breakWord("fanshirt", indexReader,
-                            1, true),  Matchers.contains(equalTo(new CharSequence[] {"fan", "hirt"})));
+                            1, true),  contains(equalTo(new CharSequence[] {"fan", "hirt"})));
 
 
 
@@ -356,7 +355,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("straußenei", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"strauß", "ei"}))
             );
 
@@ -386,7 +385,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("wöchnerinnenheim", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"wöchnerin", "heim"}))
             );
 
@@ -416,7 +415,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 2, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("prinzipienreiter", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"prinzip", "reiter"}))
             );
 
@@ -446,7 +445,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("tageszeit", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"tag", "zeit"}))
             );
 
@@ -512,7 +511,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("geisterstunde", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"geist", "stunde"}))
             );
 
@@ -544,16 +543,16 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
 
-            assertThat(wordBreaker.breakWord("bücherregal", indexReader, 2, true), Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(wordBreaker.breakWord("bücherregal", indexReader, 2, true), contains(
                     equalTo(new CharSequence[] {"buch", "regal"}))
             );
 
-            assertThat(wordBreaker.breakWord("blätterwald", indexReader, 2, true), Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(wordBreaker.breakWord("blätterwald", indexReader, 2, true), contains(
                     equalTo(new CharSequence[] {"blatt", "wald"}))
             );
 
-            assertThat(wordBreaker.breakWord("körnerbrötchen", indexReader, 2, true), Matchers.contains(
-                    equalTo(new CharSequence[] {"korn", "brötchen"}))
+            org.hamcrest.MatcherAssert.assertThat(wordBreaker.breakWord("körnerbrötchen", indexReader, 2, true),
+                    contains(equalTo(new CharSequence[] {"korn", "brötchen"}))
             );
 
         } finally {
@@ -584,15 +583,15 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
 
-            assertThat(wordBreaker.breakWord("gänseklein", indexReader, 2, true), Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(wordBreaker.breakWord("gänseklein", indexReader, 2, true), contains(
                     equalTo(new CharSequence[] {"gans", "klein"}))
             );
 
-            assertThat(wordBreaker.breakWord("läusekamm", indexReader, 2, true), Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(wordBreaker.breakWord("läusekamm", indexReader, 2, true), contains(
                     equalTo(new CharSequence[] {"laus", "kamm"}))
             );
 
-            assertThat(wordBreaker.breakWord("körbemacher", indexReader, 2, true), Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(wordBreaker.breakWord("körbemacher", indexReader, 2, true), contains(
                     equalTo(new CharSequence[] {"korb", "macher"}))
             );
 
@@ -622,7 +621,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("aphorismensammlung", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"aphorismus", "sammlung"}))
             );
 
@@ -652,7 +651,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("museenverwaltung", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"museum", "verwaltung"}))
             );
 
@@ -682,8 +681,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("madonnenkult", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
-                    equalTo(new CharSequence[] {"madonna", "kult"}))
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(equalTo(new CharSequence[] {"madonna", "kult"}))
             );
 
         } finally {
@@ -712,8 +710,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("stadienverbot", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
-                    equalTo(new CharSequence[] {"stadion", "verbot"}))
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(equalTo(new CharSequence[] {"stadion", "verbot"}))
             );
 
         } finally {
@@ -742,7 +739,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("pharmakaanalyse", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"pharmakon", "analyse"}))
             );
 
@@ -772,7 +769,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("carabinierischule", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"carabiniere", "schule"}))
             );
 
@@ -802,7 +799,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("baumwolltuch", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"baumwolle", "tuch"}))
             );
 
@@ -832,7 +829,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("südwind", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"süden", "wind"}))
             );
 
@@ -862,7 +859,7 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN,"f1", true, 1, 3, 100);
             final List<CharSequence[]> sequences = wordBreaker.breakWord("aphrodisiakaverkäufer", indexReader, 2, true);
-            assertThat(sequences, Matchers.contains(
+            org.hamcrest.MatcherAssert.assertThat(sequences, contains(
                     equalTo(new CharSequence[] {"aphrodisiakum", "verkäufer"}))
             );
 
