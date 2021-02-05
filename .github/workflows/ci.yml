@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jdk: [ 1.8, 9, 10, 11, 12, 13, 14, 15 ]
+        jdk: [ 1.8, 9, 10, 11, 12, 13 ]
 
     runs-on: ubuntu-latest
 
