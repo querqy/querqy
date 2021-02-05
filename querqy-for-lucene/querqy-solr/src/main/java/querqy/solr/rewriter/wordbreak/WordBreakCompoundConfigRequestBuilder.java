@@ -10,6 +10,7 @@ import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CO
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MIN_BREAK_LENGTH;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MIN_SUGGESTION_FREQ;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MORPHOLOGY;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_PROTECTED_WORDS;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_REVERSE_COMPOUND_TRIGGER_WORDS;
 
 import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
@@ -27,11 +28,12 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
     private Integer maxCombineWordLength;
     private Integer minBreakLength;
     private Boolean lowerCaseInput;
-    private String[] reverseCompoundTriggerWords;
+    private List<String> reverseCompoundTriggerWords;
     private Boolean alwaysAddReverseCompounds;
     private Integer decompoundMaxExpansions;
     private Boolean decompoundVerifyCollation;
     private Morphology morphology;
+    private List<String> protectedWords;
 
     public WordBreakCompoundConfigRequestBuilder() {
         super(WordBreakCompoundRewriterFactory.class);
@@ -64,7 +66,11 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
         }
 
         if (reverseCompoundTriggerWords != null) {
-            config.put(CONF_REVERSE_COMPOUND_TRIGGER_WORDS, Arrays.asList(reverseCompoundTriggerWords));
+            config.put(CONF_REVERSE_COMPOUND_TRIGGER_WORDS, reverseCompoundTriggerWords);
+        }
+
+        if (protectedWords != null) {
+            config.put(CONF_PROTECTED_WORDS, protectedWords);
         }
 
         if (alwaysAddReverseCompounds != null) {
@@ -134,13 +140,25 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
 
     public WordBreakCompoundConfigRequestBuilder reverseCompoundTriggerWords(
             final String... reverseCompoundTriggerWords) {
-        this.reverseCompoundTriggerWords = reverseCompoundTriggerWords;
+        this.reverseCompoundTriggerWords = reverseCompoundTriggerWords == null
+                ? null
+                : Arrays.asList(reverseCompoundTriggerWords);
         return this;
     }
 
     public WordBreakCompoundConfigRequestBuilder reverseCompoundTriggerWords(
             final List<String> reverseCompoundTriggerWords) {
-        this.reverseCompoundTriggerWords = reverseCompoundTriggerWords.toArray(new String[0]);
+        this.reverseCompoundTriggerWords = reverseCompoundTriggerWords;
+        return this;
+    }
+
+    public WordBreakCompoundConfigRequestBuilder protectedWords(final List<String> protectedWords) {
+        this.protectedWords = protectedWords;
+        return this;
+    }
+
+    public WordBreakCompoundConfigRequestBuilder protectedWords(final String... protectedWords) {
+        this.protectedWords = (protectedWords == null) ? null : Arrays.asList(protectedWords);
         return this;
     }
 

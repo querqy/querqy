@@ -9,8 +9,8 @@ import org.junit.Test;
 import querqy.model.*;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.LineParser;
-import querqy.rewrite.commonrules.model.Input;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
@@ -253,7 +253,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
     public void testChainingWithWildCard() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
-        builder.addRule((Input) LineParser.parseInput("p1*"),
+        builder.addRule((Input.SimpleInput) LineParser.parseInput("p1*"),
                 instructions(1, Collections.singletonList(synInstruction)));
         
         RulesCollection rules = builder.build();

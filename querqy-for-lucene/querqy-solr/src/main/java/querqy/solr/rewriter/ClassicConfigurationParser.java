@@ -22,7 +22,7 @@ public interface ClassicConfigurationParser {
                                                                        final ResourceLoader resourceLoader) {
         final Map<String, Object> result = new HashMap<>();
         if (configuration != null) {
-            result.put(CONF_CONFIG, configuration.asShallowMap(true));
+            result.put(CONF_CONFIG, configuration.asShallowMap());
             ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
         }
 

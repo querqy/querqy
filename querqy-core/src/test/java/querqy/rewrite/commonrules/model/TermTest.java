@@ -12,6 +12,13 @@ import querqy.SimpleComparableCharSequence;
 public class TermTest {
 
     @Test
+    public void testThatToStringReturnsValidCharSequence() {
+        final char[] chars = "abcde".toCharArray();
+        assertEquals("abcde", new Term(chars, 0, chars.length, null).toString());
+        assertEquals("bcd", new Term(chars, 1, 3, null).toString());
+    }
+
+    @Test
     public void testParseNoPlaceHolders() {
         char[] chars = "abc".toCharArray();
         Term term = new Term(chars, 0, chars.length, null);

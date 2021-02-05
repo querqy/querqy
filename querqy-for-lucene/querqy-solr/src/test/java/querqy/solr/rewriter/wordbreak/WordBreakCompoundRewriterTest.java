@@ -45,7 +45,14 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
         withRewriter(h.getCore(), "word_break_no_lc_no_verify_collation", WordBreakCompoundRewriterFactory.class,
                 configNoLowercaseNoVerify);
 
+        final WordBreakCompoundConfigRequestBuilder builder = new WordBreakCompoundConfigRequestBuilder()
+                .verifyDecompoundCollation(false).protectedWords("wissenschaft").lowerCaseInput(true)
+                .dictionaryField("f1");
+        withRewriter(h.getCore(), "word_break_protected",  WordBreakCompoundRewriterFactory.class,
+                builder.buildConfig());
+
         addDocs();
+
     }
 
     private static void addDocs() {
@@ -267,7 +274,8 @@ public class WordBreakCompoundRewriterTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 DisMaxParams.MM, "100%",
-                PARAM_REWRITERS, "common_rules_before_wordbreak,word_break",
+                PARAM_REWRITERS, "word_break_protected",
+                "defType", "querqy",
                 "debug", "true"
         );
 

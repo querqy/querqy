@@ -14,7 +14,7 @@ public class QuerqyTemplateEngineTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-templates.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
 
         withCommonRulesRewriter(h.getCore(), "r1",
                 "configs/commonrules/rules-templates.txt");

@@ -14,7 +14,7 @@ public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules-parametrized-raw-query.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
 
         withCommonRulesRewriter(h.getCore(), "rq1",
                 "configs/commonrules/rules-parametrized-raw-query.txt");

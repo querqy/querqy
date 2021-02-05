@@ -88,8 +88,9 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final Morphology morphology = ConfigUtils.getEnumArg(config, CONF_MORPHOLOGY, Morphology.class)
                 .orElse(Morphology.DEFAULT);
 
-        // terms that are "protected", i.e. false positives that should never be split and never be result of a combination
-        final List<String> protectedWords = ConfigUtils.getArg(config, CONF_PROTECTED_WORDS, new ArrayList<>());
+        // terms that are "protected", i.e. false positives that should never be split and never be result
+        // of a combination
+        final List<String> protectedWords = ConfigUtils.getArg(config, CONF_PROTECTED_WORDS, Collections.emptyList());
 
         // the indexReader has to be supplied on a per-request basis from a request thread-local
         final Supplier<IndexReader> indexReaderSupplier = () ->
@@ -114,6 +115,17 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
                 DEFAULT_MAX_DECOMPOUND_EXPANSIONS);
         if (maxDecompoundExpansions < 0) {
             return Collections.singletonList("maxDecompoundExpansions >= 0 expected");
+        }
+
+        final List<String> protectedWords = ConfigUtils.getArg(config, CONF_PROTECTED_WORDS, Collections.emptyList());
+        if (protectedWords.stream().map(String::trim).anyMatch(String::isEmpty)) {
+            return Collections.singletonList("protected word must not be an empty string");
+        }
+
+        final List<String> reverseTriggerCompoundWords = ConfigUtils.getArg(config, CONF_REVERSE_COMPOUND_TRIGGER_WORDS,
+                Collections.emptyList());
+        if (reverseTriggerCompoundWords.stream().map(String::trim).anyMatch(String::isEmpty)) {
+            return Collections.singletonList("reverseTriggerCompoundWords must not contain an empty string");
         }
 
         final Optional<String> optValue = ConfigUtils.getStringArg(config, "dictionaryField").map(String::trim)
