@@ -27,7 +27,7 @@ public class TrieMapRulesCollection implements RulesCollection {
     final TrieMap<InstructionsSupplier> trieMap;
     final boolean ignoreCase;
     
-    public TrieMapRulesCollection(TrieMap<InstructionsSupplier> trieMap, boolean ignoreCase) {
+    public TrieMapRulesCollection(final TrieMap<InstructionsSupplier> trieMap, final boolean ignoreCase) {
         if (trieMap == null) {
             throw new IllegalArgumentException("trieMap must not be null");
         }
@@ -49,9 +49,12 @@ public class TrieMapRulesCollection implements RulesCollection {
         // We have a list of terms (resulting from DisMax alternatives) per
         // position. We now find all the combinations of terms in different 
         // positions and look them up as rules input in the dictionary
-        // LinkedList<List<Term>> positions = sequence.getPositions();
+
         if (sequence.size() == 1) {
-            for (final Term term : new ClassFilter<>(sequence.getFirst(), Term.class)) {
+
+            sequence.getFirst().stream()
+                    .filter(Term.class::isInstance)
+                    .map(Term.class::cast).forEach(term -> {
 
                 final States<InstructionsSupplier> states = trieMap.get(term.toCharSequenceWithField(ignoreCase));
 
@@ -66,18 +69,17 @@ public class TrieMapRulesCollection implements RulesCollection {
                 final List<State<InstructionsSupplier>> statesForPrefixes = states.getPrefixes();
                 if (statesForPrefixes != null) {
                     for (final State<InstructionsSupplier> stateForPrefix: statesForPrefixes) {
-                        
+
                         if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
                             collector.collect(stateForPrefix.value,
                                     instructions -> new Action(instructions, new TermMatches(
                                             new TermMatch(term, true,
-                                            term.subSequence(stateForPrefix.index + 1, term.length()))), 0, 1));
+                                                    term.subSequence(stateForPrefix.index + 1, term.length()))), 0, 1));
 
                         }
                     }
                 }
-                
-            }
+            });
         } else {
 
             List<Prefix<InstructionsSupplier>> prefixes = new LinkedList<>();
@@ -133,7 +135,7 @@ public class TrieMapRulesCollection implements RulesCollection {
                                 });
 
                             }
-                            final Prefix<InstructionsSupplier> newPrefix = new Prefix<InstructionsSupplier>(prefix, stateExactMatch);
+                            final Prefix<InstructionsSupplier> newPrefix = new Prefix<>(prefix, stateExactMatch);
                             if (isTerm) {
                                 newPrefix.addTerm(new TermMatch((Term) element));
                             }
@@ -246,12 +248,6 @@ public class TrieMapRulesCollection implements RulesCollection {
         final State<T> stateInfo;
         final List<TermMatch> matches;
 
-        public Prefix(final Prefix<T> prefix, final TermMatch match, final State<T> stateInfo) {
-            matches = new LinkedList<>(prefix.matches);
-            addTerm(match);
-            this.stateInfo = stateInfo;
-        }
-        
         public Prefix(final Prefix<T> prefix, final State<T> stateInfo) {
             matches = new LinkedList<>(prefix.matches);
             this.stateInfo = stateInfo;
@@ -267,7 +263,6 @@ public class TrieMapRulesCollection implements RulesCollection {
             matches = new LinkedList<>();
             this.stateInfo = stateInfo;
         }
-
 
         private void addTerm(final TermMatch term) {
             matches.add(term);
