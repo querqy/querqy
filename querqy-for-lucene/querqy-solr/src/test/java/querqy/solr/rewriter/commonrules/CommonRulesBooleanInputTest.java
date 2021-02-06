@@ -1,5 +1,6 @@
 package querqy.solr.rewriter.commonrules;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
@@ -11,7 +12,6 @@ import org.junit.Test;
 @SolrTestCaseJ4.SuppressSSL
 public class CommonRulesBooleanInputTest extends SolrTestCaseJ4 {
 
-    public static final String PARAM_REWRITERS = "rewriters";
     private static final String REWRITER_NAME = "common_rules";
 
     @BeforeClass

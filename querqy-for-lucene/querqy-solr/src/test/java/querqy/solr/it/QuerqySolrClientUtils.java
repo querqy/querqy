@@ -30,20 +30,16 @@ public class QuerqySolrClientUtils extends SolrClientUtils {
 
     /**
      * 
-     * @param hostname          the Hostname under which solr is reachable
-     * @param port              The Port on which solr is running
      * @param collectionName    the name of the collection which should be created
      * @param configurationName the name of the configuration which should used to
      *                          create the collection or null if the default
      *                          configuration should be used
      * @param numShards         the number of shards in the new collection
-     * @throws URISyntaxException
-     * @throws IOException
-     * 
+     *
      * @see SolrClientUtils
      */
     public static void createCollection(QuerqySolrContainer solr, String collectionName, String configurationName,
-            int numShards) throws URISyntaxException, IOException {
+            int numShards) {
 
         // compose create collection url
         HttpGet createCollection = new HttpGet(String.format(
