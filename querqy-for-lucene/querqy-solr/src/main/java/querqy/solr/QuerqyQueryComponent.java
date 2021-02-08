@@ -24,8 +24,6 @@ import querqy.infologging.InfoLoggingContext;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 
-import static org.apache.solr.handler.component.ResponseBuilder.STAGE_EXECUTE_QUERY;
-import static querqy.solr.QuerqyDismaxParams.INFO_LOGGING;
 import static querqy.solr.ResponseSink.QUERQY_INFO_LOG;
 
 /**

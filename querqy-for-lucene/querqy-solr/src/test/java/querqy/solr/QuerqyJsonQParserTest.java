@@ -4,6 +4,7 @@ import org.apache.solr.SolrJettyTestBase;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.json.JsonQueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
@@ -49,6 +50,77 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
     }
 
     @Test
+    public void testThatQueryParserMismatchOfParameterAndJsonEntryThrowsSolrException() {
+        final ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add("defType", "querqy_qp_mismatch");
+
+        Assertions.assertThatThrownBy(() ->
+                createRequestToTestMatching(QueryRewritingHandler.builder()
+                        .build()
+                        .rewriteQuery("tv")
+                        .getQuery(), params)
+                        .process(super.getSolrClient()))
+                .isExactlyInstanceOf(SolrException.class);
+    }
+
+    @Test
+    public void testThatNoExceptionIsThrownIfQueryParserIsProperlySetInRequestParameters() {
+        final ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add("defType", "querqy");
+
+        Assertions.assertThatCode(() ->
+                createRequestToTestMatching(QueryRewritingHandler.builder()
+                        .build()
+                        .rewriteQuery("tv")
+                        .getQuery(), params)
+                        .process(super.getSolrClient()))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testThatNoExceptionIsThrownIfQueryParserIsSetProperlyInSolrConfigParameters() {
+        final ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add("qt", "/rh-with-proper-def-type");
+
+        Assertions.assertThatCode(() ->
+                createRequestToTestMatching(QueryRewritingHandler.builder()
+                        .build()
+                        .rewriteQuery("tv")
+                        .getQuery(), params)
+                        .process(super.getSolrClient()))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testThatExceptionIsThrownIfQueryParserIsNotSetProperlyInSolrConfigParameters() {
+        final ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add("qt", "/rh-with-improper-def-type");
+
+        Assertions.assertThatThrownBy(() ->
+                createRequestToTestMatching(QueryRewritingHandler.builder()
+                        .build()
+                        .rewriteQuery("tv")
+                        .getQuery(), params)
+                        .process(super.getSolrClient()))
+                .isExactlyInstanceOf(SolrException.class);
+
+    }
+
+    @Test
+    public void testMatchingOfSimpleQueryIfDefTypeIsCorrectlyDefined() throws IOException, SolrServerException {
+        ExpandedQueryBuilder expanded = expanded(bq("tv"));
+
+        final ModifiableSolrParams params = new ModifiableSolrParams();
+        params.add("defType", "querqy");
+        params.add("fl", "*,score");
+
+        final QueryResponse response = createRequestToTestMatching(expanded, params)
+                .process(super.getSolrClient(), "collection1");
+
+        Assertions.assertThat(response.getResults()).hasSize(4);
+    }
+
+    @Test
     public void testQueryRewritingHandler() throws IOException, SolrServerException {
         final ExpandedQueryBuilder expanded = QueryRewritingHandler.builder()
                 .addCommonRulesRewriter("tv => \n SYNONYM: television")
@@ -56,10 +128,9 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
                 .rewriteQuery("tv")
                 .getQuery();
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest()
-                .setQuery(createRequestToTestMatching(expanded));
 
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestMatching(expanded)
+                .process(super.getSolrClient(), "collection1");
 
         Assertions.assertThat(response.getResults()).hasSize(6);
     }
@@ -78,10 +149,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         params.add("fq", "id:(2 OR 11)");
         params.add("debugQuery", "true");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestScoring(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestScoring(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         final List<Map<String, Object>> results = response.getResults().stream().map(HashMap::new).collect(Collectors.toList());
 
@@ -101,10 +170,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         params.add("fl", "score");
         params.add("fq", "id:21");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestScoring(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestScoring(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         final List<Map<String, Object>> results = response.getResults().stream().map(HashMap::new).collect(Collectors.toList());
 
@@ -122,10 +189,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         params.add("fl", "score");
         params.add("fq", "id:21");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestScoring(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestScoring(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         final List<Map<String, Object>> results = response.getResults().stream().map(HashMap::new).collect(Collectors.toList());
 
@@ -140,10 +205,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         params.add("fl", "id,score");
         params.add("fq", "id:(0 OR 21)");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestScoring(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestScoring(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         final List<Map<String, Object>> results = response.getResults().stream().map(HashMap::new).collect(Collectors.toList());
 
@@ -159,10 +222,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         final ModifiableSolrParams params = new ModifiableSolrParams();
         params.add("fl", "*,score");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestMatching(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestMatching(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         Assertions.assertThat(response.getResults()).hasSize(6);
     }
@@ -174,10 +235,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         final ModifiableSolrParams params = new ModifiableSolrParams();
         params.add("fl", "*,score");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestMatching(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestMatching(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         Assertions.assertThat(response.getResults()).hasSize(4);
     }
@@ -189,10 +248,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         final ModifiableSolrParams params = new ModifiableSolrParams();
         params.add("fl", "*,score");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestMatching(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestMatching(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         Assertions.assertThat(response.getResults()).hasSize(2);
     }
@@ -205,10 +262,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         params.add("fl", "*,score");
         params.add("fq", "f1:television OR f2:television");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestMatching(expanded));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestMatching(expanded, params)
+                .process(super.getSolrClient(), "collection1");
 
         Assertions.assertThat(response.getResults()).hasSize(2);
     }
@@ -229,39 +284,43 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         final ModifiableSolrParams params = new ModifiableSolrParams();
         params.add("fl", "*,score");
 
-        final JsonQueryRequest jsonQuery = new JsonQueryRequest(params)
-                .setQuery(createRequestToTestMatching(expandedQuery));
-
-        final QueryResponse response = jsonQuery.process(super.getSolrClient(), "collection1");
+        final QueryResponse response = createRequestToTestMatching(expandedQuery, params)
+                .process(super.getSolrClient(), "collection1");
 
         Assertions.assertThat(response.getResults()).hasSize(5);
     }
 
-    private static Map<String, Object> createRequestToTestMatching(ExpandedQueryBuilder expandedQuery) {
-        Map expandedQueryMap = expandedQuery.toMap(MapConverterConfig.builder().parseBooleanToString(true).build());
+    private static JsonQueryRequest createRequestToTestMatching(final ExpandedQueryBuilder expandedQuery,
+                                                                final ModifiableSolrParams params) {
+        final Map expandedQueryMap = expandedQuery.toMap(MapConverterConfig.builder().parseBooleanToString(true).build());
 
-        Map<String, Object> request = new HashMap<>();
-        request.put("mm", "100%");
-        request.put("tie", 0.0f);
-        request.put("uq.similarityScore", "off");
-        request.put("qf", "f1 f2");
-        request.put("query", expandedQueryMap);
+        params.add("mm", "100%");
+        params.add("tie", "0.0");
+        params.add("uq.similarityScore", "off");
+        params.add("qf", "f1 f2");
 
-        return Collections.singletonMap("querqy", request);
+        return new JsonQueryRequest(params).setQuery(
+                Collections.singletonMap("querqy",
+                        Collections.singletonMap("query", expandedQueryMap)));
     }
 
-    private static Map<String, Object> createRequestToTestScoring(ExpandedQueryBuilder expandedQuery) {
-        Map expandedQueryMap = expandedQuery.toMap(MapConverterConfig.builder().parseBooleanToString(true).build());
+    private static JsonQueryRequest createRequestToTestMatching(final ExpandedQueryBuilder expandedQuery) {
+        return createRequestToTestMatching(expandedQuery, new ModifiableSolrParams());
+    }
 
-        Map<String, Object> request = new HashMap<>();
-        request.put("mm", "100%");
-        request.put("tie", 0.0f);
-        request.put("uq.similarityScore", "off");
-        request.put("qboost.similarityScore", "off");
-        request.put("qf", "f1^40 f2^10");
-        request.put("query", expandedQueryMap);
+    private static JsonQueryRequest createRequestToTestScoring(final ExpandedQueryBuilder expandedQuery,
+                                                               final ModifiableSolrParams params) {
+        final Map expandedQueryMap = expandedQuery.toMap(MapConverterConfig.builder().parseBooleanToString(true).build());
 
-        return Collections.singletonMap("querqy", request);
+        params.add("mm", "100%");
+        params.add("tie", "0.0");
+        params.add("uq.similarityScore", "off");
+        params.add("qboost.similarityScore", "off");
+        params.add("qf", "f1^40 f2^10");
+
+        return new JsonQueryRequest(params).setQuery(
+                Collections.singletonMap("querqy",
+                        Collections.singletonMap("query", expandedQueryMap)));
     }
 
     private static Map<String, Object> doc(String id, float score) {

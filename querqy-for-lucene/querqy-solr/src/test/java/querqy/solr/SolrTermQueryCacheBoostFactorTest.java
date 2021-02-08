@@ -1,6 +1,8 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyDismaxParams.GFB;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;
@@ -25,6 +27,7 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-cache.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules-cache.txt");
     }
 
     @Override
@@ -40,12 +43,13 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
         String q = "a c";
 
         SolrQueryRequest req = req("q", q,
-              DisMaxParams.QF, "f1^10 f2^200",
-              QueryParsing.OP, "OR",
-              GFB, "0.4",
-              DisMaxParams.TIE, "0.1",
-              "defType", "querqy",
-              "debugQuery", "true"
+                DisMaxParams.QF, "f1^10 f2^200",
+                QueryParsing.OP, "OR",
+                GFB, "0.4",
+                DisMaxParams.TIE, "0.1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );        
         
         assertQ("Boost factors are not applied to terms", 
@@ -60,7 +64,8 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
                 GFB, "0.25",
                 DisMaxParams.TIE, "0.1",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );        
           
         assertQ("Boost factors are not applied to terms", 

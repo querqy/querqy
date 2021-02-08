@@ -26,7 +26,7 @@ public class UserQueryWithSimilarityOnTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-DefaultQuerqyDismaxQParserTest.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
     }
 
     @Override

@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -13,11 +16,17 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTest() throws Exception{
-        initCore("solrconfig-cache-preloaded.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml", getFile("cache-preload-test/collection1").getParent());
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules-cache.txt");
+
+        // this leaves the rewriter file in place so that it will be available
+        // for the firstSearcher event in testThatCacheIsAvailableAndPrefilledNotUpdatedByQueryAndUpdatedByRewriter()
+        h.close();
+        initCore("solrconfig.xml", "schema.xml", getFile("cache-preload-test/collection1").getParent());
     }
      
     @Test
-    public void testThatCacheIsAvailableAndPrefilledAndNotUpdated() throws Exception {
+    public void testThatCacheIsAvailableAndPrefilledNotUpdatedByQueryAndUpdatedByRewriter() throws Exception {
 
         // firstSearcher
         SolrQueryRequest req = req(
@@ -25,33 +34,29 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                "cat", "CACHE",
                "stats", "true"
                );
-        // the cache is prefilled asynchronously - retry 3 times to see the cache before giving up
-        int attempts = 3;
+        // the cache is prefilled asynchronously - try 10 times to see the cache before giving up
+        int attempts = 10;
         try {
-            
+
             do {
-                
+
                 try {
                     assertQ("Missing querqy cache",
                        req,
-                       "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']");
+                            "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']/lst[@name='stats']/" +
+                            "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
                     attempts = 0;
-                }  catch (RuntimeException e) {
-                    if ((!"Exception during query".equals(e.getMessage())) || (attempts <= 1)) {
+                }  catch (final RuntimeException e) {
+                    if (attempts <= 1) {
                         throw e;
                     }
                     attempts--;
                     synchronized(this) {
-                        wait(100L);
+                        wait(200L);
                     }
-                }   
+                }
             } while (attempts > 0);
-            
-             // only one generated term in one field is preloaded for firstSearcher:
-            assertQ("Querqy cache not prefilled",
-                     req,
-                    "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                            + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
+
         } finally {
             req.close();
         }
@@ -66,7 +71,8 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                  "stats", "true"
                  );
          
-        // one generated term in two fields is preloaded for newSearcher:
+        // one generated term in two fields is preloaded for the newSearcher event (which preloads for f1 and f2, while
+        // firstSearch only preloads for a single field):
         assertQ("Querqy cache not prefilled",
                  req2,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
@@ -77,11 +83,12 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         String q = "a b c";
         SolrQueryRequest req3 = req(
                  
-                 CommonParams.Q, q,
-                 DisMaxParams.QF, "f1 f2",
-                 QueryParsing.OP, "AND",
-                 "defType", "querqy",
-                 "debugQuery", "true"
+                CommonParams.Q, q,
+                DisMaxParams.QF, "f1 f2",
+                QueryParsing.OP, "AND",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
                  );
          
         // f1:b and f2:b would be produced by synonym rule, but
@@ -109,7 +116,44 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                          + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
         reqStats.close();
-         
+
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules-cache-update.txt");
+
+        SolrQueryRequest reqAfterReloaderUpdate = req(
+                CommonParams.QT, "/admin/mbeans",
+                "cat", "CACHE",
+                "stats", "true"
+        );
+
+        // the cache is prefilled asynchronously - try 3 times to see the cache update before giving up
+        attempts = 10;
+        try {
+
+            do {
+
+                try {
+                    // the new rules produce 2 rhs terms, which are searched in 2 fields each
+                    assertQ("common_rules update didn't trigger preloader",
+                            reqAfterReloaderUpdate,
+                            "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']/lst[@name='stats']/" +
+                                    "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='4']");
+                    attempts = 0;
+
+                }  catch (final RuntimeException e) {
+                    if (attempts <= 1) {
+                        throw e;
+                    }
+                    attempts--;
+                    synchronized(this) {
+                        wait(200L);
+                    }
+                }
+            } while (attempts > 0);
+
+
+        } finally {
+            reqAfterReloaderUpdate.close();
+        }
          
          
     }

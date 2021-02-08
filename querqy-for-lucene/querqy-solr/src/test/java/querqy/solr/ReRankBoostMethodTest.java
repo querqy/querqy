@@ -5,6 +5,8 @@ import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_RERANK_NUMDOCS;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_SIMILARITY_SCORE;
 import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -31,7 +33,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules.txt");
     }
 
     @Override
@@ -52,7 +55,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
                 QueryParsing.OP, "OR",
                 QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
 
         );
 
@@ -99,7 +103,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
                 QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 QBOOST_RERANK_NUMDOCS, "1", // try to re-rank only one doc --> will not change order
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
 
         );
 
@@ -120,7 +125,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
                 QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 QBOOST_RERANK_NUMDOCS, "2", // re-rank both docs
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
 
         );
 
@@ -134,7 +140,6 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
         req2.close();
     }
 
-
     @Test
     public void testThatReRankWorksForNegativeBoostWithSimilarityOff() {
         String q = "qdown1 qdown2";
@@ -145,7 +150,8 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
                 QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 QBOOST_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
 
         );
 

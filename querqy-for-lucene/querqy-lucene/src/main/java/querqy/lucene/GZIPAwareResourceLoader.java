@@ -29,7 +29,7 @@ public class GZIPAwareResourceLoader implements ResourceLoader {
     }
 
     // Wraps the InputStream in a GZIPInputStream if the first two bytes match the GZIP magic bytes
-    private static InputStream detectGZIPAndWrap(final InputStream is) throws IOException {
+    public static InputStream detectGZIPAndWrap(final InputStream is) throws IOException {
         final PushbackInputStream pb = new PushbackInputStream(is, 2);
         final byte[] signature = new byte[2];
         int count = 0;

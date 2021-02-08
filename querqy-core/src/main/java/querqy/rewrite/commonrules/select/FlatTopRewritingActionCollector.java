@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class FlatTopRewritingActionCollector implements TopRewritingActionCollector {
+public class FlatTopRewritingActionCollector extends TopRewritingActionCollector {
 
     private final TreeMap<Instructions, List<Function<Instructions, Action>>> topN;
     private final int limit;
@@ -42,23 +42,22 @@ public class FlatTopRewritingActionCollector implements TopRewritingActionCollec
                             return false;
                         }
                     }
-                    return true;
-                }).forEach( instr -> {
+                    return true;})
 
-            if (limit < 0) {
-                collectEntry(instr, actionCreator);
-            } else if (topN.size() < limit) {
-                collectEntry(instr, actionCreator);
-            } else {
-                final Instructions lastInstructions = topN.lastKey();
-                if (comparator.compare(lastInstructions, instr) > 0) {
-                    collectEntry(instr, actionCreator);
-                    if (topN.size() > limit) {
-                        topN.remove(lastInstructions);
+                .forEach( instr -> {
+                    if (limit < 0) {
+                        collectEntry(instr, actionCreator);
+                    } else if (topN.size() < limit) {
+                        collectEntry(instr, actionCreator);
+                    } else {
+                        final Instructions lastInstructions = topN.lastKey();
+                        if (comparator.compare(lastInstructions, instr) > 0) {
+                            collectEntry(instr, actionCreator);
+                            if (topN.size() > limit) {
+                                topN.remove(lastInstructions);
+                            }
+                        }
                     }
-                }
-            }
-
         });
 
     }

@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import querqy.rewrite.commonrules.model.Input;
+import querqy.model.Input;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 
@@ -31,13 +31,13 @@ public class SimpleCommonRulesParserTest {
         final String rules = "input1 => \n" +
                 "SYNONYM: syn1";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals("input1#0", instructions.getId());
@@ -51,13 +51,13 @@ public class SimpleCommonRulesParserTest {
                 "SYNONYM: syn1\n" +
                 "@_id:\"The Id\"";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals("The Id", instructions.getId());
@@ -71,13 +71,13 @@ public class SimpleCommonRulesParserTest {
                 "SYNONYM: syn1\n" +
                 "@prop1:[\"v1\",\"v2\"]";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals(Optional.of(Arrays.asList("v1", "v2")), instructions.getProperty("prop1"));
@@ -94,13 +94,13 @@ public class SimpleCommonRulesParserTest {
                 "   prop2:true" +
                 "}@";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals(Optional.of(Arrays.asList("v1", "v2")), instructions.getProperty("prop1"));
@@ -119,13 +119,13 @@ public class SimpleCommonRulesParserTest {
                 "   prop2:true" +
                 "}@";
 
-        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), parserFactory,
+        final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
                 rulesCollectionBuilder);
         parser.parse();
 
 
         ArgumentCaptor<Instructions> captor = ArgumentCaptor.forClass(Instructions.class);
-        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.class), captor.capture());
+        verify(rulesCollectionBuilder).addRule(ArgumentMatchers.any(Input.SimpleInput.class), captor.capture());
 
         final Instructions instructions = captor.getValue();
         assertEquals(Optional.of("some message"), instructions.getProperty("_log"));
@@ -144,7 +144,7 @@ public class SimpleCommonRulesParserTest {
                 "@_id:\"1\"";
 
 
-        new SimpleCommonRulesParser(new StringReader(rules), parserFactory, true).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true).parse();
 
     }
 
@@ -156,7 +156,38 @@ public class SimpleCommonRulesParserTest {
                 "@_id:[\"1\"]";
 
 
-        new SimpleCommonRulesParser(new StringReader(rules), parserFactory, true).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true).parse();
+
+    }
+
+    @Test(expected = RuleParseException.class)
+    public void testThatInvalidBooleanInputIsRefusedIfBooleanIsEnabled() throws IOException, RuleParseException {
+
+        final String rules = "input1 AND OR => \n" +
+                "UP: juu";
+
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true).parse();
+
+    }
+
+    @Test
+    public void testThatInvalidBooleanInputIsAllowedIfBooleanIsDisabled() throws IOException, RuleParseException {
+
+        final String rules = "input1 AND OR => \n" +
+                "UP: juu";
+
+        new SimpleCommonRulesParser(new StringReader(rules), false, parserFactory, true).parse();
+
+    }
+
+    @Test
+    public void testThatNonBooleanInputIsParsedIfBooleanIsEnabled() throws IOException, RuleParseException {
+
+        new SimpleCommonRulesParser(new StringReader("input1 AND_THEN y => \nUP: juu"), true, parserFactory, true)
+                .parse();
+
+        new SimpleCommonRulesParser(new StringReader("input1 (c) => \nUP: juu"), true, parserFactory, true)
+                .parse();
 
     }
 

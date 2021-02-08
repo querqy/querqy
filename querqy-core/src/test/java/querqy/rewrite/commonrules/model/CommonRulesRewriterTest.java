@@ -1,5 +1,6 @@
 package querqy.rewrite.commonrules.model;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -10,9 +11,6 @@ import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
 import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import org.junit.Test;
 
 import querqy.model.EmptySearchEngineRequestAdapter;
@@ -21,15 +19,16 @@ import querqy.model.Query;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
+import querqy.model.Input;
 
 public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 
     @Test
     public void testInputBoundaryOnBothSides() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm("s1")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), true, true, "a"),
-                new Instructions(1, "1", Collections.singletonList(synInstruction)));
+        SynonymInstruction synInstruction = new SynonymInstruction(singletonList(mkTerm("s1")));
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), true, true, "\"a\""),
+                new Instructions(1, "1", singletonList(synInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -105,9 +104,9 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     @Test
     public void testInputBoundaryOnLeftHandSide() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), true, false, "a"),
-                new Instructions(1, "1", Collections.singletonList(synInstruction)));
+        SynonymInstruction synInstruction = new SynonymInstruction(singletonList(mkTerm("s1")));
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), true, false, "\"a"),
+                new Instructions(1, "1", singletonList(synInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -181,9 +180,9 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     @Test
     public void testInputBoundaryOnRightHandSide() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(Collections.singletonList(mkTerm("s1")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), false, true, "a"),
-                new Instructions(1, "1", Collections.singletonList(synInstruction)));
+        SynonymInstruction synInstruction = new SynonymInstruction(singletonList(mkTerm("s1")));
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), false, true, "a\""),
+                new Instructions(1, "1", singletonList(synInstruction)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -257,12 +256,12 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     @Test
     public void testActionsAreLoggedInContext() {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstructionA = new SynonymInstruction(Collections.singletonList(mkTerm("aSynonym")));
-        SynonymInstruction synInstructionB = new SynonymInstruction(Collections.singletonList(mkTerm("bSynonym")));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("a")), true, false, "a"),
-                new Instructions(1, "1", Collections.singletonList(synInstructionA)));
-        builder.addRule(new Input(Collections.singletonList(mkTerm("b")), true, false, "b"),
-                new Instructions(2, "2", Collections.singletonList(synInstructionB)));
+        SynonymInstruction synInstructionA = new SynonymInstruction(singletonList(mkTerm("aSynonym")));
+        SynonymInstruction synInstructionB = new SynonymInstruction(singletonList(mkTerm("bSynonym")));
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), true, false, "\"a"),
+                new Instructions(1, "1", singletonList(synInstructionA)));
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("b")), true, false, "\"a"),
+                new Instructions(2, "2", singletonList(synInstructionB)));
 
         RulesCollection rules = builder.build();
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
@@ -283,14 +282,18 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
                         )
                 ));
 
-        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA), is(nullValue()));
+        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA),
+                is(nullValue()));
 
         searchEngineRequestAdapter.getContext().put(CommonRulesRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
         rewriter.rewrite(query, searchEngineRequestAdapter).getUserQuery();
 
-        assertThat(searchEngineRequestAdapter.getContext().containsKey(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA), is(true));
-        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(), containsString(synInstructionA.toString()));
-        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(), not(containsString(synInstructionB.toString())));
+        assertThat(searchEngineRequestAdapter.getContext().containsKey(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA),
+                is(true));
+        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(),
+                containsString(synInstructionA.toString()));
+        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(),
+                not(containsString(synInstructionB.toString())));
     }
 
 }
