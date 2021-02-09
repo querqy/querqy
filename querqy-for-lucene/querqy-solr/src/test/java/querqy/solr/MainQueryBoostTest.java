@@ -6,6 +6,8 @@ import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_DFC;
 import static querqy.solr.QuerqyDismaxParams.SIMILARITY_SCORE_OFF;
 import static querqy.solr.QuerqyDismaxParams.USER_QUERY_BOOST;
 import static querqy.solr.QuerqyDismaxParams.USER_QUERY_SIMILARITY_SCORE;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -28,7 +30,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules.txt");
     }
 
     @Override
@@ -48,7 +51,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 QueryParsing.OP, "OR",
                 USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("uq.similarityScore=off failed",
@@ -68,7 +72,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 QueryParsing.OP, "OR",
                 USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("uq.similarityScore=off failed",
@@ -89,7 +94,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_OFF,
                 USER_QUERY_BOOST, "60.0",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("uq.boost failed with uq.similarityScore=off",
@@ -117,7 +123,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 USER_QUERY_SIMILARITY_SCORE, SIMILARITY_SCORE_DFC,
                 USER_QUERY_BOOST, "70.0",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("uq.boost failed with uq.similarityScore=off",
@@ -142,7 +149,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 USER_QUERY_BOOST, "80.0",
                 QBOOST_WEIGHT, "3",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("qboost.weight failed with uq.similarityScore=dfc",
@@ -167,7 +175,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 USER_QUERY_BOOST, "80.0",
                 QBOOST_WEIGHT, "3",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("qboost.weight failed with uq.similarityScore=off",
@@ -196,7 +205,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 USER_QUERY_BOOST, "80.0",
                 QBOOST_NEG_WEIGHT, "3",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("qboost.negWeight failed with uq.similarityScore=dfc",
@@ -218,7 +228,8 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 USER_QUERY_BOOST, "80.0",
                 QBOOST_NEG_WEIGHT, "3",
                 "defType", "querqy",
-                "debugQuery", "true"
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
         );
 
         assertQ("qboost.negWeight failed with uq.similarityScore=off",

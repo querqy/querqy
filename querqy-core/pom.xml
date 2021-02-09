@@ -65,9 +65,10 @@
         <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
-        <junit.version>4.12</junit.version>
+        <lombok.version>1.18.16</lombok.version>
+        <junit.version>4.13.1</junit.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <mockito.version>2.27.0</mockito.version>
+        <mockito.version>3.7.7</mockito.version>
 
         <jackson.version>2.9.9</jackson.version>
         <json-path.version>2.4.0</json-path.version>
@@ -89,7 +90,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.16</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 

@@ -1,5 +1,8 @@
 package querqy.solr;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
@@ -22,7 +25,8 @@ public class SolrTermQueryCacheVsDocumentFrequencyCorrectionTest extends SolrTes
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-cache-vs-documentfrequencycorrection.xml", "schema.xml");
+        initCore("solrconfig-cache.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules-cache-dfc.txt");
     }
 
     @Override
@@ -41,11 +45,12 @@ public class SolrTermQueryCacheVsDocumentFrequencyCorrectionTest extends SolrTes
         String q = "a";
 
         SolrQueryRequest req = req("q", q,
-              DisMaxParams.QF, "f1 f2",
-              QueryParsing.OP, "OR",
-              DisMaxParams.TIE, "0.1",
-              "defType", "querqy",
-              "debugQuery", "true"
+                DisMaxParams.QF, "f1 f2",
+                QueryParsing.OP, "OR",
+                DisMaxParams.TIE, "0.1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules"
               );
         assertQ("Two results expected",
                 req,

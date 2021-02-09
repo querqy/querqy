@@ -4,6 +4,8 @@ import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_METHOD_RERANK;
 import static querqy.solr.QuerqyDismaxParams.QBOOST_RERANK_NUMDOCS;
 import static querqy.solr.QuerqyDismaxParams.QRQ;
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.common.params.DisMaxParams;
@@ -24,7 +26,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
+        withCommonRulesRewriter(h.getCore(), "common_rules", "configs/commonrules/rules.txt");
     }
 
     @Override
@@ -47,6 +50,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "defType", "querqy",
                 "tie", "1",
                 "sort", "score DESC, id ASC",
+                PARAM_REWRITERS, "common_rules",
                 "debug", "true");
 
         // same as above but with Solr rq/rqq reranking
@@ -57,6 +61,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "sort", "score DESC, id ASC",
                 "rq", "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
                 "rqq", "f1:a",
+                PARAM_REWRITERS, "common_rules",
                 "debug", "true");
 
         // doc 2 gets a better as query matches in two fields and tie = 1
@@ -94,6 +99,7 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "sort", "score DESC, id ASC",
                 QRQ, "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
                 "rqq", "f1:a",
+                PARAM_REWRITERS, "common_rules",
                 "debug", "true");
 
         // doc 1 wins as it is reranked by rqq=a
@@ -121,7 +127,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 QueryParsing.OP, "OR",
                 "tie", "1",
                 "defType", "querqy",
-                "debugQuery", "true");
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules");
 
         // same as above but with additional Solr rq/rqq
         SolrQueryRequest reqWithBoostOnMainQueryAndSolrReRanking = req("q", q,
@@ -131,7 +138,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "defType", "querqy",
                 "debugQuery", "true",
                 "rq", "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
-                "rqq", "f2:x");
+                "rqq", "f2:x",
+                PARAM_REWRITERS, "common_rules");
 
         // same as above but with Querqy rq/rqq instead
         SolrQueryRequest reqWithBoostOnMainQueryAndQuerqyReRankParameter = req("q", q,
@@ -141,7 +149,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "defType", "querqy",
                 "debugQuery", "true",
                 QRQ, "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
-                "rqq", "f2:x");
+                "rqq", "f2:x",
+                PARAM_REWRITERS, "common_rules");
 
         // boost added as QuerqyReRankQuery
         SolrQueryRequest reqWithBoostAndRerankMethodAndNoReRankParameter = req("q", q,
@@ -151,7 +160,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 QBOOST_METHOD, QBOOST_METHOD_RERANK,
                 QBOOST_RERANK_NUMDOCS, "2",
                 "defType", "querqy",
-                "debugQuery", "true");
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules");
 
         // same as above but with Solr rq/rqq
         SolrQueryRequest reqWithBoostAndRerankMethodAndSolrReRankingParameter = req("q", q,
@@ -163,7 +173,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "defType", "querqy",
                 "debugQuery", "true",
                 "rq", "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
-                "rqq", "f2:x");
+                "rqq", "f2:x",
+                PARAM_REWRITERS, "common_rules");
 
         // same as above but with Querqy rq/rqq
         SolrQueryRequest reqWithBoostAndRerankMethodAndQuerqyReRankParameter = req("q", q,
@@ -175,7 +186,8 @@ public class ExternalReRankerHandlingTest extends SolrTestCaseJ4 {
                 "defType", "querqy",
                 "debugQuery", "true",
                 "querqy.rq", "{!rerank reRankQuery=$rqq reRankDocs=2 reRankWeight=100}",
-                "rqq", "f2:x");
+                "rqq", "f2:x",
+                PARAM_REWRITERS, "common_rules");
 
         assertQ("Result should be sorted by boosted term by an additional SHOULD clause on the main query, not by reranking",
                 reqWithBoostOnMainQueryAndNoSolrReRanking,

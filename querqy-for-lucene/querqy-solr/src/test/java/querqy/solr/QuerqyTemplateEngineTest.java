@@ -6,12 +6,19 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 @SolrTestCaseJ4.SuppressSSL
 public class QuerqyTemplateEngineTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-templates.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
+
+        withCommonRulesRewriter(h.getCore(), "r1",
+                "configs/commonrules/rules-templates.txt");
+
         addDocs();
     }
 
@@ -30,6 +37,7 @@ public class QuerqyTemplateEngineTest extends SolrTestCaseJ4 {
                 "sort", "id desc",
                 DisMaxParams.QF, "f1",
                 "fl", "id,score",
+                PARAM_REWRITERS, "r1",
                 DisMaxParams.MM, "100%",
                 "uq.similarityScore", "off",
                 "debugQuery", "on",
@@ -50,6 +58,7 @@ public class QuerqyTemplateEngineTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1",
                 "fl", "id,score",
+                PARAM_REWRITERS, "r1",
                 DisMaxParams.MM, "100%",
                 "debugQuery", "on",
                 "defType", "querqy");
@@ -65,6 +74,7 @@ public class QuerqyTemplateEngineTest extends SolrTestCaseJ4 {
         req = req("q", q,
                 DisMaxParams.QF, "f1",
                 "fl", "id,score",
+                PARAM_REWRITERS, "r1",
                 DisMaxParams.MM, "100%",
                 "debugQuery", "on",
                 "defType", "querqy");

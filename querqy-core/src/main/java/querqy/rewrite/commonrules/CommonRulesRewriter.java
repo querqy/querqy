@@ -1,19 +1,34 @@
-/**
- *
- */
 package querqy.rewrite.commonrules;
 
 import querqy.infologging.InfoLoggingContext;
-import querqy.model.*;
+import querqy.model.AbstractNodeVisitor;
+import querqy.model.BooleanQuery;
+import querqy.model.DisjunctionMaxQuery;
+import querqy.model.ExpandedQuery;
+import querqy.model.InputSequenceElement;
+import querqy.model.MatchAllQuery;
+import querqy.model.Node;
+import querqy.model.QuerqyQuery;
+import querqy.model.Query;
 import querqy.model.Term;
 import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewrite.commonrules.model.*;
+import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.InputBoundary;
 import querqy.rewrite.commonrules.model.InputBoundary.Type;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.PositionSequence;
+import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author rene
@@ -39,19 +54,15 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
     }
 
     @Override
-    public ExpandedQuery rewrite(ExpandedQuery query) {
+    public ExpandedQuery rewrite(final ExpandedQuery query) {
         throw new UnsupportedOperationException("This rewriter needs a query context");
     }
 
     @Override
-    public ExpandedQuery rewrite(ExpandedQuery query, Map<String, Object> context) {
-        throw new UnsupportedOperationException("This rewriter needs a query adapter");
-    }
+    public ExpandedQuery rewrite(final ExpandedQuery query,
+                                 final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
-    @Override
-    public ExpandedQuery rewrite(ExpandedQuery query, SearchEngineRequestAdapter searchEngineRequestAdapter) {
-
-        QuerqyQuery<?> userQuery = query.getUserQuery();
+        final QuerqyQuery<?> userQuery = query.getUserQuery();
 
         if (userQuery instanceof Query) {
 
@@ -74,7 +85,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
     }
 
    @Override
-   public Node visit(BooleanQuery booleanQuery) {
+   public Node visit(final BooleanQuery booleanQuery) {
 
       sequencesStack.add(new PositionSequence<>());
 
@@ -90,8 +101,10 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        final PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries
                ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
 
-       final boolean isDebug = Boolean.TRUE.equals(searchEngineRequestAdapter.getContext().get(CONTEXT_KEY_DEBUG_ENABLED));
-       List<String> actionsDebugInfo = (List<String>) searchEngineRequestAdapter.getContext().get(CONTEXT_KEY_DEBUG_DATA);
+       final boolean isDebug = Boolean.TRUE.equals(searchEngineRequestAdapter.getContext()
+               .get(CONTEXT_KEY_DEBUG_ENABLED));
+       List<String> actionsDebugInfo = (List<String>) searchEngineRequestAdapter.getContext()
+               .get(CONTEXT_KEY_DEBUG_DATA);
        // prepare debug info context object if requested
        if (isDebug && actionsDebugInfo == null) {
            actionsDebugInfo = new LinkedList<>();
@@ -101,15 +114,14 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
        final TopRewritingActionCollector collector = selectionStrategy.createTopRewritingActionCollector();
        rules.collectRewriteActions(sequenceForLookUp, collector);
 
-       final List<Action> actions = collector.createActions();
-
+       final List<Action> actions = collector.evaluateBooleanInput().createActions();
 
        final InfoLoggingContext infoLoggingContext = searchEngineRequestAdapter.getInfoLoggingContext().orElse(null);
        final boolean infoLoggingEnabled = infoLoggingContext != null && infoLoggingContext.isEnabledForRewriter();
 
        final Set<String> appliedRules = infoLoggingEnabled ? new HashSet<>() : null;
 
-       for (Action action : actions) {
+       for (final Action action : actions) {
            if (isDebug) {
                actionsDebugInfo.add(action.toString());
            }
@@ -143,21 +155,23 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
 
    }
 
-   protected PositionSequence<InputSequenceElement> termSequenceToInputSequence(PositionSequence<Term> sequence) {
-       PositionSequence<InputSequenceElement> result = new PositionSequence<>();
-       for (List<Term> termList : sequence) {
-           result.add(Collections.<InputSequenceElement>unmodifiableList(termList));
-       }
-       return result;
-   }
-   protected PositionSequence<InputSequenceElement> addBoundaries(PositionSequence<Term> sequence) {
+    protected PositionSequence<InputSequenceElement> termSequenceToInputSequence(
+            final PositionSequence<Term> sequence) {
+
+        final PositionSequence<InputSequenceElement> result = new PositionSequence<>();
+        sequence.forEach(termList -> result.add(Collections.unmodifiableList(termList)));
+        return result;
+
+    }
+
+   protected PositionSequence<InputSequenceElement> addBoundaries(final PositionSequence<Term> sequence) {
 
        PositionSequence<InputSequenceElement> result = new PositionSequence<>();
        result.nextPosition();
        result.addElement(LEFT_BOUNDARY);
 
        for (List<Term> termList : sequence) {
-           result.add(Collections.<InputSequenceElement>unmodifiableList(termList));
+           result.add(Collections.unmodifiableList(termList));
        }
 
        result.nextPosition();
@@ -166,13 +180,13 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
    }
 
    @Override
-   public Node visit(DisjunctionMaxQuery disjunctionMaxQuery) {
+   public Node visit(final DisjunctionMaxQuery disjunctionMaxQuery) {
       sequencesStack.getLast().nextPosition();
       return super.visit(disjunctionMaxQuery);
    }
 
    @Override
-   public Node visit(Term term) {
+   public Node visit(final Term term) {
       sequencesStack.getLast().addElement(term);
       return super.visit(term);
    }

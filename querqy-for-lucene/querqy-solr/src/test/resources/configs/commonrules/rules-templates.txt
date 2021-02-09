@@ -1,0 +1,22 @@
+def two_sided_synonym(syn1, syn2):
+  $syn1 =>
+    SYNONYM: $syn2
+  $syn2 =>
+    SYNONYM: $syn1
+
+def boost_id(id):
+  UP(1.0): * {!func}if(exists(query({!lucene df=id v='$id'})),100,0)
+
+a =>
+  SYNONYM: b
+
+aa =>
+  SYNONYM: bb
+
+aaa =>
+  SYNONYM: bbb
+
+<< two_sided_synonym: syn1 = tv || syn2 = television >>
+
+smartphone =>
+  << boost_id: id = 3 >>

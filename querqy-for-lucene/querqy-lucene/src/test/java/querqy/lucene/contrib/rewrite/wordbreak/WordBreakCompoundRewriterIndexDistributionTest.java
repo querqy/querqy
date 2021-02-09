@@ -16,7 +16,6 @@ import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
-import querqy.lucene.contrib.rewrite.wordbreak.ClassicWordBreakCompoundRewriterFactory;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.EmptySearchEngineRequestAdapter;
@@ -24,7 +23,8 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCase {
 
@@ -101,7 +101,7 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
 
         }
 
-        assertThat((Query) rewritten.getUserQuery(),
+        org.hamcrest.MatcherAssert.assertThat((Query) rewritten.getUserQuery(),
                 bq(
                         dmq(
                                 term("w1w2a", false),

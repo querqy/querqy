@@ -1,0 +1,4 @@
+laptop =>
+	SYNONYM: notebook
+	SYNONYM(0.5): macbook
+	FILTER: * filter_t_type:PC

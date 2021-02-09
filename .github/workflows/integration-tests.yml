@@ -1,0 +1,27 @@
+name: Docker Integration Tests for Querqy
+
+# Build every push and every pull request
+on: [push, pull_request]
+
+jobs:
+  integration-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache maven deps
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2/repository
+        key: maven-11-${{ hashFiles('**/pom.xml') }}
+
+    - name: Select JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    
+    - name: Integration Tests
+      run: mvn verify -DskipITs=false --file pom.xml
+

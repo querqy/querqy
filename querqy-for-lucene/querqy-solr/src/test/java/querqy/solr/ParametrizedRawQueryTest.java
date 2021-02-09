@@ -6,12 +6,21 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
+
 @SolrTestCaseJ4.SuppressSSL
 public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-commonrules-parametrized-raw-query.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
+
+        withCommonRulesRewriter(h.getCore(), "rq1",
+                "configs/commonrules/rules-parametrized-raw-query.txt");
+        withCommonRulesRewriter(h.getCore(), "rq2",
+                "configs/commonrules/rules-parametrized-raw-query-2.txt");
+
         addDocs();
     }
 
@@ -33,6 +42,7 @@ public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "uq.similarityScore", "off",
                 "fl", "id,score",
+                PARAM_REWRITERS, "rq1,rq2",
                 "debugQuery", "on",
                 "defType", "querqy");
 
@@ -51,6 +61,7 @@ public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "uq.similarityScore", "off",
                 "fl", "id,score",
+                PARAM_REWRITERS, "rq1,rq2",
                 "debugQuery", "on",
                 "defType", "querqy");
 
@@ -73,6 +84,7 @@ public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "uq.similarityScore", "off",
                 "fl", "id,score",
+                PARAM_REWRITERS, "rq1,rq2",
                 "debugQuery", "on",
                 "defType", "querqy");
 
@@ -95,7 +107,9 @@ public class ParametrizedRawQueryTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "uq.similarityScore", "off",
                 "fl", "id,score",
+                PARAM_REWRITERS, "rq1,rq2",
                 "debugQuery", "on",
+                "indent", "true",
                 "defType", "querqy");
 
         assertQ("",

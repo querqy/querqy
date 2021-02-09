@@ -17,6 +17,7 @@ import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
+import querqy.model.Input;
 
 public class RulesCollectionTest {
 
@@ -27,7 +28,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1), false, false, s1);
+      Input.SimpleInput input = new Input.SimpleInput(inputTerms(s1), false, false, s1);
 
       Instructions instructions = instructions(1, "instruction1");
       builder.addRule(input, instructions);
@@ -49,7 +50,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1), false, false, s1);
+      Input.SimpleInput input = new Input.SimpleInput(inputTerms(s1), false, false, s1);
 
       Instructions instructions = instructions(1, "instruction1", "instruction2");
       builder.addRule(input, instructions);
@@ -71,7 +72,7 @@ public class RulesCollectionTest {
 
       String s1 = "test";
 
-      Input input = new Input(inputTerms(null, s1), false, false, s1);
+      Input.SimpleInput input = new Input.SimpleInput(inputTerms(s1), false, false, s1);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input, instructions1);
@@ -99,8 +100,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1), false, false, s1);
-      Input input2 = new Input(inputTerms(null, s2), false, false, s2);
+      Input.SimpleInput input1 = new Input.SimpleInput(inputTerms(s1), false, false, s1);
+      Input.SimpleInput input2 = new Input.SimpleInput(inputTerms(s2), false, false, s2);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -147,8 +148,10 @@ public class RulesCollectionTest {
       String s2 = "test2";
       String s3 = "test3";
 
-      Input input1 = new Input(inputTerms(null, s1, s2), false, false, s1 + " " + s2);
-      Input input2 = new Input(inputTerms(null, s2, s3), false, false, s2 + " " + s3);
+      Input.SimpleInput input1 = new Input.SimpleInput(inputTerms(s1, s2), false, false,
+              String.join(" ", s1, s2));
+      Input.SimpleInput input2 = new Input.SimpleInput(inputTerms(s2, s3), false, false,
+              String.join(" ", s2, s3));
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -195,8 +198,9 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1, s2), false, false, s1 + " " + s2);
-      Input input2 = new Input(inputTerms(null, s2), false, false, s2);
+      Input.SimpleInput input1 = new Input.SimpleInput(inputTerms(s1, s2), false, false,
+              String.join(" ", s1, s2));
+      Input.SimpleInput input2 = new Input.SimpleInput(inputTerms(s2), false, false, s2);
 
       Instructions instructions1 = instructions(1, "instruction1");
       Instructions instructions2 = instructions(2, "instruction2");
@@ -231,8 +235,8 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(inputTerms(null, s1), false, false, s1);
-      Input input2 = new Input(inputTerms(null, s2), false, false, s2);
+      Input.SimpleInput input1 = new Input.SimpleInput(inputTerms(s1), false, false, s1);
+      Input.SimpleInput input2 = new Input.SimpleInput(inputTerms(s2), false, false, s2);
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -264,14 +268,14 @@ public class RulesCollectionTest {
       String s1 = "test1";
       String s2 = "test2";
 
-      Input input1 = new Input(
+      Input.SimpleInput input1 = new Input.SimpleInput(
             Arrays.asList(
                   new querqy.rewrite.commonrules.model.Term(s1.toCharArray(), 0, s1.length(), Arrays.asList("f11",
                         "f12")),
                   new querqy.rewrite.commonrules.model.Term(s2.toCharArray(), 0, s2.length(), Arrays.asList("f21",
                         "f22"))
 
-                  ), false, false, s1 + " " + s2);
+                  ), false, false, String.join(" ", s1, s2));
 
       Instructions instructions1 = instructions(1, "instruction1");
       builder.addRule(input1, instructions1);
@@ -316,11 +320,11 @@ public class RulesCollectionTest {
 
    }
 
-   List<querqy.rewrite.commonrules.model.Term> inputTerms(List<String> fieldNames, String... values) {
+   List<querqy.rewrite.commonrules.model.Term> inputTerms(String... values) {
       List<querqy.rewrite.commonrules.model.Term> result = new LinkedList<>();
       for (String value : values) {
          char[] chars = value.toCharArray();
-         result.add(new querqy.rewrite.commonrules.model.Term(chars, 0, chars.length, fieldNames));
+         result.add(new querqy.rewrite.commonrules.model.Term(chars, 0, chars.length, null));
       }
       return result;
    }
@@ -367,11 +371,10 @@ public class RulesCollectionTest {
             return false;
          SimpleInstruction other = (SimpleInstruction) obj;
          if (name == null) {
-            if (other.name != null)
-               return false;
-         } else if (!name.equals(other.name))
-            return false;
-         return true;
+            return other.name == null;
+         } else {
+            return name.equals(other.name);
+         }
       }
 
       @Override
@@ -380,8 +383,8 @@ public class RulesCollectionTest {
       }
 
       @Override
-      public void apply(PositionSequence<Term> sequence,
-                        TermMatches termsMatches, int startPosition, int endPosition, ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+      public void apply(PositionSequence<Term> sequence, TermMatches termsMatches, int startPosition, int endPosition,
+                        ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
       }
 
     @Override
