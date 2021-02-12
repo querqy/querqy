@@ -164,6 +164,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
         ifNotNull(configuration.get(CONF_IGNORE_CASE), v -> conf.put(CONF_IGNORE_CASE, v));
         ifNotNull(configuration.get(CONF_RHS_QUERY_PARSER), v -> conf.put(CONF_RHS_QUERY_PARSER, v));
         ifNotNull(configuration.get(CONF_RULE_SELECTION_STRATEGIES), v -> conf.put(CONF_RULE_SELECTION_STRATEGIES, v));
+        ifNotNull(configuration.get(CONF_ALLOW_BOOLEAN_INPUT), v -> conf.put(CONF_ALLOW_BOOLEAN_INPUT, v));
         ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
         return result;
     }
