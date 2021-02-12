@@ -39,6 +39,7 @@ public class CommonRulesRewriterFactoryTest {
         NamedList<Object> configuration = new NamedList<>();
         configuration.add(CONF_CLASS, CommonRulesRewriterFactory.class.getName());
         configuration.add(CONF_IGNORE_CASE, true);
+        configuration.add(CONF_ALLOW_BOOLEAN_INPUT, false);
         configuration.add(CONF_RHS_QUERY_PARSER, WhiteSpaceQuerqyParserFactory.class.getName());
         Map<String, Object> strategy = new HashMap<>();
         strategy.put("class", ExpressionSelectionStrategyFactory.class.getName());
@@ -49,11 +50,14 @@ public class CommonRulesRewriterFactoryTest {
 
         Map<String, Object> parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
         // no exceptions!
-        factory.configure((Map<String, Object>) parsed.get(CONF_CONFIG));
+        Map<String, Object> config = (Map<String, Object>) parsed.get(CONF_CONFIG);
+        factory.configure(config);
 
         RewriterFactory rewriterFactory = factory.getRewriterFactory();
 
         assertThat(rewriterFactory).isInstanceOf(querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory.class);
-        assertThat(factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG))).isNull();
+        assertThat(factory.validateConfiguration(config)).isNull();
+
+        assertThat(config.get(CONF_ALLOW_BOOLEAN_INPUT)).isEqualTo(false);
     }
 }
