@@ -8,6 +8,7 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.solr.StandaloneSolrTestSupport;
 
 @SolrTestCaseJ4.SuppressSSL
 public class CommonRulesBooleanInputTest extends SolrTestCaseJ4 {
@@ -17,7 +18,13 @@ public class CommonRulesBooleanInputTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig.xml", "schema.xml");
-        withCommonRulesRewriter(h.getCore(), REWRITER_NAME, "configs/commonrules/rules-booleaninput.txt");
+        withCommonRulesRewriter(
+                h.getCore(),
+                REWRITER_NAME,
+                new CommonRulesConfigRequestBuilder()
+                        .rules(StandaloneSolrTestSupport.class.getClassLoader()
+                                .getResourceAsStream("configs/commonrules/rules-booleaninput.txt"))
+                        .allowBooleanInput(true));
         addDocs();
     }
 
