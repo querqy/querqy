@@ -50,7 +50,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     public void configure(final Map<String, Object> config) {
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
-        final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, true);
+        final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
 
         final QuerqyParserFactory querqyParser = ConfigUtils.getInstanceFromArg(config, CONF_RHS_QUERY_PARSER,
                 DEFAULT_RHS_QUERY_PARSER);
@@ -97,7 +97,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
-        final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, true);
+        final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
 
         final Boolean buildTermCache = ConfigUtils.getArg(config, CONF_BUILD_TERM_CACHE, true);
 
