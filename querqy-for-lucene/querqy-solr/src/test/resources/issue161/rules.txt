@@ -1,0 +1,5 @@
+herrenjacke =>
+        SYNONYM: sakko
+
+jacke =>
+        SYNONYM: mantel
