@@ -12,7 +12,6 @@ import querqy.rewrite.RewriterFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -43,8 +42,8 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
                 final String rewriterId = file.getName();
                 try {
                     loadRewriter(rewriterId, readJson(new FileInputStream(file), Map.class));
-                } catch (final FileNotFoundException e) {
-                    throw new RuntimeException("Could not load rewriter: " + rewriterId, e);
+                } catch (final Exception e) {
+                    LOG.error("Could not load rewriter: " + rewriterId, e);
                 }
 
 
@@ -85,7 +84,12 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
             writeJson(instanceDescription, os);
         }
 
-        loadRewriter(rewriterId, instanceDescription);
+        try {
+            loadRewriter(rewriterId, instanceDescription);
+        } catch (final Exception e) {
+            // this shouldn't happen: the rewriter should be validated before we get into doSaveRewriter()
+            throw new RuntimeException(e);
+        }
         notifyRewritersChangeListener();
     }
 
