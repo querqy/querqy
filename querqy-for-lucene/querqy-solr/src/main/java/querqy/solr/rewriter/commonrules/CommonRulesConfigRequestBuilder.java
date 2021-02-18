@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilder {
 
     private Boolean ignoreCase = null;
+    private Boolean allowBooleanInput = null;
     private Class<? extends QuerqyParserFactory> rhsParser = null;
     private String rules = null;
     private final Map<String, Map<String, Object>> ruleSelectionStrategies = new HashMap<>();
@@ -26,6 +27,11 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
 
     public CommonRulesConfigRequestBuilder ignoreCase(final boolean ignoreCase) {
         this.ignoreCase = ignoreCase;
+        return this;
+    }
+
+    public CommonRulesConfigRequestBuilder allowBooleanInput(final boolean allowBooleanInput) {
+        this.allowBooleanInput = allowBooleanInput;
         return this;
     }
 
@@ -69,6 +75,10 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
         }
         if (rhsParser != null) {
             config.put(CommonRulesRewriterFactory.CONF_RHS_QUERY_PARSER, rhsParser.getName());
+        }
+
+        if (allowBooleanInput != null) {
+            config.put(CommonRulesRewriterFactory.CONF_ALLOW_BOOLEAN_INPUT, allowBooleanInput);
         }
 
         if (rules == null) {
