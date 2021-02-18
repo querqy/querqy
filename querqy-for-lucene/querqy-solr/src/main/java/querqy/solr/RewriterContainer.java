@@ -83,7 +83,8 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
         rewriters = null;
     }
 
-    protected synchronized void loadRewriter(final String rewriterId, final Map<String, Object> instanceDesc) {
+    protected synchronized void loadRewriter(final String rewriterId, final Map<String, Object> instanceDesc) throws
+            Exception {
 
         final SolrRewriterFactoryAdapter factoryLoader = SolrRewriterFactoryAdapter.loadInstance(rewriterId,
                 instanceDesc);

@@ -226,7 +226,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
                 // unknown => new rewriter. This loads it and creates an updated 'rewriters' map
                 try {
                     onRewriterChanged(rewriterId);
-                } catch (final IOException e) {
+                } catch (final Exception e) {
                     LOG.error("Error loading rewriter " + rewriterId, e);
                 }
             }
@@ -249,7 +249,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     }
 
-    public synchronized void onRewriterChanged(final String rewriterId) throws IOException {
+    public synchronized void onRewriterChanged(final String rewriterId) throws Exception {
 
         loadRewriter(rewriterId, readRewriterDefinition(rewriterId, newRewriterWatcher(rewriterId)));
 
@@ -316,7 +316,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
             if (enabled) {
                 try {
                     onRewriterChanged(rewriterId);
-                } catch (final IOException e) {
+                } catch (final Exception e) {
                     LOG.error("Error processing WatchedEvent for rewriter " + rewriterId, e);
                     return;
                 }

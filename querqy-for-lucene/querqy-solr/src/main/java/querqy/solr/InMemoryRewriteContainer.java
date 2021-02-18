@@ -52,8 +52,13 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
     @Override
     protected synchronized void doSaveRewriter(String rewriterId, Map instanceDescription) {
         // this is only for rewrite description...
-        store.put(rewriterId, instanceDescription);
 
-        loadRewriter(rewriterId, instanceDescription);
+        try {
+            loadRewriter(rewriterId, instanceDescription);
+        } catch (final Exception e) {
+            // this shouldn't happen
+            throw new RuntimeException(e);
+        }
+        store.put(rewriterId, instanceDescription);
     }
 }
