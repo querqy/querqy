@@ -4,7 +4,7 @@
 
 Developer channel: Join #querqy-dev on the [E-commerce search Slack space](https://ecom-search.slack.com)
 
-> :warning: **Querqy configuration has changed in a non-compatible way with the introduction of Querqy v5 for Solr!**  
+> :warning: **Querqy configuration has changed in an incompatible way with the introduction of Querqy v5 for Solr!**  
 > See [this guide](https://docs.querqy.org/querqy/querqy5-solr-migration.html) for detailed information about changes
 > and a migration guide
 
