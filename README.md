@@ -4,14 +4,15 @@
 
 Developer channel: Join #querqy-dev on the [E-commerce search Slack space](https://ecom-search.slack.com)
 
+> :warning: **Querqy configuration has changed in a non-compatible way with the introduction of Querqy v5 for Solr!**  
+> See [this guide](https://docs.querqy.org/querqy/querqy5-solr-migration.html) for detailed information about changes
+> and a migration guide
+
 # Querqy
 
 Querqy is a framework for query preprocessing in Java-based search engines. 
 
-> :warning: **Querqy configuration has changed in a non-compatible way with the introduction of Querqy v5 for Solr!**  
-> See [this guide](https://docs.querqy.org/querqy/querqy5-solr-migration.html) for detailed information about changes
-> and a migration guide
-> 
+
 ## Documentation and 'Getting started'
 
 
