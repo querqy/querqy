@@ -42,7 +42,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     public static final String CONF_CACHE_NAME = "termQueryCache.name";
     public static final String CONF_CACHE_UPDATE = "termQueryCache.update";
     public static final String CONF_REWRITER_REQUEST_HANDLER = "rewriterRequestHandler";
-    public static final String CONF_SKIP_UNKNOWN_REWRITERS = "skipUnkownRewriters";
+    public static final String CONF_SKIP_UNKNOWN_REWRITERS = "skipUnknownRewriters";
 
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
