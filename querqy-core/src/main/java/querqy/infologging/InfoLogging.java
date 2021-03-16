@@ -34,7 +34,7 @@ public class InfoLogging {
 
     }
 
-    public void enfOfRequest(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public void endOfRequest(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         allSinks.forEach(sink -> sink.endOfRequest(searchEngineRequestAdapter));
     }
 

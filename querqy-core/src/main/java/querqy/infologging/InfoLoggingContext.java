@@ -31,7 +31,7 @@ public class InfoLoggingContext {
     }
 
     public void endOfRequest() {
-        infoLogging.enfOfRequest(searchEngineRequestAdapter);
+        infoLogging.endOfRequest(searchEngineRequestAdapter);
     }
 
     public boolean isEnabledForRewriter() {
