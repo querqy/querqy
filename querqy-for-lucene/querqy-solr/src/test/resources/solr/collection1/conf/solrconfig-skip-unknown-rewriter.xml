@@ -8,7 +8,7 @@
 	<dataDir>${solr.core0.data.dir:}</dataDir>
 
 	<schemaFactory class="ClassicIndexSchemaFactory" />
-	
+
     <indexConfig>
         <!-- Needed for RAMDirectoryFactory -->
         <lockType>single</lockType>
@@ -53,17 +53,16 @@
 
 	<queryParser name="querqy-default" class="querqy.solr.QuerqyDismaxQParserPlugin"/>
 	<queryParser name="querqy-skip" class="querqy.solr.QuerqyDismaxQParserPlugin">
-		<bool name="skipUnkownRewriters">true</bool>
+		<bool name="skipUnknownRewriters">true</bool>
 	</queryParser>
 	<queryParser name="querqy-dont-skip" class="querqy.solr.QuerqyDismaxQParserPlugin">
-		<bool name="skipUnkownRewriters">false</bool>
+		<bool name="skipUnknownRewriters">false</bool>
 	</queryParser>
-	
 
-	
+
+
 	<admin>
 		<defaultQuery>solr</defaultQuery>
 	</admin>
 
 </config>
-

@@ -71,7 +71,16 @@ public class ClassicRewriteChainLoader extends AbstractSolrEventListener {
                     .getRequestHandler(rewriterRequestHandlerName);
 
             @SuppressWarnings("unchecked") final List<NamedList<?>> rewriterConfigs = (List<NamedList<?>>) chainConfig.getAll("rewriter");
-            if (rewriterConfigs != null) {
+            if (rewriterConfigs != null && !rewriterConfigs.isEmpty()) {
+
+                if (requestHandler.isPersistingRewriters()) {
+                    LOG.error("Must not configure rewriters in solrconfig.xml if QuerqyRewriterRequestHandler persists rewriters. \n" +
+                            "Did you forget to set inMemory=true " +
+                            "[https://docs.querqy.org/querqy/querqy5-solr-migration.html?highlight=inmemory#configuring-and-using-rewriters]");
+                    throw new RuntimeException("Cannot load rewriter from solrconfig.xml " +
+                            "if QuerqyRewriterRequestHandler.inMemory=false\n" +
+                            "[https://docs.querqy.org/querqy/querqy5-solr-migration.html?highlight=inmemory#configuring-and-using-rewriters]");
+                }
 
                 final Set<String> seenRewriterIds = new HashSet<>(rewriterConfigs.size());
 
