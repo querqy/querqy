@@ -13,8 +13,9 @@ import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import querqy.infologging.InfoLogging;
+import querqy.infologging.MultiSinkInfoLogging;
 import querqy.infologging.Sink;
+import querqy.infologging.InfoLogging;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
@@ -112,8 +113,8 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     }
 
     public abstract QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params,
-                                   final SolrQueryRequest req, final RewriteChain rewriteChain,
-                                   final InfoLogging infoLogging, final TermQueryCache termQueryCache);
+                                         final SolrQueryRequest req, final RewriteChain rewriteChain,
+                                         final InfoLogging infoLogging, final TermQueryCache termQueryCache);
 
 
     protected SolrQuerqyParserFactory loadSolrQuerqyParserFactory(final ResourceLoader loader,
@@ -208,7 +209,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
                 }
             }
 
-            return new InfoLogging(mappings);
+            return new MultiSinkInfoLogging(mappings);
 
         } else {
             return null;
