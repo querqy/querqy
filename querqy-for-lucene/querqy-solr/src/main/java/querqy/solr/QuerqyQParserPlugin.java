@@ -13,8 +13,9 @@ import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import querqy.infologging.InfoLogging;
+import querqy.infologging.MultiSinkInfoLogging;
 import querqy.infologging.Sink;
+import querqy.infologging.InfoLogging;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
@@ -42,7 +43,8 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     public static final String CONF_CACHE_NAME = "termQueryCache.name";
     public static final String CONF_CACHE_UPDATE = "termQueryCache.update";
     public static final String CONF_REWRITER_REQUEST_HANDLER = "rewriterRequestHandler";
-    public static final String CONF_SKIP_UNKNOWN_REWRITERS = "skipUnkownRewriters";
+    public static final String CONF_SKIP_UNKNOWN_REWRITERS = "skipUnknownRewriters";
+    public static final String CONF_SKIP_UNKNOWN_REWRITERS_WITH_TYPO = "skipUnkownRewriters";
 
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -77,7 +79,13 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
 
         rewriterRequestHandlerName = name != null ? name : QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
-        final Boolean skip = args.getBooleanArg(CONF_SKIP_UNKNOWN_REWRITERS);
+        Boolean skip = args.getBooleanArg(CONF_SKIP_UNKNOWN_REWRITERS);
+        if (skip == null) {
+          skip = args.getBooleanArg(CONF_SKIP_UNKNOWN_REWRITERS_WITH_TYPO);
+          if (skip != null){
+            logger.warn("Querqy 5.0 shipped with a typo in the parameter 'skipUnkownRewriters', please update your parameter to 'skipUnknownRewriters'.");
+          }
+        }
         skipUnknownRewriter = skip != null ? skip : false;
 
         logger.info("Initialized Querqy query parser: QuerqyRewriterRequestHandler={},skipUnknownRewriter={}",
@@ -105,8 +113,8 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     }
 
     public abstract QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params,
-                                   final SolrQueryRequest req, final RewriteChain rewriteChain,
-                                   final InfoLogging infoLogging, final TermQueryCache termQueryCache);
+                                         final SolrQueryRequest req, final RewriteChain rewriteChain,
+                                         final InfoLogging infoLogging, final TermQueryCache termQueryCache);
 
 
     protected SolrQuerqyParserFactory loadSolrQuerqyParserFactory(final ResourceLoader loader,
@@ -201,7 +209,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
                 }
             }
 
-            return new InfoLogging(mappings);
+            return new MultiSinkInfoLogging(mappings);
 
         } else {
             return null;

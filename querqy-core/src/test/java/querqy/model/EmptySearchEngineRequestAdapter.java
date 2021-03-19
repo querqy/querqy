@@ -1,6 +1,6 @@
 package querqy.model;
 
-import querqy.infologging.InfoLogging;
+import querqy.infologging.MultiSinkInfoLogging;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.infologging.InfoLoggingContext;
@@ -11,7 +11,7 @@ public class EmptySearchEngineRequestAdapter implements SearchEngineRequestAdapt
 
     Map<String, Object> context = new HashMap<>();
 
-    InfoLoggingContext loggingContext = new InfoLoggingContext(new InfoLogging(Collections.emptyMap()), this);
+    InfoLoggingContext loggingContext = new InfoLoggingContext(new MultiSinkInfoLogging(Collections.emptyMap()), this);
 
     @Override
     public RewriteChain getRewriteChain() {

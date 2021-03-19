@@ -202,6 +202,19 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         rewriterContainer.init(initArgs);
     }
 
+    /**
+     * This check is used for validation as long as we are still allowing rewriters to be configured in solrconfig.xml
+     * @return true iff rewriter configs sent to this handler will be persisted
+     */
+    @Deprecated
+    public boolean isPersistingRewriters() {
+        if (rewriterContainer instanceof InMemoryRewriteContainer) {
+            return false;
+        }
+        final Boolean inMemory = (Boolean) initArgs.get("inMemory");
+        return (inMemory == null || !inMemory);
+    }
+
     public Optional<RewriterFactory> getRewriterFactory(final String rewriterId) {
         return rewriterContainer.getRewriterFactory(rewriterId);
     }

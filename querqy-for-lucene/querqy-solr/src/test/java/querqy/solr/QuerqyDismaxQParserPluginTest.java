@@ -17,7 +17,7 @@ import org.apache.solr.search.WrappedQuery;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.infologging.InfoLogging;
+import querqy.infologging.MultiSinkInfoLogging;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -126,7 +126,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         );
 
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser("a b c", null, req.getParams(), req,
-            new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), new MultiSinkInfoLogging(Collections.emptyMap()), null);
 
         Query query = parser.parse();
 
@@ -147,7 +147,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
             DisMaxParams.MM, "3");
 
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-            new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), new MultiSinkInfoLogging(Collections.emptyMap()), null);
 
         Query query = parser.parse();
 
@@ -168,7 +168,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
             QueryParsing.OP, "OR"
             );
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-            new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
+            new WhiteSpaceQuerqyParser(), new RewriteChain(), new MultiSinkInfoLogging(Collections.emptyMap()), null);
         Query query = parser.parse();
 
         req.close();
@@ -881,7 +881,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
     public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
         QuerqyDismaxQParser parser = new QuerqyDismaxQParser(q, null, req.getParams(), req,
-                new WhiteSpaceQuerqyParser(), new RewriteChain(), new InfoLogging(Collections.emptyMap()), null);
+                new WhiteSpaceQuerqyParser(), new RewriteChain(), new MultiSinkInfoLogging(Collections.emptyMap()), null);
         Query query = parser.parse();
         req.close();
         assertTrue(query instanceof BooleanQuery);
