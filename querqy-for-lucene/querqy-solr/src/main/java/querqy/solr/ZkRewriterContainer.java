@@ -37,6 +37,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     public static final int DEFAULT_MAX_FILE_SIZE = 1000000;
     public static final String CONF_MAX_FILE_SIZE = "zkMaxFileSize";
+    public static final String CONF_CONFIG_NAME = "zkConfigName";
 
     protected static final String IO_PATH = "querqy/rewriters";
     protected static final String IO_DATA = ".data";
@@ -65,7 +66,10 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         final String zkConfigName;
         try {
-            zkConfigName = zkController.getZkStateReader().readConfigName(collection);
+            zkConfigName = NamedListWrapper
+                .create(args, "Error in ZkRewriterContainer config")
+                .getStringOrDefault(CONF_CONFIG_NAME, 
+                    zkController.getZkStateReader().readConfigName(collection));
         } catch (final Exception e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Failed to load config name for collection:" +
                     collection  + " due to: ", e);
