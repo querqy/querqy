@@ -140,7 +140,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     public static final String DEFAULT_HANDLER_NAME = "/querqy/rewriter";
 
-    private RewriterContainer<?> rewriterContainer = null;
+    protected RewriterContainer<?> rewriterContainer = null;
 
     @SuppressWarnings({"rawtypes"})
     private NamedList initArgs = null;
