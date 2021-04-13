@@ -8,7 +8,6 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.rest.ManagedResourceStorage;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -22,8 +21,8 @@ import querqy.solr.utils.NamedListWrapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,10 +100,6 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
     protected void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException {
 
-        // Paths in Storage IO are relative to 'basePath'
-        final ManagedResourceStorage.StorageIO storageIO = ManagedResourceStorage.newStorageIO(core
-                .getCoreDescriptor().getCollectionName(), resourceLoader, new NamedList<>());
-
         final List<String> uuids = new ArrayList<>();
 
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream(maxFileSize)) {
@@ -119,12 +114,15 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
             while (offset < bytes.length) {
                 final String uuid = UUID.randomUUID().toString();
-                try (final OutputStream os = storageIO.openOutputStream(IO_PATH + "/" + IO_DATA + "/" + rewriterId +
-                        "-" + uuid)) {
-                    final int len = Math.min(maxFileSize, bytes.length - offset);
-                    os.write(bytes, offset, len);
+                final String path = rewriterDataPath(rewriterId, uuid);
+                final int len = Math.min(maxFileSize, bytes.length - offset);
+                
+                try {
+                    zkClient.makePath(path, Arrays.copyOfRange(bytes, offset, (offset + len)), true);
                     offset += len;
                     uuids.add(uuid);
+                } catch (InterruptedException | KeeperException e) {
+                    throw new IOException("Error saving rewriter data for " + rewriterId, e);        
                 }
             }
         }
