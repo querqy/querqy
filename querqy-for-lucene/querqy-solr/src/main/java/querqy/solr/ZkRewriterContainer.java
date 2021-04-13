@@ -211,9 +211,12 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         final List<String> children;
         try {
             children = zkClient.getChildren(inventoryPath, event -> {
-                // register a Watcher on the directory
-                onDirectoryChanged();
-                notifyRewritersChangeListener();
+                // register a Watcher on the directory 
+                // if we're not closed yet
+                if (zkClient != null) {
+                    onDirectoryChanged();
+                    notifyRewritersChangeListener();
+                }
             }, true).stream() // get all children except for the .data subdirectory
                     .filter(child -> !IO_DATA.equals(child))
                     .collect(Collectors.toList());
