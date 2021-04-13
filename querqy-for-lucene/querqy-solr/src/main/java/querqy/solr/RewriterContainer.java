@@ -2,6 +2,7 @@ package querqy.solr;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.CloseHook;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.search.SolrIndexSearcher;
@@ -34,12 +35,22 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
     }
 
     protected RewriterContainer(final SolrCore core, final R resourceLoader) {
-
         if (core.getResourceLoader() != resourceLoader) {
             throw new IllegalArgumentException("ResourceLoader doesn't belong to this SolrCore");
         }
         this.core = core;
         this.resourceLoader = resourceLoader;
+        this.core.addCloseHook(new CloseHook(){
+            @Override
+            public void postClose(SolrCore core) {
+                // noop
+            }
+
+            @Override
+            public void preClose(SolrCore core) {
+                close();                
+            }
+        });
     }
 
     protected abstract void init(@SuppressWarnings({"rawtypes"}) NamedList args);
