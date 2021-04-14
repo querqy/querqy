@@ -62,6 +62,17 @@ public class NamedListWrapper {
 
         return objAsString.trim();
     }
+    
+    public String getStringOrDefault(String key, String defaultValue) {
+        final Object obj = namedList.get(key);
+        if (obj == null) {
+            return defaultValue;
+        } else if (obj instanceof String) {
+            return ((String) obj).trim();
+        } else {
+            throw new IllegalArgumentException(this.exceptionMessage);
+        }
+    }
 
     public int getOrDefaultInteger(String key, int defaultValue) {
         try {

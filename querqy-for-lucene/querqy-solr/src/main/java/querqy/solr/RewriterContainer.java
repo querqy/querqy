@@ -2,6 +2,7 @@ package querqy.solr;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.CloseHook;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.search.SolrIndexSearcher;
@@ -34,12 +35,36 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
     }
 
     protected RewriterContainer(final SolrCore core, final R resourceLoader) {
-
         if (core.getResourceLoader() != resourceLoader) {
             throw new IllegalArgumentException("ResourceLoader doesn't belong to this SolrCore");
         }
         this.core = core;
         this.resourceLoader = resourceLoader;
+        this.core.addCloseHook(new CloseHook(){
+
+            /**
+             * (1) Is called before any component is closed. To guarantee consistency,
+             * we keep the container alive as long as the QuerqyRewriterRequestHandler
+             * is not closed
+             */
+            @Override
+            public void preClose(SolrCore core) {
+                // noop
+            }
+
+            /**
+             * (2) the QuerqyRewriterRequestHandler is closed
+             * 
+             * (3) the SolrCore is closed
+             * 
+             * (4) We are going to close the RewriterContainer
+             */
+            @Override
+            public void postClose(SolrCore core) {
+                close();
+            }
+            
+        });
     }
 
     protected abstract void init(@SuppressWarnings({"rawtypes"}) NamedList args);
