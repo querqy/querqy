@@ -41,15 +41,29 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
         this.core = core;
         this.resourceLoader = resourceLoader;
         this.core.addCloseHook(new CloseHook(){
+
+            /**
+             * (1) Is called before any component is closed. To guarantee consistency,
+             * we keep the container alive as long as the QuerqyRewriterRequestHandler
+             * is not closed
+             */
             @Override
-            public void postClose(SolrCore core) {
+            public void preClose(SolrCore core) {
                 // noop
             }
 
+            /**
+             * (2) the QuerqyRewriterRequestHandler is closed
+             * 
+             * (3) the SolrCore is closed
+             * 
+             * (4) We are going to close the RewriterContainer
+             */
             @Override
-            public void preClose(SolrCore core) {
-                close();                
+            public void postClose(SolrCore core) {
+                close();
             }
+            
         });
     }
 
