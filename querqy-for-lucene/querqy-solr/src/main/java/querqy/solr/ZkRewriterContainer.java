@@ -8,7 +8,6 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.rest.ManagedResourceStorage;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -22,8 +21,8 @@ import querqy.solr.utils.NamedListWrapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +36,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     public static final int DEFAULT_MAX_FILE_SIZE = 1000000;
     public static final String CONF_MAX_FILE_SIZE = "zkMaxFileSize";
+    public static final String CONF_CONFIG_NAME = "zkConfigName";
 
     protected static final String IO_PATH = "querqy/rewriters";
     protected static final String IO_DATA = ".data";
@@ -65,7 +65,10 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         final String zkConfigName;
         try {
-            zkConfigName = zkController.getZkStateReader().readConfigName(collection);
+            zkConfigName = NamedListWrapper
+                .create(args, "Error in ZkRewriterContainer config")
+                .getStringOrDefault(CONF_CONFIG_NAME, 
+                    zkController.getZkStateReader().readConfigName(collection));
         } catch (final Exception e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Failed to load config name for collection:" +
                     collection  + " due to: ", e);
@@ -97,10 +100,6 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
     protected void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException {
 
-        // Paths in Storage IO are relative to 'basePath'
-        final ManagedResourceStorage.StorageIO storageIO = ManagedResourceStorage.newStorageIO(core
-                .getCoreDescriptor().getCollectionName(), resourceLoader, new NamedList<>());
-
         final List<String> uuids = new ArrayList<>();
 
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream(maxFileSize)) {
@@ -115,12 +114,15 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
             while (offset < bytes.length) {
                 final String uuid = UUID.randomUUID().toString();
-                try (final OutputStream os = storageIO.openOutputStream(IO_PATH + "/" + IO_DATA + "/" + rewriterId +
-                        "-" + uuid)) {
-                    final int len = Math.min(maxFileSize, bytes.length - offset);
-                    os.write(bytes, offset, len);
+                final String path = rewriterDataPath(rewriterId, uuid);
+                final int len = Math.min(maxFileSize, bytes.length - offset);
+                
+                try {
+                    zkClient.makePath(path, Arrays.copyOfRange(bytes, offset, (offset + len)), true);
                     offset += len;
                     uuids.add(uuid);
+                } catch (InterruptedException | KeeperException e) {
+                    throw new IOException("Error saving rewriter data for " + rewriterId, e);        
                 }
             }
         }
@@ -207,9 +209,12 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         final List<String> children;
         try {
             children = zkClient.getChildren(inventoryPath, event -> {
-                // register a Watcher on the directory
-                onDirectoryChanged();
-                notifyRewritersChangeListener();
+                // register a Watcher on the directory 
+                // if we're not closed yet
+                if (zkClient != null) {
+                    onDirectoryChanged();
+                    notifyRewritersChangeListener();
+                }
             }, true).stream() // get all children except for the .data subdirectory
                     .filter(child -> !IO_DATA.equals(child))
                     .collect(Collectors.toList());
