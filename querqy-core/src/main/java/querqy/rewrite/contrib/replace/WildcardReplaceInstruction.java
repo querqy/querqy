@@ -4,9 +4,10 @@ import querqy.CompoundCharSequence;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Map;
+import java.util.Set;
 
-public class WildcardReplaceInstruction implements ReplaceInstruction {
+public class WildcardReplaceInstruction extends ReplaceInstruction {
 
     @FunctionalInterface
     public interface TermCreator {
@@ -39,9 +40,9 @@ public class WildcardReplaceInstruction implements ReplaceInstruction {
     public void apply(final List<CharSequence> seq,
                       final int start,
                       final int exclusiveOffset,
-                      final CharSequence wildcardMatch) {
-
-        IntStream.range(0, exclusiveOffset).forEach(i -> seq.remove(start));
+                      final CharSequence wildcardMatch,
+                      final Map<String, Set<CharSequence>> appliedRules) {
+        removeTermFromSequence(seq, start, exclusiveOffset, seq, appliedRules);
         termCreators.forEach(termCreator -> seq.add(start, termCreator.createTerm(wildcardMatch)));
     }
 }

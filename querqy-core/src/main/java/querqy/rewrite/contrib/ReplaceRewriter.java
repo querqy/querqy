@@ -17,8 +17,12 @@ import querqy.trie.model.PrefixMatch;
 import querqy.trie.model.SuffixMatch;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ReplaceRewriter extends ContextAwareQueryRewriter {
 
@@ -49,6 +53,8 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
 
         visit((Query) querqyQuery);
 
+        final Map<String, Set<CharSequence>> replacedTerms = isInfoLogging() ? new HashMap<>() : null;
+
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
         if (!exactMatches.isEmpty()) {
             this.hasReplacement = true;
@@ -62,7 +68,8 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
                     exactMatch.value.apply(
                             collectedTerms,
                             exactMatch.lookupStart,
-                            exactMatch.lookupExclusiveEnd - exactMatch.lookupStart
+                            exactMatch.lookupExclusiveEnd - exactMatch.lookupStart,
+                            replacedTerms
                     )
 
             );
@@ -79,8 +86,8 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
                             collectedTerms,
                             suffixMatch.getLookupOffset(),
                             1,
-                            suffixMatch.wildcardMatch
-
+                            suffixMatch.wildcardMatch,
+                            replacedTerms
                     ));
         }
 
@@ -95,8 +102,21 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
                             collectedTerms,
                             prefixMatch.getLookupOffset(),
                             1,
-                            prefixMatch.wildcardMatch
+                            prefixMatch.wildcardMatch,
+                            replacedTerms
                     ));
+        }
+
+        /*
+         * Add some debug and logging info
+         */
+        if (replacedTerms != null && !replacedTerms.isEmpty()) {
+            replacedTerms.forEach((replacement, foundMatches) ->
+                    appliedRules.add(String.join(",", foundMatches) + " => " + String.join(" ", replacement)));
+        }
+        if (isDebug()) {
+            getDebugInfo().add(this.getClass().getName() + " terms: " +
+                    collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
         return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
