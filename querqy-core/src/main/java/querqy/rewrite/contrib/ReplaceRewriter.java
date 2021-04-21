@@ -112,7 +112,7 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
          */
         if (replacedTerms != null && !replacedTerms.isEmpty()) {
             replacedTerms.forEach((replacement, foundMatches) ->
-                    appliedRules.add(String.join(",", foundMatches) + " => " + String.join(" ", replacement)));
+                    appliedRules.add(String.join(",", foundMatches) + " => " + replacement));
         }
         if (isDebug()) {
             getDebugInfo().add(this.getClass().getName() + " terms: " +
