@@ -1,6 +1,5 @@
 package querqy.rewrite.contrib;
 
-import querqy.model.AbstractNodeVisitor;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -9,10 +8,10 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
-import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
-import querqy.trie.SequenceLookup;
 import querqy.trie.LookupUtils;
+import querqy.trie.SequenceLookup;
 import querqy.trie.model.ExactMatch;
 import querqy.trie.model.PrefixMatch;
 import querqy.trie.model.SuffixMatch;
@@ -21,7 +20,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
+public class ReplaceRewriter extends ContextAwareQueryRewriter {
 
     private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
@@ -33,7 +32,12 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
     private LinkedList<CharSequence> collectedTerms;
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery) {
+    public ExpandedQuery rewrite(final ExpandedQuery query) {
+        throw new UnsupportedOperationException("This rewriter needs a query context");
+    }
+
+    @Override
+    public ExpandedQuery rewriteContextAware(final ExpandedQuery expandedQuery) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 

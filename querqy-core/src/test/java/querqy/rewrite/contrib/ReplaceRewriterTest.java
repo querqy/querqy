@@ -4,9 +4,11 @@ import org.junit.Test;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.rewrite.contrib.replace.TermsReplaceInstruction;
 import querqy.rewrite.contrib.replace.WildcardReplaceInstruction;
@@ -40,7 +42,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("suffix1", "prefix1"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq()
@@ -57,7 +59,7 @@ public class ReplaceRewriterTest {
         sequenceLookup.put(tokenListFromString("g h"), getTermsReplaceInstruction(Collections.emptyList()));
 
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
-        ExpandedQuery expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h")));
+        ExpandedQuery expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h")), new EmptySearchEngineRequestAdapter());
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq()
         );
@@ -76,7 +78,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery;
-        expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")));
+        expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")), new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -100,7 +102,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery;
-        expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")));
+        expandedQuery = replaceRewriter.rewrite(getQuery(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")), new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -121,7 +123,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Collections.singletonList("abcde"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -144,7 +146,7 @@ public class ReplaceRewriterTest {
         ExpandedQuery expandedQuery = getQuery(Arrays.asList(
                 "abcd", "ABCD", "defg", "DEFG",
                 "dabc", "DABC", "gdef", "GDEF"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -170,7 +172,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("abc", "bcd", "abcdefg", "cde"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -192,7 +194,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("abc", "abd", "abcdef", "cde", "fghi"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -218,7 +220,7 @@ public class ReplaceRewriterTest {
         expandedQuery.addBoostUpQuery(new BoostQuery(null, 1.0f));
         expandedQuery.addFilterQuery(null);
 
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertEquals(1, newExpandedQuery.getBoostDownQueries().size());
         assertEquals(1, newExpandedQuery.getBoostUpQueries().size());
@@ -234,7 +236,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("A", "b", "C"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -250,7 +252,7 @@ public class ReplaceRewriterTest {
         replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         expandedQuery = getQuery(Arrays.asList("A", "b", "C"));
-        newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -271,7 +273,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "b", "c"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -292,7 +294,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "b", "c", "e", "f"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -314,7 +316,8 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "a", "a", "b", "e"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -327,7 +330,7 @@ public class ReplaceRewriterTest {
         );
 
         expandedQuery = getQuery(Arrays.asList("a", "a", "b", "c"));
-        newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        newExpandedQuery = replaceRewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -346,7 +349,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "a", "b", "c"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -367,7 +370,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "b", "b", "c"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -388,7 +391,7 @@ public class ReplaceRewriterTest {
         ReplaceRewriter replaceRewriter = new ReplaceRewriter(sequenceLookup);
 
         ExpandedQuery expandedQuery = getQuery(Arrays.asList("a", "a", "a", "b"));
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -415,7 +418,7 @@ public class ReplaceRewriterTest {
         addTerm(query, "c", false);
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
@@ -441,7 +444,7 @@ public class ReplaceRewriterTest {
         addTerm(query, "c", false);
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery);
+        ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertThat((Query) newExpandedQuery.getUserQuery(),
                 bq(
