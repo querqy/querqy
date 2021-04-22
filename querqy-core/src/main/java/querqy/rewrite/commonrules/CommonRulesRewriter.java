@@ -9,7 +9,9 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.InputBoundary;
 import querqy.rewrite.commonrules.model.InputBoundary.Type;
@@ -27,7 +29,7 @@ import java.util.List;
  * @author rene
  *
  */
-public class CommonRulesRewriter extends ContextAwareQueryRewriter {
+public class CommonRulesRewriter extends AbstractLoggingRewriter implements ContextAwareQueryRewriter {
 
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
@@ -35,6 +37,7 @@ public class CommonRulesRewriter extends ContextAwareQueryRewriter {
     protected final RulesCollection rules;
     protected final LinkedList<PositionSequence<Term>> sequencesStack;
     protected ExpandedQuery expandedQuery;
+    protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     protected SelectionStrategy selectionStrategy;
 
@@ -50,13 +53,14 @@ public class CommonRulesRewriter extends ContextAwareQueryRewriter {
     }
 
     @Override
-    public ExpandedQuery rewriteContextAware(final ExpandedQuery query) {
+    public ExpandedQuery rewriteContextAware(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
 
         if (userQuery instanceof Query) {
 
             this.expandedQuery = query;
+            this.searchEngineRequestAdapter = searchEngineRequestAdapter;
 
             sequencesStack.add(new PositionSequence<>());
 
@@ -96,10 +100,10 @@ public class CommonRulesRewriter extends ContextAwareQueryRewriter {
 
        final List<Action> actions = collector.evaluateBooleanInput().createActions();
 
-       final List<String> debugInfo = getDebugInfo();
+       final List<String> debugInfo = getDebugInfo(searchEngineRequestAdapter);
 
        for (final Action action : actions) {
-           if (isDebug()) {
+           if (isDebug(searchEngineRequestAdapter)) {
                debugInfo.add(action.toString());
            }
 

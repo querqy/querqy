@@ -8,7 +8,9 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.trie.LookupUtils;
 import querqy.trie.SequenceLookup;
@@ -24,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ReplaceRewriter extends ContextAwareQueryRewriter {
+public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextAwareQueryRewriter {
 
     private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
@@ -34,6 +36,7 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
 
     private boolean hasReplacement = false;
     private LinkedList<CharSequence> collectedTerms;
+    protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     @Override
     public ExpandedQuery rewrite(final ExpandedQuery query) {
@@ -41,7 +44,7 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
     }
 
     @Override
-    public ExpandedQuery rewriteContextAware(final ExpandedQuery expandedQuery) {
+    public ExpandedQuery rewriteContextAware(final ExpandedQuery expandedQuery, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
@@ -50,6 +53,7 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
         }
 
         collectedTerms = new LinkedList<>();
+        this.searchEngineRequestAdapter = searchEngineRequestAdapter;
 
         visit((Query) querqyQuery);
 
@@ -114,8 +118,8 @@ public class ReplaceRewriter extends ContextAwareQueryRewriter {
             replacedTerms.forEach((replacement, foundMatches) ->
                     appliedRules.add(String.join(",", foundMatches) + " => " + replacement));
         }
-        if (isDebug()) {
-            getDebugInfo().add(this.getClass().getName() + " terms: " +
+        if (isDebug(searchEngineRequestAdapter)) {
+            getDebugInfo(searchEngineRequestAdapter).add(this.getClass().getName() + " terms: " +
                     collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
