@@ -35,8 +35,6 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
      */
     protected Set<String> appliedRules;
 
-    private InfoLoggingContext infoLoggingContext;
-
     /**
      * Wrapper for rewriting the query. The logic for logging / debug is completely encapsulated and it will trigger the #rewriteContextAware method.
      *
@@ -45,16 +43,16 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
      * @return The rewritten query.
      */
     public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        this.infoLoggingContext = searchEngineRequestAdapter.getInfoLoggingContext().orElse(null);
+        final boolean isInfoLogging = isInfoLogging(searchEngineRequestAdapter);
 
-        appliedRules = isInfoLogging() ? new HashSet<>() : null;
+        appliedRules = isInfoLogging ? new HashSet<>() : null;
 
         final ExpandedQuery expandedQuery = rewriteContextAware(query, searchEngineRequestAdapter);
 
-        if (isInfoLogging() && !appliedRules.isEmpty()) {
+        if (isInfoLogging && !appliedRules.isEmpty()) {
             final Map<String, Set<String>> message = new IdentityHashMap<>(1);
             message.put(APPLIED_RULES, appliedRules);
-            infoLoggingContext.log(message);
+            searchEngineRequestAdapter.getInfoLoggingContext().ifPresent(context -> context.log(message));
         }
 
         return expandedQuery;
@@ -63,7 +61,7 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
     /**
      * Get or initialize the the debug info if it does not exist.
      */
-    protected List<String> getDebugInfo(SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    protected List<String> getDebugInfo(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         final List<String> debugInfo = (List<String>) searchEngineRequestAdapter.getContext()
                 .getOrDefault(CONTEXT_KEY_DEBUG_DATA, new LinkedList<>());
         // prepare debug info context object if requested
@@ -77,7 +75,7 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
     /**
      * Check for an activated debug request.
      */
-    protected boolean isDebug(SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    protected boolean isDebug(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return Boolean.TRUE.equals(searchEngineRequestAdapter.getContext()
                 .get(CONTEXT_KEY_DEBUG_ENABLED));
     }
@@ -85,7 +83,8 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
     /**
      * Check for a valid (enabled) info logging.
      */
-    protected boolean isInfoLogging() {
+    protected boolean isInfoLogging(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        final InfoLoggingContext infoLoggingContext = searchEngineRequestAdapter.getInfoLoggingContext().orElse(null);
         return infoLoggingContext != null && infoLoggingContext.isEnabledForRewriter();
     }
 

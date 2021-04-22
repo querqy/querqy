@@ -114,7 +114,7 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
                                action.getEndPosition(), expandedQuery, searchEngineRequestAdapter)
            );
 
-           if (isInfoLogging()) {
+           if (isInfoLogging(searchEngineRequestAdapter)) {
                instructions.getProperty(Instructions.StandardPropertyNames.LOG_MESSAGE)
                        .map(String::valueOf).ifPresent(appliedRules::add);
            }
@@ -127,7 +127,6 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
         final PositionSequence<InputSequenceElement> result = new PositionSequence<>();
         sequence.forEach(termList -> result.add(Collections.unmodifiableList(termList)));
         return result;
-
     }
 
    protected PositionSequence<InputSequenceElement> addBoundaries(final PositionSequence<Term> sequence) {
@@ -156,6 +155,4 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
       sequencesStack.getLast().addElement(term);
       return super.visit(term);
    }
-
-
 }
