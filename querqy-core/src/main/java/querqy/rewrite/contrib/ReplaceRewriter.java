@@ -57,7 +57,8 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
 
         visit((Query) querqyQuery);
 
-        final Map<String, Set<CharSequence>> replacedTerms = isInfoLogging() ? new HashMap<>() : null;
+        final Map<String, Set<CharSequence>> replacedTerms =
+                isInfoLogging(searchEngineRequestAdapter) ? new HashMap<>() : null;
 
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
         if (!exactMatches.isEmpty()) {
@@ -75,7 +76,6 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
                             exactMatch.lookupExclusiveEnd - exactMatch.lookupStart,
                             replacedTerms
                     )
-
             );
         }
 
@@ -165,5 +165,4 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
         }
         return null;
     }
-
 }
