@@ -31,11 +31,6 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
     private static final String APPLIED_RULES = "APPLIED_RULES";
 
     /**
-     * This is used to log the applied rules for the rewriter.
-     */
-    protected Set<String> appliedRules;
-
-    /**
      * Wrapper for rewriting the query. The logic for logging / debug is completely encapsulated and it will trigger the #rewriteContextAware method.
      *
      * @param query The query to be rewritten
@@ -45,9 +40,9 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
     public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         final boolean isInfoLogging = isInfoLogging(searchEngineRequestAdapter);
 
-        appliedRules = isInfoLogging ? new HashSet<>() : null;
+        final Set<String> appliedRules = isInfoLogging ? new HashSet<>() : null;
 
-        final ExpandedQuery expandedQuery = rewriteContextAware(query, searchEngineRequestAdapter);
+        final ExpandedQuery expandedQuery = rewrite(query, searchEngineRequestAdapter, appliedRules);
 
         if (isInfoLogging && !appliedRules.isEmpty()) {
             final Map<String, Set<String>> message = new IdentityHashMap<>(1);
@@ -96,5 +91,5 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
      * @return The rewritten query.
      *
      */
-    abstract public ExpandedQuery rewriteContextAware(ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter);
+    abstract public ExpandedQuery rewrite(ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter, Set<String> appliedRules);
 }
