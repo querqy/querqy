@@ -10,6 +10,7 @@ import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.response.SolrQueryResponse;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
+import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
 import querqy.solr.utils.JsonUtil;
 
 import java.io.BufferedReader;
@@ -43,6 +44,34 @@ public interface StandaloneSolrTestSupport {
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId,
                                         final CommonRulesConfigRequestBuilder builder) {
+        SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId);
+
+        final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, SAVE.params());
+        req.setContentStreams(Collections.singletonList(new ContentStreamBase.StringStream(builder.buildJson())));
+        req.getContext().put("httpMethod", "POST");
+
+        final SolrQueryResponse rsp = new SolrQueryResponse();
+        SolrRequestInfo.setRequestInfo(new SolrRequestInfo(req, rsp));
+        try {
+            core.execute(handler, req, rsp);
+        } finally {
+            SolrRequestInfo.clearRequestInfo();
+            req.close();
+        }
+    }
+
+    static void withReplaceRewriter(final SolrCore core, final String rewriterId, final String rulesName) {
+        try {
+            final ReplaceConfigRequestBuilder builder = new ReplaceConfigRequestBuilder()
+                    .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName));
+            withReplaceRewriter(core, rewriterId, builder);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void withReplaceRewriter(final SolrCore core, final String rewriterId,
+                                        final ReplaceConfigRequestBuilder builder) {
         SolrRequestHandler handler = core.getRequestHandler("/querqy/rewriter/" + rewriterId);
 
         final LocalSolrQueryRequest req = new LocalSolrQueryRequest(core, SAVE.params());

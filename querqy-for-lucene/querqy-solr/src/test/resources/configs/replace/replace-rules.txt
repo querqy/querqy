@@ -29,3 +29,8 @@ d e => d e f
 h => g h
 
 
+testword => word
+superword => word
+wordword => word
+
+replaceme => replaced
