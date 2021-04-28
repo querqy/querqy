@@ -24,6 +24,7 @@ import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author rene
@@ -41,6 +42,8 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
 
     protected SelectionStrategy selectionStrategy;
 
+    private Set<String> appliedRules;
+
     public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
         this.rules = rules;
         sequencesStack = new LinkedList<>();
@@ -53,9 +56,11 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
     }
 
     @Override
-    public ExpandedQuery rewriteContextAware(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter, final Set<String> appliedRules) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
+
+        this.appliedRules = appliedRules;
 
         if (userQuery instanceof Query) {
 
@@ -89,7 +94,7 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
       return null;
    }
 
-   protected void applySequence(final PositionSequence<Term> sequence, boolean addBoundaries) {
+   protected void applySequence(final PositionSequence<Term> sequence, final boolean addBoundaries) {
 
        final PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries
                ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
