@@ -53,8 +53,8 @@ public interface QueryNodeBuilder<B extends QueryNodeBuilder, T, P> {
      * entry must be again be a map that contains the attributes for this convert, which should be
      * read and applied.
      *
-     * @param map
-     * @return
+     * @param map A map
+     * @return A reference to this builder
      */
     default B fromMap(final Map map) {
         final Object rawAttributes = map.get(getNameOfQueryType());

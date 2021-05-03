@@ -55,6 +55,9 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
 
     /**
      * Get or initialize the the debug info if it does not exist.
+     *
+     * @param searchEngineRequestAdapter Access to request context
+     * @return A non-null list of debug messages
      */
     protected List<String> getDebugInfo(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         final List<String> debugInfo = (List<String>) searchEngineRequestAdapter.getContext()
@@ -69,6 +72,9 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
 
     /**
      * Check for an activated debug request.
+     *
+     * @param searchEngineRequestAdapter Access to request context
+     * @return true iff debug is enabled
      */
     protected boolean isDebug(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return Boolean.TRUE.equals(searchEngineRequestAdapter.getContext()
@@ -77,6 +83,9 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
 
     /**
      * Check for a valid (enabled) info logging.
+     *
+     * @param searchEngineRequestAdapter Access to request context
+     * @return true iff info logging is enabled
      */
     protected boolean isInfoLogging(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         final InfoLoggingContext infoLoggingContext = searchEngineRequestAdapter.getInfoLoggingContext().orElse(null);

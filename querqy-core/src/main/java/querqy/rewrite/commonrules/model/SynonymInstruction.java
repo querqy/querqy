@@ -30,6 +30,7 @@ public class SynonymInstruction implements Instruction {
 
     /**
      * @param synonym The terms of the synonym expansion.
+     * @param boost A boost factor of the synonym >= 0f
      */
     public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym, final float boost) {
         if (synonym == null || synonym.isEmpty()) {
