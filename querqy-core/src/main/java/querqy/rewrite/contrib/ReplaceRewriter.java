@@ -46,7 +46,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
     @Override
     public ExpandedQuery rewrite(final ExpandedQuery expandedQuery,
                                  final SearchEngineRequestAdapter searchEngineRequestAdapter,
-                                 final Set<String> appliedRules) {
+                                 final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
@@ -118,7 +118,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
          */
         if (replacedTerms != null && !replacedTerms.isEmpty()) {
             replacedTerms.forEach((replacement, foundMatches) ->
-                    appliedRules.add(String.join(",", foundMatches) + " => " + replacement));
+                    infoLogMessages.add(String.join(",", foundMatches) + " => " + replacement));
         }
         if (isDebug(searchEngineRequestAdapter)) {
             getDebugInfo(searchEngineRequestAdapter).add(this.getClass().getName() + " terms: " +

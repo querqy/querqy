@@ -97,8 +97,12 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
      * method could be modified.
      *
      * @param query The query to be rewritten
+     * @param searchEngineRequestAdapter Access to request context
+     * @param infoLogMessages If not null, append info logging information to this set
      * @return The rewritten query.
      *
      */
-    abstract public ExpandedQuery rewrite(ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter, Set<String> appliedRules);
+    abstract public ExpandedQuery rewrite(ExpandedQuery query,
+                                          final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                          Set<String> infoLogMessages);
 }
