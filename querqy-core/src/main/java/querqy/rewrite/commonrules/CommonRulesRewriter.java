@@ -56,7 +56,8 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter, final Set<String> appliedRules) {
+    public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                 final Set<String> appliedRules) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
 

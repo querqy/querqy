@@ -44,7 +44,9 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery, final SearchEngineRequestAdapter searchEngineRequestAdapter, final Set<String> appliedRules) {
+    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery,
+                                 final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                 final Set<String> appliedRules) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 

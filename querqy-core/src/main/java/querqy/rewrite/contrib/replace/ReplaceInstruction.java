@@ -25,11 +25,13 @@ public abstract class ReplaceInstruction {
         this.apply(seq, start, exclusiveOffset, "", null);
     }
 
-    public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset, final CharSequence wildcardMatch) {
+    public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
+                      final CharSequence wildcardMatch) {
         this.apply(seq, start, exclusiveOffset, wildcardMatch, null);
     }
 
-    public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset, final Map<String, Set<CharSequence>> appliedRules) {
+    public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
+                      final Map<String, Set<CharSequence>> appliedRules) {
         this.apply(seq, start, exclusiveOffset, "", appliedRules);
     }
 
