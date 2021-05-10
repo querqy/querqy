@@ -3,6 +3,7 @@ package querqy.lucene;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
+import org.apache.lucene.queries.function.ValueSource;
 import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.queries.function.valuesource.QueryValueSource;
 import org.apache.lucene.search.BooleanClause;
@@ -10,13 +11,11 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.queries.function.ValueSource;
-
 import querqy.lucene.LuceneSearchEngineRequestAdapter.SyntaxException;
+import querqy.lucene.rewrite.AdditiveBoostFunction;
 import querqy.lucene.rewrite.DocumentFrequencyCorrection;
 import querqy.lucene.rewrite.LuceneQueryBuilder;
 import querqy.lucene.rewrite.LuceneTermQueryBuilder;
-import querqy.lucene.rewrite.AdditiveBoostFunction;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.TermQueryBuilder;
@@ -27,7 +26,6 @@ import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.rewrite.ContextAwareQueryRewriter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_DATA;
+import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_ENABLED;
 
 /**
  * Created by rene on 23/05/2017.
@@ -190,7 +191,7 @@ public class QueryParsingController {
 
         final Map<String, Object> context = requestAdapter.getContext();
         if (debugQuery) {
-            context.put(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
+            context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
         }
 
         final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
@@ -455,7 +456,7 @@ public class QueryParsingController {
                 info.put("querqy.parser", parserDebugInfo);
             }
             final Object contextDebugInfo = requestAdapter.getContext()
-                    .get(ContextAwareQueryRewriter.CONTEXT_KEY_DEBUG_DATA);
+                    .get(CONTEXT_KEY_DEBUG_DATA);
             if (contextDebugInfo != null) {
                 info.put("querqy.rewrite", contextDebugInfo);
             }

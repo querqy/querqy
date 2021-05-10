@@ -24,6 +24,23 @@
         </license>
     </licenses>
 
+    <repositories>
+        <!--
+            Trying to avoiding Maven @ GitHub Build error
+
+            Failed to collect dependencies at org.apache.solr:solr-test-framework:jar:8.1.0 ->
+            org.restlet.jee:org.restlet:jar:2.3.0: Failed to read artifact descriptor for
+            org.restlet.jee:org.restlet:jar:2.3.0: Could not transfer artifact org.restlet.jee:org.restlet:pom:2.3.0
+            from/to maven-default-http-blocker (http://0.0.0.0/): Blocked mirror for repositories:
+            [maven-restlet (http://maven.restlet.org, default, releases+snapshots)
+        -->
+        <repository>
+            <id>maven-restlet</id>
+            <name>Public online Restlet repository</name>
+            <url>https://maven.restlet.com</url>
+        </repository>
+    </repositories>
+
     <developers>
         <developer>
             <id>renekrie</id>
@@ -75,7 +92,7 @@
         <mockito.version>3.7.7</mockito.version>
         <skipITs>true</skipITs>
 
-        <querqy.core.version>3.10.1</querqy.core.version>
+        <querqy.core.version>3.11.0</querqy.core.version>
         <lucene.version>8.0.0</lucene.version>
         <commons.io.version>2.5</commons.io.version>
         <slf4j.version>1.7.26</slf4j.version>
@@ -131,6 +148,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <tests.codec>Lucene80</tests.codec>
+                        <java.security.egd>file:/dev/./urandom</java.security.egd>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

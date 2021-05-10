@@ -1,3 +1,7 @@
 a b => e f
 c	d => g
 
+wordtest => test
+
+testtesttest => tested
+testtest => tested
