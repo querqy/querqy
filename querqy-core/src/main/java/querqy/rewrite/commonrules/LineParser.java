@@ -1,5 +1,10 @@
 package querqy.rewrite.commonrules;
 
+import static querqy.rewrite.commonrules.EscapeUtil.endsWithBoundary;
+import static querqy.rewrite.commonrules.EscapeUtil.endsWithWildcard;
+import static querqy.rewrite.commonrules.EscapeUtil.indexOfWildcard;
+import static querqy.rewrite.commonrules.EscapeUtil.unescape;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -364,12 +369,12 @@ public class LineParser {
             s = s.substring(1).trim();
         }
 
-        if (s.length() > 0 && s.charAt(s.length() - 1) == BOUNDARY) {
+        if (endsWithBoundary(s)) {
             requiresRightBoundary = true;
             s = s.substring(0, s.length() - 1).trim();
         }
 
-        int pos = s.indexOf('*');
+        int pos = indexOfWildcard(s);
         if (pos > -1) {
             if (pos < (s.length() - 1)) {
                 return new ValidationError(WILDCARD + " is only allowed at the end of the input: " + s);
@@ -437,9 +442,11 @@ public class LineParser {
             throw new IllegalArgumentException("Missing prefix for wildcard " + WILDCARD);
         }
 
-        return (remaining.charAt(remaining.length() - 1) == WILDCARD)
-                ? new PrefixTerm(remaining.toCharArray(), 0, remaining.length() - 1, fieldNames)
-                : new Term(remaining.toCharArray(), 0, remaining.length(), fieldNames);
+        String remainingUnescaped = unescape(remaining);
+
+        return endsWithWildcard(remaining)
+                ? new PrefixTerm(remainingUnescaped.toCharArray(), 0, remainingUnescaped.length() - 1, fieldNames)
+                : new Term(remainingUnescaped.toCharArray(), 0, remainingUnescaped.length(), fieldNames);
 
 
     }
