@@ -65,7 +65,11 @@ public class BooleanInputParser {
     protected String unescapeElement(final String element) {
         return this.mappingToUnescapeElements.getOrDefault(element, element)
                 .replace("\\(", "(")
-                .replace("\\)", ")");
+                .replace("\\)", ")")
+                .replace("\\*", "*")
+                .replace("\\\"", "\"")
+                .replace("\\#", "#")
+                .replace("\\\\", "\\");
     }
 
     protected Stream<String> separateParenthesesFromElements(final String element) {

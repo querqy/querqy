@@ -442,7 +442,7 @@ public class LineParser {
             throw new IllegalArgumentException("Missing prefix for wildcard " + WILDCARD);
         }
 
-        String remainingUnescaped = unescape(remaining);
+        final String remainingUnescaped = unescape(remaining);
 
         return endsWithWildcard(remaining)
                 ? new PrefixTerm(remainingUnescaped.toCharArray(), 0, remainingUnescaped.length() - 1, fieldNames)
