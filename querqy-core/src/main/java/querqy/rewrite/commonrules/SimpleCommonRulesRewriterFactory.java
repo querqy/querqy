@@ -36,11 +36,13 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      *
      * @param rewriterId The id of this rewriter
      * @param reader The reader to access the rewriter configuration
+     * @param allowBooleanInput Iff true, rule input can have boolean expressions
      * @param querqyParserFactory A parser for the right-hand side of rules
      * @param ignoreCase Iff true, rule input matching is case insensitive.
      * @param selectionStrategyFactories A mapping between names of rule selection strategies and their factories.
      * @param defaultSelectionStrategyFactory The default {@link SelectionStrategyFactory} to be used if no strategy is
      *                                       specified as a request parameter
+     * @param buildTermCache If true, build the term cache for terms from the rhs of rules
      * @throws IOException if rules cannot be read or parsed
      */
     public SimpleCommonRulesRewriterFactory(final String rewriterId,

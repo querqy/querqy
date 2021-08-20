@@ -1,6 +1,5 @@
 package querqy.rewrite.contrib;
 
-import querqy.model.AbstractNodeVisitor;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -9,19 +8,25 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
-import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.AbstractLoggingRewriter;
+import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
-import querqy.trie.SequenceLookup;
 import querqy.trie.LookupUtils;
+import querqy.trie.SequenceLookup;
 import querqy.trie.model.ExactMatch;
 import querqy.trie.model.PrefixMatch;
 import querqy.trie.model.SuffixMatch;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
+public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextAwareQueryRewriter {
 
     private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
@@ -31,9 +36,17 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
     private boolean hasReplacement = false;
     private LinkedList<CharSequence> collectedTerms;
+    protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery) {
+    public ExpandedQuery rewrite(final ExpandedQuery query) {
+        throw new UnsupportedOperationException("This rewriter needs a query context");
+    }
+
+    @Override
+    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery,
+                                 final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                 final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
@@ -42,8 +55,12 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         }
 
         collectedTerms = new LinkedList<>();
+        this.searchEngineRequestAdapter = searchEngineRequestAdapter;
 
         visit((Query) querqyQuery);
+
+        final Map<String, Set<CharSequence>> replacedTerms =
+                isInfoLogging(searchEngineRequestAdapter) ? new HashMap<>() : null;
 
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
         if (!exactMatches.isEmpty()) {
@@ -58,9 +75,9 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
                     exactMatch.value.apply(
                             collectedTerms,
                             exactMatch.lookupStart,
-                            exactMatch.lookupExclusiveEnd - exactMatch.lookupStart
+                            exactMatch.lookupExclusiveEnd - exactMatch.lookupStart,
+                            replacedTerms
                     )
-
             );
         }
 
@@ -75,8 +92,8 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
                             collectedTerms,
                             suffixMatch.getLookupOffset(),
                             1,
-                            suffixMatch.wildcardMatch
-
+                            suffixMatch.wildcardMatch,
+                            replacedTerms
                     ));
         }
 
@@ -91,8 +108,21 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
                             collectedTerms,
                             prefixMatch.getLookupOffset(),
                             1,
-                            prefixMatch.wildcardMatch
+                            prefixMatch.wildcardMatch,
+                            replacedTerms
                     ));
+        }
+
+        /*
+         * Add some debug and logging info
+         */
+        if (replacedTerms != null && !replacedTerms.isEmpty()) {
+            replacedTerms.forEach((replacement, foundMatches) ->
+                    infoLogMessages.add(String.join(",", foundMatches) + " => " + replacement));
+        }
+        if (isDebug(searchEngineRequestAdapter)) {
+            getDebugInfo(searchEngineRequestAdapter).add(this.getClass().getName() + " terms: " +
+                    collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
         return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
@@ -137,5 +167,4 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         }
         return null;
     }
-
 }

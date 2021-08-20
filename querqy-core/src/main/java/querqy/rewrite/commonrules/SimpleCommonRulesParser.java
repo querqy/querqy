@@ -9,6 +9,7 @@ import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
 
+import static querqy.rewrite.commonrules.EscapeUtil.indexOfComment;
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.ID;
 import static querqy.rewrite.commonrules.model.Instructions.StandardPropertyNames.LOG_MESSAGE;
 
@@ -30,6 +31,8 @@ import java.util.function.IntUnaryOperator;
  * @author rene
  */
 public class SimpleCommonRulesParser {
+
+    static final char COMMENT_START = '#';
 
     private static final String EMPTY = "";
 
@@ -184,7 +187,7 @@ public class SimpleCommonRulesParser {
     String stripLine(String line) {
         line = line.trim();
         if (line.length() > 0) {
-            int pos = line.indexOf('#');
+            int pos = indexOfComment(line);
             if (pos == 0) {
                 return EMPTY;
             }
@@ -194,5 +197,4 @@ public class SimpleCommonRulesParser {
         }
         return line;
     }
-    
 }

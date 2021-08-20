@@ -1,9 +1,10 @@
 package querqy.rewrite.contrib.replace;
 
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Map;
+import java.util.Set;
 
-public class TermsReplaceInstruction implements ReplaceInstruction {
+public class TermsReplaceInstruction extends ReplaceInstruction {
 
     private final List<? extends CharSequence> replacementTerms;
 
@@ -13,8 +14,8 @@ public class TermsReplaceInstruction implements ReplaceInstruction {
 
     @Override
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final CharSequence wildcardMatch) {
-        IntStream.range(0, exclusiveOffset).forEach(i -> seq.remove(start));
+                      final CharSequence wildcardMatch, final Map<String, Set<CharSequence>> appliedRules) {
+        removeTermFromSequence(seq, start, exclusiveOffset, replacementTerms, appliedRules);
         seq.addAll(start, replacementTerms);
     }
 }

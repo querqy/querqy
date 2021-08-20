@@ -87,7 +87,7 @@ public interface SearchEngineRequestAdapter {
     /**
      * <p>Should debug information be collected while rewriting the query?</p>
      * <p>Debug information will be kept in the context map under the
-     * {@link querqy.rewrite.ContextAwareQueryRewriter#CONTEXT_KEY_DEBUG_DATA} key.</p>
+     * {@link querqy.rewrite.AbstractLoggingRewriter#CONTEXT_KEY_DEBUG_DATA} key.</p>
      *
      * @see #getContext()
      *

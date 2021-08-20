@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>5.1.lucene720.0-SNAPSHOT</version>
+    <version>5.2.lucene720.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -23,6 +23,23 @@
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
+    <repositories>
+        <!--
+            Trying to avoiding Maven @ GitHub Build error
+
+            Failed to collect dependencies at org.apache.solr:solr-test-framework:jar:8.1.0 ->
+            org.restlet.jee:org.restlet:jar:2.3.0: Failed to read artifact descriptor for
+            org.restlet.jee:org.restlet:jar:2.3.0: Could not transfer artifact org.restlet.jee:org.restlet:pom:2.3.0
+            from/to maven-default-http-blocker (http://0.0.0.0/): Blocked mirror for repositories:
+            [maven-restlet (http://maven.restlet.org, default, releases+snapshots)
+        -->
+        <repository>
+            <id>maven-restlet</id>
+            <name>Public online Restlet repository</name>
+            <url>https://maven.restlet.com</url>
+        </repository>
+    </repositories>
 
     <developers>
         <developer>
@@ -75,7 +92,7 @@
         <mockito.version>3.7.7</mockito.version>
         <skipITs>true</skipITs>
 
-        <querqy.core.version>3.10.1</querqy.core.version>
+        <querqy.core.version>3.12.0</querqy.core.version>
         <lucene.version>7.2.1</lucene.version>
         <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>

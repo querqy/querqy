@@ -1,7 +1,5 @@
 package querqy.rewrite.commonrules;
 
-import querqy.infologging.InfoLoggingContext;
-import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
@@ -11,6 +9,7 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.Term;
+import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
@@ -23,29 +22,27 @@ import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author rene
  *
  */
-public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements ContextAwareQueryRewriter {
+public class CommonRulesRewriter extends AbstractLoggingRewriter implements ContextAwareQueryRewriter {
 
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
-    public static final String APPLIED_RULES = "APPLIED_RULES";
-
 
     protected final RulesCollection rules;
     protected final LinkedList<PositionSequence<Term>> sequencesStack;
     protected ExpandedQuery expandedQuery;
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
+
     protected SelectionStrategy selectionStrategy;
+
+    private Set<String> appliedRules;
 
     public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
         this.rules = rules;
@@ -59,10 +56,12 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query,
-                                 final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                 final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
+
+        this.appliedRules = infoLogMessages;
 
         if (userQuery instanceof Query) {
 
@@ -96,63 +95,36 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
       return null;
    }
 
-   protected void applySequence(final PositionSequence<Term> sequence, boolean addBoundaries) {
+   protected void applySequence(final PositionSequence<Term> sequence, final boolean addBoundaries) {
 
        final PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries
                ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
 
-       final boolean isDebug = Boolean.TRUE.equals(searchEngineRequestAdapter.getContext()
-               .get(CONTEXT_KEY_DEBUG_ENABLED));
-       List<String> actionsDebugInfo = (List<String>) searchEngineRequestAdapter.getContext()
-               .get(CONTEXT_KEY_DEBUG_DATA);
-       // prepare debug info context object if requested
-       if (isDebug && actionsDebugInfo == null) {
-           actionsDebugInfo = new LinkedList<>();
-           searchEngineRequestAdapter.getContext().put(CONTEXT_KEY_DEBUG_DATA, actionsDebugInfo);
-       }
 
        final TopRewritingActionCollector collector = selectionStrategy.createTopRewritingActionCollector();
        rules.collectRewriteActions(sequenceForLookUp, collector);
 
        final List<Action> actions = collector.evaluateBooleanInput().createActions();
 
-       final InfoLoggingContext infoLoggingContext = searchEngineRequestAdapter.getInfoLoggingContext().orElse(null);
-       final boolean infoLoggingEnabled = infoLoggingContext != null && infoLoggingContext.isEnabledForRewriter();
-
-       final Set<String> appliedRules = infoLoggingEnabled ? new HashSet<>() : null;
+       final List<String> debugInfo = getDebugInfo(searchEngineRequestAdapter);
 
        for (final Action action : actions) {
-           if (isDebug) {
-               actionsDebugInfo.add(action.toString());
+           if (isDebug(searchEngineRequestAdapter)) {
+               debugInfo.add(action.toString());
            }
 
            final Instructions instructions = action.getInstructions();
            instructions.forEach(instruction ->
-
                            instruction.apply(sequence, action.getTermMatches(),
                                action.getStartPosition(),
                                action.getEndPosition(), expandedQuery, searchEngineRequestAdapter)
-
-
            );
 
-           if (infoLoggingEnabled) {
-
+           if (isInfoLogging(searchEngineRequestAdapter)) {
                instructions.getProperty(Instructions.StandardPropertyNames.LOG_MESSAGE)
                        .map(String::valueOf).ifPresent(appliedRules::add);
-
            }
-
        }
-
-
-       if (infoLoggingEnabled && !appliedRules.isEmpty()) {
-           final Map<String, Set<String>> message = new IdentityHashMap<>(1);
-           message.put(APPLIED_RULES, appliedRules);
-           infoLoggingContext.log(message);
-       }
-
-
    }
 
     protected PositionSequence<InputSequenceElement> termSequenceToInputSequence(
@@ -161,7 +133,6 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
         final PositionSequence<InputSequenceElement> result = new PositionSequence<>();
         sequence.forEach(termList -> result.add(Collections.unmodifiableList(termList)));
         return result;
-
     }
 
    protected PositionSequence<InputSequenceElement> addBoundaries(final PositionSequence<Term> sequence) {
@@ -190,6 +161,4 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Co
       sequencesStack.getLast().addElement(term);
       return super.visit(term);
    }
-
-
 }
