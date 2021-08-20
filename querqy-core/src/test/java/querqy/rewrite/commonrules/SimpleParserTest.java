@@ -1,5 +1,6 @@
 package querqy.rewrite.commonrules;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
@@ -24,10 +25,10 @@ import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 
 public class SimpleParserTest extends AbstractCommonRulesTest {
-    
-    Reader reader; 
+
+    Reader reader;
     QuerqyParserFactory querqyParserFactory = new WhiteSpaceQuerqyParserFactory();
-    
+
     SimpleCommonRulesParser createParserWithEmptyReader() {
         return createParserFromString("", false);
     }
@@ -46,12 +47,12 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         SimpleCommonRulesParser parser = createParserFromResource(resourceName, ignoreCase);
         return parser.parse();
     }
-    
+
     Query makeQueryUsingFactory(String qString) {
         return querqyParserFactory.createParser().parse(qString);
     }
-    
-    
+
+
     @After
     public void tearDown() throws IOException {
         if (reader != null) {
@@ -69,7 +70,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         assertEquals("", parser.stripLine(" #sdsd"));
         assertEquals("", parser.stripLine("\t #sdsd"));
     }
-    
+
     @Test
     public void test01() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
@@ -105,7 +106,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.nextPosition();
         seq.addElement(t4);
         List<Action> actions = getActions(rules, seq);
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
 
                 new Action(
                                 new Instructions(1, "1",
@@ -113,7 +114,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                                 new DeleteInstruction(Collections.singletonList(mkTerm("b")))
                                         )),
                                                 new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2),
-                                
+
                 new Action(
                                 new Instructions(3, "3",
                                         Arrays.asList(
@@ -129,9 +130,9 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                 )),
                         new TermMatches(new TermMatch(t1)), 0, 1)
 
-                ));	
+                ));
     }
-    
+
     @Test
     public void test04() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
@@ -143,18 +144,18 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
         seq.nextPosition();
         seq.addElement(t2);
         List<Action> actions = getActions(rules, seq);
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                                 new Instructions(1, "1",
                                         Collections.singletonList(
                                                 new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f)
                                         )),
                                                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
-                
-                
+
+
                 ));
     }
-    
+
     @Test
     public void test05() throws Exception {
         RulesCollection rules = createRulesFromResource("rules-test.txt", false);
@@ -170,28 +171,28 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                                 )
                         ),
                         new TermMatches(new TermMatch(t1)), 0, 1)
-                
-                
+
+
                 ));
     }
-  
-/*    
-    
+
+/*
+
 ts3 =>
     SYNONYM: syn2
-    
+
 ts4 ts5 =>
     SYNONYM: syn3  syn4
-    
+
 ts6 =>
     SYNONYM: syn5 syn6 syn7
 */
-    
+
     /**
-     *   
+     *
      *   ts1 ts2 =>
      *       SYNONYM: syn1
-     *   
+     *
      * @throws Exception
      */
     @Test
@@ -213,11 +214,11 @@ ts6 =>
                                 )
                                         ),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
-                
-                
+
+
                 ));
     }
-    
+
     /**
      * ts6 =>
      *    SYNONYM: syn5 f1:syn6 {f2,f3}:syn7
@@ -244,13 +245,13 @@ ts6 =>
                                         )
                                         ),
                                                         new TermMatches(new TermMatch(t1)), 0, 1)
-                
-                
+
+
                 ));
     }
-    
+
     /**
-     * tS7 Ts8 TS => 
+     * tS7 Ts8 TS =>
      *    FILTER : FLT4
      * @throws Exception
      */
@@ -270,11 +271,11 @@ ts6 =>
         seq.addElement(t3);
         List<Action> actions = getActions(rules, seq);
         assertTrue(actions.isEmpty());
-        
+
     }
-    
+
     /**
-     * tS7 Ts8 TS => 
+     * tS7 Ts8 TS =>
      *    FILTER : FLT4
      * @throws Exception
      */
@@ -294,20 +295,20 @@ ts6 =>
         seq.addElement(t3);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(
                                                 new FilterInstruction(makeQueryUsingFactory("FLT4"))
                                         )),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
-                
-                
+
+
                 ));
     }
-    
+
     /**
-     * tS7 Ts8 TS => 
+     * tS7 Ts8 TS =>
      *    FILTER : FLT4
      * @throws Exception
      */
@@ -327,20 +328,20 @@ ts6 =>
         seq.addElement(t3);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(
                                         new FilterInstruction(makeQueryUsingFactory("FLT4"))
                                 )),
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
-                
-                
+
+
                 ));
     }
-    
+
     /**
-     * tS7 Ts8 TS => 
+     * tS7 Ts8 TS =>
      *    FILTER : FLT4
      * @throws Exception
      */
@@ -360,7 +361,7 @@ ts6 =>
         seq.addElement(t3);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(
@@ -369,7 +370,7 @@ ts6 =>
                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2), new TermMatch(t3))), 0, 3)
                 ));
     }
-    
+
     /**
      * "tb1 =>
      *   FILTER: FLTTB1
@@ -397,7 +398,7 @@ ts6 =>
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(
@@ -406,7 +407,7 @@ ts6 =>
                         new TermMatches(Collections.singletonList(new TermMatch(t1))), 0, 1)
                 ));
     }
-    
+
     /**
      * "tb1 =>
      *   FILTER: FLTTB1
@@ -434,15 +435,15 @@ ts6 =>
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, not(contains( 
+        assertThat(actions, not(contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB1")
                                 ))),
                                 new TermMatches(Collections.singletonList(new TermMatch(t1))), 0, 1)
                 )));
-    }   
-    
+    }
+
     /**
      * "tb1 =>
      *   FILTER: FLTTB1
@@ -467,7 +468,7 @@ ts6 =>
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(
@@ -504,7 +505,7 @@ ts6 =>
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, not(contains( 
+        assertThat(actions, not(contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB2")
@@ -512,12 +513,12 @@ ts6 =>
                          new TermMatches(Collections.singletonList(new TermMatch(t2))), 0, 1)
 
                 )));
-    }  
-    
+    }
+
     /**
      * "tb4*" =>
      *      FILTER: FLTTB4
-     *      
+     *
      * @throws Exception
      */
     //@Test TODO enable test once we can handle wild card before right input boundary
@@ -533,7 +534,7 @@ ts6 =>
         seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
         List<Action> actions = getActions(rules, seq);
 
-        assertThat(actions, contains( 
+        assertThat(actions, contains(
                 new Action(
                         new Instructions(1, "1",
                                 Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("FLTTB4")
@@ -542,7 +543,87 @@ ts6 =>
                 ));
     }
 
-    
+/*
+# 18 Rule with escaped comment
+"\#9" =>
+    FILTER: num9
+*/
+    @Test
+    public void test18() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term term = new Term(null, "#9");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(term);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+        List<Action> actions = getActions(rules, seq);
+
+        assertThat(actions, contains(
+                new Action(
+                        new Instructions(1, "1",
+                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("num9")
+                                ))),
+                        new TermMatches(Collections.singletonList(new TermMatch(term))), 0, 1)
+        ));
+    }
+
+/*
+# 19: Rule escaped wildcard
+4\*4 =>
+    SYNONYM: 4x4
+ */
+    @Test
+    public void test19() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term term = new Term(null, "4*4");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(term);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+        List<Action> actions = getActions(rules, seq);
+
+        assertThat(actions, contains(
+                new Action(
+                        new Instructions(1, "1",
+                                Collections.singletonList(new SynonymInstruction(singletonList(mkTerm("4x4"))
+                                ))),
+                        new TermMatches(Collections.singletonList(new TermMatch(term))), 0, 1)
+        ));
+    }
+
+/*
+# 20: Rule escaped boundary
+"bicycle 27\"" =>
+    FILTER: size27
+ */
+    @Test
+    public void test20() throws Exception {
+        RulesCollection rules = createRulesFromResource("rules-test.txt", true);
+        Term term = new Term(null, "bicycle 27\"");
+        PositionSequence<InputSequenceElement> seq = new PositionSequence<>();
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.LEFT_BOUNDARY);
+        seq.nextPosition();
+        seq.addElement(term);
+        seq.nextPosition();
+        seq.addElement(CommonRulesRewriter.RIGHT_BOUNDARY);
+        List<Action> actions = getActions(rules, seq);
+
+        assertThat(actions, contains(
+                new Action(
+                        new Instructions(1, "1",
+                                Collections.singletonList(new FilterInstruction(makeQueryUsingFactory("size27")
+                                ))),
+                        new TermMatches(Collections.singletonList(new TermMatch(term))), 0, 1)
+        ));
+    }
+
     @Test
     public void testError01() throws Exception {
         try {

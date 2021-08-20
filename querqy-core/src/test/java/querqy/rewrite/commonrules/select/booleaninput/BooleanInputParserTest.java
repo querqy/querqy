@@ -97,12 +97,32 @@ public class BooleanInputParserTest {
                 .isEqualTo(list(term("a"), and(), term("(b)")));
     }
 
+    @Test
+    public void handlesVerbatimWildcardQuoteAndHashAsLiterals() {
+        BooleanInputParser parser = new BooleanInputParser();
+
+        assertThat(parser.parseInputStringToElements("12\" AND 1*1 OR #9"))
+                .isEqualTo(list(term("12\""), and(), term("1*1"), or(), term("#9")));
+    }
+
+    @Test
+    public void unescapesWildcardQuoteAndHashAsLiterals() {
+        BooleanInputParser parser = new BooleanInputParser();
+
+        assertThat(parser.parseInputStringToElements("12\\\" AND 1\\*1 OR \\#9"))
+                .isEqualTo(list(term("12\""), and(), term("1*1"), or(), term("#9")));
+    }
+
     private BooleanInputElement term(String term) {
         return new BooleanInputElement(term, BooleanInputElement.Type.TERM);
     }
 
     private BooleanInputElement and() {
         return new BooleanInputElement("AND", BooleanInputElement.Type.AND);
+    }
+
+    private BooleanInputElement or() {
+        return new BooleanInputElement("OR", BooleanInputElement.Type.OR);
     }
 
     private BooleanInputElement leftP() {
