@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+  - package-ecosystem: "maven"
+    directory: "/querqy-core"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+  - package-ecosystem: "maven"
+    directory: "/querqy-for-lucene"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+  - package-ecosystem: "maven"
+    directory: "/querqy-for-lucene/querqy-lucene"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+  - package-ecosystem: "maven"
+    directory: "/querqy-for-lucene/querqy-solr"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
