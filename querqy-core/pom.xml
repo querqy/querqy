@@ -68,7 +68,7 @@
         <lombok.version>1.18.16</lombok.version>
         <junit.version>4.13.1</junit.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <mockito.version>3.7.7</mockito.version>
+        <mockito.version>3.12.4</mockito.version>
 
         <jackson.version>2.9.9</jackson.version>
         <json-path.version>2.4.0</json-path.version>
