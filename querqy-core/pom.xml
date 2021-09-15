@@ -67,7 +67,7 @@
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
         <lombok.version>1.18.16</lombok.version>
         <junit.version>4.13.1</junit.version>
-        <hamcrest.version>2.1</hamcrest.version>
+        <hamcrest.version>2.2</hamcrest.version>
         <mockito.version>3.7.7</mockito.version>
 
         <jackson.version>2.9.9</jackson.version>
