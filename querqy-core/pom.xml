@@ -71,7 +71,7 @@
         <mockito.version>3.7.7</mockito.version>
 
         <jackson.version>2.9.9</jackson.version>
-        <json-path.version>2.4.0</json-path.version>
+        <json-path.version>2.6.0</json-path.version>
     </properties>
 
     <dependencies>
