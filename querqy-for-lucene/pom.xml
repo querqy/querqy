@@ -96,7 +96,7 @@
         <lucene.version>8.1.0</lucene.version>
         <minidev.json-smart.version>2.3</minidev.json-smart.version>
         <commons.io.version>2.5</commons.io.version>
-        <slf4j.version>1.7.26</slf4j.version>
+        <slf4j.version>1.7.32</slf4j.version>
         <testcontainers.version>1.16.0</testcontainers.version>
 
     </properties>
