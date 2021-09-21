@@ -9,6 +9,7 @@ import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewrite.rules.rule.Rule;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -35,6 +36,11 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     @Override
     public void addRule(final Input.SimpleInput input, final BooleanInputLiteral literal) {
         addOrMergeInstructionsSupplier(input, new InstructionsSupplier(literal));
+    }
+
+    @Override
+    public void addRule(Rule rule) {
+        addOrMergeInstructionsSupplier(rule.getInput(), rule.getInstructionsSupplier());
     }
 
     public void addOrMergeInstructionsSupplier(final Input.SimpleInput input,
