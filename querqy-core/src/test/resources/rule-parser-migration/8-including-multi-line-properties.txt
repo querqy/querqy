@@ -1,0 +1,26 @@
+input =>
+  SYNONYM: synonym
+  @param: 1
+
+input =>
+  @param: 2
+  SYNONYM: synonym
+
+input2 =>
+  @param: 2
+  SYNONYM: synonym
+  @param2: "a"
+
+input2 =>
+  @param: 2
+  SYNONYM: synonym
+  @param2: {"key": "val"}
+  @{
+    a: 1,
+    b: "abc",
+    c: {
+        "d": 1,
+        "e": "f",
+        "g": false
+    }
+  }@
