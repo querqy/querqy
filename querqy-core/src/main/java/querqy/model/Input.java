@@ -1,6 +1,8 @@
 package querqy.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.rewrite.commonrules.LineParser;
@@ -15,6 +17,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+@EqualsAndHashCode
 public abstract class Input {
 
     protected final String inputString;
@@ -56,6 +59,8 @@ public abstract class Input {
     /**
      * A simple input that accepts terms, boundary markers and a wildcard but no boolean expressions
      */
+    @EqualsAndHashCode(callSuper = true)
+    @ToString(includeFieldNames = false)
     public static class SimpleInput extends Input {
 
         @Getter
@@ -143,6 +148,7 @@ public abstract class Input {
 
     public static class BooleanInput extends Input {
 
+        @Getter
         private final List<BooleanInputElement> elements;
         private final BooleanInputParser booleanInputParser;
 
