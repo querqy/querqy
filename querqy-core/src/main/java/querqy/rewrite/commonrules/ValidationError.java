@@ -7,6 +7,7 @@ package querqy.rewrite.commonrules;
  * @author René Kriegler, @renekrie
  *
  */
+@Deprecated
 public class ValidationError {
 
    final String message;

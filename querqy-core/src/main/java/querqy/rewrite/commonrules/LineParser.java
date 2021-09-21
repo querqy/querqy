@@ -28,6 +28,7 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 /**
  * @author René Kriegler, @renekrie
  */
+@Deprecated
 public class LineParser {
 
     public static final char BOUNDARY = '"';

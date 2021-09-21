@@ -12,6 +12,7 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @EqualsAndHashCode
 @ToString
+@Deprecated
 public class InputString {
 
     @NonNull

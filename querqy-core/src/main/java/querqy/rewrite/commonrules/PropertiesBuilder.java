@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Deprecated
 public class PropertiesBuilder {
 
     enum JsonObjState {BEFORE, IN_OBJECT, AFTER_OBJECT}
