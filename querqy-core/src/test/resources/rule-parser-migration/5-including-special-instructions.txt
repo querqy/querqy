@@ -1,0 +1,26 @@
+input =>
+  SYNONYM(1.3): term
+  UP(1.3): term
+  DOWN(1.3): term
+  FILTER: term
+  DECORATE(decorate): term
+  DELETE: input
+
+input =>
+  SYNONYM(1.3): term
+  SYNONYM(1.3): field:term
+  UP(1.3): * term
+  DOWN(1.3): * term
+  FILTER: * term
+  FILTER: field:term
+  DECORATE(decorate): term
+  DELETE
+
+input 2 =>
+  SYNONYM: term2
+
+a AND b =>
+  UP(1.3): term3
+
+b OR c AND d OR NOT (e AND f) =>
+  FILTER: term4
