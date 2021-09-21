@@ -2,11 +2,14 @@ package querqy.rewrite.commonrules;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
@@ -16,14 +19,33 @@ import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.TemplateParseException;
 import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.rules.RuleParseException;
+import querqy.rewrite.rules.RulesParser;
+import querqy.rewrite.rules.factory.RulesParserFactory;
+import querqy.rewrite.rules.factory.config.RuleParserConfig;
+import querqy.rewrite.rules.factory.config.RulesParserConfig;
+import querqy.rewrite.rules.factory.config.TextParserConfig;
+import querqy.rewrite.rules.instruction.InstructionType;
+
+import static querqy.rewrite.rules.instruction.InstructionType.DECORATE;
+import static querqy.rewrite.rules.instruction.InstructionType.DELETE;
+import static querqy.rewrite.rules.instruction.InstructionType.DOWN;
+import static querqy.rewrite.rules.instruction.InstructionType.FILTER;
+import static querqy.rewrite.rules.instruction.InstructionType.SYNONYM;
+import static querqy.rewrite.rules.instruction.InstructionType.UP;
 
 /**
  * @author René Kriegler, @renekrie
  */
 public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
+
+    private static final Set<InstructionType> ALLOWED_TYPES = Stream.of(
+            SYNONYM, UP, DOWN, FILTER, DELETE, DECORATE
+    ).collect(Collectors.toSet());
 
     private final RulesCollection rules;
     private final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
@@ -65,12 +87,33 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
         this.buildTermCache = buildTermCache;
 
+        // TODO: using List<String> to process lines instead of Reader should be better:
+        //  (1) Lines can be reused across different processing stages (should reduce resource consumption)
+        //  (2) Allows removing various try & catch blocks
         try {
             final QuerqyTemplateEngine querqyTemplateEngine = new QuerqyTemplateEngine(reader);
-            rules = new SimpleCommonRulesParser(querqyTemplateEngine.renderedRules.reader, allowBooleanInput,
-                    querqyParserFactory, ignoreCase)
-                    .setLineNumberMapper(querqyTemplateEngine.renderedRules.lineNumberMapping::get)
-                    .parse();
+
+            final RulesParserConfig config = RulesParserConfig.builder()
+                    .textParserConfig(TextParserConfig.builder()
+                            .rulesContentReader(querqyTemplateEngine.renderedRules.reader)
+                            .isMultiLineRulesConfig(true)
+                            .lineNumberMappings(querqyTemplateEngine.renderedRules.lineNumberMapping)
+                            .build())
+                    .ruleParserConfig(RuleParserConfig.builder()
+                            .isAllowedToParseBooleanInput(allowBooleanInput)
+                            .querqyParserFactory(querqyParserFactory)
+                            .allowedInstructionTypes(ALLOWED_TYPES)
+                            .build())
+                    .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase))
+                    .build();
+
+            final RulesParser rulesParser = RulesParserFactory.textParser(config);
+            rules = rulesParser.parse();
+
+            // should be closed already in RulesParser - passing Readers as arguments should be avoided
+            // and refactored as suggested above
+            querqyTemplateEngine.renderedRules.reader.close();
+
         } catch (final RuleParseException | TemplateParseException e) {
             throw new IOException(e);
         } finally {
