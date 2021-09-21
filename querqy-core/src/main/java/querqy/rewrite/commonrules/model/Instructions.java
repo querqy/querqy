@@ -3,6 +3,9 @@
  */
 package querqy.rewrite.commonrules.model;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +20,7 @@ import java.util.Optional;
  * @author rene
  *
  */
+@EqualsAndHashCode(callSuper = true)
 public class Instructions extends LinkedList<Instruction> {
 
     public interface StandardPropertyNames {
