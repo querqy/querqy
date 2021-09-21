@@ -1,9 +1,7 @@
 package querqy.rewrite.rules;
 
-import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Singular;
 import lombok.experimental.Accessors;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.model.Instruction;
@@ -18,9 +16,6 @@ import querqy.rewrite.rules.rule.Rule;
 import querqy.rewrite.rules.rule.skeleton.MultiLineParser;
 import querqy.rewrite.rules.rule.skeleton.RuleSkeleton;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

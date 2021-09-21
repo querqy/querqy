@@ -2,9 +2,7 @@ package querqy.rewrite.rules.instruction.skeleton;
 
 import org.junit.Test;
 import querqy.rewrite.rules.RuleParseException;
-import querqy.rewrite.rules.instruction.skeleton.InstructionSkeleton;
 import querqy.rewrite.rules.instruction.InstructionType;
-import querqy.rewrite.rules.instruction.skeleton.InstructionSkeletonParser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
