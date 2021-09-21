@@ -4,6 +4,7 @@ import static querqy.rewrite.commonrules.LineParser.BOUNDARY;
 import static querqy.rewrite.commonrules.LineParser.WILDCARD;
 import static querqy.rewrite.commonrules.SimpleCommonRulesParser.COMMENT_START;
 
+// TODO: should be refactored to be usable in a more generic manner & should not be static references
 public class EscapeUtil {
 
     static final char ESCAPE = '\\';
@@ -59,7 +60,7 @@ public class EscapeUtil {
     }
 
     // Checks whether String ends with a character that has special meaning, considering an escape sequence
-    private static boolean endsWithSpecialChar(final String s, final char ch) {
+    public static boolean endsWithSpecialChar(final String s, final char ch) {
         return (s.length() > 0 && s.charAt(s.length() - 1) == ch && !(s.length() > 1 && s.charAt(s.length() -2) == ESCAPE));
     }
 
