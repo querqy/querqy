@@ -1,5 +1,7 @@
 package querqy.rewrite.commonrules.model;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 
 import java.util.Collections;
@@ -7,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+@EqualsAndHashCode
+@ToString(includeFieldNames = false)
 public class InstructionsSupplier {
 
     private final List<Instructions> instructionsList = new LinkedList<>();

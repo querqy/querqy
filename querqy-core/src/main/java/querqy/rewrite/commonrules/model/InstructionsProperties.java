@@ -3,14 +3,17 @@ package querqy.rewrite.commonrules.model;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class InstructionsProperties {
 
-    private final Map<String, Object> propertyMap;
+    @EqualsAndHashCode.Include private final Map<String, Object> propertyMap;
     private final DocumentContext documentContext;
 
     public InstructionsProperties(final Map<String, Object> propertyMap, final Configuration jsonPathConfig) {
