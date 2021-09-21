@@ -7,6 +7,7 @@ package querqy.rewrite.commonrules;
  * @author rene
  *
  */
+@Deprecated
 public class RuleParseException extends Exception {
 
    /**
