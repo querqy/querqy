@@ -3,8 +3,6 @@ package querqy.rewrite.rules.rule.skeleton;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.input.skeleton.InputSkeletonParser;
 import querqy.rewrite.rules.instruction.skeleton.InstructionSkeleton;
@@ -23,12 +21,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class MultiLineParserTest {
 
