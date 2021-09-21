@@ -34,6 +34,7 @@ import querqy.rewrite.commonrules.model.Term;
 import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement;
 
+@Deprecated
 public class LineParserTest {
 
     static final Input SIMPLE_INPUT_PATTERN = new Input.SimpleInput(singletonList(new Term("a".toCharArray(), 0, 1,
