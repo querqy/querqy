@@ -255,4 +255,8 @@ public class Term implements ComparableCharSequence {
     public LinkedList<PlaceHolder> getPlaceHolders() {
         return placeHolders;
     }
+
+    public char[] getValue() {
+        return value;
+    }
 }
