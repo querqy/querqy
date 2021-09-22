@@ -25,19 +25,21 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
 
     private final Map<String, Object> properties = new HashMap<>();
 
-    private String currentContent = null;
+    private String content = null;
     private StringBuilder multiLineInput = null;
     private PropertySkeletonInput currentPropertySkeletonInput = null;
 
 
     public void setContent(final String content) {
-        currentContent = content;
+        this.content = content;
     }
 
     public boolean isParsable() {
-        return currentContent != null && (
-                isInMultiLineParsingMode() || currentContent.startsWith(PropertySkeletonInputParser.PROPERTY_INDICATOR)
-        );
+        if (content == null) {
+            throw new IllegalStateException("Content must be set before calling isParsable()");
+        }
+
+        return isInMultiLineParsingMode() || content.startsWith(PropertySkeletonInputParser.PROPERTY_INDICATOR);
     }
 
     private boolean isInMultiLineParsingMode() {
@@ -59,7 +61,11 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
     }
 
     private void parsePropertyInput() {
-        final PropertySkeletonInputParser propertySkeletonInputParser = PropertySkeletonInputParser.of(currentContent);
+        if (content == null) {
+            throw new IllegalStateException("Content must be set before parsing");
+        }
+
+        final PropertySkeletonInputParser propertySkeletonInputParser = PropertySkeletonInputParser.of(content);
         currentPropertySkeletonInput = propertySkeletonInputParser.parse();
     }
 
@@ -134,7 +140,7 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
 
         final Map<String, Object> propertiesToReturn = new HashMap<>(properties);
 
-        currentContent = null;
+        content = null;
         properties.clear();
 
         return propertiesToReturn;
