@@ -8,22 +8,30 @@ public class InputSkeletonParser implements SkeletonComponentParser<String> {
 
     public static final String INPUT_INDICATOR = "=>";
 
-    private String rawInput = null;
+    private String content = null;
     private String parsedInput = null;
 
     public void setContent(final String content) {
-        rawInput = content;
+        this.content = content;
     }
 
     public boolean isParsable() {
-        return rawInput.endsWith(INPUT_INDICATOR);
+        if (content == null) {
+            throw new IllegalStateException("Content must be set before calling isParsable()");
+        }
+
+        return content.endsWith(INPUT_INDICATOR);
     }
 
     public void parse() {
-        parsedInput = rawInput.substring(0, rawInput.length() - 2).trim();
+        parsedInput = content.substring(0, content.length() - 2).trim();
     }
 
     public String finish() {
+        if (content == null) {
+            throw new IllegalStateException("Content must be parsed before finishing");
+        }
+
         return parsedInput;
     }
 

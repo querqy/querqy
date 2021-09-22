@@ -39,20 +39,32 @@ public class InstructionSkeletonParser implements SkeletonComponentParser<Instru
             )
     );
 
-    private String instructionDefinitionInput;
+    private String content;
     private Matcher matcher;
     private InstructionSkeleton instructionSkeleton;
 
     public void setContent(final String content) {
-        instructionDefinitionInput = content;
+        this.content = content;
     }
 
     public boolean isParsable() {
-        matcher = INSTRUCTION_PATTERN.matcher(instructionDefinitionInput);
+        if (content == null) {
+            throw new IllegalStateException("Content must be set before calling isParsable()");
+        }
+
+        matcher = INSTRUCTION_PATTERN.matcher(content);
         return matcher.find();
     }
 
     public void parse() {
+        if (matcher == null) {
+            throw new IllegalStateException("isParsable() must be called before parsing");
+        }
+
+        parseInstruction();
+    }
+
+    public void parseInstruction() {
         final String typeInput = matcher.group(1);
         final String parameterInput = matcher.group(2);
         final String valueInput = matcher.group(3);
@@ -88,10 +100,14 @@ public class InstructionSkeletonParser implements SkeletonComponentParser<Instru
     }
 
     private String createExceptionMessage() {
-        return String.format("Could not parse instruction %s", instructionDefinitionInput);
+        return String.format("Could not parse instruction %s", content);
     }
 
     public InstructionSkeleton finish() {
+        if (instructionSkeleton == null) {
+            throw new IllegalStateException("Content must be parsed before finishing");
+        }
+
         return instructionSkeleton;
     }
 
