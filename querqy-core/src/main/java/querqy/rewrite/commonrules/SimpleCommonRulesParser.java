@@ -30,7 +30,6 @@ import java.util.function.IntUnaryOperator;
  *
  * @author rene
  */
-@Deprecated
 public class SimpleCommonRulesParser {
 
     static final char COMMENT_START = '#';
