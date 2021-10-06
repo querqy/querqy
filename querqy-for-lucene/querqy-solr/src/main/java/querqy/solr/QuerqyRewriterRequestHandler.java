@@ -19,6 +19,7 @@ import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.explain.ExplainRewriteChainRequestHandler;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -31,6 +32,9 @@ import java.util.Optional;
 public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedRequestHandler, SolrCoreAware {
 
     public static final String PARAM_ACTION = "action";
+    public static final String PATH_EXPLAIN_CHAIN = "/_explain/chain";
+
+
 
     public enum ActionParam {
 
@@ -145,6 +149,13 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     @SuppressWarnings({"rawtypes"})
     private NamedList initArgs = null;
 
+    private final ExplainRewriteChainRequestHandler explainRewriteChainRequestHandler;
+
+    public QuerqyRewriterRequestHandler() {
+        explainRewriteChainRequestHandler =
+                new ExplainRewriteChainRequestHandler(this);
+    }
+
     @Override
     public void init(final NamedList args) {
         this.initArgs = args;
@@ -226,6 +237,11 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     @Override
     public SolrRequestHandler getSubHandler(final String subPath) {
+
+        if (PATH_EXPLAIN_CHAIN.equals(subPath)) {
+            return explainRewriteChainRequestHandler;
+        }
+
         return new SolrRequestHandler() {
             @Override
             public void init(final NamedList args) {
