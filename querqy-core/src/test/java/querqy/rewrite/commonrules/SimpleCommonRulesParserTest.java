@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
-@Deprecated
 public class SimpleCommonRulesParserTest {
 
     QuerqyParserFactory parserFactory = new WhiteSpaceQuerqyParserFactory();
