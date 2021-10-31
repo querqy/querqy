@@ -1,5 +1,6 @@
 package querqy.solr.explain;
 
+import org.apache.solr.common.util.NamedList;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.BoostQuery;
@@ -22,12 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// TODO: Move this code to querqy-core, update callouts to this code
 public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
     // Query types from Querqy's query object model
     public static final String TYPE_QUERY = "QUERY";
     public static final String TYPE_BOOLEAN_QUERY = "BOOL";
     public static final String TYPE_DISMAX = "DISMAX";
+    public static final String TYPE_MATCH_ALL = "MATCH_ALL";
+    public static final String TYPE_RAW_QUERY = "RAW_QUERY";
     public static final String TYPE_TERM = "TERM";
 
     // Top-level structure of the ExpandedQuery
@@ -115,18 +119,22 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
     }
 
 
-    // TODO: node/query types have a 'generated' property: to be added to output
     public static class QuerySnapshotVisitor extends AbstractNodeVisitor<Void> {
 
         Map<String, Object> snapshot = new HashMap<>();
         List<Map<String,?>> clauses = new LinkedList<>();
 
         public Map<String, Object> takeSnapshot(final QuerqyQuery<?> querqyQuery) {
-
             if (querqyQuery instanceof Query) {
                 reset();
                 visit((Query) querqyQuery);
-            } else { // maybe add handling for other types
+            } else if (querqyQuery instanceof BooleanQuery) {
+                visit((BooleanQuery) querqyQuery);
+            } else if (querqyQuery instanceof MatchAllQuery) {
+                visit((MatchAllQuery) querqyQuery);
+            } else if (querqyQuery instanceof RawQuery) {
+                visit((RawQuery) querqyQuery);
+            } else {
                 throw new IllegalArgumentException("Cannot handle query type " + querqyQuery.getClass());
             }
 
@@ -157,6 +165,7 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
             super.visit(booleanQuery);
 
+            snapshot.put(TYPE_BOOLEAN_QUERY, clauses);
             // restore
             clauses = origClauses;
 
@@ -185,23 +194,38 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
         @Override
         public Void visit(final Term term) {
-            // TODO: nicer field/value structure? Print boost from BoostedTermQuery
             final Map<String, Object> tq = new HashMap<>();
-            tq.put(TYPE_TERM, term.toString());
+            final HashMap props = new HashMap<>();
+
+            if (term.getField() != null) {
+                props.put("field", term.getField());
+            }
+
+            props.put("term", term.toString());
+            props.put("generated", term.isGenerated());
+            tq.put(TYPE_TERM, props);
             clauses.add(tq);
             return null;
         }
 
         @Override
         public Void visit(final RawQuery rawQuery) {
-            // TODO
-            return super.visit(rawQuery);
+            final Map<String, Object> rq = new HashMap<>();
+            rq.put(TYPE_RAW_QUERY, rawQuery.toString());
+            clauses.add(rq);
+            snapshot.put(TYPE_RAW_QUERY, clauses);
+            super.visit(rawQuery);
+            return null;
         }
 
         @Override
         public Void visit(final MatchAllQuery query) {
-            // TODO
-            return super.visit(query);
+            final Map<String, Object> maq = new HashMap<>();
+            maq.put(TYPE_MATCH_ALL, Collections.EMPTY_MAP);
+            clauses.add(maq);
+            snapshot.put(TYPE_MATCH_ALL, clauses);
+            super.visit(query);
+            return null;
         }
 
         private void reset() {
