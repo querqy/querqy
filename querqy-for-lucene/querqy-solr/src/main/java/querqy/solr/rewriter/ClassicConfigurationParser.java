@@ -22,7 +22,20 @@ public interface ClassicConfigurationParser {
                                                                        final ResourceLoader resourceLoader) {
         final Map<String, Object> result = new HashMap<>();
         if (configuration != null) {
-            result.put(CONF_CONFIG, configuration.asShallowMap());
+            final Map<String, Object> origConf = configuration.asShallowMap();
+            final Map<String, Object> conf = new HashMap<>();
+            for (final Map.Entry<String, Object> entry : origConf.entrySet()) {
+               final int dotIndex = entry.getKey().indexOf(".");
+               if (dotIndex > 0) {
+                   final String k = entry.getKey().substring(0, dotIndex);
+                   final String subkey = entry.getKey().substring(dotIndex+1);
+                   final Map<String, Object> nestedConf = (Map<String, Object>) conf.computeIfAbsent(k, x -> new HashMap<String, Object>());
+                   nestedConf.put(subkey, entry.getValue());
+               } else {
+                   conf.put(entry.getKey(), entry.getValue());
+               }
+            }
+            result.put(CONF_CONFIG, conf);
             ifNotNull(configuration.get(CONF_CLASS), v -> result.put(CONF_CLASS, v));
         }
 
