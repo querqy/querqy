@@ -1,9 +1,11 @@
 package querqy.solr.explain;
 
 import org.apache.solr.common.util.NamedList;
+import org.graalvm.compiler.lir.phases.PreAllocationOptimizationPhase;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.BoostQuery;
+import querqy.model.BoostedTerm;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
@@ -42,10 +44,14 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
     public static final String DOWN = "DOWN";
 
     // properties further down the tree
+    public static final String PROP_BOOST = "boost";
     public static final String PROP_QUERY = "query";
     public static final String PROP_FACTOR = "factor";
     public static final String PROP_OCCUR = "occur";
     public static final String PROP_CLAUSES = "clauses";
+    public static final String PROP_FIELD = "field";
+    public static final String PROP_GENERATED = "generated";
+    public static final String PROP_VALUE = "value";
 
     private Map<String, Object> snapshot;
 
@@ -197,12 +203,16 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
             final Map<String, Object> tq = new HashMap<>();
             final HashMap props = new HashMap<>();
 
-            if (term.getField() != null) {
-                props.put("field", term.getField());
+            if (term instanceof BoostedTerm) {
+                props.put(PROP_BOOST, ((BoostedTerm) term).getBoost());
             }
 
-            props.put("term", term.toString());
-            props.put("generated", term.isGenerated());
+            if (term.getField() != null) {
+                props.put(PROP_FIELD, term.getField());
+            }
+
+            props.put(PROP_VALUE, term.toString());
+            props.put(PROP_GENERATED, term.isGenerated());
             tq.put(TYPE_TERM, props);
             clauses.add(tq);
             return null;
