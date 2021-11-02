@@ -8,7 +8,7 @@
 	<dataDir>${solr.core0.data.dir:}</dataDir>
 
 	<schemaFactory class="ClassicIndexSchemaFactory" />
-	
+
     <indexConfig>
         <!-- Needed for RAMDirectoryFactory -->
         <lockType>single</lockType>
@@ -16,7 +16,7 @@
 
 	<updateHandler class="solr.DirectUpdateHandler2" />
 
-	<query>        
+	<query>
     	<listener event="firstSearcher" class="querqy.solr.ClassicRewriteChainLoader">
 			<lst name="rewriteChain">
 				<lst name="rewriter">
@@ -25,7 +25,24 @@
 					<str name="rules">classic-rules.txt</str>
 					<bool name="ignoreCase">true</bool>
 					<str name="querqyParser">querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory</str>
+
 				</lst>
+                <lst name="rewriter">
+                    <str name="id">wordbreak</str>
+                    <str name="class">querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory</str>
+                    <str name="dictionaryField">f1</str>
+                    <bool name="lowerCaseInput">true</bool>
+                    <int name="decompound.maxExpansions">5</int>
+                    <bool name="decompound.verifyCollation">true</bool>
+                    <str name="morphology">GERMAN</str>
+                    <arr name="reverseCompoundTriggerWords">
+                        <str>for</str>
+                    </arr>
+                    <arr name="protectedWords">
+                        <str>slipper</str>
+                        <str>wissenschaft</str>
+                    </arr>
+                </lst>
 			</lst>
     	</listener>
 
@@ -57,7 +74,7 @@
 	</requestHandler>
 
 	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
-	
+
         <lst name="parser">
          	<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
@@ -78,9 +95,9 @@
             </lst>
 
         </lst>
-     	 
+
 	</queryParser>
-	
+
 	<admin>
 		<defaultQuery>solr</defaultQuery>
 	</admin>

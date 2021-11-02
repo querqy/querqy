@@ -50,6 +50,20 @@ public class ClassicRewriteChainLoaderTest extends AbstractQuerqySolrCloudTestCa
     }
 
     @Test
+    public void shouldHandleNestedRewriterConfiguration() throws SolrServerException, IOException {
+        GetRewriterConfigSolrResponse response = RewriterConfigRequestBuilder.buildGetRequest("wordbreak").process(CLIENT);
+
+        Map<String, Object> rewriter = (Map<String, Object>) response.getResponse().get("rewriter");
+        Map<String, Object> definition = (Map<String, Object>) rewriter.get("definition");
+        Map<String, Object> config = (Map<String, Object>) definition.get("config");
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), not(nullValue()));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.aMapWithSize(2));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.hasEntry("maxExpansions", 5));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.hasEntry("verifyCollation", true));
+
+    }
+
+    @Test
     public void shouldUploadClassicRewriteChain() throws SolrServerException, IOException {
         GetRewriterConfigSolrResponse response = RewriterConfigRequestBuilder.buildGetRequest(null).process(CLIENT);
 
@@ -58,7 +72,7 @@ public class ClassicRewriteChainLoaderTest extends AbstractQuerqySolrCloudTestCa
         Map<String, Object> rewriters = (Map<String, Object>) ((java.util.Map<String, Object>) response.getResponse()
                 .get("response")).get("rewriters");
         org.hamcrest.MatcherAssert.assertThat(rewriters, not(nullValue()));
-        org.hamcrest.MatcherAssert.assertThat(rewriters, Matchers.aMapWithSize(1));
+        org.hamcrest.MatcherAssert.assertThat(rewriters, Matchers.aMapWithSize(2));
 
         // classic rewriter config
         Map<String, Object> classic = (Map<String, Object>) rewriters.get("classic");
@@ -66,5 +80,9 @@ public class ClassicRewriteChainLoaderTest extends AbstractQuerqySolrCloudTestCa
         org.hamcrest.MatcherAssert.assertThat(classic, Matchers.aMapWithSize(2));
         org.hamcrest.MatcherAssert.assertThat(classic.get("id"), is("classic"));
         org.hamcrest.MatcherAssert.assertThat(classic.get("path"), is("/querqy/rewriter/classic"));
+
+        Map<String, Object> wordbreak = (Map<String, Object>) rewriters.get("wordbreak");
+        org.hamcrest.MatcherAssert.assertThat(wordbreak, not(nullValue()));
+        org.hamcrest.MatcherAssert.assertThat(wordbreak.get("id"), is("wordbreak"));
     }
 }

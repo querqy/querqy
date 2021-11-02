@@ -33,7 +33,7 @@ public class WordBreakCompoundRewriterFactoryTest {
         configuration.add(CONF_DECOMPOUND + "." + CONF_DECOMPOUND_MAX_EXPANSIONS, 5);
         configuration.add(CONF_DECOMPOUND + "." + CONF_DECOMPOUND_VERIFY_COLLATION, true);
         configuration.add(CONF_MORPHOLOGY, "GERMAN");
-        configuration.add(CONF_MORPHOLOGY, Lists.newArrayList("for"));
+        configuration.add(CONF_REVERSE_COMPOUND_TRIGGER_WORDS, Lists.newArrayList("for"));
 
         Map<String, Object> parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
         factory.configure((Map<String, Object>) parsed.get(CONF_CONFIG));
