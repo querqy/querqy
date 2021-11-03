@@ -208,7 +208,7 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
                 props.put(PROP_FIELD, term.getField());
             }
 
-            props.put(PROP_VALUE, term.toString());
+            props.put(PROP_VALUE, term.getValue());
             props.put(PROP_GENERATED, term.isGenerated());
             tq.put(TYPE_TERM, props);
             clauses.add(tq);
