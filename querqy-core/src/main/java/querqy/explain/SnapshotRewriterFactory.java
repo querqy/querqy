@@ -1,4 +1,4 @@
-package querqy.solr.explain;
+package querqy.explain;
 
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;

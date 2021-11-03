@@ -1,11 +1,10 @@
-package querqy.solr.explain;
+package querqy.explain;
 
 import org.junit.Test;
 import querqy.model.BooleanQuery;
 import querqy.model.Clause;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
-import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.model.convert.builder.BooleanQueryBuilder;
 

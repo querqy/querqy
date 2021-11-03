@@ -1,4 +1,4 @@
-package querqy.solr.explain;
+package querqy.explain;
 
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// TODO: Move this code to querqy-core, update callouts to this code
 public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
     // Query types from Querqy's query object model
