@@ -1,7 +1,5 @@
 package querqy.solr.explain;
 
-import org.apache.solr.common.util.NamedList;
-import org.graalvm.compiler.lir.phases.PreAllocationOptimizationPhase;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.BoostQuery;
