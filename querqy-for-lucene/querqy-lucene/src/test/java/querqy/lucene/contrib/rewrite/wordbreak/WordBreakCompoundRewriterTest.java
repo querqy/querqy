@@ -53,7 +53,7 @@ public class WordBreakCompoundRewriterTest {
     public void testNoDecompoundForSingleToken() throws IOException {
 
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -82,7 +82,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testDecompoundSingleTokenIntoOneTwoTokenAlternative() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
+                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2")});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -141,7 +141,7 @@ public class WordBreakCompoundRewriterTest {
     public void testThatGeneratedSecondTermIsNotCompounded() throws IOException {
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         // compound of terms at idx 0+1
 //        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
@@ -180,7 +180,7 @@ public class WordBreakCompoundRewriterTest {
     public void testThatGeneratedFirstTermIsNotCompounded() throws IOException {
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         // compound of terms at idx 0+1
 //        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
@@ -219,11 +219,11 @@ public class WordBreakCompoundRewriterTest {
     public void testThatCompoundingIfGeneratedIsMixedIn() throws IOException {
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         // compound of terms at idx 0+1
         when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+                .thenReturn(new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
 
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
@@ -265,7 +265,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testDecompoundSingleTokenIntoTwoTwoTokenAlternatives() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2"), decompoundSuggestion("w", "1w2") });
+                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2"), decompoundSuggestion("w", "1w2")});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -302,8 +302,8 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testThatOnlyMaxExpansionsAreApplied() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w3", "w4"), decompoundSuggestion("w", "3w4"),
-                        decompoundSuggestion("w3w", "4") });
+                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w3", "w4"), decompoundSuggestion("w", "3w4"),
+                        decompoundSuggestion("w3w", "4")});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -337,54 +337,14 @@ public class WordBreakCompoundRewriterTest {
     }
 
     @Test
-    public void testGermanMorphologicalCompounder() throws IOException {
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-            .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
-        when(indexReader.docFreq(any())).thenReturn(1);
-
-        Morphology morphology = Morphology.GERMAN;
-
-        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-            new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-            new MorphologicalCompounder(morphology, "field1", false, 1),
-            indexReader, false, false, NO_TRIGGERWORDS, 5, false,
-            NO_PROTECTEDWORDS);
-        Query query = new Query();
-        addTerm(query, "w1", false);
-        addTerm(query, "w2", false);
-
-        ExpandedQuery expandedQuery = new ExpandedQuery(query);
-
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
-
-        assertThat((Query) rewritten.getUserQuery(),
-            bq(
-                dmq(
-                    term("w1", false),
-                    term("w1enw2", true),
-                    term("w1w2", true),
-                    term("w1ew2", true)
-                ),
-                dmq(
-                    term("w2", false),
-                    term("w1enw2", true),
-                    term("w1w2", true),
-                    term("w1ew2", true)
-                )
-            )
-        );
-    }
-
-    @Test
     public void testCompoundTwoInputTokensOnly() throws IOException {
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         // compound of terms at idx 0+1
         when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+                .thenReturn(new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -418,10 +378,10 @@ public class WordBreakCompoundRewriterTest {
     public void testNoCompoundForTwoInputTokensOnly() throws IOException {
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new  CombineSuggestion[] { });
+                .thenReturn(new CombineSuggestion[]{});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -455,11 +415,11 @@ public class WordBreakCompoundRewriterTest {
 
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w1", "w2"), new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
-        suggestions.put(Arrays.asList("w2", "w1"), new  CombineSuggestion[] { combineSuggestion("w2w1", 0, 1) });
+        suggestions.put(Arrays.asList("w1", "w2"), new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
+        suggestions.put(Arrays.asList("w2", "w1"), new CombineSuggestion[]{combineSuggestion("w2w1", 0, 1)});
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
@@ -500,10 +460,10 @@ public class WordBreakCompoundRewriterTest {
 
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w3", "w1"), new  CombineSuggestion[] { combineSuggestion("w3w1", 0, 1) });
+        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
@@ -543,10 +503,10 @@ public class WordBreakCompoundRewriterTest {
 
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w3", "w1"), new  CombineSuggestion[] { combineSuggestion("w3w1", 0, 1) });
+        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
@@ -633,10 +593,10 @@ public class WordBreakCompoundRewriterTest {
 
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w3", "w1"), new  CombineSuggestion[] { combineSuggestion("w3w1", 0, 1) });
+        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
@@ -699,18 +659,18 @@ public class WordBreakCompoundRewriterTest {
 
         // don't de-compound
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
 
         Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w0", "w1"), new  CombineSuggestion[] { combineSuggestion("w0w1", 0, 1) });
-        suggestions.put(Arrays.asList("w3", "w1"), new  CombineSuggestion[] { combineSuggestion("w3w1", 0, 1) });
-        suggestions.put(Arrays.asList("w3", "w4"), new  CombineSuggestion[] { combineSuggestion("w3w4", 0, 1) });
+        suggestions.put(Arrays.asList("w0", "w1"), new CombineSuggestion[]{combineSuggestion("w0w1", 0, 1)});
+        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
+        suggestions.put(Arrays.asList("w3", "w4"), new CombineSuggestion[]{combineSuggestion("w3w4", 0, 1)});
         setupWordBreakMockWithCombinations(suggestions);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader,false, false, triggerWords, 5, false,
+                indexReader, false, false, triggerWords, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w0", false);
@@ -750,7 +710,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testThatDecompoundRespectsLowerCaseInputFalse() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { });
+                .thenReturn(new SuggestWord[][]{});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -771,7 +731,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testThatDecompoundRespectsLowerCaseInputTrue() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { });
+                .thenReturn(new SuggestWord[][]{});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", true),
@@ -792,7 +752,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testThatCompoundRespectsLowerCaseInputTrue() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { });
+                .thenReturn(new SuggestWord[][]{});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", true),
@@ -807,7 +767,7 @@ public class WordBreakCompoundRewriterTest {
 
         rewriter.rewrite(expandedQuery);
 
-        verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[] {
+        verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[]{
                 new Term("field1", "w1"), new Term("field1", "w2")}), anyInt(), any(), any());
 
     }
@@ -815,7 +775,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testThatCompoundRespectsLowerCaseInputFalse() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { });
+                .thenReturn(new SuggestWord[][]{});
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
@@ -830,7 +790,7 @@ public class WordBreakCompoundRewriterTest {
 
         rewriter.rewrite(expandedQuery);
 
-        verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[] {
+        verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[]{
                 new Term("field1", "W1"), new Term("field1", "W2")}), anyInt(), any(), any());
 
     }
@@ -838,10 +798,10 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testCompoundingDoesNotCreateProtectedTerm() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { });
+                .thenReturn(new SuggestWord[][]{});
 
         Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w1", "w2"), new CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
+        suggestions.put(Arrays.asList("w1", "w2"), new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
         setupWordBreakMockWithCombinations(suggestions);
 
         TrieMap<Boolean> protWord = new TrieMap<>();
@@ -876,7 +836,7 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testThatProtectedTermIsNotSplit() throws IOException {
         when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][] { decompoundSuggestion("w1", "w2") });
+                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2")});
 
         WordBreakCompoundRewriter rewriterWithNoProtectedWords = rewriter(NO_PROTECTEDWORDS);
 

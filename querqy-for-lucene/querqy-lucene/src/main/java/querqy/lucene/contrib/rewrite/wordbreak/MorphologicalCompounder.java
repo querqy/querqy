@@ -5,8 +5,13 @@ import querqy.model.Term;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import static querqy.lucene.LuceneQueryUtil.toLuceneTerm;
 
 public class MorphologicalCompounder implements LuceneCompounder {
@@ -14,22 +19,22 @@ public class MorphologicalCompounder implements LuceneCompounder {
     public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
     private final SuffixGroup suffixGroup;
     private final String dictionaryField;
-    private final boolean lowercaseInput;
-    private int minSuggestionFrequency;
+    private final int minSuggestionFrequency;
 
     public MorphologicalCompounder(final Morphology morphology, final String dictionaryField, final boolean lowercaseInput, final int minSuggestionFrequency) {
-        this(morphology, dictionaryField, lowercaseInput, minSuggestionFrequency, DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+        this(morphology::createCompoundingMorphemes, dictionaryField, lowercaseInput, minSuggestionFrequency, DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
-    public MorphologicalCompounder(final Morphology morphology, final String dictionaryField, final boolean lowercaseInput, final int minSuggestionFrequency, float weightMorphologicalPattern) {
+
+    // Visible for testing
+    public MorphologicalCompounder(final Function<Float, SuffixGroup> morphology, final String dictionaryField, final boolean lowercaseInput, final int minSuggestionFrequency, float weightMorphologicalPattern) {
         this.dictionaryField = dictionaryField;
-        this.lowercaseInput = lowercaseInput;
         this.minSuggestionFrequency = minSuggestionFrequency;
-        suffixGroup = morphology.createCompoundingMorphemes(weightMorphologicalPattern);
+        suffixGroup = morphology.apply(weightMorphologicalPattern);
     }
 
     @Override
-    public List<CompoundTerm> combine(Term[] terms, IndexReader indexReader, boolean reverse) throws IOException {
+    public List<CompoundTerm> combine(final Term[] terms, final IndexReader indexReader, final boolean reverse) {
         if (terms.length < 2) {
             return Collections.emptyList();
         }

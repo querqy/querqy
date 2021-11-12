@@ -30,9 +30,9 @@ public class GermanCompounderTest extends LuceneTestCase {
 
             final String field = "f1";
             final MorphologicalCompounder compounder = new MorphologicalCompounder(GERMAN, field, true, 1);
-            querqy.model.Term left = new querqy.model.Term(null, field, "left", false);
-            querqy.model.Term right = new querqy.model.Term(null, field, "left", false);
-            List<LuceneCompounder.CompoundTerm> sequences = compounder.combine(new Term[]{left, right}, indexReader, false);
+            final querqy.model.Term left = new querqy.model.Term(null, field, "left", false);
+            final querqy.model.Term right = new querqy.model.Term(null, field, "left", false);
+            final List<LuceneCompounder.CompoundTerm> sequences = compounder.combine(new Term[]{left, right}, indexReader, false);
             assertNotNull(sequences);
             assertTrue(sequences.isEmpty());
 

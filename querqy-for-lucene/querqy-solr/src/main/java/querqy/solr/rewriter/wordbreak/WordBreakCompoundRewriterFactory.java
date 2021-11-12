@@ -2,7 +2,7 @@ package querqy.solr.rewriter.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.request.SolrRequestInfo;
-import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
+import querqy.lucene.contrib.rewrite.wordbreak.*;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
@@ -36,6 +36,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
     private static final int DEFAULT_MIN_BREAK_LENGTH = 3;
     private static final int DEFAULT_MAX_DECOMPOUND_EXPANSIONS = 3;
     private static final boolean DEFAULT_VERIFY_DECOMPOUND_COLLATION = false;
+    private static final int MAX_EVALUATIONS = 100;
 
 
     private querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory delegate = null;

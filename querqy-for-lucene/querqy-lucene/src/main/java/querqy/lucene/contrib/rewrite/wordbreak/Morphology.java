@@ -1,8 +1,8 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import static java.util.Collections.singletonList;
-
 import java.util.function.Function;
+
+import static java.util.Collections.singletonList;
 
 public enum Morphology {
 
@@ -16,6 +16,7 @@ public enum Morphology {
         this.morphemeFactory = morphemeFactory;
         this.compoundingMorphemeFactory = compoundingMorphemeFactory;
     }
+
     Morphology(final Function<Float, SuffixGroup> morphemeFactory) {
         this(morphemeFactory, morphemeFactory);
     }
