@@ -5,6 +5,7 @@ import querqy.lucene.contrib.rewrite.wordbreak.Collector.CollectionState;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 
 /**
  * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>
@@ -102,8 +103,6 @@ public class SuffixGroup {
                     }
                 }
             }
-
-
         }
 
         if (next != null) {
@@ -127,4 +126,18 @@ public class SuffixGroup {
                 : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
     }
 
+    public void collect(querqy.model.Term left, querqy.model.Term right, Queue<MorphologicalWordBreaker.BreakSuggestion> collector) {
+        final int minLength = 1;
+
+        for (final WordGeneratorAndWeight generatorAndWeight: generatorAndWeights) {
+            final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(left);
+            if (!modifierOpt.isPresent()) continue;
+            final CharSequence modifier = modifierOpt.get();
+            if (modifier.length() < minLength) continue;
+
+            CharSequence l = modifierOpt.get();
+            CharSequence r = right.getValue();
+            collector.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{l, r}, generatorAndWeight.weight));
+        }
+    }
 }

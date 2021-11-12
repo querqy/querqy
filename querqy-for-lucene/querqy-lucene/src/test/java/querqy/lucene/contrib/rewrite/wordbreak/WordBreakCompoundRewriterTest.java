@@ -1,5 +1,6 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -11,6 +12,7 @@ import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.must;
 import static querqy.QuerqyMatchers.term;
 
+import net.bytebuddy.implementation.bind.annotation.Morph;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.CombineSuggestion;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -330,6 +333,46 @@ public class WordBreakCompoundRewriterTest {
                         )
 
                 )
+        );
+    }
+
+    @Test
+    public void testGermanMorphologicalCompounder() throws IOException {
+        // don't de-compound
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+            .thenReturn(new SuggestWord[][] {new SuggestWord[] {}});
+        when(indexReader.docFreq(any())).thenReturn(1);
+
+        Morphology morphology = Morphology.GERMAN;
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
+            new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
+            new MorphologicalCompounder(morphology, "field1", false, 1),
+            indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+            NO_PROTECTEDWORDS);
+        Query query = new Query();
+        addTerm(query, "w1", false);
+        addTerm(query, "w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery);
+
+        assertThat((Query) rewritten.getUserQuery(),
+            bq(
+                dmq(
+                    term("w1", false),
+                    term("w1enw2", true),
+                    term("w1w2", true),
+                    term("w1ew2", true)
+                ),
+                dmq(
+                    term("w2", false),
+                    term("w1enw2", true),
+                    term("w1w2", true),
+                    term("w1ew2", true)
+                )
+            )
         );
     }
 

@@ -65,126 +65,143 @@ public abstract class GermanDecompoundingMorphology {
     static final WordGenerator GENERATOR_UM = new SuffixWordGenerator("um");
     static final WordGenerator GENERATOR_UMLAUT = new GermanUmlautWordGenerator();
 
+    public static SuffixGroup createCompoundingMorphemes(final float weightMorphologicalPattern) {
+        return new SuffixGroup(null,
+
+            asList(
+                // 0
+                new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_0,
+                    weightMorphologicalPattern)),
+                // -e
+                new WordGeneratorAndWeight(GENERATOR_E, (float) Math.pow(PRIOR_MINUS_E,
+                    weightMorphologicalPattern)),
+                // -en
+                new WordGeneratorAndWeight(GENERATOR_EN, (float) Math.pow(PRIOR_MINUS_EN,
+                    weightMorphologicalPattern))
+            )
+        );
+    }
+
     public static SuffixGroup createMorphemes(final float weightMorphologicalPattern) {
         return new SuffixGroup(null,
 
-                asList(
-                        // 0
-                        new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_0,
-                                weightMorphologicalPattern)),
+            asList(
+                // 0
+                new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_0,
+                    weightMorphologicalPattern)),
 
-                        // -e
-                        new WordGeneratorAndWeight(GENERATOR_E, (float) Math.pow(PRIOR_MINUS_E,
-                                weightMorphologicalPattern)),
+                // -e
+                new WordGeneratorAndWeight(GENERATOR_E, (float) Math.pow(PRIOR_MINUS_E,
+                    weightMorphologicalPattern)),
 
-                        // -en
-                        new WordGeneratorAndWeight(GENERATOR_EN, (float) Math.pow(PRIOR_MINUS_EN,
-                                weightMorphologicalPattern))
+                // -en
+                new WordGeneratorAndWeight(GENERATOR_EN, (float) Math.pow(PRIOR_MINUS_EN,
+                    weightMorphologicalPattern))
 
+            ),
+
+            new SuffixGroup("s",
+                singletonList(
+                    // +s
+                    new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_PLUS_S,
+                        weightMorphologicalPattern))
                 ),
-
-                new SuffixGroup("s",
+                new SuffixGroup("es",
                     singletonList(
-                            // +s
-                            new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_PLUS_S,
-                                    weightMorphologicalPattern))
+                        // +es
+                        new WordGeneratorAndWeight(GENERATOR_NULL,
+                            (float) Math.pow(PRIOR_PLUS_ES, weightMorphologicalPattern))
+                    )
+                )
+
+            ),
+
+            new SuffixGroup("n",
+                singletonList(
+                    // +n
+                    new WordGeneratorAndWeight(GENERATOR_NULL,
+                        (float) Math.pow(PRIOR_PLUS_N, weightMorphologicalPattern))
+                ),
+                new SuffixGroup("en",
+                    asList(
+                        // +en
+                        new WordGeneratorAndWeight(GENERATOR_NULL,
+                            (float) Math.pow(PRIOR_PLUS_EN, weightMorphologicalPattern)),
+                        // -us +en
+                        new WordGeneratorAndWeight(GENERATOR_US,
+                            (float) Math.pow(PRIOR_MINUS_US_PLUS_EN, weightMorphologicalPattern)),
+                        // -um +en
+                        new WordGeneratorAndWeight(GENERATOR_UM,
+                            (float) Math.pow(PRIOR_MINUS_UM_PLUS_EN, weightMorphologicalPattern)),
+                        // -a +en
+                        new WordGeneratorAndWeight(GENERATOR_A,
+                            (float) Math.pow(PRIOR_MINUS_A_PLUS_EN, weightMorphologicalPattern)),
+                        // -on +en
+                        new WordGeneratorAndWeight(GENERATOR_ON,
+                            (float) Math.pow(PRIOR_MINUS_ON_PLUS_EN, weightMorphologicalPattern))
                     ),
-                    new SuffixGroup("es",
-                            singletonList(
-                                // +es
-                                new WordGeneratorAndWeight(GENERATOR_NULL,
-                                        (float) Math.pow(PRIOR_PLUS_ES, weightMorphologicalPattern))
-                            )
+                    new SuffixGroup("nen",
+                        singletonList(
+                            // +nen
+                            new WordGeneratorAndWeight(GENERATOR_NULL,
+                                (float) Math.pow(PRIOR_PLUS_NEN, weightMorphologicalPattern) )
+                        )
+                    ),
+                    new SuffixGroup("ien",
+                        singletonList(
+                            // +ien
+                            new WordGeneratorAndWeight(GENERATOR_NULL,
+                                (float) Math.pow(PRIOR_PLUS_IEN, weightMorphologicalPattern) )
+                        )
+                    )
+                )
+
+            ),
+            new SuffixGroup("a",
+                asList(
+                    // -um +a
+                    new WordGeneratorAndWeight(GENERATOR_UM,
+                        (float) Math.pow(PRIOR_MINUS_UM_PLUS_A, weightMorphologicalPattern)),
+                    // -on +a
+                    new WordGeneratorAndWeight(GENERATOR_ON,
+                        (float) Math.pow(PRIOR_MINUS_ON_PLUS_A, weightMorphologicalPattern))
+                )
+
+            ),
+            new SuffixGroup("e",
+                asList(
+                    // +e
+                    new WordGeneratorAndWeight(GENERATOR_NULL,
+                        (float) Math.pow(PRIOR_PLUS_E, weightMorphologicalPattern)),
+                    // +" +e
+                    new WordGeneratorAndWeight(GENERATOR_UMLAUT,
+                        (float) Math.pow(PRIOR_PLUS_UMLAUT_E, weightMorphologicalPattern))
+                )
+
+            ),
+            new SuffixGroup("r",
+                Collections.emptyList(),
+                new SuffixGroup("er",
+                    asList(
+                        // +er
+                        new WordGeneratorAndWeight(GENERATOR_NULL,
+                            (float) Math.pow(PRIOR_PLUS_ER, weightMorphologicalPattern)),
+                        // +" +er
+                        new WordGeneratorAndWeight(GENERATOR_UMLAUT,
+                            (float) Math.pow(PRIOR_PLUS_UMLAUT_ER, weightMorphologicalPattern))
                     )
 
-                ),
-
-                new SuffixGroup("n",
-                        singletonList(
-                                // +n
-                                new WordGeneratorAndWeight(GENERATOR_NULL,
-                                        (float) Math.pow(PRIOR_PLUS_N, weightMorphologicalPattern))
-                        ),
-                        new SuffixGroup("en",
-                                asList(
-                                        // +en
-                                        new WordGeneratorAndWeight(GENERATOR_NULL,
-                                                (float) Math.pow(PRIOR_PLUS_EN, weightMorphologicalPattern)),
-                                        // -us +en
-                                        new WordGeneratorAndWeight(GENERATOR_US,
-                                                (float) Math.pow(PRIOR_MINUS_US_PLUS_EN, weightMorphologicalPattern)),
-                                        // -um +en
-                                        new WordGeneratorAndWeight(GENERATOR_UM,
-                                                (float) Math.pow(PRIOR_MINUS_UM_PLUS_EN, weightMorphologicalPattern)),
-                                        // -a +en
-                                        new WordGeneratorAndWeight(GENERATOR_A,
-                                                (float) Math.pow(PRIOR_MINUS_A_PLUS_EN, weightMorphologicalPattern)),
-                                        // -on +en
-                                        new WordGeneratorAndWeight(GENERATOR_ON,
-                                                (float) Math.pow(PRIOR_MINUS_ON_PLUS_EN, weightMorphologicalPattern))
-                                ),
-                                new SuffixGroup("nen",
-                                        singletonList(
-                                                // +nen
-                                                new WordGeneratorAndWeight(GENERATOR_NULL,
-                                                        (float) Math.pow(PRIOR_PLUS_NEN, weightMorphologicalPattern) )
-                                        )
-                                ),
-                                new SuffixGroup("ien",
-                                        singletonList(
-                                                // +ien
-                                                new WordGeneratorAndWeight(GENERATOR_NULL,
-                                                        (float) Math.pow(PRIOR_PLUS_IEN, weightMorphologicalPattern) )
-                                        )
-                                )
-                        )
-
-                ),
-                new SuffixGroup("a",
-                        asList(
-                                // -um +a
-                                new WordGeneratorAndWeight(GENERATOR_UM,
-                                        (float) Math.pow(PRIOR_MINUS_UM_PLUS_A, weightMorphologicalPattern)),
-                                // -on +a
-                                new WordGeneratorAndWeight(GENERATOR_ON,
-                                        (float) Math.pow(PRIOR_MINUS_ON_PLUS_A, weightMorphologicalPattern))
-                        )
-
-                ),
-                new SuffixGroup("e",
-                        asList(
-                                // +e
-                                new WordGeneratorAndWeight(GENERATOR_NULL,
-                                        (float) Math.pow(PRIOR_PLUS_E, weightMorphologicalPattern)),
-                                // +" +e
-                                new WordGeneratorAndWeight(GENERATOR_UMLAUT,
-                                        (float) Math.pow(PRIOR_PLUS_UMLAUT_E, weightMorphologicalPattern))
-                        )
-
-                ),
-                new SuffixGroup("r",
-                        Collections.emptyList(),
-                        new SuffixGroup("er",
-                                asList(
-                                        // +er
-                                        new WordGeneratorAndWeight(GENERATOR_NULL,
-                                                (float) Math.pow(PRIOR_PLUS_ER, weightMorphologicalPattern)),
-                                        // +" +er
-                                        new WordGeneratorAndWeight(GENERATOR_UMLAUT,
-                                                (float) Math.pow(PRIOR_PLUS_UMLAUT_ER, weightMorphologicalPattern))
-                                )
-
-                        )
-
-                ),
-                new SuffixGroup("i",
-                        singletonList(
-                                // -e +i
-                                new WordGeneratorAndWeight(GENERATOR_E,
-                                        (float) Math.pow(PRIOR_MINUS_E_PLUS_I, weightMorphologicalPattern))
-                        )
-
                 )
+
+            ),
+            new SuffixGroup("i",
+                singletonList(
+                    // -e +i
+                    new WordGeneratorAndWeight(GENERATOR_E,
+                        (float) Math.pow(PRIOR_MINUS_E_PLUS_I, weightMorphologicalPattern))
+                )
+
+            )
 
 
         );
