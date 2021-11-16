@@ -40,9 +40,11 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
 
 
     private querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory delegate = null;
+    private final Morphology.MorphologyProvider morphologyProvider;
 
     public WordBreakCompoundRewriterFactory(final String rewriterId) {
         super(rewriterId);
+        morphologyProvider = new Morphology.MorphologyProvider();
     }
 
     @Override
@@ -86,8 +88,9 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final boolean alwaysAddReverseCompounds = ConfigUtils.getArg(config, CONF_ALWAYS_ADD_REVERSE_COMPOUNDS,
                 Boolean.FALSE);
 
-        final Morphology morphology = ConfigUtils.getEnumArg(config, CONF_MORPHOLOGY, Morphology.class)
-                .orElse(Morphology.DEFAULT);
+//        final Morphology morphology = ConfigUtils.getEnumArg(config, CONF_MORPHOLOGY, Morphology.class)
+//                .orElse(Morphology.DEFAULT);
+        final Morphology morphology = morphologyProvider.get((String)config.get(CONF_MORPHOLOGY));
 
         // terms that are "protected", i.e. false positives that should never be split and never be result
         // of a combination
@@ -105,9 +108,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
 
     @Override
     public List<String> validateConfiguration(final Map<String, Object> config) {
-        try {
-            ConfigUtils.getEnumArg(config, "morphology", Morphology.class);
-        } catch (final Exception e) {
+        if (config.get(CONF_MORPHOLOGY) != null && !morphologyProvider.exists((String)config.get(CONF_MORPHOLOGY))) {
             return Collections.singletonList("Cannot load morphology: " + config.get("morphology"));
         }
 

@@ -2,6 +2,7 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.spell.CombineSuggestion;
 import org.junit.Test;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -12,6 +13,7 @@ import querqy.trie.TrieMap;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +28,7 @@ public class MorphologicalCompounderTest {
 
     @Test
     public void simpleMorphologicalWordBreakCompoundRewriter() throws Exception {
+
         final MorphologicalCompounder compounder = new MorphologicalCompounder(weightMorphologicalPattern -> new SuffixGroup(null,
                 asList(
                         // 0
