@@ -13,8 +13,6 @@ import java.util.List;
 
 public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
-    public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
-
     final SuffixGroup suffixGroup; // package visible for testing
 
     private final int minBreakLength;
@@ -23,12 +21,13 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
     private final String dictionaryField;
     private final int minSuggestionFrequency;
     final float weightDfObservation;
+    private Morphology morphology;
 
     public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations) {
         this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength, maxEvaluations,
-                DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+                Morphology.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
     public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
@@ -44,7 +43,8 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
         weightDfObservation = 1f - weightMorphologicalPattern;
 
-        suffixGroup = morphology.createMorphemes(weightMorphologicalPattern);
+        this.morphology = morphology;
+        suffixGroup = this.morphology.createMorphemes(weightMorphologicalPattern);
 
     }
 
@@ -81,27 +81,35 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
         // the original left term can be longer than rightOfs because the compounding might have removed characters
         // TODO: find min left size (based on linking morphemes and minBreakLength)
-        for (int leftLength = termLength - minBreakLength; leftLength > 0; leftLength--) {
+        // Generation of suggestions happens here -
+        final List<WordBreak> suggestedWordBreaks = morphology.suggestWordBreaks(input, minBreakLength);
 
-            int splitIndex = Character.offsetByCodePoints(input, 0, leftLength);
-
-            final CharSequence right = input.subSequence(splitIndex, input.length());
-            final Term rightTerm = new Term(dictionaryField, new BytesRef(right));
-
+        for (final WordBreak suggestedWordBreak : suggestedWordBreaks) {
+            //iterate through break suggest
+            final Term rightTerm = new Term(dictionaryField, new BytesRef(suggestedWordBreak.originalRight));
             final int rightDf;
             try {
                 rightDf = indexReader.docFreq(rightTerm);
             } catch (final IOException e) {
                 throw new UncheckedIOException(e);
             }
+
             if (rightDf < minSuggestionFrequency) {
                 continue;
             }
+            final List<BreakSuggestion> suggestions = suggestedWordBreak.suggestions;
 
-            final CharSequence left = input.subSequence(0, splitIndex);
-            suffixGroup.collect(left, 0, right, rightTerm, rightDf, minBreakLength, collector);
-
-
+            for (final BreakSuggestion suggestion : suggestions) {
+                final Collector.CollectionState collectionState = collector.collect(
+                        suggestion.sequence[0],
+                        suggestedWordBreak.originalRight,
+                        rightTerm,
+                        rightDf,
+                        suggestion.score);
+                if (collectionState.isMaxEvaluationsReached()) {
+                    break;
+                }
+            }
         }
     }
 

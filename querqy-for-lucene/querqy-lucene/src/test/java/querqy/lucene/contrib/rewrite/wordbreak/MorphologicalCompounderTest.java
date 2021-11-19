@@ -2,7 +2,6 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.spell.CombineSuggestion;
 import org.junit.Test;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -10,10 +9,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.trie.TrieMap;
 
-import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
-import java.util.PriorityQueue;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,7 +17,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static querqy.QuerqyMatchers.*;
-import static querqy.lucene.contrib.rewrite.wordbreak.MorphologicalWordBreaker.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN;
+import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN;
 
 public class MorphologicalCompounderTest {
     private final LuceneWordBreaker noOp = (word, indexReader, maxDecompoundExpansions, verifyCollation) -> Collections.emptyList();

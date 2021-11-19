@@ -3,9 +3,7 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 import org.apache.lucene.index.Term;
 import querqy.lucene.contrib.rewrite.wordbreak.Collector.CollectionState;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>
@@ -41,7 +39,7 @@ public class SuffixGroup {
     private final SuffixGroup[] next;
 
     public SuffixGroup(final CharSequence suffix, final List<WordGeneratorAndWeight> generatorAndWeights,
-                       final SuffixGroup ... next) {
+                       final SuffixGroup... next) {
         this.suffix = suffix;
         this.generatorAndWeights = generatorAndWeights;
         this.next = next;
@@ -49,19 +47,18 @@ public class SuffixGroup {
     }
 
     /**
-     *
-     * @param left The left split (the modifier)
+     * @param left                  The left split (the modifier)
      * @param matchingFromEndOfLeft number of characters that are know to match from the end of the left split
-     * @param right The head character sequence
-     * @param rightTerm The head character sequence as a term in the dictionary field
-     * @param rightDf The document frequency of the rightTerm
-     * @param minLength The minimum head/modifier length
-     * @param collector The collector that will be presented the candidates
+     * @param right                 The head character sequence
+     * @param rightTerm             The head character sequence as a term in the dictionary field
+     * @param rightDf               The document frequency of the rightTerm
+     * @param minLength             The minimum head/modifier length
+     * @param collector             The collector that will be presented the candidates
      * @return true iff the suffix of this SuffixGroup matched
      */
     public CollectionState collect(final CharSequence left, final int matchingFromEndOfLeft,
-                                             final CharSequence right, final Term rightTerm, final int rightDf,
-                                             final int minLength, final Collector collector) {
+                                   final CharSequence right, final Term rightTerm, final int rightDf,
+                                   final int minLength, final Collector collector) {
 
         final int leftLength = left.length();
 
@@ -88,19 +85,20 @@ public class SuffixGroup {
         boolean matched = false;
 
         final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
-        for (final WordGeneratorAndWeight generatorAndWeight: generatorAndWeights) {
+        for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
             final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(reduced);
-            if (modifierOpt.isPresent()) {
-                final CharSequence modifier = modifierOpt.get();
-                if (modifier.length() >= minLength) {
-                    final CollectionState collectionState = collector.collect(modifier, right, rightTerm,
-                            rightDf, generatorAndWeight.weight);
-                    matched |= collectionState.getMatched().orElse(false);
-                    if (collectionState.isMaxEvaluationsReached()) {
-                        return matched
-                                ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
-                                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
-                    }
+            if (!modifierOpt.isPresent()) {
+                continue;
+            }
+            final CharSequence modifier = modifierOpt.get();
+            if (modifier.length() >= minLength) {
+                final CollectionState collectionState = collector.collect(modifier, right, rightTerm,
+                        rightDf, generatorAndWeight.weight);
+                matched |= collectionState.getMatched().orElse(false);
+                if (collectionState.isMaxEvaluationsReached()) {
+                    return matched
+                            ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
+                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
                 }
             }
         }
@@ -126,17 +124,51 @@ public class SuffixGroup {
                 : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
     }
 
-    public void collect(querqy.model.Term left, querqy.model.Term right, Queue<MorphologicalWordBreaker.BreakSuggestion> collector) {
+    public List<MorphologicalWordBreaker.BreakSuggestion> collect2(final CharSequence left, final int matchingFromEndOfLeft) {
+        final int leftLength = left.length();
+        if (left.length() <= suffixLength) {
+            return Collections.emptyList();
+        }
+
+        if (suffixLength > 0 && left.length() > suffixLength) {
+            for (int i = 1 + matchingFromEndOfLeft; i <= suffixLength; i++) {
+                if (left.charAt(leftLength - i) != suffix.charAt(suffixLength - i)) {
+                    return Collections.emptyList();
+                }
+            }
+        }
+
+        final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
+
+        final List<MorphologicalWordBreaker.BreakSuggestion> res = new ArrayList<>();
+
+        for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
+            final Optional<CharSequence> modifier = generatorAndWeight.generator.generateModifier(reduced);
+            if (modifier.isPresent()) {
+                final MorphologicalWordBreaker.BreakSuggestion breakSuggestion = new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{modifier.get()}, generatorAndWeight.weight);
+                res.add(breakSuggestion);
+            }
+        }
+
+        if (next != null) {
+            for (final SuffixGroup suffixGroup : next) {
+                res.addAll(suffixGroup.collect2(left, suffixLength));
+            }
+        }
+        return res;
+    }
+
+    public void collect(final querqy.model.Term left, final querqy.model.Term right, final Queue<MorphologicalWordBreaker.BreakSuggestion> collector) {
         final int minLength = 1;
 
-        for (final WordGeneratorAndWeight generatorAndWeight: generatorAndWeights) {
+        for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
             final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(left);
             if (!modifierOpt.isPresent()) continue;
             final CharSequence modifier = modifierOpt.get();
             if (modifier.length() < minLength) continue;
 
-            CharSequence l = modifierOpt.get();
-            CharSequence r = right.getValue();
+            final CharSequence l = modifierOpt.get();
+            final CharSequence r = right.getValue();
             collector.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{l, r}, generatorAndWeight.weight));
         }
     }
