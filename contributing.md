@@ -2,6 +2,8 @@
 
 We welcome your contribution to developping Querqy further! Let us know about your idea or submit a pull request!
 
+## Principles
+
 We haven't compiled comprehensive developer guidelines yet but we ask you to adhere to the following:
 
 Please...
@@ -32,4 +34,10 @@ void myMethod()
 * Make variables `final` where possible. We know this is not everyone's favourite coding style but we did see performance gains from this. 
   We won't mark a missing `final` in a test class.
   
-   
+## Running integration tests
+
+To run integration tests locally, start up your Docker and then execute
+
+`mvn verify -DskipITs=false`
+
+
