@@ -167,7 +167,7 @@
                         <project.build.directory>${project.build.directory}</project.build.directory>
                         <project.build.finalName>${project.build.finalName}</project.build.finalName>
                         <project.version>${project.version}</project.version>
-                        <solr.test.versions>solr:8.10,solr:8.9,solr:8.8,solr:8.7,solr:8.6,solr:8.5,solr:8.4,solr:8.3,solr:8.2,solr:8.1</solr.test.versions>
+                        <solr.test.versions>solr:8.11,solr:8.10,solr:8.9,solr:8.8,solr:8.7,solr:8.6,solr:8.5,solr:8.4,solr:8.3,solr:8.2,solr:8.1</solr.test.versions>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
