@@ -93,6 +93,8 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
                     containsInAnyOrder("buch", "büch", "bücher", "büchere"));
 
 
+        } finally {
+            directory.close();
         }
     }
 }

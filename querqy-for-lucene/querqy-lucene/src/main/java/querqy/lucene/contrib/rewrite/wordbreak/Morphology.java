@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static java.util.Collections.min;
 import static java.util.Collections.singletonList;
 
 
@@ -81,7 +83,9 @@ public class Morphology implements IMorphology {
             final int splitIndex = Character.offsetByCodePoints(word, 0, leftLength);
             final CharSequence right = word.subSequence(splitIndex, word.length());
             final CharSequence left = word.subSequence(0, splitIndex);
-            final List<BreakSuggestion> breakSuggestions = morphemes.generateBreakSuggestions(left);
+            final List<BreakSuggestion> breakSuggestions = morphemes.generateBreakSuggestions(left).stream()
+                    .filter(breakSuggestion -> breakSuggestion.sequence[0].length() >= minBreakLength)
+                    .collect(Collectors.toList());
             wordBreaks.add(new WordBreak(left, right, breakSuggestions));
         }
 

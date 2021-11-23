@@ -97,13 +97,8 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
             if (rightDf < minSuggestionFrequency) {
                 continue;
             }
-            final List<BreakSuggestion> suggestions = suggestedWordBreak.suggestions.stream()
-                    //FIXME: I'm not sure about this particular filtering. MinBreakLength was referred to the original left term, not to the reduced one.
-                    //FIXME: Right now it checks for original term and the subsequent reduced terms.
-                    .filter(breakSuggestion -> breakSuggestion.sequence[0].length() >= minBreakLength)
-                    .collect(Collectors.toList());
 
-            for (final BreakSuggestion suggestion : suggestions) {
+            for (final BreakSuggestion suggestion : suggestedWordBreak.suggestions) {
                 final Collector.CollectionState collectionState = collector.collect(
                         suggestion.sequence[0],
                         suggestedWordBreak.originalRight,
