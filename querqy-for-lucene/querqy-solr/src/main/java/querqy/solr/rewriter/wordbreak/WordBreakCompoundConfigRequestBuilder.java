@@ -13,7 +13,7 @@ import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CO
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_PROTECTED_WORDS;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_REVERSE_COMPOUND_TRIGGER_WORDS;
 
-import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
+import querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl;
 import querqy.solr.RewriterConfigRequestBuilder;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
     private Boolean alwaysAddReverseCompounds;
     private Integer decompoundMaxExpansions;
     private Boolean decompoundVerifyCollation;
-    private Morphology morphology;
+    private MorphologyImpl morphology;
     private List<String> protectedWords;
 
     public WordBreakCompoundConfigRequestBuilder() {
@@ -180,7 +180,7 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
         return this;
     }
 
-    public WordBreakCompoundConfigRequestBuilder morphology(final Morphology morphology) {
+    public WordBreakCompoundConfigRequestBuilder morphology(final MorphologyImpl morphology) {
         this.morphology = morphology;
         return this;
     }

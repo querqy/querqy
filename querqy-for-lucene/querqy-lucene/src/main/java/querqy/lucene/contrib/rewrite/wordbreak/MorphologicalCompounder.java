@@ -5,11 +5,7 @@ import querqy.model.Term;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static querqy.lucene.LuceneQueryUtil.toLuceneTerm;
@@ -17,21 +13,31 @@ import static querqy.lucene.LuceneQueryUtil.toLuceneTerm;
 public class MorphologicalCompounder implements LuceneCompounder {
 
     public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
-    private final SuffixGroup suffixGroup;
+    private static final int DEFAULT_MAX_COMPOUND_EXPANSIONS = 10;
     private final String dictionaryField;
     private final int minSuggestionFrequency;
-
-    public MorphologicalCompounder(final Morphology morphology, final String dictionaryField, final boolean lowercaseInput, final int minSuggestionFrequency) {
-        this(morphology::createCompoundingMorphemes, dictionaryField, lowercaseInput, minSuggestionFrequency, DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
-    }
+    private final Morphology morphology;// move to constructor
+    private final int maxCompoundExpansions;
 
 
-    // Visible for testing
-    public MorphologicalCompounder(final Function<Float, SuffixGroup> morphology, final String dictionaryField, final boolean lowercaseInput, final int minSuggestionFrequency, float weightMorphologicalPattern) {
+    public MorphologicalCompounder(final Morphology morphology,
+                                   final String dictionaryField,
+                                   final boolean lowercaseInput,
+                                   final int minSuggestionFrequency,
+                                   int maxCompoundExpansions) {
         this.dictionaryField = dictionaryField;
         this.minSuggestionFrequency = minSuggestionFrequency;
-        suffixGroup = morphology.apply(weightMorphologicalPattern);
+        this.morphology = morphology;
+        this.maxCompoundExpansions = maxCompoundExpansions;
     }
+
+    public MorphologicalCompounder(final Morphology morphology,
+                                   final String dictionaryField,
+                                   final boolean lowercaseInput,
+                                   final int minSuggestionFrequency) {
+        this(morphology, dictionaryField, lowercaseInput, minSuggestionFrequency, DEFAULT_MAX_COMPOUND_EXPANSIONS);
+    }
+
 
     @Override
     public List<CompoundTerm> combine(final Term[] terms, final IndexReader indexReader, final boolean reverse) {
@@ -40,27 +46,26 @@ public class MorphologicalCompounder implements LuceneCompounder {
         }
         final Term left = terms[0];
         final Term right = terms[1];
-        final int maxCompoundExpansions = 10; // move to constructor
         final int queueInitialCapacity = Math.min(maxCompoundExpansions, 10);
-        final Queue<BreakSuggestion> collector = new PriorityQueue<>(queueInitialCapacity);
+        final Queue<Compound> collector = new PriorityQueue<>(queueInitialCapacity);
         // do we care about the collector in this overload or change signature to turn list?
-        suffixGroup.collect(left, right, collector);
+        final Compound[] compounds = morphology.suggestCompounds(left, right);
+        collector.addAll(Arrays.asList(compounds));
 
-        return collector.stream().map(suggestion -> {
-            final CharSequence modifier = suggestion.sequence[0];
-            final CharSequence base = suggestion.sequence[1];
-            final CharSequence modifierBaseCompound = new StringBuilder().append(modifier).append(base);
-            return new CompoundTerm(modifierBaseCompound, new Term[]{left, right});
-        }).filter(compound -> {
-            // Should this check be configurable?
-            final org.apache.lucene.index.Term compoundTerm = toLuceneTerm(dictionaryField, compound.value, false);
-            final int compoundDf;
-            try {
-                compoundDf = indexReader.docFreq(compoundTerm);
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
-            return (compoundDf >= minSuggestionFrequency);
-        }).collect(Collectors.toList());
+        return collector.stream()
+                .limit(maxCompoundExpansions)
+                .map(compound -> new CompoundTerm(compound.compound, terms))
+                .filter(compound -> {
+                    // Should this check be configurable?
+                    final org.apache.lucene.index.Term compoundTerm = toLuceneTerm(dictionaryField, compound.value, false);
+                    final int compoundDf;
+                    try {
+                        compoundDf = indexReader.docFreq(compoundTerm);
+                    } catch (final IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                    return (compoundDf >= minSuggestionFrequency);
+                })
+                .collect(Collectors.toList());
     }
 }

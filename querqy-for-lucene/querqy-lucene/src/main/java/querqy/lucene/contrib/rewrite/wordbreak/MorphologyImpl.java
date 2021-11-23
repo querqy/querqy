@@ -1,6 +1,8 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
 
+import querqy.CharSequenceUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,10 +13,22 @@ import static java.util.Collections.min;
 import static java.util.Collections.singletonList;
 
 
-class Compound {
+class Compound implements Comparable<Compound> {
     CharSequence[] terms;
     CharSequence compound;
     float probability;
+
+    @Override
+    public int compareTo(final Compound other) {
+        if (other == this) {
+            return 0;
+        }
+        final int c = Float.compare(probability, other.probability); // greater is better
+        if (c == 0) {
+            return Integer.compare(compound.length(), other.compound.length()); // shorter is better
+        }
+        return c;
+    }
 }
 
 class WordBreak {
@@ -29,50 +43,47 @@ class WordBreak {
     }
 }
 
-interface IMorphology {
+interface Morphology {
     Compound[] suggestCompounds(CharSequence left, CharSequence right);
 
     List<WordBreak> suggestWordBreaks(CharSequence word, int minBreakLength);
 }
 
-public class Morphology implements IMorphology {
+public class MorphologyImpl implements Morphology {
     public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
 
-    public static Morphology DEFAULT = new Morphology("DEFAULT", weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
-    public static Morphology GERMAN = new Morphology("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes);
+    public static MorphologyImpl DEFAULT = new MorphologyImpl("DEFAULT", weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
+    public static MorphologyImpl GERMAN = new MorphologyImpl("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes);
 
     private final Function<Float, SuffixGroup> morphemeFactory;
-    private final Function<Float, SuffixGroup> compoundingMorphemeFactory;
 
     private final String name;
 
 
-    Morphology(final String name, final Function<Float, SuffixGroup> morphemeFactory, final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
+    MorphologyImpl(final String name, final Function<Float, SuffixGroup> morphemeFactory, final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
         this.morphemeFactory = morphemeFactory;
-        this.compoundingMorphemeFactory = compoundingMorphemeFactory;
         this.name = name;
     }
 
-    Morphology(final String name, final Function<Float, SuffixGroup> morphemeFactory) {
+    MorphologyImpl(final String name, final Function<Float, SuffixGroup> morphemeFactory) {
         this(name, morphemeFactory, morphemeFactory);
     }
 
-    public SuffixGroup createMorphemes(final float weightMorphologicalPattern) {
-        return morphemeFactory.apply(weightMorphologicalPattern);
-    }
-
-    public SuffixGroup createCompoundingMorphemes(final float weightMorphologicalPattern) {
-        return compoundingMorphemeFactory.apply(weightMorphologicalPattern);
+    private SuffixGroup createMorphemes() {
+        return morphemeFactory.apply(MorphologyImpl.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
     @Override
     public Compound[] suggestCompounds(final CharSequence left, final CharSequence right) {
-        return new Compound[0];
+        Compound compound = new Compound();
+        compound.terms = new CharSequence[]{left, right};
+        compound.compound = new StringBuilder().append(left).append(right).toString();
+        return new Compound[]{compound};
     }
 
     @Override
     public List<WordBreak> suggestWordBreaks(final CharSequence word, final int minBreakLength) {
-        final SuffixGroup morphemes = createMorphemes(DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+        final SuffixGroup morphemes = createMorphemes();
         final int termLength = Character.codePointCount(word, 0, word.length());
         final List<WordBreak> wordBreaks = new ArrayList<>();
         for (int leftLength = termLength - minBreakLength; leftLength > 0; leftLength--) {
@@ -97,16 +108,16 @@ public class Morphology implements IMorphology {
     }
 
     public static class MorphologyProvider {
-        private static final HashMap<String, Morphology> morphologies = new HashMap<>();
+        private static final HashMap<String, MorphologyImpl> morphologies = new HashMap<>();
         private static final String DEFAULT_KEY = "DEFAULT";
-        private static final Morphology DEFAULT = new Morphology(DEFAULT_KEY, weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
+        private static final MorphologyImpl DEFAULT = new MorphologyImpl(DEFAULT_KEY, weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
 
         static {
             morphologies.put(DEFAULT_KEY, DEFAULT);
-            morphologies.put("GERMAN", new Morphology("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes));
+            morphologies.put("GERMAN", new MorphologyImpl("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes));
         }
 
-        public Morphology get(final String name) {
+        public MorphologyImpl get(final String name) {
             return morphologies.getOrDefault(name, DEFAULT);
         }
 

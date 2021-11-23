@@ -54,7 +54,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
      */
     public WordBreakCompoundRewriterFactory(final String rewriterId,
                                             final Supplier<IndexReader> indexReaderSupplier,
-                                            final Morphology morphology,
+                                            final MorphologyImpl morphology,
                                             final String dictionaryField,
                                             final boolean lowerCaseInput,
                                             final int minSuggestionFreq,

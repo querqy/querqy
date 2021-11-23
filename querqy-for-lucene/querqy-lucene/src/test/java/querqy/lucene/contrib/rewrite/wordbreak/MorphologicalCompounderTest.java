@@ -2,36 +2,57 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 
 import org.apache.lucene.index.IndexReader;
+import org.hamcrest.Matchers;
 import org.junit.Test;
-import querqy.model.Clause;
-import querqy.model.DisjunctionMaxQuery;
-import querqy.model.ExpandedQuery;
-import querqy.model.Query;
+import querqy.model.*;
 import querqy.trie.TrieMap;
 
 import java.util.Collections;
+import java.util.List;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static querqy.QuerqyMatchers.*;
-import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN;
+import static querqy.lucene.contrib.rewrite.wordbreak.LuceneCompounder.*;
 
 public class MorphologicalCompounderTest {
     private final LuceneWordBreaker noOp = (word, indexReader, maxDecompoundExpansions, verifyCollation) -> Collections.emptyList();
+    private final Morphology noopMorphology = new Morphology() {
+        @Override
+        public Compound[] suggestCompounds(CharSequence left, CharSequence right) {
+            return new Compound[0];
+        }
+
+        @Override
+        public List<WordBreak> suggestWordBreaks(CharSequence word, int minBreakLength) {
+            return Collections.emptyList();
+        }
+    };
+    private final MorphologicalCompounder compounder = new MorphologicalCompounder(noopMorphology, "f1", true, 1);
+
+    @Test
+    public void emptyCollectionWhenLessThan2Terms() {
+        final List<CompoundTerm> combine = compounder.combine(new Term[]{}, null, false);
+        assertThat(combine, Matchers.hasSize(0));
+    }
 
     @Test
     public void simpleMorphologicalWordBreakCompoundRewriter() throws Exception {
 
-        final MorphologicalCompounder compounder = new MorphologicalCompounder(weightMorphologicalPattern -> new SuffixGroup(null,
-                asList(
-                        // 0
-                        new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, (float) Math.pow(1f,
-                                weightMorphologicalPattern))
-                )
-        ), "field1", false, 1, DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+        Morphology morphology = new Morphology() {
+            @Override
+            public Compound[] suggestCompounds(CharSequence left, CharSequence right) {
+                return new Compound[0];
+            }
+
+            @Override
+            public List<WordBreak> suggestWordBreaks(CharSequence word, int minBreakLength) {
+                return null;
+            }
+        };
+        final MorphologicalCompounder compounder = new MorphologicalCompounder(morphology, "field1", false, 1);
 
         // don't de-compound
 

@@ -8,7 +8,6 @@ import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
 import querqy.solr.SolrRewriterFactoryAdapter;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +39,11 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
 
 
     private querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory delegate = null;
-    private final Morphology.MorphologyProvider morphologyProvider;
+    private final MorphologyImpl.MorphologyProvider morphologyProvider;
 
     public WordBreakCompoundRewriterFactory(final String rewriterId) {
         super(rewriterId);
-        morphologyProvider = new Morphology.MorphologyProvider();
+        morphologyProvider = new MorphologyImpl.MorphologyProvider();
     }
 
     @Override
@@ -90,7 +89,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
 
 //        final Morphology morphology = ConfigUtils.getEnumArg(config, CONF_MORPHOLOGY, Morphology.class)
 //                .orElse(Morphology.DEFAULT);
-        final Morphology morphology = morphologyProvider.get((String)config.get(CONF_MORPHOLOGY));
+        final MorphologyImpl morphology = morphologyProvider.get((String)config.get(CONF_MORPHOLOGY));
 
         // terms that are "protected", i.e. false positives that should never be split and never be result
         // of a combination

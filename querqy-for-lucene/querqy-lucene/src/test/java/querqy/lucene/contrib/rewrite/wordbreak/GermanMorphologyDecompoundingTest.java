@@ -11,8 +11,8 @@ import static org.hamcrest.Matchers.*;
 
 
 public class GermanMorphologyDecompoundingTest {
-    private final Morphology.MorphologyProvider morphologyProvider = new Morphology.MorphologyProvider();
-    private final Morphology morphology = morphologyProvider.get("GERMAN");
+    private final MorphologyImpl.MorphologyProvider morphologyProvider = new MorphologyImpl.MorphologyProvider();
+    private final MorphologyImpl morphology = morphologyProvider.get("GERMAN");
 
     @Test
     public void zeroMinBreakLengthProduce_splitsForEachChar() {

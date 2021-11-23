@@ -13,7 +13,7 @@ import querqy.model.Term;
 import java.io.IOException;
 import java.util.List;
 
-import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.GERMAN;
+import static querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl.GERMAN;
 
 public class GermanCompounderTest extends LuceneTestCase {
 

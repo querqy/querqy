@@ -9,11 +9,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MorphologicalWordBreaker implements LuceneWordBreaker {
-
-    final SuffixGroup suffixGroup; // package visible for testing
 
     private final int minBreakLength;
     private final int maxEvaluations;
@@ -21,16 +18,16 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
     private final String dictionaryField;
     private final int minSuggestionFrequency;
     final float weightDfObservation;
-    private final Morphology morphology;
+    private final MorphologyImpl morphology;
 
-    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
+    public MorphologicalWordBreaker(final MorphologyImpl morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations) {
         this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength, maxEvaluations,
-                Morphology.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+                MorphologyImpl.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
-    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
+    public MorphologicalWordBreaker(final MorphologyImpl morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations,
                                     final float weightMorphologicalPattern) {
@@ -44,7 +41,6 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
         weightDfObservation = 1f - weightMorphologicalPattern;
 
         this.morphology = morphology;
-        suffixGroup = this.morphology.createMorphemes(weightMorphologicalPattern);
 
     }
 

@@ -2,7 +2,7 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static querqy.lucene.contrib.rewrite.wordbreak.Morphology.GERMAN;
+import static querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl.GERMAN;
 import static querqy.lucene.rewrite.TestUtil.addNumDocsWithTextField;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -12,7 +12,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.LuceneTestCase;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.io.IOException;
