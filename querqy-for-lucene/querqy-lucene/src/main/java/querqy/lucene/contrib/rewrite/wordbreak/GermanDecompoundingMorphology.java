@@ -1,7 +1,5 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.search.spell.CombineSuggestion;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -58,7 +56,7 @@ public abstract class GermanDecompoundingMorphology {
     // -us +a
     final static float PRIOR_MINUS_UM_PLUS_A = 255f / NORM_PRIOR;
 
-    static final WordGenerator GENERATOR_NULL = NullWordGenerator.INSTANCE;
+    static final WordGenerator GENERATOR_NOOP = NoopWordGenerator.INSTANCE;
     static final WordGenerator GENERATOR_A = new SuffixWordGenerator("a");
     static final WordGenerator GENERATOR_E = new SuffixWordGenerator("e");
     static final WordGenerator GENERATOR_EN = new SuffixWordGenerator("en");
@@ -72,7 +70,7 @@ public abstract class GermanDecompoundingMorphology {
 
             asList(
                 // 0
-                new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_0,
+                new WordGeneratorAndWeight(GENERATOR_NOOP, (float) Math.pow(PRIOR_0,
                     weightMorphologicalPattern)),
                 // -e
                 new WordGeneratorAndWeight(GENERATOR_E, (float) Math.pow(PRIOR_MINUS_E,
@@ -89,7 +87,7 @@ public abstract class GermanDecompoundingMorphology {
 
             asList(
                 // 0
-                new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_0,
+                new WordGeneratorAndWeight(GENERATOR_NOOP, (float) Math.pow(PRIOR_0,
                     weightMorphologicalPattern)),
 
                 // -e
@@ -105,13 +103,13 @@ public abstract class GermanDecompoundingMorphology {
             new SuffixGroup("s",
                 singletonList(
                     // +s
-                    new WordGeneratorAndWeight(GENERATOR_NULL, (float) Math.pow(PRIOR_PLUS_S,
+                    new WordGeneratorAndWeight(GENERATOR_NOOP, (float) Math.pow(PRIOR_PLUS_S,
                         weightMorphologicalPattern))
                 ),
                 new SuffixGroup("es",
                     singletonList(
                         // +es
-                        new WordGeneratorAndWeight(GENERATOR_NULL,
+                        new WordGeneratorAndWeight(GENERATOR_NOOP,
                             (float) Math.pow(PRIOR_PLUS_ES, weightMorphologicalPattern))
                     )
                 )
@@ -121,13 +119,13 @@ public abstract class GermanDecompoundingMorphology {
             new SuffixGroup("n",
                 singletonList(
                     // +n
-                    new WordGeneratorAndWeight(GENERATOR_NULL,
+                    new WordGeneratorAndWeight(GENERATOR_NOOP,
                         (float) Math.pow(PRIOR_PLUS_N, weightMorphologicalPattern))
                 ),
                 new SuffixGroup("en",
                     asList(
                         // +en
-                        new WordGeneratorAndWeight(GENERATOR_NULL,
+                        new WordGeneratorAndWeight(GENERATOR_NOOP,
                             (float) Math.pow(PRIOR_PLUS_EN, weightMorphologicalPattern)),
                         // -us +en
                         new WordGeneratorAndWeight(GENERATOR_US,
@@ -145,14 +143,14 @@ public abstract class GermanDecompoundingMorphology {
                     new SuffixGroup("nen",
                         singletonList(
                             // +nen
-                            new WordGeneratorAndWeight(GENERATOR_NULL,
+                            new WordGeneratorAndWeight(GENERATOR_NOOP,
                                 (float) Math.pow(PRIOR_PLUS_NEN, weightMorphologicalPattern) )
                         )
                     ),
                     new SuffixGroup("ien",
                         singletonList(
                             // +ien
-                            new WordGeneratorAndWeight(GENERATOR_NULL,
+                            new WordGeneratorAndWeight(GENERATOR_NOOP,
                                 (float) Math.pow(PRIOR_PLUS_IEN, weightMorphologicalPattern) )
                         )
                     )
@@ -173,7 +171,7 @@ public abstract class GermanDecompoundingMorphology {
             new SuffixGroup("e",
                 asList(
                     // +e
-                    new WordGeneratorAndWeight(GENERATOR_NULL,
+                    new WordGeneratorAndWeight(GENERATOR_NOOP,
                         (float) Math.pow(PRIOR_PLUS_E, weightMorphologicalPattern)),
                     // +" +e
                     new WordGeneratorAndWeight(GENERATOR_UMLAUT,
@@ -186,7 +184,7 @@ public abstract class GermanDecompoundingMorphology {
                 new SuffixGroup("er",
                     asList(
                         // +er
-                        new WordGeneratorAndWeight(GENERATOR_NULL,
+                        new WordGeneratorAndWeight(GENERATOR_NOOP,
                             (float) Math.pow(PRIOR_PLUS_ER, weightMorphologicalPattern)),
                         // +" +er
                         new WordGeneratorAndWeight(GENERATOR_UMLAUT,

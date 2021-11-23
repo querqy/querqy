@@ -3,7 +3,6 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.util.BytesRef;
-import querqy.CharSequenceUtil;
 import querqy.LowerCaseCharSequence;
 
 import java.io.IOException;
@@ -69,8 +68,8 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
     }
 
 
-    protected void collectSuggestions(final CharSequence word, final IndexReader indexReader,
-                                      final Collector collector) throws UncheckedIOException {
+    private void collectSuggestions(final CharSequence word, final IndexReader indexReader,
+                                    final Collector collector) throws UncheckedIOException {
         final int termLength = Character.codePointCount(word, 0, word.length());
         if (termLength < minBreakLength) {
             return;
@@ -100,7 +99,7 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
             }
             final List<BreakSuggestion> suggestions = suggestedWordBreak.suggestions.stream()
                     //FIXME: I'm not sure about this particular filtering. MinBreakLength was referred to the original left term, not to the reduced one.
-                    //FIXME: Right now it checks bor original term and the subsequent reduced terms.
+                    //FIXME: Right now it checks for original term and the subsequent reduced terms.
                     .filter(breakSuggestion -> breakSuggestion.sequence[0].length() >= minBreakLength)
                     .collect(Collectors.toList());
 
@@ -118,37 +117,5 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
         }
     }
 
-
-    public static class BreakSuggestion implements Comparable<BreakSuggestion> {
-
-        final CharSequence[] sequence;
-        final float score;
-
-        BreakSuggestion(final CharSequence[] sequence, final float score) {
-            this.sequence = sequence;
-            this.score = score;
-        }
-
-
-        @Override
-        public int compareTo(final BreakSuggestion other) {
-
-            if (other == this) {
-                return 0;
-            }
-            int c = Float.compare(score, other.score); // greater is better
-            if (c == 0) {
-                c = Integer.compare(sequence.length, other.sequence.length); // shorter is better
-                if (c == 0) {
-                    for (int i = 0; i < sequence.length && c == 0; i++) {
-                        c = CharSequenceUtil.compare(sequence[i], other.sequence[i]);
-                    }
-                }
-            }
-
-            return c;
-        }
-
-    }
 
 }

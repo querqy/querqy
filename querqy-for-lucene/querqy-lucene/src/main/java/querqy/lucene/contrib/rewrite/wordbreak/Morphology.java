@@ -2,12 +2,10 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
-import static java.util.Collections.replaceAll;
 import static java.util.Collections.singletonList;
 
 
@@ -20,11 +18,9 @@ class Compound {
 class WordBreak {
     public final CharSequence originalRight;
     public final CharSequence originalLeft;
-    public final List<MorphologicalWordBreaker.BreakSuggestion> suggestions;
-    CharSequence originalTerm;
-    List<MorphologicalWordBreaker.BreakSuggestion> breakSuggestions = new ArrayList<>();
+    public final List<BreakSuggestion> suggestions;
 
-    WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<MorphologicalWordBreaker.BreakSuggestion> suggestions) {
+    WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<BreakSuggestion> suggestions) {
         this.originalRight = originalRight;
         this.originalLeft = originalLeft;
         this.suggestions = suggestions;
@@ -40,10 +36,7 @@ interface IMorphology {
 public class Morphology implements IMorphology {
     public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
 
-//    DEFAULT(weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NullWordGenerator.INSTANCE, 1f)))),
-//    GERMAN(GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes);
-
-    public static Morphology DEFAULT = new Morphology("DEFAULT", weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NullWordGenerator.INSTANCE, 1f))));
+    public static Morphology DEFAULT = new Morphology("DEFAULT", weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
     public static Morphology GERMAN = new Morphology("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes);
 
     private final Function<Float, SuffixGroup> morphemeFactory;
@@ -84,7 +77,7 @@ public class Morphology implements IMorphology {
             final int splitIndex = Character.offsetByCodePoints(word, 0, leftLength);
             final CharSequence right = word.subSequence(splitIndex, word.length());
             final CharSequence left = word.subSequence(0, splitIndex);
-            final List<MorphologicalWordBreaker.BreakSuggestion> breakSuggestions = morphemes.collect2(left, 0);
+            final List<BreakSuggestion> breakSuggestions = morphemes.generateBreakSuggestions(left);
             wordBreaks.add(new WordBreak(left, right, breakSuggestions));
         }
 
@@ -96,9 +89,9 @@ public class Morphology implements IMorphology {
     }
 
     public static class MorphologyProvider {
-        private static HashMap<String, Morphology> morphologies = new HashMap<>();
-        private static String DEFAULT_KEY = "DEFAULT";
-        private static Morphology DEFAULT = new Morphology(DEFAULT_KEY, weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NullWordGenerator.INSTANCE, 1f))));
+        private static final HashMap<String, Morphology> morphologies = new HashMap<>();
+        private static final String DEFAULT_KEY = "DEFAULT";
+        private static final Morphology DEFAULT = new Morphology(DEFAULT_KEY, weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
 
         static {
             morphologies.put(DEFAULT_KEY, DEFAULT);

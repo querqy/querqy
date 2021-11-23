@@ -28,7 +28,7 @@ public class MorphologicalCompounderTest {
         final MorphologicalCompounder compounder = new MorphologicalCompounder(weightMorphologicalPattern -> new SuffixGroup(null,
                 asList(
                         // 0
-                        new WordGeneratorAndWeight(NullWordGenerator.INSTANCE, (float) Math.pow(1f,
+                        new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, (float) Math.pow(1f,
                                 weightMorphologicalPattern))
                 )
         ), "field1", false, 1, DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);

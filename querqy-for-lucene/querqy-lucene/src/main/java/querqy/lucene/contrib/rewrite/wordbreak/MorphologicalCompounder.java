@@ -42,7 +42,7 @@ public class MorphologicalCompounder implements LuceneCompounder {
         final Term right = terms[1];
         final int maxCompoundExpansions = 10; // move to constructor
         final int queueInitialCapacity = Math.min(maxCompoundExpansions, 10);
-        final Queue<MorphologicalWordBreaker.BreakSuggestion> collector = new PriorityQueue<>(queueInitialCapacity);
+        final Queue<BreakSuggestion> collector = new PriorityQueue<>(queueInitialCapacity);
         // do we care about the collector in this overload or change signature to turn list?
         suffixGroup.collect(left, right, collector);
 

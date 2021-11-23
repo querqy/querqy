@@ -2,11 +2,11 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 import java.util.Optional;
 
-public class NullWordGenerator implements WordGenerator {
+public class NoopWordGenerator implements WordGenerator {
 
-    public static NullWordGenerator INSTANCE = new NullWordGenerator();
+    public static NoopWordGenerator INSTANCE = new NoopWordGenerator();
 
-    private NullWordGenerator() {
+    private NoopWordGenerator() {
         // Use the singleton instance!
     }
 

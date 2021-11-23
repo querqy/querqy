@@ -1,27 +1,24 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyFloat;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.apache.lucene.index.Term;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.RandomIndexWriter;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import querqy.trie.TrieMap;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
-public class WordBreakCompoundRewriterFactoryTest {
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static querqy.lucene.rewrite.TestUtil.addNumDocsWithTextField;
+
+public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputTrue() {
@@ -69,28 +66,33 @@ public class WordBreakCompoundRewriterFactoryTest {
     }
 
     @Test
-    public void testLanguageMorphologyIsApplied() {
+    public void testLanguageMorphologyIsApplied() throws Exception {
+        final Analyzer analyzer = new WhitespaceAnalyzer();
 
-        Collector collector = mock(Collector.class);
-        when(collector.collect(any(CharSequence.class), any(CharSequence.class), any(), anyInt(), anyFloat()))
-                .thenReturn(Collector.CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED);
-
-        ArgumentCaptor<String> leftCaptor = ArgumentCaptor.forClass(String.class);
-
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null,
-                Morphology.GERMAN, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList());
-
-        assertTrue(factory.wordBreaker instanceof MorphologicalWordBreaker);
-        final SuffixGroup suffixGroup = ((MorphologicalWordBreaker) factory.wordBreaker).suffixGroup;
-
-        final String left = "bücher";
-        final String right = "right";
-        final Term rightTerm = new Term("f1", "right");
-
-        assertTrue(suffixGroup.collect(left, 0, right, rightTerm, 10, 1, collector).getMatched().orElse(false));
-        verify(collector, times(5)).collect(leftCaptor.capture(), anyString(), any(), anyInt(), anyFloat());
-        assertThat(leftCaptor.getAllValues(), containsInAnyOrder("buch", "büch", "bücher","büchere", "bücheren"));
+        final Directory directory = newDirectory();
+        final RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
 
 
+        addNumDocsWithTextField("field1", "regal", indexWriter, 1);
+        addNumDocsWithTextField("field1", "buch", indexWriter, 1);
+        addNumDocsWithTextField("field1", "büch", indexWriter, 1);
+        addNumDocsWithTextField("field1", "bücher", indexWriter, 1);
+        addNumDocsWithTextField("field1", "büchere", indexWriter, 1);
+        indexWriter.close();
+        try (final IndexReader indexReader = DirectoryReader.open(directory)) {
+            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null,
+                    Morphology.GERMAN, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList());
+
+            assertTrue(factory.wordBreaker instanceof MorphologicalWordBreaker);
+            final String word = "bücherregal";
+
+            assertThat(factory.wordBreaker.breakWord(word, indexReader, 10, false).stream()
+                            .map(charSequences -> charSequences[0])
+                            .map(CharSequence::toString)
+                            .collect(Collectors.toList()),
+                    containsInAnyOrder("buch", "büch", "bücher", "büchere"));
+
+
+        }
     }
 }

@@ -4,6 +4,7 @@ import org.apache.lucene.index.Term;
 import querqy.lucene.contrib.rewrite.wordbreak.Collector.CollectionState;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>
@@ -37,94 +38,23 @@ public class SuffixGroup {
     private final int suffixLength;
     private final List<WordGeneratorAndWeight> generatorAndWeights;
     private final SuffixGroup[] next;
+    private final List<SuffixGroup> nextL;
 
     public SuffixGroup(final CharSequence suffix, final List<WordGeneratorAndWeight> generatorAndWeights,
                        final SuffixGroup... next) {
         this.suffix = suffix;
         this.generatorAndWeights = generatorAndWeights;
         this.next = next;
+        this.nextL = Arrays.asList(next);
         this.suffixLength = suffix == null ? 0 : suffix.length();
     }
 
-    /**
-     * @param left                  The left split (the modifier)
-     * @param matchingFromEndOfLeft number of characters that are know to match from the end of the left split
-     * @param right                 The head character sequence
-     * @param rightTerm             The head character sequence as a term in the dictionary field
-     * @param rightDf               The document frequency of the rightTerm
-     * @param minLength             The minimum head/modifier length
-     * @param collector             The collector that will be presented the candidates
-     * @return true iff the suffix of this SuffixGroup matched
-     */
-    public CollectionState collect(final CharSequence left, final int matchingFromEndOfLeft,
-                                   final CharSequence right, final Term rightTerm, final int rightDf,
-                                   final int minLength, final Collector collector) {
 
-        final int leftLength = left.length();
-
-        if (left.length() <= suffixLength) {
-            return collector.maxEvaluationsReached()
-                    ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
-                    : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
-
-        }
-
-        if (suffixLength > 0 && left.length() > suffixLength) {
-
-            for (int i = 1 + matchingFromEndOfLeft; i <= suffixLength; i++) {
-
-                if (left.charAt(leftLength - i) != suffix.charAt(suffixLength - i)) {
-                    return collector.maxEvaluationsReached()
-                            ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
-                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
-                }
-            }
-
-        }
-
-        boolean matched = false;
-
-        final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
-        for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
-            final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(reduced);
-            if (!modifierOpt.isPresent()) {
-                continue;
-            }
-            final CharSequence modifier = modifierOpt.get();
-            if (modifier.length() >= minLength) {
-                final CollectionState collectionState = collector.collect(modifier, right, rightTerm,
-                        rightDf, generatorAndWeight.weight);
-                matched |= collectionState.getMatched().orElse(false);
-                if (collectionState.isMaxEvaluationsReached()) {
-                    return matched
-                            ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
-                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
-                }
-            }
-        }
-
-        if (next != null) {
-            for (final SuffixGroup group : next) {
-                final CollectionState collectionState = group.collect(left, suffixLength, right, rightTerm, rightDf, minLength, collector);
-
-                final boolean wasMatched = collectionState.getMatched().orElse(false);
-                if (collectionState.isMaxEvaluationsReached()) {
-                    return matched || wasMatched
-                            ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
-                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
-                }
-                if (wasMatched) {
-                    return CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED;
-                }
-            }
-        }
-
-        return matched
-                ? CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED
-                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
+    public List<BreakSuggestion> generateBreakSuggestions(final CharSequence left) {
+        return generateBreakSuggestions(left, 0);
     }
 
-    public List<MorphologicalWordBreaker.BreakSuggestion> collect2(final CharSequence left, final int matchingFromEndOfLeft) {
+    private List<BreakSuggestion> generateBreakSuggestions(final CharSequence left, final int matchingFromEndOfLeft) {
         final int leftLength = left.length();
         if (left.length() <= suffixLength) {
             return Collections.emptyList();
@@ -140,25 +70,24 @@ public class SuffixGroup {
 
         final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
 
-        final List<MorphologicalWordBreaker.BreakSuggestion> res = new ArrayList<>();
+        final List<BreakSuggestion> res =
+                generatorAndWeights.stream()
+                        .map(generatorAndWeights -> generatorAndWeights.breakSuggestion(reduced))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .collect(Collectors.toList());
 
-        for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
-            final Optional<CharSequence> modifier = generatorAndWeight.generator.generateModifier(reduced);
-            if (modifier.isPresent()) {
-                final MorphologicalWordBreaker.BreakSuggestion breakSuggestion = new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{modifier.get()}, generatorAndWeight.weight);
-                res.add(breakSuggestion);
-            }
-        }
+        final List<BreakSuggestion> breakSuggestions = nextL.stream()
+                .map(sg -> sg.generateBreakSuggestions(left, suffixLength))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
-        if (next != null) {
-            for (final SuffixGroup suffixGroup : next) {
-                res.addAll(suffixGroup.collect2(left, suffixLength));
-            }
-        }
+        res.addAll(breakSuggestions);
+
         return res;
     }
 
-    public void collect(final querqy.model.Term left, final querqy.model.Term right, final Queue<MorphologicalWordBreaker.BreakSuggestion> collector) {
+    public void collect(final querqy.model.Term left, final querqy.model.Term right, final Queue<BreakSuggestion> collector) {
         final int minLength = 1;
 
         for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
@@ -169,7 +98,7 @@ public class SuffixGroup {
 
             final CharSequence l = modifierOpt.get();
             final CharSequence r = right.getValue();
-            collector.offer(new MorphologicalWordBreaker.BreakSuggestion(new CharSequence[]{l, r}, generatorAndWeight.weight));
+            collector.offer(new BreakSuggestion(new CharSequence[]{l, r}, generatorAndWeight.weight));
         }
     }
 }
