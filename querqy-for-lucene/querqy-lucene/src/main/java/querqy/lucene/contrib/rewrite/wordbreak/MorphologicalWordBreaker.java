@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
@@ -21,7 +22,7 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
     private final String dictionaryField;
     private final int minSuggestionFrequency;
     final float weightDfObservation;
-    private Morphology morphology;
+    private final Morphology morphology;
 
     public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
@@ -97,7 +98,11 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
             if (rightDf < minSuggestionFrequency) {
                 continue;
             }
-            final List<BreakSuggestion> suggestions = suggestedWordBreak.suggestions;
+            final List<BreakSuggestion> suggestions = suggestedWordBreak.suggestions.stream()
+                    //FIXME: I'm not sure about this particular filtering. MinBreakLength was referred to the original left term, not to the reduced one.
+                    //FIXME: Right now it checks bor original term and the subsequent reduced terms.
+                    .filter(breakSuggestion -> breakSuggestion.sequence[0].length() >= minBreakLength)
+                    .collect(Collectors.toList());
 
             for (final BreakSuggestion suggestion : suggestions) {
                 final Collector.CollectionState collectionState = collector.collect(
