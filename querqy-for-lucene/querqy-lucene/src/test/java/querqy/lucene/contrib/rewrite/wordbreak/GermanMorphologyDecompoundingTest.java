@@ -2,9 +2,9 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -26,12 +26,12 @@ public class GermanMorphologyDecompoundingTest {
         assertThat(wordBreaks, hasSize(1));
         assertThat(wordBreaks.get(0).originalLeft, is("a"));
         assertThat(wordBreaks.get(0).originalRight, is("b"));
-        final List<CharSequence[]> breakSuggestions = wordBreaks.get(0).suggestions.stream().map(breakSuggestion -> breakSuggestion.sequence).collect(Collectors.toList());
-        assertThat(breakSuggestions, containsInAnyOrder(Arrays.asList(
-                new CharSequence[]{"a"},
-                new CharSequence[]{"ae"},
-                new CharSequence[]{"aen"})
-        ));
+        final List<String> breakSuggestions = wordBreaks.get(0).suggestions.stream()
+                .map(breakSuggestion -> breakSuggestion.sequence)
+                .flatMap(Stream::of)
+                .map(CharSequence::toString)
+                .collect(Collectors.toList());
+        assertThat(breakSuggestions, containsInAnyOrder("a", "ae", "aen"));
     }
 
     @Test
@@ -40,4 +40,23 @@ public class GermanMorphologyDecompoundingTest {
         assertThat(wordBreaks, hasSize(0));
     }
 
+    @Test
+    public void rightTerm_minLengthCheck_singleSplitPoint() {
+        final List<WordBreak> word = morphology.suggestWordBreaks("word", 2);
+        assertThat(word, hasSize(1));
+        assertThat(word.get(0).originalRight, is("rd"));
+        assertThat(word.get(0).originalLeft, is("wo"));
+    }
+
+    @Test
+    public void rightTerm_minLengthCheck_multipleSplitPoints() {
+        final List<WordBreak> word = morphology.suggestWordBreaks("words", 2);
+
+        assertThat(word, hasSize(2));
+        assertThat(word.get(0).originalLeft, is("wor"));
+        assertThat(word.get(0).originalRight, is("ds"));
+
+        assertThat(word.get(1).originalLeft, is("wo"));
+        assertThat(word.get(1).originalRight, is("rds"));
+    }
 }

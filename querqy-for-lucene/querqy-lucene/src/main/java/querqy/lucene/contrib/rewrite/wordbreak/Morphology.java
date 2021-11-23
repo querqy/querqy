@@ -74,6 +74,10 @@ public class Morphology implements IMorphology {
         final int termLength = Character.codePointCount(word, 0, word.length());
         final List<WordBreak> wordBreaks = new ArrayList<>();
         for (int leftLength = termLength - minBreakLength; leftLength > 0; leftLength--) {
+            if (leftLength < minBreakLength || (termLength - leftLength) < minBreakLength) {
+                //skip if right or left term is smaller than minBreakLength
+                continue;
+            }
             final int splitIndex = Character.offsetByCodePoints(word, 0, leftLength);
             final CharSequence right = word.subSequence(splitIndex, word.length());
             final CharSequence left = word.subSequence(0, splitIndex);
