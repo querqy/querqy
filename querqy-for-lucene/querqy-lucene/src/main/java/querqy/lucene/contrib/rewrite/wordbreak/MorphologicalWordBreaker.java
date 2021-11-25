@@ -12,22 +12,23 @@ import java.util.List;
 
 public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
+    public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
     private final int minBreakLength;
     private final int maxEvaluations;
     private final boolean lowerCaseInput;
     private final String dictionaryField;
     private final int minSuggestionFrequency;
     final float weightDfObservation;
-    private final MorphologyImpl morphology;
+    private final Morphology morphology;
 
-    public MorphologicalWordBreaker(final MorphologyImpl morphology, final String dictionaryField,
+    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations) {
         this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength, maxEvaluations,
-                MorphologyImpl.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+                DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
-    public MorphologicalWordBreaker(final MorphologyImpl morphology, final String dictionaryField,
+    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations,
                                     final float weightMorphologicalPattern) {

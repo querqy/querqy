@@ -12,9 +12,9 @@ import static querqy.lucene.LuceneQueryUtil.toLuceneTerm;
 
 public class MorphologicalCompounder implements LuceneCompounder {
 
-    public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
     private static final int DEFAULT_MAX_COMPOUND_EXPANSIONS = 10;
     private final String dictionaryField;
+    private final boolean lowerCaseInput;
     private final int minSuggestionFrequency;
     private final Morphology morphology;// move to constructor
     private final int maxCompoundExpansions;
@@ -22,10 +22,11 @@ public class MorphologicalCompounder implements LuceneCompounder {
 
     public MorphologicalCompounder(final Morphology morphology,
                                    final String dictionaryField,
-                                   final boolean lowercaseInput,
+                                   final boolean lowerCaseInput,
                                    final int minSuggestionFrequency,
-                                   int maxCompoundExpansions) {
+                                   final int maxCompoundExpansions) {
         this.dictionaryField = dictionaryField;
+        this.lowerCaseInput = lowerCaseInput;
         this.minSuggestionFrequency = minSuggestionFrequency;
         this.morphology = morphology;
         this.maxCompoundExpansions = maxCompoundExpansions;
@@ -44,19 +45,21 @@ public class MorphologicalCompounder implements LuceneCompounder {
         if (terms.length < 2) {
             return Collections.emptyList();
         }
-        final Term left = terms[0];
-        final Term right = terms[1];
+
+        final Term left = lowerCaseInput ? terms[0].toLowerCaseTerm() : terms[0];
+        final Term right = lowerCaseInput ? terms[1].toLowerCaseTerm() : terms[1];
+
         final int queueInitialCapacity = Math.min(maxCompoundExpansions, 10);
-        final Queue<Compound> collector = new PriorityQueue<>(queueInitialCapacity);
-        // do we care about the collector in this overload or change signature to turn list?
-        final Compound[] compounds = morphology.suggestCompounds(left, right);
-        collector.addAll(Arrays.asList(compounds));
+        final Collection<Compound> collector = Arrays.stream(morphology.suggestCompounds(left, right))
+                .collect(Collectors.toCollection(() ->
+                        new PriorityQueue<>(queueInitialCapacity))
+                );
 
         return collector.stream()
+                .sorted(Comparator.reverseOrder())
                 .limit(maxCompoundExpansions)
                 .map(compound -> new CompoundTerm(compound.compound, terms))
                 .filter(compound -> {
-                    // Should this check be configurable?
                     final org.apache.lucene.index.Term compoundTerm = toLuceneTerm(dictionaryField, compound.value, false);
                     final int compoundDf;
                     try {

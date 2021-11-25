@@ -1,22 +1,26 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
 
-import querqy.CharSequenceUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.min;
 import static java.util.Collections.singletonList;
 
 
 class Compound implements Comparable<Compound> {
-    CharSequence[] terms;
-    CharSequence compound;
-    float probability;
+    final CharSequence[] terms;
+    final CharSequence compound;
+    final float probability;
+
+    public Compound(final CharSequence[] terms, final CharSequence compound, final float probability) {
+        this.terms = terms;
+        this.compound = compound;
+        this.probability = probability;
+    }
+
 
     @Override
     public int compareTo(final Compound other) {
@@ -43,14 +47,7 @@ class WordBreak {
     }
 }
 
-interface Morphology {
-    Compound[] suggestCompounds(CharSequence left, CharSequence right);
-
-    List<WordBreak> suggestWordBreaks(CharSequence word, int minBreakLength);
-}
-
 public class MorphologyImpl implements Morphology {
-    public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
 
     public static MorphologyImpl DEFAULT = new MorphologyImpl("DEFAULT", weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
     public static MorphologyImpl GERMAN = new MorphologyImpl("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes);
@@ -70,14 +67,12 @@ public class MorphologyImpl implements Morphology {
     }
 
     private SuffixGroup createMorphemes() {
-        return morphemeFactory.apply(MorphologyImpl.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+        return morphemeFactory.apply(MorphologicalWordBreaker.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
     @Override
     public Compound[] suggestCompounds(final CharSequence left, final CharSequence right) {
-        Compound compound = new Compound();
-        compound.terms = new CharSequence[]{left, right};
-        compound.compound = new StringBuilder().append(left).append(right).toString();
+        final Compound compound = new Compound(new CharSequence[]{left, right}, String.valueOf(left) + right, 0f);
         return new Compound[]{compound};
     }
 

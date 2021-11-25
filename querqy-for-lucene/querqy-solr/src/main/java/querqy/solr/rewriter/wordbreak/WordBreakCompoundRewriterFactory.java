@@ -2,11 +2,12 @@ package querqy.solr.rewriter.wordbreak;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.request.SolrRequestInfo;
-import querqy.lucene.contrib.rewrite.wordbreak.*;
+import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
+import querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl;
 import querqy.rewrite.RewriterFactory;
+import querqy.solr.SolrRewriterFactoryAdapter;
 import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
-import querqy.solr.SolrRewriterFactoryAdapter;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,6 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
     private static final int DEFAULT_MIN_BREAK_LENGTH = 3;
     private static final int DEFAULT_MAX_DECOMPOUND_EXPANSIONS = 3;
     private static final boolean DEFAULT_VERIFY_DECOMPOUND_COLLATION = false;
-    private static final int MAX_EVALUATIONS = 100;
 
 
     private querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory delegate = null;
@@ -74,7 +74,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final int maxDecompoundExpansions = ConfigUtils.getArg(decompoundConf, CONF_DECOMPOUND_MAX_EXPANSIONS,
                 DEFAULT_MAX_DECOMPOUND_EXPANSIONS);
 
-        final boolean verifyDecompoundCollation =  ConfigUtils.getArg(decompoundConf, CONF_DECOMPOUND_VERIFY_COLLATION,
+        final boolean verifyDecompoundCollation = ConfigUtils.getArg(decompoundConf, CONF_DECOMPOUND_VERIFY_COLLATION,
                 DEFAULT_VERIFY_DECOMPOUND_COLLATION);
 
         if (maxDecompoundExpansions < 0) {
@@ -87,9 +87,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final boolean alwaysAddReverseCompounds = ConfigUtils.getArg(config, CONF_ALWAYS_ADD_REVERSE_COMPOUNDS,
                 Boolean.FALSE);
 
-//        final Morphology morphology = ConfigUtils.getEnumArg(config, CONF_MORPHOLOGY, Morphology.class)
-//                .orElse(Morphology.DEFAULT);
-        final MorphologyImpl morphology = morphologyProvider.get((String)config.get(CONF_MORPHOLOGY));
+        final Morphology morphology = morphologyProvider.get((String) config.get(CONF_MORPHOLOGY));
 
         // terms that are "protected", i.e. false positives that should never be split and never be result
         // of a combination
@@ -99,15 +97,15 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
-        delegate  = new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(rewriterId,
+        delegate = new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(rewriterId,
                 indexReaderSupplier, morphology, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength,
-                minBreakLength,reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
+                minBreakLength, reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
                 verifyDecompoundCollation, protectedWords);
     }
 
     @Override
     public List<String> validateConfiguration(final Map<String, Object> config) {
-        if (config.get(CONF_MORPHOLOGY) != null && !morphologyProvider.exists((String)config.get(CONF_MORPHOLOGY))) {
+        if (config.get(CONF_MORPHOLOGY) != null && !morphologyProvider.exists((String) config.get(CONF_MORPHOLOGY))) {
             return Collections.singletonList("Cannot load morphology: " + config.get("morphology"));
         }
 
