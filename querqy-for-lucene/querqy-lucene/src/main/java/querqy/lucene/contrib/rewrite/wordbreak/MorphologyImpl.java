@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import static java.util.Collections.min;
 import static java.util.Collections.singletonList;
 
 
@@ -40,9 +38,9 @@ class Compound implements Comparable<Compound> {
 class WordBreak {
     public final CharSequence originalLeft;
     public final CharSequence originalRight;
-    public final List<BreakSuggestion> suggestions;
+    public final List<Suggestion> suggestions;
 
-    WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<BreakSuggestion> suggestions) {
+    WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<Suggestion> suggestions) {
         this.originalLeft = originalLeft;
         this.originalRight = originalRight;
         this.suggestions = suggestions;
@@ -79,11 +77,14 @@ public class MorphologyImpl implements Morphology {
     private final Function<Float, SuffixGroup> morphemeFactory;
 
     private final String name;
+    private final Function<Float, SuffixGroup> compoundingMorphemeFactory;
 
 
-    MorphologyImpl(final String name, final Function<Float, SuffixGroup> morphemeFactory, final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
-        this.morphemeFactory = morphemeFactory;
+    MorphologyImpl(final String name, final Function<Float, SuffixGroup> wordBreakMorphemeFactory,
+                   final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
+        this.morphemeFactory = wordBreakMorphemeFactory;
         this.name = name;
+        this.compoundingMorphemeFactory = compoundingMorphemeFactory;
     }
 
     MorphologyImpl(final String name, final Function<Float, SuffixGroup> morphemeFactory) {
@@ -96,8 +97,13 @@ public class MorphologyImpl implements Morphology {
 
     @Override
     public Compound[] suggestCompounds(final CharSequence left, final CharSequence right) {
-        final Compound compound = new Compound(new CharSequence[]{left, right}, String.valueOf(left) + right, 0f);
-        return new Compound[]{compound};
+        final SuffixGroup morphemes = compoundingMorphemeFactory.apply(MorphologicalWordBreaker.DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
+
+        return morphemes.generateCompoundSuggestions(left, right)
+                .stream().distinct()
+                .map(suggestion -> new Compound(new CharSequence[]{left, right},
+                        suggestion.sequence[0],
+                        suggestion.score)).toArray(Compound[]::new);
     }
 
     @Override
@@ -113,11 +119,11 @@ public class MorphologyImpl implements Morphology {
             final int splitIndex = Character.offsetByCodePoints(word, 0, leftLength);
             final CharSequence right = word.subSequence(splitIndex, word.length());
             final CharSequence left = word.subSequence(0, splitIndex);
-            final List<BreakSuggestion> breakSuggestions = morphemes.generateBreakSuggestions(left).stream()
+            final List<Suggestion> suggestions = morphemes.generateSuggestions(left).stream()
                     .filter(breakSuggestion -> breakSuggestion.sequence[0].length() >= minBreakLength)
                     .distinct()
                     .collect(Collectors.toList());
-            wordBreaks.add(new WordBreak(left, right, breakSuggestions));
+            wordBreaks.add(new WordBreak(left, right, suggestions));
         }
 
         return wordBreaks;

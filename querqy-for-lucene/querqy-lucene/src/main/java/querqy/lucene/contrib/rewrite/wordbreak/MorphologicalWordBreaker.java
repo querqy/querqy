@@ -95,7 +95,7 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
                 continue;
             }
 
-            for (final BreakSuggestion suggestion : suggestedWordBreak.suggestions) {
+            for (final Suggestion suggestion : suggestedWordBreak.suggestions) {
                 final Collector.CollectionState collectionState = collector.collect(
                         suggestion.sequence[0],
                         suggestedWordBreak.originalRight,

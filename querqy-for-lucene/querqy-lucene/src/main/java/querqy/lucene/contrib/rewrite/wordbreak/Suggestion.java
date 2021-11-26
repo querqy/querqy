@@ -2,19 +2,22 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 import querqy.CharSequenceUtil;
 
-public class BreakSuggestion implements Comparable<BreakSuggestion> {
+import java.util.Arrays;
+import java.util.Objects;
+
+public class Suggestion implements Comparable<Suggestion> {
 
     final CharSequence[] sequence;
     final float score;
 
-    BreakSuggestion(final CharSequence[] sequence, final float score) {
+    Suggestion(final CharSequence[] sequence, final float score) {
         this.sequence = sequence;
         this.score = score;
     }
 
 
     @Override
-    public int compareTo(final BreakSuggestion other) {
+    public int compareTo(final Suggestion other) {
 
         if (other == this) {
             return 0;
@@ -32,4 +35,18 @@ public class BreakSuggestion implements Comparable<BreakSuggestion> {
         return c;
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Suggestion that = (Suggestion) o;
+        return Float.compare(that.score, score) == 0 && Arrays.equals(sequence, that.sequence);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(score);
+        result = 31 * result + Arrays.hashCode(sequence);
+        return result;
+    }
 }

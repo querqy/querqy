@@ -1,7 +1,6 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.index.Term;
-import querqy.lucene.contrib.rewrite.wordbreak.Collector.CollectionState;
+import querqy.CompoundCharSequence;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,24 +36,22 @@ public class SuffixGroup {
     private final CharSequence suffix;
     private final int suffixLength;
     private final List<WordGeneratorAndWeight> generatorAndWeights;
-    private final SuffixGroup[] next;
-    private final List<SuffixGroup> nextL;
+    private final List<SuffixGroup> next;
 
     public SuffixGroup(final CharSequence suffix, final List<WordGeneratorAndWeight> generatorAndWeights,
                        final SuffixGroup... next) {
         this.suffix = suffix;
         this.generatorAndWeights = generatorAndWeights;
-        this.next = next;
-        this.nextL = Arrays.asList(next);
+        this.next = Arrays.asList(next);
         this.suffixLength = suffix == null ? 0 : suffix.length();
     }
 
 
-    public List<BreakSuggestion> generateBreakSuggestions(final CharSequence left) {
-        return generateBreakSuggestions(left, 0);
+    public List<Suggestion> generateSuggestions(final CharSequence left) {
+        return generateSuggestions(left, 0);
     }
 
-    private List<BreakSuggestion> generateBreakSuggestions(final CharSequence left, final int matchingFromEndOfLeft) {
+    private List<Suggestion> generateSuggestions(final CharSequence left, final int matchingFromEndOfLeft) {
         final int leftLength = left.length();
         if (left.length() <= suffixLength) {
             return Collections.emptyList();
@@ -70,35 +67,30 @@ public class SuffixGroup {
 
         final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
 
-        final List<BreakSuggestion> res =
+        final List<Suggestion> res =
                 generatorAndWeights.stream()
-                        .map(generatorAndWeights -> generatorAndWeights.breakSuggestion(reduced))
+                        .map(generatorAndWeights -> generatorAndWeights.generateSuggestion(reduced))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(Collectors.toList());
 
-        final List<BreakSuggestion> breakSuggestions = nextL.stream()
-                .map(sg -> sg.generateBreakSuggestions(left, suffixLength))
+        final List<Suggestion> suggestions = next.stream()
+                .map(sg -> sg.generateSuggestions(left, suffixLength))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        res.addAll(breakSuggestions);
+        res.addAll(suggestions);
 
         return res;
     }
 
-    public void collect(final querqy.model.Term left, final querqy.model.Term right, final Queue<BreakSuggestion> collector) {
-        final int minLength = 1;
-
-        for (final WordGeneratorAndWeight generatorAndWeight : generatorAndWeights) {
-            final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(left);
-            if (!modifierOpt.isPresent()) continue;
-            final CharSequence modifier = modifierOpt.get();
-            if (modifier.length() < minLength) continue;
-
-            final CharSequence l = modifierOpt.get();
-            final CharSequence r = right.getValue();
-            collector.offer(new BreakSuggestion(new CharSequence[]{l, r}, generatorAndWeight.weight));
-        }
+    public List<Suggestion> generateCompoundSuggestions(final CharSequence left, final CharSequence right) {
+        return generateSuggestions(left, 0)
+                .stream().map(
+                        suggestion -> new Suggestion(
+                                new CharSequence[]{new CompoundCharSequence(null, suggestion.sequence[0], right)},
+                                suggestion.score)
+                ).collect(Collectors.toList());
     }
+
 }

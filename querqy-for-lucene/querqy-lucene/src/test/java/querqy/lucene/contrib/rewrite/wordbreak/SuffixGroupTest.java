@@ -19,9 +19,9 @@ public class SuffixGroupTest {
                         new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, WEIGHT_PATTERN)
                 ));
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word1");
-        assertThat(breakSuggestions, hasSize(1));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word1"}));
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word1");
+        assertThat(suggestions, hasSize(1));
+        assertThat(suggestions.get(0).sequence, is(new CharSequence[]{"word1"}));
     }
 
     @Test
@@ -31,9 +31,9 @@ public class SuffixGroupTest {
                         new WordGeneratorAndWeight(new SuffixWordGenerator("e"), WEIGHT_PATTERN)
                 ));
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word_");
-        assertThat(breakSuggestions, hasSize(1));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word_e"}));
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word_");
+        assertThat(suggestions, hasSize(1));
+        assertThat(suggestions.get(0).sequence, is(new CharSequence[]{"word_e"}));
     }
 
     @Test
@@ -43,9 +43,9 @@ public class SuffixGroupTest {
                         new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, WEIGHT_PATTERN)
                 ));
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word_e");
-        assertThat(breakSuggestions, hasSize(1));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word_"}));
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word_e");
+        assertThat(suggestions, hasSize(1));
+        assertThat(suggestions.get(0).sequence, is(new CharSequence[]{"word_"}));
     }
 
     @Test
@@ -55,9 +55,9 @@ public class SuffixGroupTest {
                         new WordGeneratorAndWeight(new SuffixWordGenerator("s"), WEIGHT_PATTERN)
                 ));
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word_e");
-        assertThat(breakSuggestions, hasSize(1));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word_s"}));
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word_e");
+        assertThat(suggestions, hasSize(1));
+        assertThat(suggestions.get(0).sequence, is(new CharSequence[]{"word_s"}));
     }
 
     @Test
@@ -67,8 +67,8 @@ public class SuffixGroupTest {
                         new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, WEIGHT_PATTERN)
                 ));
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word");
-        assertThat(breakSuggestions, hasSize(0));
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word");
+        assertThat(suggestions, hasSize(0));
     }
 
     @Test
@@ -84,11 +84,11 @@ public class SuffixGroupTest {
                 )
         );
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word_e");
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word_e");
 
-        assertThat(breakSuggestions, hasSize(2));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word_e"}));
-        assertThat(breakSuggestions.get(1).sequence, is(new CharSequence[]{"word_s"}));
+        assertThat(suggestions, hasSize(2));
+        assertThat(suggestions.get(0).sequence, is(new CharSequence[]{"word_e"}));
+        assertThat(suggestions.get(1).sequence, is(new CharSequence[]{"word_s"}));
     }
 
     @Test
@@ -98,9 +98,9 @@ public class SuffixGroupTest {
                         new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1.1f)
                 ));
 
-        final List<BreakSuggestion> breakSuggestions = suffixGroup.generateBreakSuggestions("word");
-        assertThat(breakSuggestions, hasSize(1));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word"}));
-        assertThat(breakSuggestions.get(0).score, is(1.1f));
+        final List<Suggestion> suggestions = suffixGroup.generateSuggestions("word");
+        assertThat(suggestions, hasSize(1));
+        assertThat(suggestions.get(0).sequence, is(new CharSequence[]{"word"}));
+        assertThat(suggestions.get(0).score, is(1.1f));
     }
 }

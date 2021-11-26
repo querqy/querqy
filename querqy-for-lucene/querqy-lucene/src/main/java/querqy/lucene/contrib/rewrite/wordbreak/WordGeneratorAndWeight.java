@@ -12,9 +12,9 @@ public class WordGeneratorAndWeight {
         this.weight = weight;
     }
 
-    public Optional<BreakSuggestion> breakSuggestion(final CharSequence reducedModifier) {
+    public Optional<Suggestion> generateSuggestion(final CharSequence reducedModifier) {
         final Optional<CharSequence> modifier = generator.generateModifier(reducedModifier);
-        return modifier.map(charSequence -> new BreakSuggestion(new CharSequence[]{charSequence}, weight));
+        return modifier.map(charSequence -> new Suggestion(new CharSequence[]{charSequence}, weight));
     }
 
 }

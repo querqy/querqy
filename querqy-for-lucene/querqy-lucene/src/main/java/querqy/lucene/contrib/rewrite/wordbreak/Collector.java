@@ -106,7 +106,7 @@ public class Collector {
 
 
 
-    private final Queue<BreakSuggestion> collection;
+    private final Queue<Suggestion> collection;
     private final int minSuggestionFrequency;
     private final boolean verifyCollation;
     private final IndexReader indexReader;
@@ -179,7 +179,7 @@ public class Collector {
 
                     if (((collection.size() < maxDecompoundExpansions) || (score > collection.element().score))
                             && hasMinMatches(1, leftTerm, rightTerm)) {
-                        collection.offer(new BreakSuggestion(new CharSequence[]{left, right},
+                        collection.offer(new Suggestion(new CharSequence[]{left, right},
                                 score));
 
                         if (collection.size() > maxDecompoundExpansions) {
@@ -192,7 +192,7 @@ public class Collector {
 
                 } else {
 
-                    collection.offer(new BreakSuggestion(new CharSequence[]{left, right},
+                    collection.offer(new Suggestion(new CharSequence[]{left, right},
                             score));
                     if (collection.size() > maxDecompoundExpansions) {
                         collection.poll();

@@ -98,7 +98,7 @@ public class GermanMorphologyDecompoundingTableTest {
     }
 
     @Test
-    public void nothing() {
+    public void decompound() {
         final List<WordBreak> wordBreaks = morphology.suggestWordBreaks(inputWord, MIN_BREAK_LENGTH);
 
         final List<String> suggestedWordBreaks = wordBreaks.stream()
