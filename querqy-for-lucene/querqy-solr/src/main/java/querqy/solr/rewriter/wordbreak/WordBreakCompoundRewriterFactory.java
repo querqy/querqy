@@ -3,7 +3,7 @@ package querqy.solr.rewriter.wordbreak;
 import org.apache.lucene.index.IndexReader;
 import org.apache.solr.request.SolrRequestInfo;
 import querqy.lucene.contrib.rewrite.wordbreak.Morphology;
-import querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl;
+import querqy.lucene.contrib.rewrite.wordbreak.MorphologyProvider;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.SolrRewriterFactoryAdapter;
 import querqy.solr.rewriter.ClassicConfigurationParser;
@@ -39,11 +39,11 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
 
 
     private querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory delegate = null;
-    private final MorphologyImpl.MorphologyProvider morphologyProvider;
+    private final MorphologyProvider morphologyProvider;
 
     public WordBreakCompoundRewriterFactory(final String rewriterId) {
         super(rewriterId);
-        morphologyProvider = new MorphologyImpl.MorphologyProvider();
+        morphologyProvider = new MorphologyProvider();
     }
 
     @Override

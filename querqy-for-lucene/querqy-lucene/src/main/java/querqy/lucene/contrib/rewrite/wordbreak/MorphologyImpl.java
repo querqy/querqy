@@ -2,11 +2,13 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static java.util.Collections.min;
 import static java.util.Collections.singletonList;
 
 
@@ -36,14 +38,36 @@ class Compound implements Comparable<Compound> {
 }
 
 class WordBreak {
-    public final CharSequence originalRight;
     public final CharSequence originalLeft;
+    public final CharSequence originalRight;
     public final List<BreakSuggestion> suggestions;
 
     WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<BreakSuggestion> suggestions) {
-        this.originalRight = originalRight;
         this.originalLeft = originalLeft;
+        this.originalRight = originalRight;
         this.suggestions = suggestions;
+    }
+
+    @Override
+    public String toString() {
+        return "WordBreak{" +
+                "originalLeft=" + originalLeft +
+                ", originalRight=" + originalRight +
+                ", suggestions=" + suggestions +
+                '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final WordBreak wordBreak = (WordBreak) o;
+        return Objects.equals(originalLeft, wordBreak.originalLeft) && Objects.equals(originalRight, wordBreak.originalRight) && Objects.equals(suggestions, wordBreak.suggestions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(originalLeft, originalRight, suggestions);
     }
 }
 
@@ -91,6 +115,7 @@ public class MorphologyImpl implements Morphology {
             final CharSequence left = word.subSequence(0, splitIndex);
             final List<BreakSuggestion> breakSuggestions = morphemes.generateBreakSuggestions(left).stream()
                     .filter(breakSuggestion -> breakSuggestion.sequence[0].length() >= minBreakLength)
+                    .distinct()
                     .collect(Collectors.toList());
             wordBreaks.add(new WordBreak(left, right, breakSuggestions));
         }
@@ -100,25 +125,6 @@ public class MorphologyImpl implements Morphology {
 
     public String name() {
         return name;
-    }
-
-    public static class MorphologyProvider {
-        private static final HashMap<String, MorphologyImpl> morphologies = new HashMap<>();
-        private static final String DEFAULT_KEY = "DEFAULT";
-        private static final MorphologyImpl DEFAULT = new MorphologyImpl(DEFAULT_KEY, weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
-
-        static {
-            morphologies.put(DEFAULT_KEY, DEFAULT);
-            morphologies.put("GERMAN", new MorphologyImpl("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes));
-        }
-
-        public MorphologyImpl get(final String name) {
-            return morphologies.getOrDefault(name, DEFAULT);
-        }
-
-        public boolean exists(final String name) {
-            return morphologies.containsKey(name);
-        }
     }
 
 }
