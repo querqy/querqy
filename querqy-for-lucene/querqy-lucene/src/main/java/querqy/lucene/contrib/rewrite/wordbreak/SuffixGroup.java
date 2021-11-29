@@ -4,6 +4,7 @@ import querqy.CompoundCharSequence;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>
@@ -85,12 +86,18 @@ public class SuffixGroup {
     }
 
     public List<Suggestion> generateCompoundSuggestions(final CharSequence left, final CharSequence right) {
-        return generateSuggestions(left, 0)
-                .stream().map(
-                        suggestion -> new Suggestion(
-                                new CharSequence[]{new CompoundCharSequence(null, suggestion.sequence[0], right)},
-                                suggestion.score)
-                ).collect(Collectors.toList());
+        final CharSequence[][] combineTerms = {
+                {left, right},
+                {right, left}
+        };
+
+        return Arrays.stream(combineTerms)
+                .map(terms -> generateSuggestions(terms[0], 0)
+                        .stream().map(
+                                suggestion -> new Suggestion(
+                                        new CharSequence[]{new CompoundCharSequence(null, suggestion.sequence[0], terms[1])},
+                                        suggestion.score)
+                        )).flatMap(Stream::distinct).collect(Collectors.toList());
     }
 
 }
