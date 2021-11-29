@@ -45,9 +45,10 @@ public class MorphologicalCompounder implements LuceneCompounder {
         if (terms.length < 2) {
             return Collections.emptyList();
         }
-
-        final Term left = lowerCaseInput ? terms[0].toLowerCaseTerm() : terms[0];
-        final Term right = lowerCaseInput ? terms[1].toLowerCaseTerm() : terms[1];
+        final int leftIdx = reverse ? 1 : 0;
+        final int rightIdx = reverse ? 0 : 1;
+        final Term left = lowerCaseInput ? terms[leftIdx].toLowerCaseTerm() : terms[leftIdx];
+        final Term right = lowerCaseInput ? terms[rightIdx].toLowerCaseTerm() : terms[rightIdx];
 
         final int queueInitialCapacity = Math.min(maxCompoundExpansions, 10);
         final Collection<Compound> collector = Arrays.stream(morphology.suggestCompounds(left, right))

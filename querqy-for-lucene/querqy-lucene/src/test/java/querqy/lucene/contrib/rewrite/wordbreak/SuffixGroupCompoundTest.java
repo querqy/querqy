@@ -20,9 +20,8 @@ public class SuffixGroupCompoundTest {
                 ));
 
         final List<Suggestion> breakSuggestions = suffixGroup.generateCompoundSuggestions("word1", "word2");
-        assertThat(breakSuggestions, hasSize(2));
+        assertThat(breakSuggestions, hasSize(1));
         assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word1word2"}));
-        assertThat(breakSuggestions.get(1).sequence, is(new CharSequence[]{"word2word1"}));
     }
 
     @Test
@@ -32,10 +31,9 @@ public class SuffixGroupCompoundTest {
                         new WordGeneratorAndWeight(new SuffixWordGenerator("s"), WEIGHT_PATTERN)
                 ));
 
-        final List<Suggestion> breakSuggestions = suffixGroup.generateCompoundSuggestions("word1", "word2");
-        assertThat(breakSuggestions, hasSize(2));
-        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word1sword2"}));
-        assertThat(breakSuggestions.get(1).sequence, is(new CharSequence[]{"word2sword1"}));
+        final List<Suggestion> breakSuggestions = suffixGroup.generateCompoundSuggestions("word1_", "_word2");
+        assertThat(breakSuggestions, hasSize(1));
+        assertThat(breakSuggestions.get(0).sequence, is(new CharSequence[]{"word1_s_word2"}));
     }
 
     @Test

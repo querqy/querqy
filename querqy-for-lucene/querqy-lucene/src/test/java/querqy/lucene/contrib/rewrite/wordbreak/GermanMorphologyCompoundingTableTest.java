@@ -21,8 +21,8 @@ public class GermanMorphologyCompoundingTableTest {
     @Parameterized.Parameters(name = "Test {index}: Term({0})")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"kohl", "supper",
-                        suggest("kohlsupper")},
+                {"kohl", "suppe",
+                        suggest("kohlsuppe")},
                 {"staat", "feind",
                         suggest("staatsfeind")},
                 {"soziolog", "kongreß",
@@ -61,7 +61,6 @@ public class GermanMorphologyCompoundingTableTest {
                         suggest("prinzipienreiter")},
                 {"carabiniere", "schule",
                         suggest("carabinierischule")},
-
         });
     }
 
