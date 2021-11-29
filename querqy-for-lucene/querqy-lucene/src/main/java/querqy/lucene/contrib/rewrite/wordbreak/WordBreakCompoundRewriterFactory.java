@@ -86,9 +86,9 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
         spellChecker.setMaxCombineWordLength(maxCombineLength);
         spellChecker.setMinBreakWordLength(minBreakLength);
         spellChecker.setMaxEvaluations(100);
-        compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
+//        compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
         // TODO: after enabling morphological compounder, SpellCheckerCompounder should be used in the DEFAULT morphology
-//        compounder = new MorphologicalCompounder(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq);
+        compounder = new MorphologicalCompounder(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq);
 
         // TODO: configure weight of strategy
         wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
