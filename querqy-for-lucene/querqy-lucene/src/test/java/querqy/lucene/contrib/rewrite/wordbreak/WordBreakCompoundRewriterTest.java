@@ -1,18 +1,5 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static querqy.QuerqyMatchers.bq;
-import static querqy.QuerqyMatchers.dmq;
-import static querqy.QuerqyMatchers.must;
-import static querqy.QuerqyMatchers.term;
-
-import net.bytebuddy.implementation.bind.annotation.Morph;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.CombineSuggestion;
@@ -34,8 +21,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static querqy.QuerqyMatchers.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WordBreakCompoundRewriterTest {

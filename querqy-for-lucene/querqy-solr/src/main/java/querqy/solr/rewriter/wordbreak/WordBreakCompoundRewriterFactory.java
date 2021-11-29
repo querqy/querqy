@@ -82,12 +82,9 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
                     + maxDecompoundExpansions);
         }
 
-
         // define whether we should always try to add a reverse compound
         final boolean alwaysAddReverseCompounds = ConfigUtils.getArg(config, CONF_ALWAYS_ADD_REVERSE_COMPOUNDS,
                 Boolean.FALSE);
-
-        final Morphology morphology = morphologyProvider.get((String) config.get(CONF_MORPHOLOGY));
 
         // terms that are "protected", i.e. false positives that should never be split and never be result
         // of a combination
@@ -97,10 +94,12 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
+        final String morphologyName = (String) config.getOrDefault(CONF_MORPHOLOGY, "DEFAULT");
+
         delegate = new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(rewriterId,
-                indexReaderSupplier, morphology, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength,
+                indexReaderSupplier, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength,
                 minBreakLength, reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
-                verifyDecompoundCollation, protectedWords);
+                verifyDecompoundCollation, protectedWords, morphologyName);
     }
 
     @Override

@@ -22,8 +22,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputTrue() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null,
-                MorphologyImpl.DEFAULT, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList());
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT");
 
         final TrieMap<Boolean> triggerWords = factory.getReverseCompoundTriggerWords();
         assertTrue(triggerWords.get("word1").getStateForCompleteSequence().isFinal());
@@ -33,8 +32,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputFalse() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null,
-                MorphologyImpl.GERMAN, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList());
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT");
 
         final TrieMap<Boolean> triggerWords = factory.getReverseCompoundTriggerWords();
         Assert.assertFalse(triggerWords.get("word1").getStateForCompleteSequence().isFinal());
@@ -44,9 +42,8 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatProtectedWordsAreMatchedCaseInsensitiveForFlagLowerCaseInputTrue() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null,
-                MorphologyImpl.DEFAULT, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
-                Collections.singletonList("Protected"));
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.singletonList("Protected"), "DEFAULT");
 
         final TrieMap<Boolean> protectedWords = factory.getProtectedWords();
         Assert.assertTrue(protectedWords.get("protected").getStateForCompleteSequence().isFinal());
@@ -55,9 +52,8 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatProtectedWordsAreMatchedCaseSensitiveForFlagLowerCaseInputFalse() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null,
-                MorphologyImpl.GERMAN, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
-                Collections.singletonList("Protected"));
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.singletonList("Protected"), "GERMAN");
 
         final TrieMap<Boolean> protectedWords = factory.getProtectedWords();
         Assert.assertTrue(protectedWords.get("Protected").getStateForCompleteSequence().isFinal());
@@ -80,8 +76,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
         addNumDocsWithTextField("field1", "büchere", indexWriter, 1);
         indexWriter.close();
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
-            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null,
-                    MorphologyImpl.GERMAN, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList());
+            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "GERMAN");
 
             assertTrue(factory.wordBreaker instanceof MorphologicalWordBreaker);
             final String word = "bücherregal";

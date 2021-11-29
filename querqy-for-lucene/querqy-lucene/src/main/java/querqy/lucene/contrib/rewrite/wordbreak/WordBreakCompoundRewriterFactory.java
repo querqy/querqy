@@ -41,7 +41,6 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     /**
      * @param rewriterId                  The id of the rewriter
      * @param indexReaderSupplier         Access to an IndexReader
-     * @param morphology                  The (de)compounding morphology to use
      * @param dictionaryField             The dictionary field name
      * @param lowerCaseInput              Iff true, lowercase input before matching it against the dictionary field.
      * @param minSuggestionFreq           The minimum frequency of a suggestion in the dictionary field (see {@link WordBreakSpellChecker}.setMinSuggestionFrequency())
@@ -51,10 +50,10 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
      * @param alwaysAddReverseCompounds   Iff true, reverse shingles will be added to the query
      * @param maxDecompoundExpansions     The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param morphologyName              The name of (de)compounding morphology to use
      */
     public WordBreakCompoundRewriterFactory(final String rewriterId,
                                             final Supplier<IndexReader> indexReaderSupplier,
-                                            final Morphology morphology,
                                             final String dictionaryField,
                                             final boolean lowerCaseInput,
                                             final int minSuggestionFreq,
@@ -64,7 +63,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                             final boolean alwaysAddReverseCompounds,
                                             final int maxDecompoundExpansions,
                                             final boolean verifyDecompoundCollation,
-                                            final List<String> protectedWords) {
+                                            final List<String> protectedWords,
+                                            final String morphologyName) {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.lowerCaseInput = lowerCaseInput;
@@ -80,21 +80,27 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         this.protectedWords = buildWordLookup(protectedWords, lowerCaseInput);
 
-        final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
-        spellChecker.setMaxChanges(MAX_CHANGES);
-        spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
-        spellChecker.setMaxCombineWordLength(maxCombineLength);
-        spellChecker.setMinBreakWordLength(minBreakLength);
-        spellChecker.setMaxEvaluations(100);
-//        compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
-        // TODO: after enabling morphological compounder, SpellCheckerCompounder should be used in the DEFAULT morphology
-        compounder = new MorphologicalCompounder(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq);
+        final Morphology morphology = new MorphologyProvider().get(morphologyName);
+        switch (morphologyName) {
+            case "GERMAN": {
+                compounder = new MorphologicalCompounder(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq);
+                wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
+                        minBreakLength, MAX_EVALUATIONS);
+                break;
+            }
+            default: {
+                final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
+                spellChecker.setMaxChanges(MAX_CHANGES);
+                spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
+                spellChecker.setMaxCombineWordLength(maxCombineLength);
+                spellChecker.setMinBreakWordLength(minBreakLength);
+                spellChecker.setMaxEvaluations(100);
 
-        // TODO: configure weight of strategy
-        wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
-                minBreakLength, MAX_EVALUATIONS);
-
-
+                compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
+                wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
+                        minBreakLength, MAX_EVALUATIONS);
+            }
+        }
     }
 
     @Override
