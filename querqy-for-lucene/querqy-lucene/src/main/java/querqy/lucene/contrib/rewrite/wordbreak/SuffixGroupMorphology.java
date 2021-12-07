@@ -7,8 +7,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
-
 
 class Compound implements Comparable<Compound> {
     final CharSequence[] terms;
@@ -69,26 +67,21 @@ class WordBreak {
     }
 }
 
-public class MorphologyImpl implements Morphology {
-
-    public static MorphologyImpl DEFAULT = new MorphologyImpl("DEFAULT", weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
-    public static MorphologyImpl GERMAN = new MorphologyImpl("GERMAN", GermanDecompoundingMorphology::createMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes);
+public class SuffixGroupMorphology implements Morphology {
 
     private final Function<Float, SuffixGroup> morphemeFactory;
 
-    private final String name;
     private final Function<Float, SuffixGroup> compoundingMorphemeFactory;
 
 
-    MorphologyImpl(final String name, final Function<Float, SuffixGroup> wordBreakMorphemeFactory,
-                   final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
+    SuffixGroupMorphology(final Function<Float, SuffixGroup> wordBreakMorphemeFactory,
+                          final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
         this.morphemeFactory = wordBreakMorphemeFactory;
-        this.name = name;
         this.compoundingMorphemeFactory = compoundingMorphemeFactory;
     }
 
-    MorphologyImpl(final String name, final Function<Float, SuffixGroup> morphemeFactory) {
-        this(name, morphemeFactory, morphemeFactory);
+    SuffixGroupMorphology(final Function<Float, SuffixGroup> morphemeFactory) {
+        this(morphemeFactory, morphemeFactory);
     }
 
     private SuffixGroup createMorphemes() {
@@ -129,8 +122,5 @@ public class MorphologyImpl implements Morphology {
         return wordBreaks;
     }
 
-    public String name() {
-        return name;
-    }
 
 }

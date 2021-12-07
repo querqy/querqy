@@ -13,7 +13,6 @@ import querqy.model.Term;
 import java.io.IOException;
 import java.util.List;
 
-import static querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl.GERMAN;
 
 public class GermanCompounderTest extends LuceneTestCase {
 
@@ -29,7 +28,7 @@ public class GermanCompounderTest extends LuceneTestCase {
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
             final String field = "f1";
-            final MorphologicalCompounder compounder = new MorphologicalCompounder(GERMAN, field, true, 1);
+            final MorphologicalCompounder compounder = new MorphologicalCompounder(new MorphologyProvider().get("GERMAN").get(), field, true, 1);
             final querqy.model.Term left = new querqy.model.Term(null, field, "left", false);
             final querqy.model.Term right = new querqy.model.Term(null, field, "left", false);
             final List<LuceneCompounder.CompoundTerm> sequences = compounder.combine(new Term[]{left, right}, indexReader, false);

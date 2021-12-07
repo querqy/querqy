@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.hasItem;
 public class GermanMorphologyDecompoundingTableTest {
     public static final int MIN_BREAK_LENGTH = 2;
     private final MorphologyProvider morphologyProvider = new MorphologyProvider();
-    private final Morphology morphology = morphologyProvider.get("GERMAN");
+    private final Morphology morphology = morphologyProvider.get("GERMAN").get();
 
     @Parameterized.Parameters(name = "Test {index}: Term({0})")
     public static Collection<Object[]> data() {

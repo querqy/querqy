@@ -11,6 +11,7 @@ import querqy.trie.TrieMap;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -80,26 +81,23 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         this.protectedWords = buildWordLookup(protectedWords, lowerCaseInput);
 
-        final Morphology morphology = new MorphologyProvider().get(morphologyName);
-        switch (morphologyName) {
-            case "GERMAN": {
-                compounder = new MorphologicalCompounder(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq);
-                wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
-                        minBreakLength, MAX_EVALUATIONS);
-                break;
-            }
-            default: {
-                final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
-                spellChecker.setMaxChanges(MAX_CHANGES);
-                spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
-                spellChecker.setMaxCombineWordLength(maxCombineLength);
-                spellChecker.setMinBreakWordLength(minBreakLength);
-                spellChecker.setMaxEvaluations(100);
+        final Optional<Morphology> morphology = new MorphologyProvider().get(morphologyName);
 
-                compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
-                wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
-                        minBreakLength, MAX_EVALUATIONS);
-            }
+        if (morphology.isPresent()) {
+            compounder = new MorphologicalCompounder(morphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq);
+            wordBreaker = new MorphologicalWordBreaker(morphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq,
+                    minBreakLength, MAX_EVALUATIONS);
+        } else {
+            final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
+            spellChecker.setMaxChanges(MAX_CHANGES);
+            spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
+            spellChecker.setMaxCombineWordLength(maxCombineLength);
+            spellChecker.setMinBreakWordLength(minBreakLength);
+            spellChecker.setMaxEvaluations(100);
+
+            compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
+            wordBreaker = new MorphologicalWordBreaker(MorphologyProvider.DEFAULT, dictionaryField, lowerCaseInput, minSuggestionFreq,
+                    minBreakLength, MAX_EVALUATIONS);
         }
     }
 

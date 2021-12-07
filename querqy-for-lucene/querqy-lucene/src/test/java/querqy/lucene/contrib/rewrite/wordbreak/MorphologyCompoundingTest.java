@@ -15,7 +15,7 @@ import static querqy.lucene.contrib.rewrite.wordbreak.GermanDecompoundingMorphol
 public class MorphologyCompoundingTest {
 
     private final SuffixGroup suffixGroup = Mockito.mock(SuffixGroup.class);
-    private final Morphology morphology = new MorphologyImpl("abc_morphology", aFloat ->
+    private final Morphology morphology = new SuffixGroupMorphology(aFloat ->
             new SuffixGroup(null, Collections.singletonList(new WordGeneratorAndWeight(GENERATOR_NOOP, 0)))
             , aFloat -> suffixGroup
     );

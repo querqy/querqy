@@ -154,8 +154,8 @@ public abstract class GermanDecompoundingMorphology {
         );
     }
 
-    public static SuffixGroup createMorphemes(final float weightMorphologicalPattern) {
-        return new SuffixGroup(null,
+    public static SuffixGroup createDecompoundingMorphemes(final float weightMorphologicalPattern) {
+        return new SuffixGroup(null, // suffix to strip from the term, when null then not suffix removed
 
                 asList(
                         // 0
@@ -168,9 +168,9 @@ public abstract class GermanDecompoundingMorphology {
 
                         // -en
                         new WordGeneratorAndWeight(GENERATOR_EN, (float) Math.pow(PRIOR_MINUS_EN,
-                                weightMorphologicalPattern))
+                                weightMorphologicalPattern)) // append suffix, and assign priority score
 
-                ),
+                ), // list of generators
 
                 new SuffixGroup("s",
                         singletonList(

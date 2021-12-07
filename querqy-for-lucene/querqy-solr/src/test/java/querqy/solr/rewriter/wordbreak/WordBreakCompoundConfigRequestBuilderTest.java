@@ -18,7 +18,7 @@ import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CO
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_REVERSE_COMPOUND_TRIGGER_WORDS;
 
 import org.junit.Test;
-import querqy.lucene.contrib.rewrite.wordbreak.MorphologyImpl;
+import querqy.lucene.contrib.rewrite.wordbreak.SuffixGroupMorphology;
 
 import java.util.List;
 import java.util.Map;
@@ -79,7 +79,7 @@ public class WordBreakCompoundConfigRequestBuilderTest {
                 .maxCombineWordLength(10)
                 .maxDecompoundExpansions(4)
                 .minSuggestionFrequency(2)
-                .morphology(MorphologyImpl.GERMAN)
+                .morphology("GERMAN")
                 .reverseCompoundTriggerWords("from", "of")
                 .verifyDecompoundCollation(false)
                 .buildConfig();
@@ -93,7 +93,7 @@ public class WordBreakCompoundConfigRequestBuilderTest {
         assertThat(config, hasEntry(CONF_LOWER_CASE_INPUT, Boolean.FALSE));
         assertThat(config, hasEntry(CONF_MAX_COMBINE_WORD_LENGTH, 10));
         assertThat(config, hasEntry(CONF_MIN_SUGGESTION_FREQ, 2));
-        assertThat(config, hasEntry(CONF_MORPHOLOGY, MorphologyImpl.GERMAN.name()));
+        assertThat(config, hasEntry(CONF_MORPHOLOGY, "GERMAN"));
 
         final Map<String, Object> decompound = (Map<String, Object>) config.get(CONF_DECOMPOUND);
 

@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.*;
 
 public class GermanMorphologyDecompoundingTest {
     private final MorphologyProvider morphologyProvider = new MorphologyProvider();
-    private final Morphology morphology = morphologyProvider.get("GERMAN");
+    private final Morphology morphology = morphologyProvider.get("GERMAN").get();
 
     @Test
     public void zeroMinBreakLengthProduce_splitsForEachChar() {

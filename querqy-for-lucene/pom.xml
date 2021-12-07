@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>5.3.lucene810.0-SNAPSHOT</version>
+    <version>5.3.lucene810.0-patch-osc-german-compounding-morphology-1.1</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -92,7 +92,7 @@
         <mockito.version>4.2.0</mockito.version>
         <skipITs>true</skipITs>
 
-        <querqy.core.version>3.12.1-SNAPSHOT</querqy.core.version>
+        <querqy.core.version>5.3.lucene810.0-patch-osc-german-compounding-morphology-1.1</querqy.core.version>
         <lucene.version>8.1.0</lucene.version>
         <commons.io.version>2.5</commons.io.version>
 
