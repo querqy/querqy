@@ -107,8 +107,6 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
                     .collect(Collectors.toList()));
         }
 
-
-        //final Collection<BoostQuery> boostUpQueries = query.getBoostUpQueries();
         return query;
     }
 
@@ -125,11 +123,11 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
     public static class QuerySnapshotVisitor extends AbstractNodeVisitor<Void> {
 
         Map<String, Object> snapshot = new HashMap<>();
-        List<Map<String,?>> clauses = new LinkedList<>();
+        List<Map<String,?>> clauses = null;
 
         public Map<String, Object> takeSnapshot(final QuerqyQuery<?> querqyQuery) {
+            reset();
             if (querqyQuery instanceof Query) {
-                reset();
                 visit((Query) querqyQuery);
             } else if (querqyQuery instanceof BooleanQuery) {
                 visit((BooleanQuery) querqyQuery);
@@ -140,26 +138,26 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
             } else {
                 throw new IllegalArgumentException("Cannot handle query type " + querqyQuery.getClass());
             }
-
             return snapshot;
 
         }
 
         @Override
         public Void visit(final Query query) {
-            snapshot.put(TYPE_QUERY, clauses);
+
+            clauses = new LinkedList<>();
             super.visit(query);
+            snapshot.put(TYPE_QUERY, clauses);
             return null;
         }
 
         @Override
         public Void visit(final BooleanQuery booleanQuery) {
 
-            final Map<String, Object> bq = new HashMap<>();
-            clauses.add(bq);
             final Map<String, Object> data = new LinkedHashMap<>(); // preserve order
-            bq.put(TYPE_BOOLEAN_QUERY, data);
             data.put(PROP_OCCUR, booleanQuery.occur.name());
+
+            add(TYPE_BOOLEAN_QUERY, data);
 
             // save reference
             final List<Map<String,?>> origClauses = clauses;
@@ -168,7 +166,6 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
             super.visit(booleanQuery);
 
-            snapshot.put(TYPE_BOOLEAN_QUERY, clauses);
             // restore
             clauses = origClauses;
 
@@ -177,11 +174,9 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
         @Override
         public Void visit(final DisjunctionMaxQuery disjunctionMaxQuery) {
-            final Map<String, Object> dmq = new HashMap<>();
-            clauses.add(dmq);
             final Map<String, Object> data = new LinkedHashMap<>(); // preserve order
-            dmq.put(TYPE_DISMAX, data);
             data.put(PROP_OCCUR, disjunctionMaxQuery.occur.name());
+            add(TYPE_DISMAX, data);
 
             // save reference
             final List<Map<String,?>> origClauses = clauses;
@@ -197,7 +192,6 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
         @Override
         public Void visit(final Term term) {
-            final Map<String, Object> tq = new HashMap<>();
             final HashMap props = new HashMap<>();
 
             if (term instanceof BoostedTerm) {
@@ -210,34 +204,37 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
             props.put(PROP_VALUE, term.getValue());
             props.put(PROP_GENERATED, term.isGenerated());
-            tq.put(TYPE_TERM, props);
-            clauses.add(tq);
+            add(TYPE_TERM, props);
             return null;
         }
 
         @Override
         public Void visit(final RawQuery rawQuery) {
-            final Map<String, Object> rq = new HashMap<>();
-            rq.put(TYPE_RAW_QUERY, rawQuery.toString());
-            clauses.add(rq);
-            snapshot.put(TYPE_RAW_QUERY, clauses);
+            add(TYPE_RAW_QUERY, rawQuery.toString());
             super.visit(rawQuery);
             return null;
         }
 
         @Override
         public Void visit(final MatchAllQuery query) {
-            final Map<String, Object> maq = new HashMap<>();
-            maq.put(TYPE_MATCH_ALL, Collections.EMPTY_MAP);
-            clauses.add(maq);
-            snapshot.put(TYPE_MATCH_ALL, clauses);
+            add(TYPE_MATCH_ALL, Collections.EMPTY_MAP);
             super.visit(query);
             return null;
         }
 
+        private void add(final String name, final  Object data) {
+            if (clauses != null) {
+                final Map<String, Object> namedData = new HashMap<>();
+                namedData.put(name, data);
+                clauses.add(namedData);
+            } else {
+                snapshot.put(name, data);
+            }
+        }
+
         private void reset() {
             snapshot = new HashMap<>();
-            clauses = new LinkedList<>();
+            clauses = null;
         }
     }
 
