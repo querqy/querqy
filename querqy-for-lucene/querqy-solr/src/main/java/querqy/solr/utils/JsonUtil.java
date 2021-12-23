@@ -1,12 +1,15 @@
 package querqy.solr.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -40,6 +43,14 @@ public class JsonUtil {
             return MAPPER.readValue(str, clazz);
         } catch (final IOException e) {
             throw new RuntimeException("Could not deserialize object from " + str, e);
+        }
+    }
+
+    public static <K,V> Map<K,V> readMapFromJson(final String str) {
+        try {
+            return MAPPER.readValue(str, new TypeReference<HashMap<K,V>>() {});
+        } catch (final IOException e) {
+            throw new RuntimeException("Could not deserialize Map from " + str, e);
         }
     }
 

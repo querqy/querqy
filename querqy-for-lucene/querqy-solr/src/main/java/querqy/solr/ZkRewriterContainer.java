@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,12 +38,15 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
     public static final int DEFAULT_MAX_FILE_SIZE = 1000000;
     public static final String CONF_MAX_FILE_SIZE = "zkMaxFileSize";
     public static final String CONF_CONFIG_NAME = "zkConfigName";
+    public static final String CONF_CONFIG_DATA_DIR = "zkDataDirectory";
 
     protected static final String IO_PATH = "querqy/rewriters";
     protected static final String IO_DATA = ".data";
+    protected static final String DEFAULT_REWRITER_DATA_DIR = ".data";
 
     private String inventoryPath;
     private String dataPath;
+    private String dataDirectory;
     private SolrZkClient zkClient = null;
     private HashMap<String, RewriterWatcher> rewriterWatchers;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE; // TODO: Is 1 MB decimal or binary in ZK?
@@ -53,11 +57,19 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
     }
 
     @Override
-    protected void init(@SuppressWarnings({"rawtypes"}) NamedList args) {
+    protected void init(@SuppressWarnings({"rawtypes"}) final NamedList argsList) {
 
-        maxFileSize = NamedListWrapper
-                .create(args, "Error in ZkRewriterContainer config")
-                .getOrDefaultInteger(CONF_MAX_FILE_SIZE, DEFAULT_MAX_FILE_SIZE);
+        final NamedListWrapper args = NamedListWrapper.create(argsList, "Error in ZkRewriterContainer config");
+
+        maxFileSize = args.getOrDefaultInteger(CONF_MAX_FILE_SIZE, DEFAULT_MAX_FILE_SIZE);
+
+        final String configuredDir = args.getStringOrDefault(CONF_CONFIG_DATA_DIR, DEFAULT_REWRITER_DATA_DIR);
+        if (configuredDir.contains("..") || configuredDir.indexOf('/') > -1) {
+            throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Invalid value for config property "
+                    + CONF_CONFIG_DATA_DIR + ": " + configuredDir);
+        }
+
+        dataDirectory = configuredDir;
 
         final ZkController zkController = resourceLoader.getZkController();
         zkClient = zkController.getZkClient();
@@ -65,9 +77,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         final String zkConfigName;
         try {
-            zkConfigName = NamedListWrapper
-                .create(args, "Error in ZkRewriterContainer config")
-                .getStringOrDefault(CONF_CONFIG_NAME, 
+            zkConfigName = args.getStringOrDefault(CONF_CONFIG_NAME,
                     zkController.getZkStateReader().readConfigName(collection));
         } catch (final Exception e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Failed to load config name for collection:" +
@@ -75,7 +85,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         }
 
         inventoryPath = "/configs/" + zkConfigName + "/" + IO_PATH;
-        dataPath = inventoryPath + "/" + IO_DATA;
+        dataPath = inventoryPath + "/" + dataDirectory;
 
         try {
             // TODO: add watcher?
@@ -114,7 +124,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
             while (offset < bytes.length) {
                 final String uuid = UUID.randomUUID().toString();
-                final String path = rewriterDataPath(rewriterId, uuid);
+                final String path = rewriterDataPath(rewriterId, dataDirectory, uuid);
                 final int len = Math.min(maxFileSize, bytes.length - offset);
                 
                 try {
@@ -127,23 +137,26 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
             }
         }
 
+        final String rewriterStorageInfoNode = rewriterStorageInfoNode(rewriterId);
         final Stat stat;
         try {
-            stat = zkClient.exists(inventoryPath + "/" + rewriterId, null, true);
+            stat = zkClient.exists(rewriterStorageInfoNode, null, true);
         } catch (final InterruptedException | KeeperException e) {
             throw new IOException("Error saving rewriter " + rewriterId, e);
         }
 
         try {
 
+            final byte[] infoData = new RewriterStorageInfo(uuids, dataDirectory).toJsonString().getBytes();
+
             if (stat == null) {
 
                 try {
-                    zkClient.makePath(inventoryPath + "/" + rewriterId, String.join(",", uuids).getBytes(),
-                            CreateMode.PERSISTENT, null, true, true);
+                    zkClient.makePath(rewriterStorageInfoNode, infoData, CreateMode.PERSISTENT, null, true, true);
                 } catch (KeeperException.NodeExistsException e) {
                     for (final String uuid : uuids) {
-                        final String rewriterDataPath = rewriterDataPath(rewriterId, uuid);
+                        // undo saving parts
+                        final String rewriterDataPath = rewriterDataPath(rewriterId, dataDirectory, uuid);
                         try {
                             zkClient.delete(rewriterDataPath, -1, true);
                         } catch (final Exception exception) {
@@ -157,12 +170,14 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
                 }
 
             } else {
-                final String oldUuids = new String(zkClient.getData(inventoryPath + "/" + rewriterId, null, stat,
-                        true));
-                zkClient.setData(inventoryPath + "/" + rewriterId, String.join(",", uuids).getBytes(),
-                        stat.getVersion(), true);
-                for (final String oldUuid : oldUuids.split(",")) {
-                    final String oldPath = rewriterDataPath(rewriterId, oldUuid);
+
+                final RewriterStorageInfo oldStorageInfo = RewriterStorageInfo.fromString(
+                        new String(zkClient.getData(rewriterStorageInfoNode, null, stat, true)));
+
+                zkClient.setData(rewriterStorageInfoNode, infoData, stat.getVersion(), true);
+
+                for (final String oldUuid : oldStorageInfo.uuids) {
+                    final String oldPath = rewriterDataPath(rewriterId, oldStorageInfo.dataDir, oldUuid);
                     try {
                         zkClient.delete(oldPath, -1, true);
                     } catch (final Exception e) {
@@ -177,14 +192,32 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     }
 
+    protected RewriterStorageInfo readRewriterStorageInfo(final String rewriterId, final RewriterWatcher watcher) throws
+            IOException {
+
+        try {
+            return RewriterStorageInfo.fromString(new String(zkClient.getData(rewriterStorageInfoNode(rewriterId), watcher,
+                    null, true)));
+        } catch (final KeeperException e) {
+            if (KeeperException.Code.NONODE == e.code()) {
+                throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "Rewriter " + rewriterId + " not found.");
+            } else {
+                throw new IOException("Error getting rewriter " + rewriterId, e);
+            }
+        } catch (final InterruptedException e) {
+            throw new IOException("Error getting rewriter " + rewriterId, e);
+        }
+
+
+    }
+
     @Override
     protected void deleteRewriter(final String rewriterId) throws IOException {
-        final String dataLoc;
-        try {
-            dataLoc = new String(zkClient.getData(rewriterPath(rewriterId), newRewriterWatcher(rewriterId),
-                    null, true));
-            zkClient.delete(rewriterPath(rewriterId), -1, true);
 
+        final RewriterStorageInfo storageInfo = readRewriterStorageInfo(rewriterId, newRewriterWatcher(rewriterId));
+
+        try {
+            zkClient.delete(rewriterStorageInfoNode(rewriterId), -1, true);
         } catch (final KeeperException e) {
             if (KeeperException.Code.NONODE == e.code()) {
                 throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "Rewriter " + rewriterId + " not found.");
@@ -196,8 +229,8 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         }
 
         try {
-            for (final String oldUuid : dataLoc.split(",")) {
-                zkClient.delete(rewriterDataPath(rewriterId, oldUuid), -1, true);
+            for (final String oldUuid : storageInfo.uuids) {
+                zkClient.delete(rewriterDataPath(rewriterId, storageInfo.dataDir, oldUuid), -1, true);
             }
         } catch (final InterruptedException | KeeperException e) {
             LOG.error("The rewriter " + rewriterId + " was deleted but not all data could be removed from ZK", e);
@@ -216,7 +249,9 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
                     notifyRewritersChangeListener();
                 }
             }, true).stream() // get all children except for the .data subdirectory
-                    .filter(child -> !IO_DATA.equals(child))
+                    .filter(child -> !(child.startsWith(".")
+                            || (child.equals(dataDirectory)
+                            || (child.startsWith("__")))))
                     .collect(Collectors.toList());
 
         } catch (final Exception e) {
@@ -266,36 +301,43 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         return readRewriterDefinition(rewriterId, null);
     }
 
-    protected synchronized Map<String, Object> readRewriterDefinition(final String rewriterId, final Watcher watcher)
+    protected synchronized Map<String, Object> readRewriterDefinition(final String rewriterId,
+                                                                      final RewriterWatcher watcher)
             throws IOException {
+
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream(maxFileSize)) {
 
-            for (final String uuid : new String(zkClient.getData(rewriterPath(rewriterId), watcher, null, true))
-                    .split(",")) {
-                final byte[] data = zkClient.getData(rewriterDataPath(rewriterId, uuid), null, null, true);
-                bos.write(data);
+            final RewriterStorageInfo storageInfo = readRewriterStorageInfo(rewriterId, watcher);
+
+            for (final String uuid : storageInfo.uuids) {
+                try {
+                    final byte[] data = zkClient.getData(rewriterDataPath(rewriterId, storageInfo.dataDir, uuid), null,
+                            null, true);
+                    bos.write(data);
+                } catch (final KeeperException e) {
+                    if (KeeperException.Code.NONODE == e.code()) {
+                        throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "Rewriter data not found: " +
+                                storageInfo.dataDir + "/" + uuid);
+                    } else {
+                        throw new IOException(e);
+                    }
+                } catch (final InterruptedException e) {
+                    throw new IOException(e);
+                }
             }
 
             return readJson(GZIPAwareResourceLoader.detectGZIPAndWrap(new ByteArrayInputStream(bos.toByteArray())),
                     Map.class);
 
-        } catch (final KeeperException e) {
-            if (KeeperException.Code.NONODE == e.code()) {
-                throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "Rewriter " + rewriterId + " not found.");
-            } else {
-                throw new IOException(e);
-            }
-        } catch (final InterruptedException e) {
-            throw new IOException(e);
         }
     }
 
-    protected String rewriterPath(final String rewriterId) {
+    protected String rewriterStorageInfoNode(final String rewriterId) {
         return inventoryPath + "/" + rewriterId;
     }
 
-    protected String rewriterDataPath(final String rewriterId, final String uuid) {
-        return dataPath + "/" + rewriterId + "-" + uuid;
+    protected String rewriterDataPath(final String rewriterId, final String dataDir, final String uuid) {
+        return inventoryPath + "/" + dataDir + "/" + rewriterId + "-" + uuid;
     }
 
     protected synchronized RewriterWatcher newRewriterWatcher(final String rewriterId) {
@@ -333,6 +375,64 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
         public void disable() {
             enabled = false;
         }
+    }
+
+    public static final class RewriterStorageInfo {
+
+        private static final String PROP_VERSION = "_version";
+        private static final String PROP_DATA_DIR = "data_dir";
+        private static final String PROP_UUIDS = "uuids";
+        public static final int CURRENT_VERSION = 2;
+
+        public final List<String> uuids;
+        public final String dataDir;
+
+        public RewriterStorageInfo(final List<String> uuids, final String dataDir) {
+            this.uuids = uuids;
+            this.dataDir = dataDir;
+        }
+
+        static RewriterStorageInfo fromString(final String str) {
+
+            if (str == null) {
+                throw new IllegalArgumentException("Cannot read RewriterStorageInfo from null");
+            }
+
+            final String data = str.trim();
+            if (data.isEmpty()) {
+                throw new IllegalArgumentException("Cannot read RewriterStorageInfo from empty data");
+            }
+
+            if (data.charAt(0) == '{') {
+                final Map<String, Object> dataMap = readMapFromJson(data);
+                final Integer version = (Integer) dataMap.get(PROP_VERSION);
+                if (version == null) {
+                    throw new IllegalStateException("Missing version info in RewriterStorageInfo");
+                }
+                if (version != CURRENT_VERSION) {
+                    throw new IllegalStateException("Cannot handle RewriterStorageInfo version: " + version);
+                }
+
+                final String dataPath = (String) dataMap.getOrDefault(PROP_DATA_DIR, DEFAULT_REWRITER_DATA_DIR);
+                final List<String> uuids = (List<String>) dataMap.get(PROP_UUIDS);
+                if ((uuids == null) || uuids.isEmpty()) {
+                    throw new IllegalStateException("Missing node ids in RewriterStorageInfo");
+                }
+                return new RewriterStorageInfo(uuids, dataPath);
+
+            } else {
+                return new RewriterStorageInfo(Arrays.asList(data.split(",")), DEFAULT_REWRITER_DATA_DIR);
+            }
+        }
+
+        public String toJsonString() {
+            final Map<String, Object> data = new LinkedHashMap<>();
+            data.put(PROP_VERSION, CURRENT_VERSION);
+            data.put(PROP_DATA_DIR, dataDir);
+            data.put(PROP_UUIDS, uuids);
+            return JsonUtil.toJson(data);
+        }
+
     }
 
 
