@@ -13,6 +13,12 @@
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting for Solr</description>
 
+    <properties>
+        <minidev.json-smart.version>2.3</minidev.json-smart.version>
+        <slf4j.version>1.7.26</slf4j.version>
+        <testcontainers.version>1.16.2</testcontainers.version>
+    </properties>
+
     <dependencies>
         <!--
             The Solr test framework needs to be loaded before Lucene core,
