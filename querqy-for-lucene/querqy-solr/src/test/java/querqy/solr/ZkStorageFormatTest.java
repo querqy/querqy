@@ -25,6 +25,8 @@ import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SolrTestCaseJ4.SuppressSSL
 public class ZkStorageFormatTest extends AbstractQuerqySolrCloudTestCase {
@@ -163,6 +165,11 @@ public class ZkStorageFormatTest extends AbstractQuerqySolrCloudTestCase {
         assertFalse(ZK_CLIENT.exists("/configs/" + CONFIGURED_CONFIG_NAME + "/" + IO_PATH + "/" + IO_DATA +
                 "/some_common_rules-ed6e240a-e7e8-47b0-995a-b700a5f8c16d", true));
 
+        // find the new config
+        final List<String> children = ZK_CLIENT.getChildren("/configs/" + CONFIGURED_CONFIG_NAME + "/" + IO_PATH +
+                        "/__data", null, true)
+                .stream().filter(name -> name.contains("some_common_rules-")).collect(Collectors.toList());
+        assertTrue(children.size() >= 1);
 
     }
 
