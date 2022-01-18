@@ -36,7 +36,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompundCollation;
     final LuceneWordBreaker wordBreaker; // package visible for testing
-    private final LuceneCompounder compounder;
+    final LuceneCompounder compounder; // package visible for testing
     private final TrieMap<Boolean> protectedWords;
 
     /**
@@ -51,7 +51,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
      * @param alwaysAddReverseCompounds   Iff true, reverse shingles will be added to the query
      * @param maxDecompoundExpansions     The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
-     * @param morphologyName              The name of (de)compounding morphology to use
+     * @param compoundMorphologyName      The name of compounding morphology to use
+     * @param decompoundMorphologyName    The name of decompounding morphology to use
      */
     public WordBreakCompoundRewriterFactory(final String rewriterId,
                                             final Supplier<IndexReader> indexReaderSupplier,
@@ -65,7 +66,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                             final int maxDecompoundExpansions,
                                             final boolean verifyDecompoundCollation,
                                             final List<String> protectedWords,
-                                            final String morphologyName) {
+                                            final String decompoundMorphologyName,
+                                            final String compoundMorphologyName) {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.lowerCaseInput = lowerCaseInput;
@@ -81,22 +83,27 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         this.protectedWords = buildWordLookup(protectedWords, lowerCaseInput);
 
-        final Optional<Morphology> morphology = new MorphologyProvider().get(morphologyName);
+        final Optional<Morphology> compoundMorphology = new MorphologyProvider().get(compoundMorphologyName);
+        final Optional<Morphology> decompoundMorphology = new MorphologyProvider().get(decompoundMorphologyName);
 
-        if (morphology.isPresent()) {
-            compounder = new MorphologicalCompounder(morphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq);
-            wordBreaker = new MorphologicalWordBreaker(morphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq,
-                    minBreakLength, MAX_EVALUATIONS);
-        } else {
+        if (!compoundMorphology.isPresent() || compoundMorphology.get() == MorphologyProvider.DEFAULT) {
+            // use WordBreakSpellChecker when DEFAULT for backwards compatibility
             final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
             spellChecker.setMaxChanges(MAX_CHANGES);
             spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
             spellChecker.setMaxCombineWordLength(maxCombineLength);
             spellChecker.setMinBreakWordLength(minBreakLength);
             spellChecker.setMaxEvaluations(100);
-
             compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
+        } else {
+            compounder = new MorphologicalCompounder(compoundMorphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq);
+        }
+
+        if (!decompoundMorphology.isPresent()) {
             wordBreaker = new MorphologicalWordBreaker(MorphologyProvider.DEFAULT, dictionaryField, lowerCaseInput, minSuggestionFreq,
+                    minBreakLength, MAX_EVALUATIONS);
+        } else {
+            wordBreaker = new MorphologicalWordBreaker(decompoundMorphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq,
                     minBreakLength, MAX_EVALUATIONS);
         }
     }

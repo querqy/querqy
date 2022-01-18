@@ -2,6 +2,7 @@ package querqy.solr.rewriter.wordbreak;
 
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_ALWAYS_ADD_REVERSE_COMPOUNDS;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_COMPOUND;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_MAX_EXPANSIONS;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_VERIFY_COLLATION;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DICTIONARY_FIELD;
@@ -34,6 +35,8 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
     private Integer decompoundMaxExpansions;
     private Boolean decompoundVerifyCollation;
     private String morphology;
+    private String decompoundMorphology;
+    private String compoundMorphology;
     private List<String> protectedWords;
 
     public WordBreakCompoundConfigRequestBuilder() {
@@ -95,9 +98,26 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
             decompoundConf.put(CONF_DECOMPOUND_VERIFY_COLLATION,
                     decompoundVerifyCollation);
         }
+        if (decompoundMorphology != null) {
+            if (decompoundConf == null) {
+                decompoundConf = new HashMap<>();
+            }
+            decompoundConf.put(CONF_MORPHOLOGY,
+                    decompoundMorphology);
+        }
 
         if (decompoundConf != null) {
             config.put(CONF_DECOMPOUND, decompoundConf);
+        }
+
+        Map<String, Object> compoundConf = null;
+
+        if (compoundMorphology != null) {
+            compoundConf = new HashMap<>();
+            compoundConf.put(CONF_MORPHOLOGY, compoundMorphology);
+        }
+        if (compoundConf != null) {
+            config.put(CONF_COMPOUND, compoundConf);
         }
 
         return config;
@@ -186,4 +206,13 @@ public class WordBreakCompoundConfigRequestBuilder extends RewriterConfigRequest
         return this;
     }
 
+    public WordBreakCompoundConfigRequestBuilder decompoundMorphology(final String morphology) {
+        this.decompoundMorphology = morphology;
+        return this;
+    }
+
+    public WordBreakCompoundConfigRequestBuilder compoundMorphology(final String morphology) {
+        this.compoundMorphology = morphology;
+        return this;
+    }
 }

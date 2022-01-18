@@ -9,6 +9,7 @@ import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CO
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_MAX_EXPANSIONS;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DECOMPOUND_VERIFY_COLLATION;
+import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_COMPOUND;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_DICTIONARY_FIELD;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_LOWER_CASE_INPUT;
 import static querqy.solr.rewriter.wordbreak.WordBreakCompoundRewriterFactory.CONF_MAX_COMBINE_WORD_LENGTH;
@@ -80,6 +81,8 @@ public class WordBreakCompoundConfigRequestBuilderTest {
                 .maxDecompoundExpansions(4)
                 .minSuggestionFrequency(2)
                 .morphology("GERMAN")
+                .decompoundMorphology("DEFAULT")
+                .compoundMorphology("GERMAN")
                 .reverseCompoundTriggerWords("from", "of")
                 .verifyDecompoundCollation(false)
                 .buildConfig();
@@ -99,6 +102,10 @@ public class WordBreakCompoundConfigRequestBuilderTest {
 
         assertThat(decompound, hasEntry(CONF_DECOMPOUND_VERIFY_COLLATION, Boolean.FALSE));
         assertThat(decompound, hasEntry(CONF_DECOMPOUND_MAX_EXPANSIONS, 4));
+        assertThat(decompound, hasEntry(CONF_MORPHOLOGY, "DEFAULT"));
+
+        final Map<String, Object> compound = (Map<String, Object>) config.get(CONF_COMPOUND);
+        assertThat(compound, hasEntry(CONF_MORPHOLOGY, "GERMAN"));
 
         final List<String> reverseCompoundTriggerWords = (List<String>) config.get(CONF_REVERSE_COMPOUND_TRIGGER_WORDS);
 
@@ -106,5 +113,4 @@ public class WordBreakCompoundConfigRequestBuilderTest {
 
 
     }
-
 }

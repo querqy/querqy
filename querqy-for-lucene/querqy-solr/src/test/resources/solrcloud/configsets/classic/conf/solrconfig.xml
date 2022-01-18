@@ -35,6 +35,8 @@
                     <int name="decompound.maxExpansions">5</int>
                     <bool name="decompound.verifyCollation">true</bool>
                     <str name="morphology">GERMAN</str>
+                    <str name="decompound.morphology">GERMAN</str>
+                    <str name="compound.morphology">GERMAN</str>
                     <arr name="reverseCompoundTriggerWords">
                         <str>for</str>
                     </arr>

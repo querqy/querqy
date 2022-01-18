@@ -9,6 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.rewrite.RewriterFactory;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,9 +31,11 @@ public class WordBreakCompoundRewriterFactoryTest {
         configuration.add(CONF_CLASS, WordBreakCompoundRewriterFactory.class.getName());
         configuration.add(CONF_DICTIONARY_FIELD, "f1");
         configuration.add(CONF_LOWER_CASE_INPUT, true);
+        configuration.add(CONF_MORPHOLOGY, "GERMAN");
         configuration.add(CONF_DECOMPOUND + "." + CONF_DECOMPOUND_MAX_EXPANSIONS, 5);
         configuration.add(CONF_DECOMPOUND + "." + CONF_DECOMPOUND_VERIFY_COLLATION, true);
-        configuration.add(CONF_MORPHOLOGY, "GERMAN");
+        configuration.add(CONF_DECOMPOUND + "." + CONF_MORPHOLOGY, "DEFAULT");
+        configuration.add(CONF_COMPOUND + "." + CONF_MORPHOLOGY, "GERMAN");
         configuration.add(CONF_REVERSE_COMPOUND_TRIGGER_WORDS, Lists.newArrayList("for"));
 
         Map<String, Object> parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
@@ -42,5 +45,34 @@ public class WordBreakCompoundRewriterFactoryTest {
 
         assertThat(rewriterFactory).isInstanceOf(querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory.class);
         assertThat(factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG))).isNull();
+    }
+
+    @Test
+    public void testParseInvalidCompoundingConfigurationIsInvalid() {
+        NamedList<Object> configuration = new NamedList<>();
+        configuration.add(CONF_CLASS, WordBreakCompoundRewriterFactory.class.getName());
+        configuration.add(CONF_DICTIONARY_FIELD, "f1");
+        configuration.add(CONF_MORPHOLOGY, "INVALID");
+
+        Map<String, Object> parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
+        List<String> validations = factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG));
+        assertThat(validations).isNotNull();
+        assertThat(validations).containsOnly("Cannot load morphology: INVALID");
+
+        configuration.remove(CONF_MORPHOLOGY);
+        configuration.add(CONF_DECOMPOUND + "." + CONF_MORPHOLOGY, "INVALID");
+
+        parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
+        validations = factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG));
+        assertThat(validations).isNotNull();
+        assertThat(validations).containsOnly("Cannot load decompound morphology: INVALID");
+
+        configuration.remove(CONF_DECOMPOUND + "." + CONF_MORPHOLOGY);
+        configuration.add(CONF_COMPOUND + "." + CONF_MORPHOLOGY, "INVALID");
+
+        parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
+        validations = factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG));
+        assertThat(validations).isNotNull();
+        assertThat(validations).containsOnly("Cannot load compound morphology: INVALID");
     }
 }

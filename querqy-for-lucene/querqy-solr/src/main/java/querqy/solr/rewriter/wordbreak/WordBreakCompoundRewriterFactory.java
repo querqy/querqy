@@ -28,6 +28,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
     public static final String CONF_DECOMPOUND = "decompound";
     public static final String CONF_DECOMPOUND_MAX_EXPANSIONS = "maxExpansions";
     public static final String CONF_DECOMPOUND_VERIFY_COLLATION = "verifyCollation";
+    public static final String CONF_COMPOUND = "compound";
     public static final String CONF_PROTECTED_WORDS = "protectedWords";
 
 
@@ -70,6 +71,7 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final List<String> reverseCompoundTriggerWords = (List<String>) config.get(CONF_REVERSE_COMPOUND_TRIGGER_WORDS);
 
         final Map<String, Object> decompoundConf = ConfigUtils.getArg(config, CONF_DECOMPOUND, Collections.emptyMap());
+        final Map<String, Object> compoundConf = ConfigUtils.getArg(config, CONF_COMPOUND, Collections.emptyMap());
 
         final int maxDecompoundExpansions = ConfigUtils.getArg(decompoundConf, CONF_DECOMPOUND_MAX_EXPANSIONS,
                 DEFAULT_MAX_DECOMPOUND_EXPANSIONS);
@@ -94,12 +96,16 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
         final Supplier<IndexReader> indexReaderSupplier = () ->
                 SolrRequestInfo.getRequestInfo().getReq().getSearcher().getIndexReader();
 
-        final String morphologyName = (String) config.getOrDefault(CONF_MORPHOLOGY, "DEFAULT");
+        // morphology can be set in the compound/decompound configs or overridden
+        final String defaultMorphologyName = (String) config.getOrDefault(CONF_MORPHOLOGY, "DEFAULT");
+        final String decompoundMorphologyName = ConfigUtils.getArg(decompoundConf, CONF_MORPHOLOGY, defaultMorphologyName);
+        // for backwards compatibility, compoundMorphology uses DEFAULT unless explicitly overridden
+        final String compoundMorphologyName = ConfigUtils.getArg(compoundConf, CONF_MORPHOLOGY, "DEFAULT");
 
         delegate = new querqy.lucene.contrib.rewrite.wordbreak.WordBreakCompoundRewriterFactory(rewriterId,
                 indexReaderSupplier, indexField, lowerCaseInput, minSuggestionFreq, maxCombineLength,
                 minBreakLength, reverseCompoundTriggerWords, alwaysAddReverseCompounds, maxDecompoundExpansions,
-                verifyDecompoundCollation, protectedWords, morphologyName);
+                verifyDecompoundCollation, protectedWords, decompoundMorphologyName, compoundMorphologyName);
     }
 
     @Override
@@ -113,6 +119,15 @@ public class WordBreakCompoundRewriterFactory extends SolrRewriterFactoryAdapter
                 DEFAULT_MAX_DECOMPOUND_EXPANSIONS);
         if (maxDecompoundExpansions < 0) {
             return Collections.singletonList("maxDecompoundExpansions >= 0 expected");
+        }
+
+        if (decompoundConf.get(CONF_MORPHOLOGY) != null && !morphologyProvider.exists((String) decompoundConf.get(CONF_MORPHOLOGY))) {
+            return Collections.singletonList("Cannot load decompound morphology: " + decompoundConf.get("morphology"));
+        }
+
+        final Map<String, Object> compoundConf = ConfigUtils.getArg(config, "compound", Collections.emptyMap());
+        if (compoundConf.get(CONF_MORPHOLOGY) != null && !morphologyProvider.exists((String) compoundConf.get(CONF_MORPHOLOGY))) {
+            return Collections.singletonList("Cannot load compound morphology: " + compoundConf.get("morphology"));
         }
 
         final List<String> protectedWords = ConfigUtils.getArg(config, CONF_PROTECTED_WORDS, Collections.emptyList());
