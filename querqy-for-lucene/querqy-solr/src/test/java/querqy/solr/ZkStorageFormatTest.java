@@ -1,6 +1,8 @@
 package querqy.solr;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.RewriterConfigRequestBuilder.buildDeleteRequest;
+import static querqy.solr.ZkRewriterContainer.CONF_CONFIG_DATA_DIR;
 import static querqy.solr.ZkRewriterContainer.IO_DATA;
 import static querqy.solr.ZkRewriterContainer.IO_PATH;
 
@@ -8,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.embedded.JettySolrRunner;
+import org.apache.solr.client.solrj.impl.BaseHttpSolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
@@ -171,6 +174,33 @@ public class ZkStorageFormatTest extends AbstractQuerqySolrCloudTestCase {
                 .stream().filter(name -> name.contains("some_common_rules-")).collect(Collectors.toList());
         assertTrue(children.size() >= 1);
 
+    }
+
+    @Test
+    public void testThatRewriterCannotBeNamedLikeDataDirectory() throws Exception {
+
+        try {
+            // We must avoid adding data to the rewriter data node ('__data')
+            new CommonRulesConfigRequestBuilder()
+                    .rules("a =>\n SYNONYM: b").buildSaveRequest("__data").process(getRandClient());
+            fail("Server accepted invalid rewriter ID");
+        } catch (final BaseHttpSolrClient.RemoteSolrException e) {
+            assertEquals(400, e.code());
+            assertTrue(e.getMessage().contains("Rewriter ID must not equal configured property " +
+                    CONF_CONFIG_DATA_DIR));
+        }
+    }
+
+    @Test
+    public void testThatDataDirectoryCannotBeDeletedViaRewriterName() throws Exception {
+        try {
+            buildDeleteRequest("__data") .process(getRandClient());
+            fail("Server accepted delete for data dir");
+        } catch (final BaseHttpSolrClient.RemoteSolrException e) {
+            assertEquals(400, e.code());
+            assertTrue(e.getMessage().contains("Rewriter ID must not equal configured property " +
+                    CONF_CONFIG_DATA_DIR));
+        }
     }
 
     private SolrClient getRandClient() {

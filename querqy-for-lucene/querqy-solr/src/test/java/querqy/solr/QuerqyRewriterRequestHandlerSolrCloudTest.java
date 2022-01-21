@@ -10,6 +10,7 @@ import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.JettySolrRunner;
+import org.apache.solr.client.solrj.impl.BaseHttpSolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
@@ -436,6 +437,32 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
 
         assertEquals(0, rewriters.size());
 
+    }
+
+
+    @Test
+    public void testThatRewriterCannotBeNamedLikeDataDirectory() throws Exception {
+
+        try {
+            // We must avoid adding data to the rewriter data node ('.data')
+            new CommonRulesConfigRequestBuilder().rules("a =>\n SYNONYM: b").buildSaveRequest(".data")
+                    .process(getRandClient());
+            fail("Server accepted invalid rewriter name");
+        } catch (final BaseHttpSolrClient.RemoteSolrException e) {
+            assertEquals(400, e.code());
+            assertTrue(e.getMessage().contains("Rewriter ID must not start with '.'"));
+        }
+    }
+
+    @Test
+    public void testThatDataDirectoryCannotBeDeletedViaRewriterName() throws Exception {
+        try {
+            buildDeleteRequest(".data").process(getRandClient());
+            fail("Server accepted delete for data dir");
+        } catch (final BaseHttpSolrClient.RemoteSolrException e) {
+            assertEquals(400, e.code());
+            assertTrue(e.getMessage().contains("Rewriter ID must not start with '.'"));
+        }
     }
 
     private void cleanUpRewriters(final String... rewriterId) throws Exception {

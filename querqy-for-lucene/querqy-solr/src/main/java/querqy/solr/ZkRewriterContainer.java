@@ -110,6 +110,15 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
     protected void doSaveRewriter(final String rewriterId, final Map<String, Object> instanceDescription)
             throws IOException {
 
+        if (rewriterId.startsWith(".")) {
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "Rewriter ID must not start with '.'");
+        }
+
+        if (rewriterId.equals(dataDirectory)) {
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "Rewriter ID must not equal configured " +
+                    "property " +  CONF_CONFIG_DATA_DIR);
+        }
+
         final List<String> uuids = new ArrayList<>();
 
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream(maxFileSize)) {
@@ -213,6 +222,15 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     @Override
     protected void deleteRewriter(final String rewriterId) throws IOException {
+
+        if (rewriterId.startsWith(".")) {
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "Rewriter ID must not start with '.'");
+        }
+
+        if (rewriterId.equals(dataDirectory)) {
+            throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "Rewriter ID must not equal configured " +
+                    "property " +  CONF_CONFIG_DATA_DIR);
+        }
 
         final RewriterStorageInfo storageInfo = readRewriterStorageInfo(rewriterId, newRewriterWatcher(rewriterId));
 
