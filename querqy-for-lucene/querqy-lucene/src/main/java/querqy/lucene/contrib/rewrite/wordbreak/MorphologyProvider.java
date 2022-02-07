@@ -1,12 +1,13 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
 
 public class MorphologyProvider {
-    private static final HashMap<String, Optional<Morphology>> morphologies = new HashMap<>();
+    private static final Map<String, Optional<Morphology>> morphologies = new HashMap<>();
     private static final String DEFAULT_KEY = "default";
     public static final SuffixGroupMorphology DEFAULT = new SuffixGroupMorphology(weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NoopWordGenerator.INSTANCE, 1f))));
 

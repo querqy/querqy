@@ -2,8 +2,12 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 import querqy.CompoundCharSequence;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Collection;
 
 /**
  * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>

@@ -23,66 +23,26 @@ public class GermanMorphologyDecompoundingTableTest {
     @Parameterized.Parameters(name = "Test {index}: Term({0})")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"kohlsuppe",
-                        wb("kohl", "suppe", suggest("kohl"))
-                },
-                {"staatsfeind",
-                        wb("staats", "feind", suggest("staat"))
-                },
-                {"soziologenkongreß",
-                        wb("soziologen", "kongreß", suggest("soziolog"))
-                },
-                {"straußenei",
-                        wb("straußen", "ei", suggest("strauß"))
-                },
-                {"wöchnerinnenheim",
-                        wb("wöchnerinnen", "heim", suggest("wöchnerin"))
-                },
-                {"aphorismenschatz",
-                        wb("aphorismen", "schatz", suggest("aphorismus"))
-                },
-                {"museenverwaltung",
-                        wb("museen", "verwaltung", suggest("museum"))
-                },
-                {"aphrodisiakaverkäufer",
-                        wb("aphrodisiaka", "verkäufer", suggest("aphrodisiakum"))
-                },
-                {"kirchhof",
-                        wb("kirch", "hof", suggest("kirche"))
-                },
-                {"madonnenkult",
-                        wb("madonnen", "kult", suggest("madonna"))
-                },
-                {"hundehalter",
-                        wb("hunde", "halter", suggest("hund"))
-                },
-                {"gänseklein",
-                        wb("gänse", "klein", suggest("gans"))
-                },
-                {"stadienverbot",
-                        wb("stadien", "verbot", suggest("stadium"))
-                },
-                {"geisteshaltung",
-                        wb("geistes", "haltung", suggest("geist"))
-                },
-                {"blätterwald",
-                        wb("blätter", "wald", suggest("blatt"))
-                },
-                {"südwind",
-                        wb("süd", "wind", suggest("süden"))
-                },
-                {"pharmakaanalyse",
-                        wb("pharmaka", "analyse", suggest("pharmakon"))
-                },
-                {"geisterstunde",
-                        wb("geister", "stunde", suggest("geist"))
-                },
-                {"prinzipienreiter",
-                        wb("prinzipien", "reiter", suggest("prinzip"))
-                },
-                {"carabinierischule",
-                        wb("carabinieri", "schule", suggest("carabiniere"))
-                },
+                {"kohlsuppe", wb("kohl", "suppe", "kohl")},
+                {"staatsfeind", wb("staats", "feind", "staat")},
+                {"soziologenkongreß", wb("soziologen", "kongreß", "soziologe")},
+                {"straußenei", wb("straußen", "ei", "strauß")},
+                {"wöchnerinnenheim", wb("wöchnerinnen", "heim", "wöchnerin")},
+                {"aphorismenschatz", wb("aphorismen", "schatz", "aphorismus")},
+                {"museenverwaltung", wb("museen", "verwaltung", "museum")},
+                {"aphrodisiakaverkäufer", wb("aphrodisiaka", "verkäufer", "aphrodisiakum")},
+                {"kirchhof", wb("kirch", "hof", "kirche")},
+                {"madonnenkult", wb("madonnen", "kult", "madonna")},
+                {"hundehalter", wb("hunde", "halter", "hund")},
+                {"gänseklein", wb("gänse", "klein", "gans")},
+                {"stadienverbot", wb("stadien", "verbot", "stadion")},
+                {"geisteshaltung", wb("geistes", "haltung", "geist")},
+                {"blätterwald", wb("blätter", "wald", "blatt")},
+                {"südwind", wb("süd", "wind", "süden")},
+                {"pharmakaanalyse", wb("pharmaka", "analyse", "pharmakon")},
+                {"geisterstunde", wb("geister", "stunde", "geist")},
+                {"prinzipienreiter", wb("prinzipien", "reiter", "prinzip")},
+                {"carabinierischule", wb("carabinieri", "schule", "carabiniere")},
 
         });
     }
@@ -120,10 +80,6 @@ public class GermanMorphologyDecompoundingTableTest {
 
     static ExpectedWordBreak wb(final String left, final String right, final String expectedWordBreak) {
         return new ExpectedWordBreak(left, right, expectedWordBreak);
-    }
-
-    static String suggest(final String expectedWordBreak) {
-        return expectedWordBreak;
     }
 
     static class ExpectedWordBreak {

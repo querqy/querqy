@@ -21,46 +21,26 @@ public class GermanMorphologyCompoundingTableTest {
     @Parameterized.Parameters(name = "Test {index}: Term({0})")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"kohl", "suppe",
-                        suggest("kohlsuppe")},
-                {"staat", "feind",
-                        suggest("staatsfeind")},
-                {"soziolog", "kongreß",
-                        suggest("soziologenkongreß")},
-                {"strauß", "ei",
-                        suggest("straußenei")},
-                {"wöchnerin", "heim",
-                        suggest("wöchnerinnenheim")},
-                {"aphorismus", "schatz",
-                        suggest("aphorismenschatz")},
-                {"museum", "verwaltung",
-                        suggest("museenverwaltung")},
-                {"aphrodisiakum", "verkäufer",
-                        suggest("aphrodisiakaverkäufer")},
-                {"kirche", "hof",
-                        suggest("kirchhof")},
-                {"madonna", "kult",
-                        suggest("madonnenkult")},
-                {"hund", "halter",
-                        suggest("hundehalter")},
-                {"gans", "klein",
-                        suggest("gänseklein")},
-                {"stadion", "verbot",
-                        suggest("stadienverbot")},
-                {"geist", "haltung",
-                        suggest("geisteshaltung")},
-                {"blatt", "wald",
-                        suggest("blätterwald")},
-                {"süden", "wind",
-                        suggest("südwind")},
-                {"pharmakon", "analyse",
-                        suggest("pharmakaanalyse")},
-                {"geist", "stunde",
-                        suggest("geisterstunde")},
-                {"prinzip", "reiter",
-                        suggest("prinzipienreiter")},
-                {"carabiniere", "schule",
-                        suggest("carabinierischule")},
+                {"kohl", "suppe", "kohlsuppe"},
+                {"staat", "feind", "staatsfeind"},
+                {"soziolog", "kongreß", "soziologenkongreß"},
+                {"strauß", "ei", "straußenei"},
+                {"wöchnerin", "heim", "wöchnerinnenheim"},
+                {"aphorismus", "schatz", "aphorismenschatz"},
+                {"museum", "verwaltung", "museenverwaltung"},
+                {"aphrodisiakum", "verkäufer", "aphrodisiakaverkäufer"},
+                {"kirche", "hof", "kirchhof"},
+                {"madonna", "kult", "madonnenkult"},
+                {"hund", "halter", "hundehalter"},
+                {"gans", "klein", "gänseklein"},
+                {"stadion", "verbot", "stadienverbot"},
+                {"geist", "haltung", "geisteshaltung"},
+                {"blatt", "wald", "blätterwald"},
+                {"süden", "wind", "südwind"},
+                {"pharmakon", "analyse", "pharmakaanalyse"},
+                {"geist", "stunde", "geisterstunde"},
+                {"prinzip", "reiter", "prinzipienreiter"},
+                {"carabiniere", "schule", "carabinierischule"},
         });
     }
 
@@ -82,10 +62,4 @@ public class GermanMorphologyCompoundingTableTest {
         final List<CharSequence> suggestedCompounds = Arrays.stream(compounds).map(c -> c.compound).collect(Collectors.toList());
         assertThat("No matching suggested compounds", suggestedCompounds, hasItem(expectedCompound));
     }
-
-    static String suggest(final String expectedWordBreak) {
-        return expectedWordBreak;
-    }
-
-
 }
