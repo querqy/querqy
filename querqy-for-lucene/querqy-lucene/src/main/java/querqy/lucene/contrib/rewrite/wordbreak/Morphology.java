@@ -1,22 +1,9 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import static java.util.Collections.singletonList;
+import java.util.List;
 
-import java.util.function.Function;
+public interface Morphology {
+    Compound[] suggestCompounds(CharSequence left, CharSequence right);
 
-public enum Morphology {
-
-    DEFAULT(weight -> new SuffixGroup(null, singletonList(new WordGeneratorAndWeight(NullWordGenerator.INSTANCE, 1f)))),
-    GERMAN(GermanDecompoundingMorphology::createMorphemes);
-
-    private final Function<Float, SuffixGroup> morphemeFactory;
-
-    Morphology(final Function<Float, SuffixGroup> morphemeFactory) {
-        this.morphemeFactory = morphemeFactory;
-    }
-
-    public SuffixGroup createMorphemes(final float weightMorphologicalPattern) {
-        return morphemeFactory.apply(weightMorphologicalPattern);
-    }
-
+    List<WordBreak> suggestWordBreaks(CharSequence word, int minBreakLength);
 }

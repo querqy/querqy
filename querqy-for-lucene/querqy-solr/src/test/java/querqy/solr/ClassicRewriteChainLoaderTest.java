@@ -57,9 +57,12 @@ public class ClassicRewriteChainLoaderTest extends AbstractQuerqySolrCloudTestCa
         Map<String, Object> definition = (Map<String, Object>) rewriter.get("definition");
         Map<String, Object> config = (Map<String, Object>) definition.get("config");
         org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), not(nullValue()));
-        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.aMapWithSize(2));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.aMapWithSize(3));
         org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.hasEntry("maxExpansions", 5));
         org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.hasEntry("verifyCollation", true));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("decompound"), Matchers.hasEntry("morphology", "GERMAN"));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("compound"), Matchers.aMapWithSize(1));
+        org.hamcrest.MatcherAssert.assertThat((Map<String, Object>) config.get("compound"), Matchers.hasEntry("morphology", "GERMAN"));
 
     }
 

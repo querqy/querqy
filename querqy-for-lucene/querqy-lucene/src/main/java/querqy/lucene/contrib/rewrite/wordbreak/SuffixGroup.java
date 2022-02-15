@@ -1,10 +1,13 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.index.Term;
-import querqy.lucene.contrib.rewrite.wordbreak.Collector.CollectionState;
+import querqy.CompoundCharSequence;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.Collection;
 
 /**
  * <p>A SuffixGroup represents all word forms that can be generated once a suffix has been stripped off.</p>
@@ -37,94 +40,61 @@ public class SuffixGroup {
     private final CharSequence suffix;
     private final int suffixLength;
     private final List<WordGeneratorAndWeight> generatorAndWeights;
-    private final SuffixGroup[] next;
+    private final List<SuffixGroup> next;
 
     public SuffixGroup(final CharSequence suffix, final List<WordGeneratorAndWeight> generatorAndWeights,
-                       final SuffixGroup ... next) {
+                       final SuffixGroup... next) {
         this.suffix = suffix;
         this.generatorAndWeights = generatorAndWeights;
-        this.next = next;
+        this.next = Arrays.asList(next);
         this.suffixLength = suffix == null ? 0 : suffix.length();
     }
 
-    /**
-     *
-     * @param left The left split (the modifier)
-     * @param matchingFromEndOfLeft number of characters that are know to match from the end of the left split
-     * @param right The head character sequence
-     * @param rightTerm The head character sequence as a term in the dictionary field
-     * @param rightDf The document frequency of the rightTerm
-     * @param minLength The minimum head/modifier length
-     * @param collector The collector that will be presented the candidates
-     * @return true iff the suffix of this SuffixGroup matched
-     */
-    public CollectionState collect(final CharSequence left, final int matchingFromEndOfLeft,
-                                             final CharSequence right, final Term rightTerm, final int rightDf,
-                                             final int minLength, final Collector collector) {
 
+    public List<Suggestion> generateSuggestions(final CharSequence left) {
+        return generateSuggestions(left, 0);
+    }
+
+    private List<Suggestion> generateSuggestions(final CharSequence left, final int matchingFromEndOfLeft) {
         final int leftLength = left.length();
-
         if (left.length() <= suffixLength) {
-            return collector.maxEvaluationsReached()
-                    ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
-                    : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
-
+            return Collections.emptyList();
         }
 
         if (suffixLength > 0 && left.length() > suffixLength) {
-
             for (int i = 1 + matchingFromEndOfLeft; i <= suffixLength; i++) {
-
                 if (left.charAt(leftLength - i) != suffix.charAt(suffixLength - i)) {
-                    return collector.maxEvaluationsReached()
-                            ? CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED
-                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
+                    return Collections.emptyList();
                 }
             }
-
         }
-
-        boolean matched = false;
 
         final CharSequence reduced = suffixLength == 0 ? left : left.subSequence(0, leftLength - suffixLength);
-        for (final WordGeneratorAndWeight generatorAndWeight: generatorAndWeights) {
-            final Optional<CharSequence> modifierOpt = generatorAndWeight.generator.generateModifier(reduced);
-            if (modifierOpt.isPresent()) {
-                final CharSequence modifier = modifierOpt.get();
-                if (modifier.length() >= minLength) {
-                    final CollectionState collectionState = collector.collect(modifier, right, rightTerm,
-                            rightDf, generatorAndWeight.weight);
-                    matched |= collectionState.getMatched().orElse(false);
-                    if (collectionState.isMaxEvaluationsReached()) {
-                        return matched
-                                ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
-                                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
-                    }
-                }
-            }
 
+        final List<Suggestion> res =
+                generatorAndWeights.stream()
+                        .map(generatorAndWeights -> generatorAndWeights.generateSuggestion(reduced))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .collect(Collectors.toList());
 
-        }
+        final List<Suggestion> suggestions = next.stream()
+                .map(sg -> sg.generateSuggestions(left, suffixLength))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
-        if (next != null) {
-            for (final SuffixGroup group : next) {
-                final CollectionState collectionState = group.collect(left, suffixLength, right, rightTerm, rightDf, minLength, collector);
+        res.addAll(suggestions);
 
-                final boolean wasMatched = collectionState.getMatched().orElse(false);
-                if (collectionState.isMaxEvaluationsReached()) {
-                    return matched || wasMatched
-                            ? CollectionState.MATCHED_MAX_EVALUATIONS_REACHED
-                            : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_REACHED;
-                }
-                if (wasMatched) {
-                    return CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED;
-                }
-            }
-        }
+        return res;
+    }
 
-        return matched
-                ? CollectionState.MATCHED_MAX_EVALUATIONS_NOT_REACHED
-                : CollectionState.NOT_MATCHED_MAX_EVALUATIONS_NOT_REACHED;
+    public List<Suggestion> generateCompoundSuggestions(final CharSequence left, final CharSequence right) {
+        return generateSuggestions(left, 0)
+                .stream().map(
+                        suggestion -> new Suggestion(
+                                new CharSequence[]{new CompoundCharSequence(null, suggestion.sequence[0], right)},
+                                suggestion.score)
+                ).collect(Collectors.toList());
     }
 
 }

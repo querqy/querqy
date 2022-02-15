@@ -1,6 +1,3 @@
-/**
- * 
- */
 package querqy.model;
 
 import querqy.CharSequenceUtil;
@@ -12,126 +9,131 @@ import querqy.SimpleComparableCharSequence;
 
 /**
  * @author René Kriegler, @renekrie
- *
  */
 public class Term extends AbstractNode<DisjunctionMaxQuery> implements DisjunctionMaxClause, CharSequence,
         InputSequenceElement {
 
-   protected final String field;
-   protected final ComparableCharSequence value;
+    protected final String field;
+    protected final ComparableCharSequence value;
 
-   public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value, final boolean generated) {
-      super(parentQuery, generated);
-      this.field = field;
-      this.value = ComparableCharSequence.class.isAssignableFrom(value.getClass()) 
-              ? (ComparableCharSequence) value
-              : new ComparableCharSequenceWrapper(value);
-   }
+    public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value, final boolean generated) {
+        super(parentQuery, generated);
+        this.field = field;
+        this.value = ComparableCharSequence.class.isAssignableFrom(value.getClass())
+                ? (ComparableCharSequence) value
+                : new ComparableCharSequenceWrapper(value);
+    }
 
-   public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value) {
-      this(parentQuery, field, value, false);
-   }
+    public Term(final DisjunctionMaxQuery parentQuery, final String field, final CharSequence value) {
+        this(parentQuery, field, value, false);
+    }
 
-   public Term(final DisjunctionMaxQuery parentQuery, final CharSequence value) {
-      this(parentQuery, null, value);
-   }
+    public Term(final DisjunctionMaxQuery parentQuery, final CharSequence value) {
+        this(parentQuery, null, value);
+    }
 
-   public Term(final DisjunctionMaxQuery parentQuery, final CharSequence value, final boolean generated) {
-      this(parentQuery, null, value, generated);
-   }
+    public Term(final DisjunctionMaxQuery parentQuery, final CharSequence value, final boolean generated) {
+        this(parentQuery, null, value, generated);
+    }
 
-   public Term(final DisjunctionMaxQuery parentQuery, final String field, final char[] value,
-               final int start, final int length, final boolean generated) {
-      this(parentQuery, field, new SimpleComparableCharSequence(value, start, length), generated);
-   }
+    public Term(final DisjunctionMaxQuery parentQuery, final String field, final char[] value,
+                final int start, final int length, final boolean generated) {
+        this(parentQuery, field, new SimpleComparableCharSequence(value, start, length), generated);
+    }
 
-   @Override
-   public Term clone(final DisjunctionMaxQuery newParent) {
-      return clone(newParent, isGenerated());
-   }
-   
-   public Term clone(final DisjunctionMaxQuery newParent, final boolean isGenerated) {
-       return new Term(newParent, field, value, isGenerated);
-   }
+    @Override
+    public Term clone(final DisjunctionMaxQuery newParent) {
+        return clone(newParent, isGenerated());
+    }
 
-   @Override
-   public <T> T accept(final NodeVisitor<T> visitor) {
-      return visitor.visit(this);
-   }
+    public Term clone(final DisjunctionMaxQuery newParent, final boolean isGenerated) {
+        return new Term(newParent, field, value, isGenerated);
+    }
 
-   public String getField() {
-      return field;
-   }
+    @Override
+    public <T> T accept(final NodeVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
-   @Override
-   public char charAt(final int index) {
-      return value.charAt(index);
-   }
+    public String getField() {
+        return field;
+    }
 
-   public ComparableCharSequence getValue() {
-      return value;
-   }
+    @Override
+    public char charAt(final int index) {
+        return value.charAt(index);
+    }
 
-   @Override
-   public String toString() {
-      return value.toString();
-   }
+    public ComparableCharSequence getValue() {
+        return value;
+    }
 
-   @Override
-   public int length() {
-      return value.length();
-   }
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 
-   @Override
-   public ComparableCharSequence subSequence(final int start, final int end) {
-      return value.subSequence(start, end);
-   }
+    @Override
+    public int length() {
+        return value.length();
+    }
 
-   public ComparableCharSequence toCharSequenceWithField(final boolean lowerCaseValue) {
-       ComparableCharSequence valueToUse = lowerCaseValue ? new LowerCaseCharSequence(this) : value;
-       return (field == null) ? valueToUse : new CompoundCharSequence(":", field, valueToUse);
-   }
+    @Override
+    public ComparableCharSequence subSequence(final int start, final int end) {
+        return value.subSequence(start, end);
+    }
 
-   @Override
-   public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((field == null) ? 0 : field.hashCode());
-      result = prime * result + ((value == null) ? 0 : CharSequenceUtil.hashCode(value));
-      return result;
-   }
+    public ComparableCharSequence toCharSequenceWithField(final boolean lowerCaseValue) {
+        final ComparableCharSequence valueToUse = lowerCaseValue ? new LowerCaseCharSequence(this) : value;
+        return (field == null) ? valueToUse : new CompoundCharSequence(":", field, valueToUse);
+    }
 
-   @Override
-   public boolean equals(final Object obj) {
-      if (this == obj) {
-         return true;
-      }
-      if (obj == null) {
-         return false;
-      }
-      if (getClass() != obj.getClass()) {
-         return false;
-      }
-      Term other = (Term) obj;
-      if (field == null) {
-         if (other.field != null) {
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((field == null) ? 0 : field.hashCode());
+        result = prime * result + ((value == null) ? 0 : CharSequenceUtil.hashCode(value));
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
             return false;
-         }
-      } else if (!field.equals(other.field)) {
-         return false;
-      }
-      if (value == null) {
-         if (other.value != null) {
+        }
+        if (getClass() != obj.getClass()) {
             return false;
-         }
-      } else if (! CharSequenceUtil.equals(value, other.value)) {
-         return false;
-      }
-      return true;
-   }
+        }
+        final Term other = (Term) obj;
+        if (field == null) {
+            if (other.field != null) {
+                return false;
+            }
+        } else if (!field.equals(other.field)) {
+            return false;
+        }
+        if (value == null) {
+            return other.value == null;
+        } else return CharSequenceUtil.equals(value, other.value);
+    }
 
 
-   public void delete() {
-      this.getParent().removeClauseAndTraverseTree(this);
-   }
+    public void delete() {
+        this.getParent().removeClauseAndTraverseTree(this);
+    }
+
+    /**
+     * @return copy of existing term with lower-cased value.
+     * If value was already lowerCase instance, don't do extra copy
+     */
+    public Term toLowerCaseTerm() {
+        if (this.value instanceof LowerCaseCharSequence) {
+            return this;
+        }
+        return new Term(this.parent, this.field, new LowerCaseCharSequence(this.value));
+    }
 }

@@ -11,6 +11,7 @@ import querqy.trie.TrieMap;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -35,26 +36,26 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final int maxDecompoundExpansions;
     private final boolean verifyDecompundCollation;
     final LuceneWordBreaker wordBreaker; // package visible for testing
-    private final LuceneCompounder compounder;
+    final LuceneCompounder compounder; // package visible for testing
     private final TrieMap<Boolean> protectedWords;
 
     /**
-     * @param rewriterId The id of the rewriter
-     * @param indexReaderSupplier Access to an IndexReader
-     * @param morphology The (de)compounding morphology to use
-     * @param dictionaryField The dictionary field name
-     * @param lowerCaseInput Iff true, lowercase input before matching it against the dictionary field.
-     * @param minSuggestionFreq The minimum frequency of a suggestion in the dictionary field (see {@link WordBreakSpellChecker}.setMinSuggestionFrequency())
-     * @param maxCombineLength The maximum length of a suggestion when combining tokens (see {@link WordBreakSpellChecker}.setMaxCombineWordLength())
-     * @param minBreakLength The minimum word part length for decompounding (see {@link WordBreakSpellChecker}.setMinBreakWordLength())
+     * @param rewriterId                  The id of the rewriter
+     * @param indexReaderSupplier         Access to an IndexReader
+     * @param dictionaryField             The dictionary field name
+     * @param lowerCaseInput              Iff true, lowercase input before matching it against the dictionary field.
+     * @param minSuggestionFreq           The minimum frequency of a suggestion in the dictionary field (see {@link WordBreakSpellChecker}.setMinSuggestionFrequency())
+     * @param maxCombineLength            The maximum length of a suggestion when combining tokens (see {@link WordBreakSpellChecker}.setMaxCombineWordLength())
+     * @param minBreakLength              The minimum word part length for decompounding (see {@link WordBreakSpellChecker}.setMinBreakWordLength())
      * @param reverseCompoundTriggerWords Query tokens in this list will trigger the creation of a reverse compound of the surrounding tokens.
-     * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
-     * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
+     * @param alwaysAddReverseCompounds   Iff true, reverse shingles will be added to the query
+     * @param maxDecompoundExpansions     The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param compoundMorphologyName      The name of compounding morphology to use
+     * @param decompoundMorphologyName    The name of decompounding morphology to use
      */
     public WordBreakCompoundRewriterFactory(final String rewriterId,
                                             final Supplier<IndexReader> indexReaderSupplier,
-                                            final Morphology morphology,
                                             final String dictionaryField,
                                             final boolean lowerCaseInput,
                                             final int minSuggestionFreq,
@@ -64,7 +65,9 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                             final boolean alwaysAddReverseCompounds,
                                             final int maxDecompoundExpansions,
                                             final boolean verifyDecompoundCollation,
-                                            final List<String> protectedWords) {
+                                            final List<String> protectedWords,
+                                            final String decompoundMorphologyName,
+                                            final String compoundMorphologyName) {
         super(rewriterId);
         this.indexReaderSupplier = indexReaderSupplier;
         this.lowerCaseInput = lowerCaseInput;
@@ -80,19 +83,29 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
         this.protectedWords = buildWordLookup(protectedWords, lowerCaseInput);
 
-        final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
-        spellChecker.setMaxChanges(MAX_CHANGES);
-        spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
-        spellChecker.setMaxCombineWordLength(maxCombineLength);
-        spellChecker.setMinBreakWordLength(minBreakLength);
-        spellChecker.setMaxEvaluations(100);
-        compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
+        final Optional<Morphology> compoundMorphology = new MorphologyProvider().get(compoundMorphologyName);
+        final Optional<Morphology> decompoundMorphology = new MorphologyProvider().get(decompoundMorphologyName);
 
-        // TODO: configure weight of strategy
-        wordBreaker = new MorphologicalWordBreaker(morphology, dictionaryField, lowerCaseInput, minSuggestionFreq,
-                minBreakLength, MAX_EVALUATIONS);
+        if (!compoundMorphology.isPresent() || compoundMorphology.get() == MorphologyProvider.DEFAULT) {
+            // use WordBreakSpellChecker when DEFAULT for backwards compatibility
+            final WordBreakSpellChecker spellChecker = new WordBreakSpellChecker();
+            spellChecker.setMaxChanges(MAX_CHANGES);
+            spellChecker.setMinSuggestionFrequency(minSuggestionFreq);
+            spellChecker.setMaxCombineWordLength(maxCombineLength);
+            spellChecker.setMinBreakWordLength(minBreakLength);
+            spellChecker.setMaxEvaluations(100);
+            compounder = new SpellCheckerCompounder(spellChecker, dictionaryField, lowerCaseInput);
+        } else {
+            compounder = new MorphologicalCompounder(compoundMorphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq);
+        }
 
-
+        if (!decompoundMorphology.isPresent()) {
+            wordBreaker = new MorphologicalWordBreaker(MorphologyProvider.DEFAULT, dictionaryField, lowerCaseInput, minSuggestionFreq,
+                    minBreakLength, MAX_EVALUATIONS);
+        } else {
+            wordBreaker = new MorphologicalWordBreaker(decompoundMorphology.get(), dictionaryField, lowerCaseInput, minSuggestionFreq,
+                    minBreakLength, MAX_EVALUATIONS);
+        }
     }
 
     @Override
@@ -116,8 +129,8 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
         return protectedWords;
     }
 
-    private static TrieMap<Boolean> buildWordLookup(Collection<String> words, boolean lowerCase) {
-        TrieMap<Boolean> result = new TrieMap<>();
+    private static TrieMap<Boolean> buildWordLookup(final Collection<String> words, final boolean lowerCase) {
+        final TrieMap<Boolean> result = new TrieMap<>();
         if (words != null) {
             words.forEach(word -> result.put(lowerCase ? word.toLowerCase() : word, true));
         }
