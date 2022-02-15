@@ -4,7 +4,6 @@
 package querqy.lucene.rewrite;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,11 +50,11 @@ public class SearchFieldsAndBoosting {
         }
     }
     
-    public Set<String> getSearchFields(Term term) {
-        String fieldname = term.getField();
+    public Set<String> getSearchFields(final Term term) {
+        final String fieldname = term.getField();
         if (fieldname != null) {
             if (term.isGenerated() || queryFieldsAndBoostings.containsKey(fieldname)) {
-                return new HashSet<>(Collections.singletonList(fieldname));
+                return Collections.singleton(fieldname);
             } else {
                 return Collections.emptySet();
             }
