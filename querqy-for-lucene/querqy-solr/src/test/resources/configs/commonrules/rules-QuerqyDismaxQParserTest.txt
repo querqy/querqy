@@ -54,6 +54,9 @@ gg =>
 hh =>
    UP(1000): xx -vv
 
+x1 =>
+   SYNONYM: x2
+   SYNONYM: x3
 
 
 
