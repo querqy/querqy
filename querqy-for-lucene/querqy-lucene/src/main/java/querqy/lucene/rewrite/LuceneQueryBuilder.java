@@ -4,7 +4,9 @@
 package querqy.lucene.rewrite;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -17,6 +19,7 @@ import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.BoostedTerm;
+import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
@@ -33,7 +36,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    }
 
    final boolean normalizeBooleanQueryBoost;
+   final boolean addMultiMatchDmq;
    final float dmqTieBreakerMultiplier;
+   final float multiMatchTieBreakerMultiplier;
    final TermQueryBuilder termQueryBuilder;
    final SearchFieldsAndBoosting searchFieldsAndBoosting;
    final TermSubQueryBuilder termSubQueryBuilder;
@@ -46,12 +51,14 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
    public LuceneQueryBuilder(final TermQueryBuilder termQueryBuilder, final Analyzer analyzer,
            final SearchFieldsAndBoosting searchFieldsAndBoosting,
-           final float dmqTieBreakerMultiplier, final TermQueryCache termQueryCache) {
+           final float dmqTieBreakerMultiplier, final float multiMatchTieBreakerMultiplier,
+                             final TermQueryCache termQueryCache) {
       this(   
               termQueryBuilder,
               analyzer,
               searchFieldsAndBoosting,
-              dmqTieBreakerMultiplier, 
+              dmqTieBreakerMultiplier,
+              multiMatchTieBreakerMultiplier,
               true, 
               termQueryCache);
    }
@@ -75,15 +82,28 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     */
     public LuceneQueryBuilder(final TermQueryBuilder termQueryBuilder, final Analyzer analyzer,
                               final SearchFieldsAndBoosting searchFieldsAndBoosting,
-                              final float dmqTieBreakerMultiplier, final boolean normalizeBooleanQueryBoost,
+                              final float dmqTieBreakerMultiplier, final float multiMatchTieBreakerMultiplier,
+                              final boolean normalizeBooleanQueryBoost,
                               final TermQueryCache termQueryCache) {
         if (termQueryBuilder == null) {
             throw new IllegalArgumentException("TermQueryBuilder must not be null");
         }
 
+        switch (searchFieldsAndBoosting.fieldBoostModel) {
+            case NONE: addMultiMatchDmq = false; break;
+            case FIXED: addMultiMatchDmq = multiMatchTieBreakerMultiplier < 1f; break;
+            default:
+                if (multiMatchTieBreakerMultiplier < 1f) {
+                    throw new IllegalArgumentException("MultiMatch DMQ cannot be added for field boost model " +
+                            searchFieldsAndBoosting.fieldBoostModel);
+                }
+                addMultiMatchDmq = false;
+        }
+
         this.searchFieldsAndBoosting = searchFieldsAndBoosting;
         this.dmqTieBreakerMultiplier = dmqTieBreakerMultiplier;
         this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
+        this.multiMatchTieBreakerMultiplier = multiMatchTieBreakerMultiplier;
         this.termQueryBuilder = termQueryBuilder;
         termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
     }
@@ -109,12 +129,17 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
         if (query instanceof querqy.model.BooleanQuery) {
             parentType = ParentType.BQ;
-            LuceneQueryFactory<?> factory = query.accept(this);
+            final LuceneQueryFactory<?> factory = query.accept(this);
 
             termQueryBuilder.getDocumentFrequencyCorrection()
                     .ifPresent(dfc -> factory.prepareDocumentFrequencyCorrection(dfc, false));
 
-            return factory.createQuery(null, dmqTieBreakerMultiplier, termQueryBuilder);
+            return (addMultiMatchDmq)
+                    ? new MultiMatchDismaxQueryStructurePostProcessor(dmqTieBreakerMultiplier,
+                    multiMatchTieBreakerMultiplier)
+                        .process(factory).createQuery(null, termQueryBuilder)
+                    : factory.createQuery(null, termQueryBuilder);
+
 
         } else if (query instanceof MatchAllQuery) {
 
@@ -209,7 +234,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         final ParentType myParentType = parentType;
         parentType = ParentType.DMQ;
 
-        DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
+        final DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(dmqTieBreakerMultiplier);
 
         dmqStack.add(dmq);
         super.visit(disjunctionMaxQuery);

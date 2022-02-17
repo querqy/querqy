@@ -155,6 +155,24 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
     Optional<Float> getTiebreaker();
 
     /**
+     * <p>Get an optional tiebreaker for multiple matches in a single field.</p>
+     * <p>This tie parameter is applied to the scores of terms that are expansions of input terms when they are
+     * mapped to fields. For example, given an input query 'asus laptop' and a synonym expansion 'notebook' for laptop,
+     * and the two query fields f1 and f2, the multiMatchTiebreaker and the tiebreaker would be applied as follows:
+     * <pre>
+     *     (f1:asus | f2:asus)~tiebreaker ((f1:laptop|f1:notebook)~multiMatchTieBreaker (f2:laptop|f2:notebook)~multiMatchTieBreaker)~tiebreaker
+     * </pre>
+     * <p>A multiMatchTiebreaker of 1.0 would sum up the scores of the laptop/notebook synonym matches and thus prefer
+     * those documents that contain all synonyms, whereas a value of 0.0 would only use the maximum score of the two
+     * synonyms.
+     * </p>
+     * <p>If an empty Optional is returned, {@link QueryParsingController#DEFAULT_MULTI_MATCH_TIEBREAKER} will be used.</p>
+     *
+     * @return An optional tiebreaker.
+     */
+    Optional<Float> getMultiMatchTiebreaker();
+
+    /**
      * <p>Apply the 'minimum should match' setting of the request.</p>
      * <p>It will be the responsibility of the LuceneSearchEngineRequestAdapter implementation to derive the
      * 'minimum should match' setting from request parameters or other configuration.</p>

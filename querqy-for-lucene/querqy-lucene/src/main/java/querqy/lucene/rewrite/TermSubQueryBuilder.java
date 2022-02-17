@@ -34,7 +34,7 @@ public class TermSubQueryBuilder {
     
     private final TermQueryCache termQueryCache;
     private final Analyzer analyzer;
-    
+
     public TermSubQueryBuilder(final Analyzer analyzer, final TermQueryCache termQueryCache) {
         this.termQueryCache = termQueryCache;
         this.analyzer = analyzer;
@@ -55,7 +55,7 @@ public class TermSubQueryBuilder {
                 // query factory if the term does not exist in the index. cacheValue.hasQuery() returns
                 // true/false correspondingly.
                 // Cache entries don't have a boost factor, it is only added later via the queryFactory.
-                return (cacheValue.hasQuery()) ? new TermSubQueryFactory(cacheValue, boost) : null;
+                return (cacheValue.hasQuery()) ? new TermSubQueryFactory(cacheValue, boost, sourceTerm) : null;
             } 
             
         } else {
@@ -82,7 +82,7 @@ public class TermSubQueryBuilder {
                sequence.addElement(new org.apache.lucene.index.Term(fieldname, new BytesRef(termAttr)));
            }
            
-           root = positionSequenceToQueryFactoryAndPRMS(sequence);
+           root = positionSequenceToQueryFactoryAndPRMS(sequence, sourceTerm);
 
         } finally {
            if (ts != null) {
@@ -95,7 +95,7 @@ public class TermSubQueryBuilder {
 
         putQueryFactoryAndPRMSQueryIntoCache(cacheKey, root);
         
-        return root == null ? null : new TermSubQueryFactory(root, boost);
+        return root == null ? null : new TermSubQueryFactory(root, boost, sourceTerm);
     }
 
     protected void putQueryFactoryAndPRMSQueryIntoCache(final CacheKey cacheKey, final LuceneQueryFactoryAndPRMSQuery value) {
@@ -104,23 +104,24 @@ public class TermSubQueryBuilder {
         }
     }
     
-    public LuceneQueryFactoryAndPRMSQuery positionSequenceToQueryFactoryAndPRMS(PositionSequence<org.apache.lucene.index.Term> sequence) {
+    public LuceneQueryFactoryAndPRMSQuery positionSequenceToQueryFactoryAndPRMS(
+            final PositionSequence<org.apache.lucene.index.Term> sequence, final Term sourceTerm) {
         switch (sequence.size()) {
         case 0: return null;
         case 1: 
             final List<org.apache.lucene.index.Term> first = sequence.getFirst();
-            return first.isEmpty() ? null: newPosition(sequence.iterator(), null, null);
+            return first.isEmpty() ? null: newPosition(sequence.iterator(), null, null, sourceTerm);
             
         default:
             
-            return newPosition(sequence.iterator(), null, null);
+            return newPosition(sequence.iterator(), null, null, sourceTerm);
             
         }
 
     }
     
     protected LuceneQueryFactoryAndPRMSQuery newPosition(final Iterator<List<org.apache.lucene.index.Term>> seqIterator,
-            final BooleanQueryFactory incomingBq, final List<PRMSQuery> incomingPrmsClauses) {
+            final BooleanQueryFactory incomingBq, final List<PRMSQuery> incomingPrmsClauses, final Term sourceTerm) {
         
         final List<org.apache.lucene.index.Term> position = seqIterator.next();
         
@@ -130,7 +131,7 @@ public class TermSubQueryBuilder {
             
             final org.apache.lucene.index.Term term = position.get(0);
             
-            final TermQueryFactory tqf = createTermQueryFactory(term);
+            final TermQueryFactory tqf = createTermQueryFactory(term, sourceTerm);
             final PRMSTermQuery prmsTermQuery = new PRMSTermQuery(term);
             
             if (incomingBq != null) {
@@ -138,7 +139,7 @@ public class TermSubQueryBuilder {
                 incomingBq.add(tqf, Occur.MUST);
                 incomingPrmsClauses.add(prmsTermQuery);
                 if (seqIterator.hasNext()) {
-                    newPosition(seqIterator, incomingBq, incomingPrmsClauses);
+                    newPosition(seqIterator, incomingBq, incomingPrmsClauses, sourceTerm);
                 }
                 
                 return null; // we are not the first position
@@ -150,7 +151,7 @@ public class TermSubQueryBuilder {
                     final List<PRMSQuery> prmsClauses = new LinkedList<>();
                     bq.add(tqf, Occur.MUST);
                     prmsClauses.add(prmsTermQuery);
-                    newPosition(seqIterator, bq, prmsClauses);
+                    newPosition(seqIterator, bq, prmsClauses, sourceTerm);
                     return new LuceneQueryFactoryAndPRMSQuery(bq, new PRMSAndQuery(prmsClauses));
                 } else {
                     return new LuceneQueryFactoryAndPRMSQuery(tqf, prmsTermQuery);
@@ -161,13 +162,13 @@ public class TermSubQueryBuilder {
         default:
             final boolean hasNextPosition = seqIterator.hasNext();
             // the dmq for this position
-            final DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory();
+            final DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(0f);
             final List<PRMSQuery> prmsClauses = new LinkedList<>();
             
             if (!hasNextPosition) {
                 
                 for (final org.apache.lucene.index.Term term: position) {
-                    dmq.add(createTermQueryFactory(term));
+                    dmq.add(createTermQueryFactory(term, sourceTerm));
                     prmsClauses.add(new PRMSTermQuery(term));
                 }
                 
@@ -176,7 +177,7 @@ public class TermSubQueryBuilder {
                 while (posIterator.hasNext()) {
                     
                     final org.apache.lucene.index.Term term = posIterator.next();
-                    final TermQueryFactory tqf = createTermQueryFactory(term);
+                    final TermQueryFactory tqf = createTermQueryFactory(term, sourceTerm);
                     final PRMSTermQuery prmsTermQuery = new PRMSTermQuery(term);
                     
                     if (posIterator.hasNext()) {
@@ -189,7 +190,7 @@ public class TermSubQueryBuilder {
                         final List<PRMSQuery> bqPrmsClauses = new LinkedList<>();
                         bq.add(tqf, Occur.MUST);
                         bqPrmsClauses.add(prmsTermQuery);
-                        newPosition(seqIterator, bq, bqPrmsClauses);
+                        newPosition(seqIterator, bq, bqPrmsClauses, sourceTerm);
                         dmq.add(bq);
                         prmsClauses.add(new PRMSAndQuery(bqPrmsClauses));
                     }
@@ -201,9 +202,8 @@ public class TermSubQueryBuilder {
     
     }
     
-    protected TermQueryFactory createTermQueryFactory(
-            org.apache.lucene.index.Term term) {
-        return new TermQueryFactory(term);
+    protected TermQueryFactory createTermQueryFactory(final org.apache.lucene.index.Term term, final Term sourceTerm) {
+        return new TermQueryFactory(term, sourceTerm);
     }
    
 }

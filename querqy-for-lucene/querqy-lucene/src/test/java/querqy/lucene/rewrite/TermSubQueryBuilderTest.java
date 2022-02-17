@@ -43,10 +43,10 @@ public class TermSubQueryBuilderTest {
         TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
         
         PositionSequence<org.apache.lucene.index.Term> sequence = new PositionSequence<>();
-        assertNull(builder.positionSequenceToQueryFactoryAndPRMS(sequence));
+        assertNull(builder.positionSequenceToQueryFactoryAndPRMS(sequence, null));
 
         sequence.nextPosition();
-        assertNull(builder.positionSequenceToQueryFactoryAndPRMS(sequence));
+        assertNull(builder.positionSequenceToQueryFactoryAndPRMS(sequence, null));
     }
     
     @Test
@@ -60,7 +60,8 @@ public class TermSubQueryBuilderTest {
         sequence.addElement(term);
         
         
-        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence);
+        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence,
+                new querqy.model.Term(null, "a"));
         
         assertThat(
                 lap,
@@ -83,7 +84,8 @@ public class TermSubQueryBuilderTest {
         Term term2 = new Term("f", "b");
         sequence.addElement(term2);
         
-        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence);
+        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence,
+                new querqy.model.Term(null, "ab"));
         assertThat(
                 lap,
                 lap(
@@ -115,7 +117,8 @@ public class TermSubQueryBuilderTest {
         Term term2 = new Term("f", "b");
         sequence.addElement(term2);
         
-        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence);
+        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence,
+                new querqy.model.Term(null, "ab"));
         assertThat(
                 lap,
                 lap(
@@ -132,7 +135,7 @@ public class TermSubQueryBuilderTest {
     }
     
     @Test
-    public void testTwoTermsAtFirstAndOneTermAtSecondPosition() throws Exception {
+    public void testTwoTermsAtFirstAndOneTermAtSecondPosition()  {
         
         TermSubQueryBuilder builder = new TermSubQueryBuilder(ANALYZER, null);
         
@@ -150,7 +153,8 @@ public class TermSubQueryBuilderTest {
         Term term2 = new Term("f", "b");
         sequence.addElement(term2);
         
-        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence);
+        LuceneQueryFactoryAndPRMSQuery lap = builder.positionSequenceToQueryFactoryAndPRMS(sequence,
+                new querqy.model.Term(null, "a1b"));
         assertThat(
                 lap,
                 lap(

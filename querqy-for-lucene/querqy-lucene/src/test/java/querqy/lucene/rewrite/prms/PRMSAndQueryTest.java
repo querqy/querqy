@@ -86,7 +86,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
                 fields, 0.8f);
         
         LuceneQueryBuilder queryBuilder = new LuceneQueryBuilder(new DependentTermQueryBuilder(dfc), analyzer,
-                searchFieldsAndBoosting, 0.01f, null);
+                searchFieldsAndBoosting, 0.01f, 1f, null);
         
         WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
         
