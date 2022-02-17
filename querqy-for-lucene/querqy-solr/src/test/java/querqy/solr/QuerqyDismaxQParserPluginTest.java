@@ -2,6 +2,7 @@ package querqy.solr;
 
 import static querqy.solr.QuerqyDismaxParams.GFB;
 import static querqy.solr.QuerqyDismaxParams.GQF;
+import static querqy.solr.QuerqyDismaxParams.MULTI_MATCH_TIE;
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 import static querqy.solr.StandaloneSolrTestSupport.withRewriter;
@@ -42,9 +43,11 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "6", "f1", "spellcheck filtered", "f2", "test"));
         assertU(adoc("id", "7", "f1", "aaa"));
         assertU(adoc("id", "8", "f1", "aaa bbb ccc", "f2", "w87"));
-        assertU(adoc("id", "9", "f1", "ignore o u s"));
+        assertU(adoc("id", "9", "f1", "ignore o u s z1"));
         assertU(adoc("id", "10", "f1", "vv uu tt ss xx ff gg hh"));
         assertU(adoc("id", "11", "f1", "xx yy zz tt ll ff gg hh"));
+        assertU(adoc("id", "12", "f1", "x1 x2 x3 y1 m1"));
+        assertU(adoc("id", "13", "f1", "x1 y1 z1 k1 m1"));
 
         assertU(commit());
     }
@@ -242,12 +245,56 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
       assertQ("Matchall fails",
             req,
             "//str[@name='parsedquery'][contains(.,'*:*')]",
-            "//result[@name='response' and @numFound='11']"
+            "//result[@name='response' and @numFound='13']"
 
       );
 
       req.close();
    }
+
+    @Test
+    public void testThatMultiMatchTieIsApplied() {
+
+        String q = "x1 y1 z1";
+
+        try (SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "1",
+                QueryParsing.OP, "OR",
+                DisMaxParams.TIE,  "1.0",
+                MULTI_MATCH_TIE, "1.0",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules")) {
+
+            assertQ("Test without MultiMatchTie failed",
+                    req,
+                    "//result[@name='response' and @numFound='3']",
+                    "//result/doc[1]/str[@name='id'][text()='12']",
+                    "//result/doc[2]/str[@name='id'][text()='13']",
+                    "//result/doc[3]/str[@name='id'][text()='9']"
+                    );
+        }
+        try (SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2",
+                DisMaxParams.MM, "1",
+                QueryParsing.OP, "OR",
+                DisMaxParams.TIE,  "1.0",
+                MULTI_MATCH_TIE, "0.0",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules")) {
+
+            assertQ("Test with MultiMatchTie failed",
+                    req,
+                    "//result[@name='response' and @numFound='3']",
+                    "//result/doc[1]/str[@name='id'][text()='13']",
+                    "//result/doc[2]/str[@name='id'][text()='12']",
+                    "//result/doc[3]/str[@name='id'][text()='9']"
+            );
+        }
+    }
+
 
    @Test
    public void testThatPfIsAppliedOnlyToFieldsWithTermPositions() {
@@ -803,7 +850,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("bq not applied to MatchAll",
                 req,
-                "//result[@numFound='11']",
+                "//result[@numFound='13']",
                 "//str[@name='parsedquery'][contains(.,'f2:w87')]",
                 "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
                 "//doc[1]/str[@name='id'][text()='8']"
@@ -826,7 +873,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("bq not applied to MatchAll",
                 req,
-                "//result[@numFound='11']",
+                "//result[@numFound='13']",
                 "//str[@name='parsedquery'][contains(.,'f2:w87')]",
                 "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
                 "//doc[1]/str[@name='id'][text()='8']"
