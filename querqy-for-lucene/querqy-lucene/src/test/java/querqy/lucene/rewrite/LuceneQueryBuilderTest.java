@@ -1,5 +1,7 @@
 package querqy.lucene.rewrite;
 
+import static org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter.GENERATE_NUMBER_PARTS;
+import static org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter.PRESERVE_ORIGINAL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
@@ -17,8 +19,11 @@ import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.WhitespaceTokenizer;
+import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
@@ -50,7 +55,15 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
     @Before
     public void setUp() {
-        keywordAnalyzer = new KeywordAnalyzer();
+        keywordAnalyzer = new Analyzer() {
+            @Override
+            protected TokenStreamComponents createComponents(String fieldName) {
+                WhitespaceTokenizer source = new WhitespaceTokenizer();
+                TokenStream result = new WordDelimiterGraphFilter(source, GENERATE_NUMBER_PARTS | PRESERVE_ORIGINAL,
+                        null);
+                return new TokenStreamComponents(source, result);
+            }
+        };
         searchFields = new HashMap<>();
         searchFields.put("f1", 1.0f);
         searchFields.put("f11", 1.0f);
@@ -95,20 +108,25 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, null);
+                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, 1f, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
         return builder.createQuery(q);
     }
 
-    protected Query buildWithSynonyms(String input, float tie, String... names) throws IOException {
+    protected Query buildWithSynonyms(final String input, final float tie, final String... names) throws IOException {
+        return buildWithSynonyms(input, tie, 1f, names);
+    }
+
+    protected Query buildWithSynonyms(final String input, final float tie, final float multiMatchTie,
+                                      final String... names) throws IOException {
         Map<String, Float> fields = fields(names);
        
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, null);
+                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -136,7 +154,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
                 new DocumentFrequencyCorrection()), new StandardAnalyzer(new CharArraySet(stopWords, true)),
-                searchFieldsAndBoosting, tie, null);
+                searchFieldsAndBoosting, tie, 1f, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -310,6 +328,138 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    }
 
     @Test
+    public void testMultiMatch01() throws Exception {
+        float tie = (float) Math.random();
+        Query q = buildWithSynonyms("nn j", tie, 1f, "f1", "f2");
+        assertThat(q,
+                bq(
+                        dmq(BooleanClause.Occur.SHOULD, 1f, tie,
+                                dtq(1f, "f1", "nn"),
+                                dtq(2f, "f2", "nn")
+
+                        ),
+                        dmq(BooleanClause.Occur.SHOULD, 1f, tie,
+                                dtq(1f, "f1", "j"),
+                                dtq(2f, "f2", "j"),
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "s"),
+                                                dtq(2f, "f2", "s")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "t"),
+                                                dtq(2f, "f2", "t")
+                                        )
+                                ),
+                                dtq(1f, "f1", "q"),
+                                dtq(2f, "f2", "q")
+                        )
+                )
+        );
+    }
+
+
+    @Test
+    public void testMultiMatch02() throws Exception {
+        final float multiMatchTie = 0.6f;
+        final float tie = 0.8f;
+        Query q = buildWithSynonyms("nn j", tie, multiMatchTie, "f1", "f2");
+        assertThat(q,
+                bq(
+                        dmq(BooleanClause.Occur.SHOULD, 1f, tie,
+                                dtq(1f, "f1", "nn"),
+                                dtq(2f, "f2", "nn")
+
+                        ),
+
+                        dmq(BooleanClause.Occur.SHOULD, 1f, multiMatchTie,
+                                dmq(1f, tie,
+                                        dtq(1f, "f1", "j"),
+                                        dtq(2f, "f2", "j")
+
+                                ),
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "s"),
+                                                dtq(2f, "f2", "s")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "t"),
+                                                dtq(2f, "f2", "t")
+                                        )
+                                ),
+                                dmq(1f, tie,
+                                        dtq(1f, "f1", "q"),
+                                        dtq(2f, "f2", "q")
+
+                                )
+                        )
+
+                )
+        );
+    }
+
+    @Test
+    public void testMultiMatch03() throws Exception {
+        final float multiMatchTie = 0.6f;
+        final float tie = 0.8f;
+        Query q = buildWithSynonyms("100-2 j", tie, multiMatchTie, "f1", "f2");
+        assertThat(q,
+                bq(
+                        dmq(BooleanClause.Occur.SHOULD, 1f, multiMatchTie,
+                                dmq( 1f, tie,
+                                        dtq(1f, "f1", "onehundreddashtwo"),
+                                        dtq(2f, "f2", "onehundreddashtwo")
+
+                                ),
+                                dmq( 1f, tie,
+                                        dmq(1f, 0f,
+                                                dtq(2f, "f2", "100-2"),
+                                                bq(0.5f,
+                                                        dtq(BooleanClause.Occur.MUST, 2f, "f2", "100"),
+                                                        dtq(BooleanClause.Occur.MUST, 2f, "f2", "2")
+                                                )
+                                        ),
+                                        dmq(1f, 0f,
+                                                dtq(1f, "f1", "100-2"),
+                                                bq(0.5f,
+                                                        dtq(BooleanClause.Occur.MUST, 1f, "f1", "100"),
+                                                        dtq(BooleanClause.Occur.MUST, 1f, "f1", "2")
+                                                )
+                                        )
+
+                                )
+
+                        )
+                        ,
+                        dmq(BooleanClause.Occur.SHOULD, 1f, multiMatchTie,
+                                dmq(1f, tie,
+                                        dtq(1f, "f1", "j"),
+                                        dtq(2f, "f2", "j")
+
+                                ),
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "s"),
+                                                dtq(2f, "f2", "s")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "t"),
+                                                dtq(2f, "f2", "t")
+                                        )
+                                ),
+                                dmq(1f, tie,
+                                        dtq(1f, "f1", "q"),
+                                        dtq(2f, "f2", "q")
+
+                                )
+                        )
+
+                )
+        );
+    }
+
+    @Test
     public void testPurelyNegativeQueriesFromWhitespaceQuerqyParser() throws IOException {
 
         float tie = (float) Math.random();
@@ -320,7 +470,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
 
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-                keywordAnalyzer, searchFieldsAndBoosting, tie, null);
+                keywordAnalyzer, searchFieldsAndBoosting, tie, 1f, null);
 
         Query q = builder.createQuery(new FieldAwareWhiteSpaceQuerqyParser().parse("-ab"));
 
@@ -347,7 +497,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fieldsQuery, fieldsGenerated, 0.8f);
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-            keywordAnalyzer, searchFieldsAndBoosting, 0.1f, null);
+            keywordAnalyzer, searchFieldsAndBoosting, 0.1f, 1f, null);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");

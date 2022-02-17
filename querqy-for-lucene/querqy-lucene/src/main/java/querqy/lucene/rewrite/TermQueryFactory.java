@@ -13,10 +13,12 @@ import org.apache.lucene.search.TermQuery;
 public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
 
     protected final Term term;
+    protected final querqy.model.Term sourceTerm;
    
-    public TermQueryFactory(final Term term) {
-       this.term = term;
-   }
+    public TermQueryFactory(final Term term, final querqy.model.Term sourceTerm) {
+        this.term = term;
+        this.sourceTerm = sourceTerm;
+    }
 
     @Override
     public void prepareDocumentFrequencyCorrection(final DocumentFrequencyCorrection dfc, final boolean isBelowDMQ) {
@@ -29,18 +31,17 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
 
         dfc.prepareTerm(term);
 
-
-
     }
 
     @Override
-    public TermQuery createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
-                                 final TermQueryBuilder termQueryBuilder) {
+    public TermQuery createQuery(final FieldBoost boost, final TermQueryBuilder termQueryBuilder) {
 
         return termQueryBuilder.createTermQuery(term, boost);
 
     }
 
-
-
+    @Override
+    public <R> R accept(final LuceneQueryFactoryVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 }

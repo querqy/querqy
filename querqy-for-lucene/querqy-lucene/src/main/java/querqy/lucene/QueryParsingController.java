@@ -56,6 +56,7 @@ public class QueryParsingController {
     protected static final QuerySimilarityScoring DEFAULT_BOOST_QUERY_SIMILARITY_SCORING = QuerySimilarityScoring.DFC;
 
     protected static final float DEFAULT_TIEBREAKER = 0f;
+    protected static final float DEFAULT_MULTI_MATCH_TIEBREAKER = 1f;
 
     protected static final float DEFAULT_POSITIVE_QUERQY_BOOST_WEIGHT = 1f;
     protected static final float DEFAULT_NEGATIVE_QUERQY_BOOST_WEIGHT = 1f;
@@ -115,7 +116,7 @@ public class QueryParsingController {
         searchFieldsAndBoosting = new SearchFieldsAndBoosting(
                 needsScores
                         ? requestAdapter.getFieldBoostModel().orElse(DEFAULT_FIELD_BOOST_MODEL)
-                        : FieldBoostModel.FIXED,
+                        : FieldBoostModel.FIXED, // TODO: better use NONE as FBM?
                 queryFieldsAndBoostings,
                 generatedQueryFieldsAndBoostings,
                 gfb);
@@ -126,7 +127,7 @@ public class QueryParsingController {
             boostTermQueryBuilder = null;
             boostSearchFieldsAndBoostings = null;
             builder = new LuceneQueryBuilder(new LuceneTermQueryBuilder(), queryAnalyzer, searchFieldsAndBoosting, 1f,
-                    requestAdapter.getTermQueryCache().orElse(null));
+                    1f, requestAdapter.getTermQueryCache().orElse(null));
         } else {
             addQuerqyBoostQueriesToMainQuery = requestAdapter.addQuerqyBoostQueriesToMainQuery();
 
@@ -149,6 +150,7 @@ public class QueryParsingController {
 
             builder = new LuceneQueryBuilder(userTermQueryBuilder,
                     queryAnalyzer, searchFieldsAndBoosting, requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
+                    requestAdapter.getMultiMatchTiebreaker().orElse(DEFAULT_MULTI_MATCH_TIEBREAKER),
                     requestAdapter.getTermQueryCache().orElse(null));
 
         }
@@ -374,6 +376,7 @@ public class QueryParsingController {
                             new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
                                     boostSearchFieldsAndBoostings,
                                     requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
+                                    requestAdapter.getMultiMatchTiebreaker().orElse(DEFAULT_MULTI_MATCH_TIEBREAKER),
                                     requestAdapter.getTermQueryCache().orElse(null));
 
                     luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);

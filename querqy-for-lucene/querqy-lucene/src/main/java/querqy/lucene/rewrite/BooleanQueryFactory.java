@@ -3,8 +3,8 @@
  */
 package querqy.lucene.rewrite;
 
-import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -23,6 +23,15 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
     public BooleanQueryFactory(final boolean normalizeBoost) {
         this.normalizeBoost = normalizeBoost;
         clauses = new LinkedList<>();
+    }
+
+    public BooleanQueryFactory(final List<Clause> clauses, final boolean normalizeBoost) {
+        this(new LinkedList<>(clauses), normalizeBoost);
+    }
+
+    public BooleanQueryFactory(final LinkedList<Clause> clauses, final boolean normalizeBoost) {
+        this.normalizeBoost = normalizeBoost;
+        this.clauses = clauses;
     }
 
     public void add(final LuceneQueryFactory<?> factory, Occur occur) {
@@ -44,13 +53,12 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
     }
 
     @Override
-    public Query createQuery(final FieldBoost boost, final float dmqTieBreakerMultiplier,
-                             final TermQueryBuilder termQueryBuilder) {
+    public Query createQuery(final FieldBoost boost, final TermQueryBuilder termQueryBuilder) {
 
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
         for (final Clause clause : clauses) {
-            builder.add(clause.queryFactory.createQuery(boost, dmqTieBreakerMultiplier, termQueryBuilder), clause.occur);
+            builder.add(clause.queryFactory.createQuery(boost, termQueryBuilder), clause.occur);
         }
 
         Query bq = builder.build();
@@ -64,6 +72,11 @@ public class BooleanQueryFactory implements LuceneQueryFactory<Query> {
         }
 
         return bq;
+    }
+
+    @Override
+    public <R> R accept(final LuceneQueryFactoryVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 
     public int getNumberOfClauses() {

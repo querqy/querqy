@@ -3,8 +3,6 @@
  */
 package querqy.lucene.rewrite;
 
-import java.io.IOException;
-
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 
@@ -22,10 +20,12 @@ public class NeverMatchQueryFactory implements LuceneQueryFactory<Query> {
     }
 
     @Override
-    public Query createQuery(final FieldBoost boostFactor, final float dmqTieBreakerMultiplier,
-                             final TermQueryBuilder termQueryBuilder) {
+    public Query createQuery(final FieldBoost boostFactor, final TermQueryBuilder termQueryBuilder) {
         return new MatchNoDocsQuery();
     }
 
-
+    @Override
+    public <R> R accept(final LuceneQueryFactoryVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 }

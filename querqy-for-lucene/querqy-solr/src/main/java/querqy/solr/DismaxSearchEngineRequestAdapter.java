@@ -201,7 +201,10 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
         return getFloatRequestParam(TIE);
     }
 
-
+    @Override
+    public Optional<Float> getMultiMatchTiebreaker() {
+        return getFloatRequestParam(MULTI_MATCH_TIE);
+    }
 
     @Override
     public boolean isDebugQuery() {

@@ -141,7 +141,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener implement
             // no need to re-test for hits if we've seen this term before
             if (testForHits && (termSubQueryFactory != null) && (!termSubQueryFactory.isNeverMatchQuery())) {
                 final Query query = termSubQueryFactory
-                        .createQuery(ConstantFieldBoost.NORM_BOOST, 0.01f, new LuceneTermQueryBuilder());
+                        .createQuery(ConstantFieldBoost.NORM_BOOST, new LuceneTermQueryBuilder());
                 final TopDocs topDocs = searcher.search(query, 1);
                 if (topDocs.totalHits.value < 1) {
                     cache.put(new CacheKey(field, term),

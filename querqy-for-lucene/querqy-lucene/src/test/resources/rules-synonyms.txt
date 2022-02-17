@@ -25,3 +25,6 @@ g h =>
 j =>
     SYNONYM: s t
     SYNONYM: q
+
+100-2 =>
+    SYNONYM: onehundreddashtwo
