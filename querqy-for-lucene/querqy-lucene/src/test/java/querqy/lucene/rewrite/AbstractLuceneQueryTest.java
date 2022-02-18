@@ -1,5 +1,6 @@
 package querqy.lucene.rewrite;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -329,10 +330,15 @@ public class AbstractLuceneQueryTest {
           if (fieldBoost == null) {
               return false;
           }
-          if (fieldBoost != null && fieldBoost instanceof IndependentFieldBoost) {
-              return boost == ((IndependentFieldBoost) fieldBoost).getBoost(term.field());
+          if (fieldBoost instanceof IndependentFieldBoost || fieldBoost instanceof BoostedDelegatingFieldBoost) {
+              try {
+                  return boost == fieldBoost.getBoost(term.field(), null);
+              } catch (final IOException e) {
+                  throw new RuntimeException(e);
+              }
           } else {
-              throw new RuntimeException("Cannot test FieldBoosts other than IndependentFieldBoost");
+              throw new RuntimeException("Cannot test FieldBoosts other than IndependentFieldBoost and " +
+                      "BoostedDelegatingFieldBoost");
           }
                 
        }

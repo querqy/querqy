@@ -323,7 +323,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                   dtq(Occur.MUST, 1f, "f1", "s"),
                   dtq(Occur.MUST, 1f, "f1", "t")
             ),
-            dtq(1f, "f1", "q")
+            dtq(0.2f, "f1", "q")
             ));
    }
 
@@ -351,8 +351,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                                                 dtq(2f, "f2", "t")
                                         )
                                 ),
-                                dtq(1f, "f1", "q"),
-                                dtq(2f, "f2", "q")
+                                dtq(0.2f, "f1", "q"), // synonym weight is 0.2
+                                dtq(0.2f*2f, "f2", "q") // synonym = 0.2, field weight = 2
                         )
                 )
         );
@@ -389,8 +389,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                                         )
                                 ),
                                 dmq(1f, tie,
-                                        dtq(1f, "f1", "q"),
-                                        dtq(2f, "f2", "q")
+                                        dtq(0.2f, "f1", "q"), // synonym weight is 0.2
+                                        dtq(0.2f*2f, "f2", "q") // synonym = 0.2, field weight = 2
 
                                 )
                         )
@@ -449,8 +449,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                                         )
                                 ),
                                 dmq(1f, tie,
-                                        dtq(1f, "f1", "q"),
-                                        dtq(2f, "f2", "q")
+                                        dtq(0.2f, "f1", "q"), // synonym weight is 0.2
+                                        dtq(0.2f*2f, "f2", "q") // synonym = 0.2, field weight = 2
 
                                 )
                         )
