@@ -168,7 +168,7 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
      * </p>
      * <p>If an empty Optional is returned, {@link QueryParsingController#DEFAULT_MULTI_MATCH_TIEBREAKER} will be used.</p>
      *
-     * @return An optional tiebreaker.
+     * @return An optional multi-match tiebreaker.
      */
     Optional<Float> getMultiMatchTiebreaker();
 

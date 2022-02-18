@@ -19,7 +19,6 @@ import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.BoostedTerm;
-import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
