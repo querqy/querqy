@@ -376,7 +376,7 @@ public class QueryParsingController {
                             new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
                                     boostSearchFieldsAndBoostings,
                                     requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
-                                    requestAdapter.getMultiMatchTiebreaker().orElse(DEFAULT_MULTI_MATCH_TIEBREAKER),
+                                    1f, // we don't have to apply multiMatchTie for boostings
                                     requestAdapter.getTermQueryCache().orElse(null));
 
                     luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
