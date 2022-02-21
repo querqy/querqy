@@ -34,7 +34,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
+import querqy.model.BooleanQuery;
+import querqy.model.Clause;
+import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
+import querqy.model.Term;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.ContextAwareQueryRewriter;
@@ -457,6 +461,110 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
                 )
         );
+    }
+
+    @Test
+    public void testNestedMultiMatch() {
+        BooleanQuery bq0 = new BooleanQuery(null, Clause.Occur.MUST, false);
+
+        // level 1
+        DisjunctionMaxQuery dmq1a = new DisjunctionMaxQuery(bq0, Clause.Occur.MUST, false);
+        bq0.addClause(dmq1a);
+        dmq1a.addClause(new Term(dmq1a, "term1a"));
+        dmq1a.addClause(new Term(dmq1a, "term1b"));
+
+        BooleanQuery bq1 = new BooleanQuery(bq0, Clause.Occur.MUST, false);
+        bq0.addClause(bq1);
+
+        // level 2
+        DisjunctionMaxQuery dmq2a = new DisjunctionMaxQuery(bq1, Clause.Occur.MUST, false);
+        bq1.addClause(dmq2a);
+        dmq2a.addClause(new Term(dmq2a, "term2a"));
+        dmq2a.addClause(new Term(dmq2a, "term2b"));
+
+        DisjunctionMaxQuery dmq2b = new DisjunctionMaxQuery(bq1, Clause.Occur.MUST, false);
+        bq1.addClause(dmq2b);
+        dmq2b.addClause(new Term(dmq2b, "term2c"));
+        dmq2b.addClause(new Term(dmq2b, "term2d"));
+
+        // level 1
+        DisjunctionMaxQuery dmq1b = new DisjunctionMaxQuery(bq0, Clause.Occur.MUST, false);
+        bq0.addClause(dmq1b);
+        dmq1b.addClause(new Term(dmq1b, "term1c"));
+        dmq1b.addClause(new Term(dmq1b, "term1d"));
+
+        Map<String, Float> fieldsQuery = new HashMap<>();
+        fieldsQuery.put("f1", 1f);
+        fieldsQuery.put("f2", 2f);
+
+        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED,
+                fieldsQuery, Collections.emptyMap(), 0.9f);
+        final float multiMatchTie = 0.6f;
+        final float tie = 0.8f;
+
+        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
+                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
+
+
+
+        assertThat(builder.createQuery(bq0),
+                bq(
+                        dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
+                                dmq( 1f, tie,
+                                        dtq(1f, "f1", "term1a"),
+                                        dtq(2f, "f2", "term1a")
+
+                                ),
+                                dmq( 1f, tie,
+                                        dtq(1f, "f1", "term1b"),
+                                        dtq(2f, "f2", "term1b")
+
+                                )
+                        ),
+                        bq(BooleanClause.Occur.MUST,
+                                dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
+                                        dmq( 1f, tie,
+                                                dtq(1f, "f1", "term2a"),
+                                                dtq(2f, "f2", "term2a")
+
+                                        ),
+                                        dmq( 1f, tie,
+                                                dtq(1f, "f1", "term2b"),
+                                                dtq(2f, "f2", "term2b")
+
+                                        )
+                                ),
+                                dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
+                                        dmq( 1f, tie,
+                                                dtq(1f, "f1", "term2c"),
+                                                dtq(2f, "f2", "term2c")
+
+                                        ),
+                                        dmq( 1f, tie,
+                                                dtq(1f, "f1", "term2d"),
+                                                dtq(2f, "f2", "term2d")
+
+                                        )
+                                )
+                        ),
+                        dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
+                                dmq( 1f, tie,
+                                        dtq(1f, "f1", "term1c"),
+                                        dtq(2f, "f2", "term1c")
+
+                                ),
+                                dmq( 1f, tie,
+                                        dtq(1f, "f1", "term1d"),
+                                        dtq(2f, "f2", "term1d")
+
+                                )
+                        )
+
+
+                )
+        );
+
+
     }
 
     @Test

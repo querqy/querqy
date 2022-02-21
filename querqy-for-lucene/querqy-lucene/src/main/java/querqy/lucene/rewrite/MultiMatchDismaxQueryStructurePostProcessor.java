@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 /**
  * <p>A post-processor of a structure of {@link LuceneQueryFactory}s that wraps a
- * {@link org.apache.lucene.search.DisjunctionMaxQuery} around clauses of top-level DisjunctionMaxQuerys that were
- * created from the same input token.</p>
+ * {@link org.apache.lucene.search.DisjunctionMaxQuery} around clauses of DisjunctionMaxQuerys that were created from
+ * the same input token.</p>
  * <p>Let's assume an input query 'asus laptop' and a synonym expansion 'notebook' for laptop, and two query fields
  * f1 and f2. This gives us DisMax(f1:asus | f2:asus) and DisMax(f1:laptop|f2:laptop|f1:notebook|f2:notebook) as DisMax
  * queries, each wrapping the term queries that were derived from a common input token. A second level of grouping is
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * </pre>
  *
  */
-public class MultiMatchDismaxQueryStructurePostProcessor {
+public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFactoryVisitor<Void> {
 
     private final float dmqTieBreakerMultiplier;
     private final float multiMatchTieBreakerMultiplier;
@@ -43,6 +43,25 @@ public class MultiMatchDismaxQueryStructurePostProcessor {
         this.multiMatchTieBreakerMultiplier = multiMatchTieBreakerMultiplier;
     }
 
+    @Override
+    public Void visit(final BooleanQueryFactory factory) {
+        super.visit(factory);
+        factory.getClauses().forEach(clause -> applyMultiMatch(clause.queryFactory));
+        return null;
+    }
+
+    @Override
+    public Void visit(final DisjunctionMaxQueryFactory factory) {
+        super.visit(factory);
+        factory.disjuncts.forEach(this::applyMultiMatch);
+        return null;
+    }
+
+    @Override
+    public Void visit(final TermSubQueryFactory factory) {
+        return null;
+    }
+
     /**
      * Rewrite the query structure. The operation might manipulate the input query structure and not operate on a copy.
      *
@@ -50,6 +69,11 @@ public class MultiMatchDismaxQueryStructurePostProcessor {
      * @return The rewritten structure.
      */
     public LuceneQueryFactory<?> process(final LuceneQueryFactory<?> structure) {
+        structure.accept(this);
+        return structure;
+    }
+
+    protected LuceneQueryFactory<?> applyMultiMatch(final LuceneQueryFactory<?> structure) {
 
         for (final DisjunctionMaxQueryFactory dmq: TopLevelDmqFinder.findDmqs(structure)) {
 
@@ -57,23 +81,11 @@ public class MultiMatchDismaxQueryStructurePostProcessor {
             if (numDisjuncts > 1) {
 
                 final Map<Object, List<LuceneQueryFactory<?>>> grouped = dmq.disjuncts.stream()
-                        .collect(Collectors.groupingBy(factory -> {
-                    if (factory instanceof TermSubQueryFactory) {
-                        return ((TermSubQueryFactory) factory).sourceTerm.getValue();
-                    } else if (factory instanceof TermQueryFactory) {
-                        return ((TermQueryFactory) factory).sourceTerm.getValue();
-                    } else return factory;
-
-                }));
+                        .collect(Collectors.groupingBy(this::getGroupingValue));
 
                 grouped.values().stream()
                         .filter(factories -> (numDisjuncts > factories.size()) && factories.size() > 1)
-                        .forEach(factories -> {
-                            final DisjunctionMaxQueryFactory group = new DisjunctionMaxQueryFactory(factories,
-                            dmqTieBreakerMultiplier);
-                            factories.forEach(dmq.disjuncts::remove);
-                            dmq.disjuncts.add(group);
-                });
+                        .forEach(factories -> applyDisjunctGrouping(dmq, factories));
 
                 if (numDisjuncts > dmq.getNumberOfDisjuncts()) {
                     dmq.setTieBreaker(multiMatchTieBreakerMultiplier);
@@ -84,6 +96,21 @@ public class MultiMatchDismaxQueryStructurePostProcessor {
 
         }
         return structure;
+    }
+
+    protected Object getGroupingValue(final LuceneQueryFactory<?> factory) {
+        if (factory instanceof TermSubQueryFactory) {
+            return ((TermSubQueryFactory) factory).sourceTerm.getValue();
+        } else if (factory instanceof TermQueryFactory) {
+            return ((TermQueryFactory) factory).sourceTerm.getValue();
+        } else return factory;
+    }
+
+    protected void applyDisjunctGrouping(final DisjunctionMaxQueryFactory dmq,
+                                         final List<LuceneQueryFactory<?>> factories) {
+        final DisjunctionMaxQueryFactory group = new DisjunctionMaxQueryFactory(factories, dmqTieBreakerMultiplier);
+        factories.forEach(dmq.disjuncts::remove);
+        dmq.disjuncts.add(group);
     }
 
     /**
