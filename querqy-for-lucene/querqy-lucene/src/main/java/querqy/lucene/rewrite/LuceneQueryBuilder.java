@@ -33,7 +33,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    }
 
    final boolean normalizeBooleanQueryBoost;
-   final boolean addMultiMatchDmq;
+   final boolean mustAddMultiMatchDmq;
    final float dmqTieBreakerMultiplier;
    final float multiMatchTieBreakerMultiplier;
    final TermQueryBuilder termQueryBuilder;
@@ -74,6 +74,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     * @param analyzer The query Analyzer
     * @param searchFieldsAndBoosting The search fields and their boost factors
     * @param dmqTieBreakerMultiplier The tie breaker for dismax queries
+    * @param multiMatchTieBreakerMultiplier The multi-match (synonym) tie breaker for dismax queries
     * @param normalizeBooleanQueryBoost Iff true and if the analyzer turns a single token into multiple tokens, divide their aggregate score by their count
     * @param termQueryCache The term query cache or null
     */
@@ -87,14 +88,14 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         }
 
         switch (searchFieldsAndBoosting.fieldBoostModel) {
-            case NONE: addMultiMatchDmq = false; break;
-            case FIXED: addMultiMatchDmq = multiMatchTieBreakerMultiplier < 1f; break;
+            case NONE: mustAddMultiMatchDmq = false; break;
+            case FIXED: mustAddMultiMatchDmq = multiMatchTieBreakerMultiplier < 1f; break;
             default:
                 if (multiMatchTieBreakerMultiplier < 1f) {
                     throw new IllegalArgumentException("MultiMatch DMQ cannot be added for field boost model " +
                             searchFieldsAndBoosting.fieldBoostModel);
                 }
-                addMultiMatchDmq = false;
+                mustAddMultiMatchDmq = false;
         }
 
         this.searchFieldsAndBoosting = searchFieldsAndBoosting;
@@ -131,10 +132,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
             termQueryBuilder.getDocumentFrequencyCorrection()
                     .ifPresent(dfc -> factory.prepareDocumentFrequencyCorrection(dfc, false));
 
-            return (addMultiMatchDmq)
+            return (mustAddMultiMatchDmq)
                     ? new MultiMatchDismaxQueryStructurePostProcessor(dmqTieBreakerMultiplier,
-                    multiMatchTieBreakerMultiplier)
-                        .process(factory).createQuery(null, termQueryBuilder)
+                        multiMatchTieBreakerMultiplier).process(factory).createQuery(null, termQueryBuilder)
                     : factory.createQuery(null, termQueryBuilder);
 
 
