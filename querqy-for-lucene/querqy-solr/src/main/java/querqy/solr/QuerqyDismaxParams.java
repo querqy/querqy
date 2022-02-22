@@ -170,13 +170,13 @@ public interface QuerqyDismaxParams {
     /**
      * <p>A tiebreak multiplier to control how the scores of added clauses that go back to a single user query clause
      * are combined.</p><p>Let's say we have a query &quot;asus laptop&quot;, a synonym expansion &quot;laptop =&gt;
-     * notebook&quot; and &quot;qf=f1 f2&quot; then the resulting query would look like this:
+     * notebook&quot; and &quot;qf=f1 f2&quot; then the resulting query would look like this:</p>
      * <pre>
      *     asus ((f1:laptop | f2:laptop)~tie | (f1:notebook | f2:notebook)~tie)~multiMatchTie
      * </pre>
-     * where <i>tie</i> is taken from the parameter of the same name. A <i>multiMatchTie</i> value of 0 means that only
-     * the maximum score of the alternatives will be used. A value of 1.0 means that scores will just be summed up. A
-     * value between 0 and 1 means that the maximum score will be summed up with the other scores, which will be
+     * <p>where <i>tie</i> is taken from the parameter of the same name. A <i>multiMatchTie</i> value of 0 means that
+     * only  the maximum score of the alternatives will be used. A value of 1.0 means that scores will just be summed
+     * up. A value between 0 and 1 means that the maximum score will be summed up with the other scores, which will be
      * multiplied with the value of <i>multiMatchTie</i>.</p>
      */
     String MULTI_MATCH_TIE = "multiMatchTie";
