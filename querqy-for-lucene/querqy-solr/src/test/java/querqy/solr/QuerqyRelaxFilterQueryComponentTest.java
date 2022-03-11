@@ -93,7 +93,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "defType", "querqy",
                 "debugQuery", "true",
-                PARAM_REWRITERS, "common_rules2"
+                PARAM_REWRITERS, REWRITER_NAME
         );
 
         assertQ("Default RHS QuerqyParser fails",

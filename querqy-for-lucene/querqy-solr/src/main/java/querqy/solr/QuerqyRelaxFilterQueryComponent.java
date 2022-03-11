@@ -2,6 +2,7 @@ package querqy.solr;
 
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class QuerqyRelaxFilterQueryComponent extends QuerqyQueryComponent {
 
     String relaxFilterQueryString = null;
+    Query relaxQuery = null;
 
     @Override
     public void init(NamedList args) {
@@ -28,8 +30,10 @@ public class QuerqyRelaxFilterQueryComponent extends QuerqyQueryComponent {
     @Override
     public void prepare(final ResponseBuilder rb) throws IOException {
         super.prepare(rb);
-        Query relaxQuery = getRelaxFilterQuery(rb);
         if (relaxQuery == null) {
+            relaxQuery = getRelaxFilterQuery(rb);
+        }
+        if (relaxQuery instanceof MatchAllDocsQuery) {
             return;
         }
         QParser parser = rb.getQparser();
@@ -49,7 +53,7 @@ public class QuerqyRelaxFilterQueryComponent extends QuerqyQueryComponent {
 
     private Query getRelaxFilterQuery(final ResponseBuilder rb) {
         if (relaxFilterQueryString == null || relaxFilterQueryString.trim().isEmpty()) {
-            return null;
+            return new MatchAllDocsQuery();
         }
         ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("q", relaxFilterQueryString);
