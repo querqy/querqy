@@ -68,6 +68,14 @@ public class QuerqyRelaxFilterQueryComponent extends QuerqyQueryComponent {
     }
 
     private Query combineFilterQueries(Query query1, Query query2) {
+        // a single negative BooleanQuery should not be combined with the relax filter
+        if (query1 instanceof BooleanQuery) {
+            BooleanQuery q1 = (BooleanQuery) query1;
+            if (q1.clauses().size() == 1
+                    && BooleanClause.Occur.MUST_NOT.equals(q1.clauses().get(0).getOccur())) {
+                return query1;
+            }
+        }
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         builder.add(query1, BooleanClause.Occur.SHOULD);
         builder.add(query2, BooleanClause.Occur.SHOULD);

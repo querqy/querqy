@@ -7,6 +7,12 @@ qneg =>
 qneg2 =>
     FILTER: qneg -k
 
+qneg3 =>
+    FILTER: * f1:qneg3 -f2:c
+
+qneg4 =>
+    FILTER: * -f2:c
+
 qnegraw =>
     FILTER: * -f1:k
 

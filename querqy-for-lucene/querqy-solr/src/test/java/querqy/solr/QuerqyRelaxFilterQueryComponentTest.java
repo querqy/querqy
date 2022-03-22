@@ -43,6 +43,9 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "8", "f1", "abc no ise", "f2", "xyz"));
         assertU(adoc("id", "9", "f1", "abc", "f2", "not boosted"));
         assertU(adoc("id", "10", "f1", "a uvw", "f2", "not boosted"));
+        assertU(adoc("id", "101", "f1", "qneg3 qneg4", "f2", "q a"));
+        assertU(adoc("id", "102", "f1", "qneg3 qneg4", "f2", "q b"));
+        assertU(adoc("id", "103", "f1", "qneg3 qneg4", "f2", "q c"));
 
         assertU(commit());
     }
@@ -100,6 +103,50 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
                 req,
                 "//arr[@name='parsed_filter_queries']/str[contains(.,'f1:qneg') and contains(.,'-f1:k')]",
                 "//arr[@name='parsed_filter_queries']/str[contains(.,'(') and contains(.,') id:10')]"
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testRelaxFilterQueryCombinedWithNegativeFilter() {
+
+        String q = "qneg3";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, REWRITER_NAME
+        );
+
+        assertQ("Combination with neg filter fails",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//arr[@name='parsed_filter_queries']/str[contains(.,'f1:qneg3') and contains(.,'-f2:c')]",
+                "//arr[@name='parsed_filter_queries']/str[contains(.,'(') and contains(.,') id:10')]"
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testRelaxFilterQueryCombinedWithOnlyNegativeFilter() {
+
+        String q = "qneg4";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, REWRITER_NAME
+        );
+
+        assertQ("Combination with neg filter fails",
+                req,
+                "//result[@name='response' and @numFound='2']",
+                "//arr[@name='parsed_filter_queries']/str[contains(.,'-f2:c')]",
+                "//arr[@name='parsed_filter_queries']/str[not(contains(.,'(')) and not(contains(.,') id:10'))]"
         );
 
         req.close();
