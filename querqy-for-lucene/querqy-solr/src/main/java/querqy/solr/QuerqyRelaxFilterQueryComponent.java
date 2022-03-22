@@ -1,9 +1,6 @@
 package querqy.solr;
 
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.component.ResponseBuilder;
@@ -68,17 +65,25 @@ public class QuerqyRelaxFilterQueryComponent extends QuerqyQueryComponent {
     }
 
     private Query combineFilterQueries(Query query1, Query query2) {
-        // a single negative BooleanQuery should not be combined with the relax filter
+        // a single negative BooleanQuery needs combination with MatchAllDocsQuery
+        // before combination with the relax filter
         if (query1 instanceof BooleanQuery) {
             BooleanQuery q1 = (BooleanQuery) query1;
             if (q1.clauses().size() == 1
                     && BooleanClause.Occur.MUST_NOT.equals(q1.clauses().get(0).getOccur())) {
-                return query1;
+                query1 = combinaWithMatchAllDocsQuery(q1);
             }
         }
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         builder.add(query1, BooleanClause.Occur.SHOULD);
         builder.add(query2, BooleanClause.Occur.SHOULD);
+        return builder.build();
+    }
+
+    private Query combinaWithMatchAllDocsQuery(BooleanQuery q1) {
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        builder.add(new MatchAllDocsQuery(), BooleanClause.Occur.SHOULD);
+        builder.add(q1.clauses().get(0).getQuery(), BooleanClause.Occur.MUST_NOT);
         return builder.build();
     }
 

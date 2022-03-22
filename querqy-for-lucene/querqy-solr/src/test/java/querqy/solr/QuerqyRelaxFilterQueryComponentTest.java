@@ -123,8 +123,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
         assertQ("Combination with neg filter fails",
                 req,
                 "//result[@name='response' and @numFound='2']",
-                "//arr[@name='parsed_filter_queries']/str[contains(.,'f1:qneg3') and contains(.,'-f2:c')]",
-                "//arr[@name='parsed_filter_queries']/str[contains(.,'(') and contains(.,') id:10')]"
+                "//arr[@name='parsed_filter_queries']/str[contains(.,'f1:qneg3') and contains(.,'-f2:c') and contains(.,') id:10')]"
         );
 
         req.close();
@@ -145,8 +144,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
         assertQ("Combination with neg filter fails",
                 req,
                 "//result[@name='response' and @numFound='2']",
-                "//arr[@name='parsed_filter_queries']/str[contains(.,'-f2:c')]",
-                "//arr[@name='parsed_filter_queries']/str[not(contains(.,'(')) and not(contains(.,') id:10'))]"
+                "//arr[@name='parsed_filter_queries']/str[contains(.,'(MatchAllDocsQuery(*:*)') and contains(.,'-f2:c') and contains(.,') id:10')]"
         );
 
         req.close();
