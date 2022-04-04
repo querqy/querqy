@@ -69,33 +69,34 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
      * @return The rewritten structure.
      */
     public LuceneQueryFactory<?> process(final LuceneQueryFactory<?> structure) {
-        structure.accept(this);
+        if (structure instanceof DisjunctionMaxQueryFactory) {
+            processTopLevelDmq((DisjunctionMaxQueryFactory) structure);
+        } else {
+            structure.accept(this);
+        }
         return structure;
     }
 
-    protected LuceneQueryFactory<?> applyMultiMatch(final LuceneQueryFactory<?> structure) {
+    protected void applyMultiMatch(final LuceneQueryFactory<?> structure) {
+        TopLevelDmqFinder.findDmqs(structure).forEach(this::processTopLevelDmq);
+    }
 
-        for (final DisjunctionMaxQueryFactory dmq: TopLevelDmqFinder.findDmqs(structure)) {
+    protected void processTopLevelDmq(final DisjunctionMaxQueryFactory dmq) {
+        final int numDisjuncts = dmq.getNumberOfDisjuncts();
+        if (numDisjuncts > 1) {
 
-            final int numDisjuncts = dmq.getNumberOfDisjuncts();
-            if (numDisjuncts > 1) {
+            final Map<Object, List<LuceneQueryFactory<?>>> grouped = dmq.disjuncts.stream()
+                    .collect(Collectors.groupingBy(this::getGroupingValue));
 
-                final Map<Object, List<LuceneQueryFactory<?>>> grouped = dmq.disjuncts.stream()
-                        .collect(Collectors.groupingBy(this::getGroupingValue));
+            grouped.values().stream()
+                    .filter(factories -> (numDisjuncts > factories.size()) && factories.size() > 1)
+                    .forEach(factories -> applyDisjunctGrouping(dmq, factories));
 
-                grouped.values().stream()
-                        .filter(factories -> (numDisjuncts > factories.size()) && factories.size() > 1)
-                        .forEach(factories -> applyDisjunctGrouping(dmq, factories));
-
-                if (numDisjuncts > dmq.getNumberOfDisjuncts()) {
-                    dmq.setTieBreaker(multiMatchTieBreakerMultiplier);
-                }
-
+            if (numDisjuncts > dmq.getNumberOfDisjuncts()) {
+                dmq.setTieBreaker(multiMatchTieBreakerMultiplier);
             }
 
-
         }
-        return structure;
     }
 
     protected Object getGroupingValue(final LuceneQueryFactory<?> factory) {
