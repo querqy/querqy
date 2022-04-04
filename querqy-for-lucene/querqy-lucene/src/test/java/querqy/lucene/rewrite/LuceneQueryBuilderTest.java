@@ -485,6 +485,33 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
 
     @Test
+    public void testMultiMatchWithSingleToMultiTermSynonym() throws Exception {
+        final float multiMatchTie = 0.6f;
+        final float tie = 0.8f;
+        Query q = buildWithSynonyms("f", tie, multiMatchTie, "f1", "f2");
+        assertThat(q,
+                dmq(1f, multiMatchTie,
+                        dmq( 1f, tie,
+                                dtq(1f, "f1", "f"),
+                                dtq(2f, "f2", "f")
+                        ),
+
+                        bq(0.5f,
+                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                        dtq(1f, "f1", "k"),
+                                        dtq(2f, "f2", "k")
+                                ),
+                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                        dtq(1f, "f1", "l"),
+                                        dtq(2f, "f2", "l")
+                                )
+                        )
+                )
+        );
+
+    }
+
+    @Test
     public void testNestedMultiMatch() {
         BooleanQuery bq0 = new BooleanQuery(null, Clause.Occur.MUST, false);
 
