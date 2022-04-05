@@ -13,16 +13,16 @@ import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 @SolrTestCaseJ4.SuppressSSL
-public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
+public class QuerqyFilterComplementTest extends SolrTestCaseJ4 {
 
     private static final String REWRITER_NAME = "common_rules";
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-relax-filter.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
         try {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
-                    .rules(QuerqyRelaxFilterQueryComponentTest.class.getClassLoader()
+                    .rules(QuerqyFilterComplementTest.class.getClassLoader()
                             .getResourceAsStream("configs/commonrules/rules.txt"));
             builder.ignoreCase(true);
             withCommonRulesRewriter(h.getCore(), REWRITER_NAME, builder);
@@ -46,6 +46,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "101", "f1", "qneg3 qneg4", "f2", "q a"));
         assertU(adoc("id", "102", "f1", "qneg3 qneg4", "f2", "q b"));
         assertU(adoc("id", "103", "f1", "qneg3 qneg4", "f2", "q c"));
+        assertU(adoc("id", "104", "f1", "qneg3 qneg4", "f2", "q c d"));
 
         assertU(commit());
     }
@@ -58,12 +59,13 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
                 DisMaxParams.MM, "100%",
                 PARAM_REWRITERS, REWRITER_NAME,
                 "debugQuery", "on",
+                "querqy.fc", "id:10",
                 "defType", "querqy"
         };
     }
 
     @Test
-    public void testRelaxFilterQueryFunction() {
+    public void testFilterComplementFunction() {
 
         SolrQueryRequest req;
 
@@ -88,7 +90,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testRelaxFilterQueryToParsedFilterQueries() {
+    public void testFilterComplementToParsedFilterQueries() {
 
         String q = "qneg2";
 
@@ -96,6 +98,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "defType", "querqy",
                 "debugQuery", "true",
+                "querqy.fc", "id:10",
                 PARAM_REWRITERS, REWRITER_NAME
         );
 
@@ -109,7 +112,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testRelaxFilterQueryCombinedWithNegativeFilter() {
+    public void testFilterComplementCombinedWithNegativeFilter() {
 
         String q = "qneg3";
 
@@ -117,20 +120,21 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "defType", "querqy",
                 "debugQuery", "true",
+                "querqy.fc", "id:104",
                 PARAM_REWRITERS, REWRITER_NAME
         );
 
         assertQ("Combination with neg filter fails",
                 req,
-                "//result[@name='response' and @numFound='2']",
-                "//arr[@name='parsed_filter_queries']/str[contains(.,'f1:qneg3') and contains(.,'-f2:c') and contains(.,') id:10')]"
+                "//result[@name='response' and @numFound='3']",
+                "//arr[@name='parsed_filter_queries']/str[contains(.,'f1:qneg3') and contains(.,'-f2:c') and contains(.,') id:104')]"
         );
 
         req.close();
     }
 
     @Test
-    public void testRelaxFilterQueryCombinedWithOnlyNegativeFilter() {
+    public void testFilterComplementCombinedWithSingleNegativeFilter() {
 
         String q = "qneg4";
 
@@ -138,6 +142,7 @@ public class QuerqyRelaxFilterQueryComponentTest extends SolrTestCaseJ4 {
                 DisMaxParams.QF, "f1",
                 "defType", "querqy",
                 "debugQuery", "true",
+                "querqy.fc", "id:10",
                 PARAM_REWRITERS, REWRITER_NAME
         );
 

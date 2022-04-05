@@ -39,10 +39,14 @@ public class FilterInstruction implements Instruction {
                      final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
        // TODO: we might not need to clone here, if we already cloned all queries in the constructor
-       expandedQuery.addFilterQuery(filterQuery.clone(null, true));
-
+       expandedQuery.addFilterQuery(
+               InstructionHelper.wrapWithOptionalFilterComplement(
+                       searchEngineRequestAdapter,
+                       filterQuery
+               )
+       );
    }
-   
+
     @Override
     public Set<Term> getGenerableTerms() {
         return (filterQuery instanceof Query) 

@@ -2,17 +2,18 @@ package querqy.rewrite.commonrules;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Term;
+import querqy.parser.QuerqyParser;
 import querqy.rewrite.QuerqyTemplateEngine;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -47,11 +48,32 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
             SYNONYM, UP, DOWN, FILTER, DELETE, DECORATE
     ).collect(Collectors.toSet());
 
+    /**
+     * Default name of the request parameter with the filter complement.
+     */
+    public static final String REQUEST_PARAM_FILTER_COMPLEMENT_DEFAULT = "querqy.fc";
+
+    /**
+     * Template for the name of the request parameter with the filter complement.
+     */
+    public static final String REQUEST_PARAM_FILTER_COMPLEMENT_TEMPLATE = "querqy.%s.fc";
+
+    /**
+     * Name of the context key with the filter complement string.
+     */
+    public static final String CONTEXT_KEY_FILTER_COMPLEMENT_STRING = "querqy.rewrite.fc.string";
+
+    /**
+     * Name of the context key with the parsed filter complement.
+     */
+    public static final String CONTEXT_KEY_FILTER_COMPLEMENT_QUERY = "querqy.rewrite.fc.query";
+
     private final RulesCollection rules;
     private final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
     private final String strategyParam;
     private final SelectionStrategyFactory defaultSelectionStrategyFactory;
     private final boolean buildTermCache;
+    private final QuerqyParserFactory querqyParserFactory;
 
 
     /**
@@ -86,6 +108,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
         this.defaultSelectionStrategyFactory = Objects.requireNonNull(defaultSelectionStrategyFactory);
 
         this.buildTermCache = buildTermCache;
+
+        this.querqyParserFactory = querqyParserFactory;
 
         // TODO: using List<String> to process lines instead of Reader should be better:
         //  (1) Lines can be reused across different processing stages (should reduce resource consumption)
@@ -140,7 +164,26 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                 }).orElse(defaultSelectionStrategyFactory) // strategy not specified in params
                 .createSelectionStrategy(getRewriterId(), searchEngineRequestAdapter);
 
+        Optional<String> filterComponentParam = getFilterComponentParam(searchEngineRequestAdapter);
+        filterComponentParam.ifPresent(s -> setFilterComponentInfoInContext(searchEngineRequestAdapter, s));
+
         return new CommonRulesRewriter(rules, selectionStrategy);
+    }
+
+    private void setFilterComponentInfoInContext(final SearchEngineRequestAdapter searchEngineRequestAdapter, String s) {
+
+        searchEngineRequestAdapter.getContext().put(CONTEXT_KEY_FILTER_COMPLEMENT_STRING, s);
+        searchEngineRequestAdapter.getContext().put(CONTEXT_KEY_FILTER_COMPLEMENT_QUERY, getQuerqyParser().parse(s));
+
+    }
+
+    private Optional<String> getFilterComponentParam(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        Optional<String> filterComponentParam =
+                searchEngineRequestAdapter
+                        .getRequestParam(String.format(REQUEST_PARAM_FILTER_COMPLEMENT_TEMPLATE, getRewriterId()));
+        return filterComponentParam.isPresent()
+                ? filterComponentParam
+                : searchEngineRequestAdapter.getRequestParam(REQUEST_PARAM_FILTER_COMPLEMENT_DEFAULT);
     }
 
     @Override
@@ -154,6 +197,10 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
     RulesCollection getRules() {
         return rules;
+    }
+
+    public QuerqyParser getQuerqyParser() {
+        return querqyParserFactory.createParser();
     }
 
 }
