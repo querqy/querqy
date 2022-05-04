@@ -102,6 +102,14 @@ public class QuerqyReRankQuery extends RankQuery {
         return result;
     }
 
+    @Override
+    public String toString(String field) {
+        return "mainQuery='" + mainQuery.toString() + "' " +
+                "reRankQuery='" + reRankQuery.toString() + "' " +
+                "reRankNumDocs=" + reRankNumDocs + ' ' +
+                "reRankWeight=" + reRankWeight ;
+    }
+
     private class ReRankWeight extends Weight{
         private Query reRankQuery;
         private IndexSearcher searcher;

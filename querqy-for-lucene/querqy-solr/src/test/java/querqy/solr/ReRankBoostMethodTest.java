@@ -158,9 +158,7 @@ public class ReRankBoostMethodTest extends SolrTestCaseJ4 {
         assertQ("Rerank does not work with negative boost'",
                 req,
                 "//result[@name='response'][@numFound='2']",
-                // the parsed query must contain not the boost terms:
-                "//str[@name='parsedquery'][not(contains(.,'f1:d1'))]",
-                "//str[@name='parsedquery'][not(contains(.,'f1:d2'))]",
+                "//str[@name='parsedquery'][(starts-with(.,'QuerqyReRankQuery'))]",
                 // debug output must contain 'QuerqyReRankQuery'
                 "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]",
                 "//doc[1]/str[@name='id'][contains(.,'4')]",
