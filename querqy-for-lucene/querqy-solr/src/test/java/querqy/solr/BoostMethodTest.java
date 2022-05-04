@@ -104,11 +104,9 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
         assertQ("Method is not 'rerank'",
                 req,
                 "//result[@name='response'][@numFound='2']",
-                // the parsed query must contain not the boost terms:
-                "//str[@name='parsedquery'][not(contains(.,'f1:u100'))]",
-                "//str[@name='parsedquery'][not(contains(.,'f2:u100'))]",
-                // debug output must contain 'QuerqyReRankQuery'
-                "//lst[@name='explain']/str[contains(.,'QuerqyReRankQuery')]"
+                "//str[@name='parsedquery'][(starts-with(.,'QuerqyReRankQuery'))]",
+                "//str[@name='parsedquery'][(contains(.,\"mainQuery='(f1:qup | f2:qup)'\"))]",
+                "//str[@name='parsedquery'][(contains(.,\"reRankQuery='AdditiveBoostFunction(100.0,query(+(f1:u100 | f2:u100),def=0.0))\"))]"
         );
         req.close();
 
