@@ -5,8 +5,6 @@ import java.util.Objects;
 
 import org.apache.lucene.index.IndexReader;
 
-import querqy.model.Term;
-
 public class BoostedDelegatingFieldBoost implements FieldBoost {
 
     private final FieldBoost delegate;
@@ -24,8 +22,8 @@ public class BoostedDelegatingFieldBoost implements FieldBoost {
     }
 
     @Override
-    public void registerTermSubQuery(final String fieldname, final TermSubQueryFactory termSubQueryFactory, final Term sourceTerm) {
-        delegate.registerTermSubQuery(fieldname, termSubQueryFactory, sourceTerm);
+    public void registerTermSubQuery(final TermSubQueryFactory termSubQueryFactory) {
+        delegate.registerTermSubQuery(termSubQueryFactory);
     }
 
     @Override

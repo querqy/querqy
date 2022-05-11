@@ -62,11 +62,12 @@ public class PRMSFieldBoost implements FieldBoost {
     }
 
     @Override
-    public void registerTermSubQuery(String fieldname, TermSubQueryFactory termSubQueryFactory, Term sourceTerm) {
+    public void registerTermSubQuery(final TermSubQueryFactory termSubQueryFactory) {
         
         if (!termSubQueryFactory.isNeverMatchQuery()) {
-            if (fieldPRMSQueries.put(fieldname, termSubQueryFactory.prmsQuery) != null) {
-                throw new IllegalStateException("A PRMSQuery has already been registered for field " + fieldname);
+            if (fieldPRMSQueries.put(termSubQueryFactory.getFieldname(), termSubQueryFactory.prmsQuery) != null) {
+                throw new IllegalStateException("A PRMSQuery has already been registered for field "
+                        + termSubQueryFactory.getFieldname());
             }
         }
         

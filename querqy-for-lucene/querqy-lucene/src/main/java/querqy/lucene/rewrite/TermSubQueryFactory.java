@@ -20,19 +20,21 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
     final LuceneQueryFactory<?> root;
     final FieldBoost boost;
     public final PRMSQuery prmsQuery;
-    final Term sourceTerm;
+    private final Term sourceTerm;
+    private final String fieldname;
     
     public TermSubQueryFactory(final LuceneQueryFactoryAndPRMSQuery rootAndPrmsQuery, final FieldBoost boost,
-                               final Term sourceTerm) {
-        this(rootAndPrmsQuery.queryFactory, rootAndPrmsQuery.prmsQuery, boost, sourceTerm);
+                               final Term sourceTerm, final String fieldname) {
+        this(rootAndPrmsQuery.queryFactory, rootAndPrmsQuery.prmsQuery, boost, sourceTerm, fieldname);
     }
     
     public TermSubQueryFactory(final LuceneQueryFactory<?> root, final PRMSQuery prmsQuery, final FieldBoost boost,
-                               final Term sourceTerm) {
+                               final Term sourceTerm, final String fieldname) {
         this.root = root;
         this.boost = boost;
         this.prmsQuery = prmsQuery;
         this.sourceTerm = sourceTerm;
+        this.fieldname = fieldname;
     }
 
     @Override
@@ -53,5 +55,13 @@ public class TermSubQueryFactory implements LuceneQueryFactory<Query> {
     @Override
     public <R> R accept(final LuceneQueryFactoryVisitor<R> visitor) {
         return visitor.visit(this);
+    }
+
+    public String getFieldname() {
+        return fieldname;
+    }
+
+    public Term getSourceTerm() {
+        return sourceTerm;
     }
 }
