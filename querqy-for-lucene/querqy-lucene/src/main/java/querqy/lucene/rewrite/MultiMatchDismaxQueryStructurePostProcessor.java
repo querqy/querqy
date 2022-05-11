@@ -101,7 +101,7 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
 
     protected Object getGroupingValue(final LuceneQueryFactory<?> factory) {
         if (factory instanceof TermSubQueryFactory) {
-            return ((TermSubQueryFactory) factory).sourceTerm.getValue();
+            return ((TermSubQueryFactory) factory).getSourceTerm().getValue();
         } else if (factory instanceof TermQueryFactory) {
             return ((TermQueryFactory) factory).sourceTerm.getValue();
         } else return factory;

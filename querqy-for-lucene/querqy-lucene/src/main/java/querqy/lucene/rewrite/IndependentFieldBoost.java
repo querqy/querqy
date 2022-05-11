@@ -50,10 +50,9 @@ public class IndependentFieldBoost implements FieldBoost {
     
 
     @Override
-    public void registerTermSubQuery(String fieldname,
-            TermSubQueryFactory termSubQueryFactory, Term sourceTerm) {
-        if (sourceTerm.isGenerated()) {
-            generatedFields.add(fieldname);
+    public void registerTermSubQuery(final TermSubQueryFactory termSubQueryFactory) {
+        if (termSubQueryFactory.getSourceTerm().isGenerated()) {
+            generatedFields.add(termSubQueryFactory.getFieldname());
         }
     }
 

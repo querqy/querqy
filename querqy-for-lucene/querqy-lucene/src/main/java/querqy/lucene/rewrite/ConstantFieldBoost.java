@@ -22,9 +22,7 @@ public class ConstantFieldBoost implements FieldBoost {
     }
 
     @Override
-    public void registerTermSubQuery(String fieldname,
-                                     TermSubQueryFactory termSubQueryFactory,
-                                     querqy.model.Term sourceTerm) {
+    public void registerTermSubQuery(final TermSubQueryFactory termSubQueryFactory) {
     }
 
     @Override

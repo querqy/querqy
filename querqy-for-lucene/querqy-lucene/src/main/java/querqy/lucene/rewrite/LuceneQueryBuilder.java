@@ -344,10 +344,10 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
     */
     void addTerm(final String fieldname, final FieldBoost boost, final DisjunctionMaxQueryFactory target,
                  final Term sourceTerm) throws IOException {
-        final TermSubQueryFactory queryFactory = termSubQueryBuilder.termToFactory(fieldname, sourceTerm, boost);//termToFactory(fieldname, sourceTerm, boost);
+        final TermSubQueryFactory queryFactory = termSubQueryBuilder.termToFactory(fieldname, sourceTerm, boost);
         if (queryFactory != null) {
             target.add(queryFactory);
-            boost.registerTermSubQuery(fieldname, queryFactory, sourceTerm);
+            boost.registerTermSubQuery(queryFactory);
         }
     }
 

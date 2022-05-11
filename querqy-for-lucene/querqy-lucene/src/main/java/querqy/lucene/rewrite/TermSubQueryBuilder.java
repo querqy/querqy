@@ -55,7 +55,9 @@ public class TermSubQueryBuilder {
                 // query factory if the term does not exist in the index. cacheValue.hasQuery() returns
                 // true/false correspondingly.
                 // Cache entries don't have a boost factor, it is only added later via the queryFactory.
-                return (cacheValue.hasQuery()) ? new TermSubQueryFactory(cacheValue, boost, sourceTerm) : null;
+                return (cacheValue.hasQuery())
+                        ? new TermSubQueryFactory(cacheValue, boost, sourceTerm, fieldname)
+                        : null;
             } 
             
         } else {
@@ -95,11 +97,11 @@ public class TermSubQueryBuilder {
 
         putQueryFactoryAndPRMSQueryIntoCache(cacheKey, root);
         
-        return root == null ? null : new TermSubQueryFactory(root, boost, sourceTerm);
+        return root == null ? null : new TermSubQueryFactory(root, boost, sourceTerm, fieldname);
     }
 
     protected void putQueryFactoryAndPRMSQueryIntoCache(final CacheKey cacheKey, final LuceneQueryFactoryAndPRMSQuery value) {
-        if (value != null && cacheKey != null && termQueryCache != null) {
+        if (cacheKey != null && value != null && termQueryCache != null) {
             termQueryCache.put(cacheKey, new TermQueryCacheValue(value));
         }
     }

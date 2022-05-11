@@ -21,7 +21,7 @@ public interface FieldBoost {
     
     float getBoost(String fieldname, IndexReader indexReader) throws IOException;
     
-    void registerTermSubQuery(String fieldname, TermSubQueryFactory termSubQueryFactory, Term sourceTerm);
+    void registerTermSubQuery(TermSubQueryFactory termSubQueryFactory);
     
     String toString(String fieldname);
     

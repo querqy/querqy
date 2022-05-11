@@ -63,8 +63,8 @@ public class SearchFieldsAndBoosting {
         }
     }
 
-    public FieldBoost getFieldBoost(Term term) {
-        String fieldname = term.getField();
+    public FieldBoost getFieldBoost(final Term term) {
+        final String fieldname = term.getField();
         if (fieldname != null) {
             if (term.isGenerated() ) {
                 return new IndependentFieldBoost(generatedQueryFieldsAndBoostings, defaultGeneratedFieldBoostFactor);
