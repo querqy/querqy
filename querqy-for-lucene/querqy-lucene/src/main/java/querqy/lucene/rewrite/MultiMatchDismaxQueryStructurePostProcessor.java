@@ -130,23 +130,7 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
                 @Override
                 public Void visit(final BooleanQueryFactory factory) {
 
-                    final Set<String> fieldnames = new HashSet<>();
-                    final LuceneQueryFactoryVisitor<Void> nameCollector = new LuceneQueryFactoryVisitor<Void>() {
-
-                        @Override
-                        public Void visit(final TermSubQueryFactory factory) {
-                            fieldnames.add(factory.getFieldname());
-                            return null;
-                        }
-
-                        @Override
-                        public Void visit(final TermQueryFactory factory) {
-                            fieldnames.add(factory.getFieldname());
-                            return null;
-                        }
-                    };
-
-                    factory.accept(nameCollector);
+                    final Set<String> fieldnames = FieldnameCollector.collectFieldnames(factory);
 
                     switch (fieldnames.size()) {
                         case 0: break;
@@ -175,7 +159,7 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
                                     public LuceneQueryFactory<?> visit(final DisjunctionMaxQueryFactory factory) {
                                         return new DisjunctionMaxQueryFactory(
                                                 factory.disjuncts.stream()
-                                                        .map(disjunct -> disjunct.accept(this))
+                                                        .map(disjunct -> (LuceneQueryFactory<?>) disjunct.accept(this))
                                                         .collect(Collectors.toList()), factory.tieBreaker);
 
                                     }
@@ -222,20 +206,31 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
         }
     }
 
-    protected String getGroupingValue(final LuceneQueryFactory<?> factory) {
-        if (factory instanceof TermSubQueryFactory) {
-            return ((TermSubQueryFactory) factory).getFieldname();
-        } else if (factory instanceof TermQueryFactory) {
-            return ((TermQueryFactory) factory).getFieldname();
-        } else throw new IllegalArgumentException("Cannot handle factory type " + factory.getClass());
-    }
+    /**
+     * Helper class to collect field names in a query tree.
+     */
+    public final static class FieldnameCollector extends LuceneQueryFactoryVisitor<Void> {
 
-    protected void applyDisjunctGrouping(final DisjunctionMaxQueryFactory dmq,
-                                         final List<LuceneQueryFactory<?>> factories) {
-        final DisjunctionMaxQueryFactory group = new DisjunctionMaxQueryFactory(factories,
-                multiMatchTieBreakerMultiplier);
-        factories.forEach(dmq.disjuncts::remove);
-        dmq.disjuncts.add(group);
+        public static Set<String> collectFieldnames(final LuceneQueryFactory<?> factory) {
+            final FieldnameCollector collector = new FieldnameCollector();
+            factory.accept(collector);
+            return collector.fieldnames;
+        }
+
+        private final Set<String> fieldnames = new HashSet<>();
+
+            @Override
+            public Void visit(final TermSubQueryFactory factory) {
+                fieldnames.add(factory.getFieldname());
+                return null;
+            }
+
+            @Override
+            public Void visit(final TermQueryFactory factory) {
+                fieldnames.add(factory.getFieldname());
+                return null;
+            }
+
     }
 
     /**
