@@ -218,12 +218,14 @@ public class ReplaceRewriterTest {
 
         expandedQuery.addBoostDownQuery(new BoostQuery(null, 1.0f));
         expandedQuery.addBoostUpQuery(new BoostQuery(null, 1.0f));
+        expandedQuery.addMultiplicativeBoostQuery(new BoostQuery(null, 1.0f));
         expandedQuery.addFilterQuery(null);
 
         ExpandedQuery newExpandedQuery = replaceRewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter());
 
         assertEquals(1, newExpandedQuery.getBoostDownQueries().size());
         assertEquals(1, newExpandedQuery.getBoostUpQueries().size());
+        assertEquals(1, newExpandedQuery.getMultiplicativeBoostQueries().size());
         assertEquals(1, newExpandedQuery.getFilterQueries().size());
     }
 

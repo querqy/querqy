@@ -150,6 +150,11 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
             boostUpQueries.forEach(newQuery::addBoostUpQuery);
         }
 
+        final Collection<BoostQuery> multiplicativeBoostQueries = oldQuery.getMultiplicativeBoostQueries();
+        if (multiplicativeBoostQueries != null) {
+            multiplicativeBoostQueries.forEach(newQuery::addMultiplicativeBoostQuery);
+        }
+
         final Collection<QuerqyQuery<?>> filterQueries = oldQuery.getFilterQueries();
         if (filterQueries != null) {
             filterQueries.forEach(newQuery::addFilterQuery);

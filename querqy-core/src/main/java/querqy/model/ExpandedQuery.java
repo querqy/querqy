@@ -25,6 +25,7 @@ public class ExpandedQuery {
    protected Collection<QuerqyQuery<?>> filterQueries;
    protected Collection<BoostQuery> boostUpQueries;
    protected Collection<BoostQuery> boostDownQueries;
+   protected Collection<BoostQuery> multiplicativeBoostQueries;
 
    public ExpandedQuery(QuerqyQuery<?> userQuery) {
       setUserQuery(userQuery);
@@ -33,11 +34,13 @@ public class ExpandedQuery {
    public ExpandedQuery(QuerqyQuery<?> userQuery,
                         Collection<QuerqyQuery<?>> filterQueries,
                         Collection<BoostQuery> boostUpQueries,
-                        Collection<BoostQuery> boostDownQueries) {
+                        Collection<BoostQuery> boostDownQueries,
+                        Collection<BoostQuery> multiplicativeBoostQueries) {
        setUserQuery(userQuery);
        filterQueries.forEach(this::addFilterQuery);
        boostUpQueries.forEach(this::addBoostUpQuery);
        boostDownQueries.forEach(this::addBoostDownQuery);
+       multiplicativeBoostQueries.forEach(this::addMultiplicativeBoostQuery);
    }
 
    public QuerqyQuery<?> getUserQuery() {
@@ -82,6 +85,17 @@ public class ExpandedQuery {
          boostDownQueries = new LinkedList<>();
       }
       boostDownQueries.add(boostDownQuery);
+   }
+
+   public Collection<BoostQuery> getMultiplicativeBoostQueries() {
+      return multiplicativeBoostQueries;
+   }
+
+   public void addMultiplicativeBoostQuery(BoostQuery boostDownQuery) {
+      if (multiplicativeBoostQueries == null) {
+         multiplicativeBoostQueries = new LinkedList<>();
+      }
+      multiplicativeBoostQueries.add(boostDownQuery);
    }
 
 }

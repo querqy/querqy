@@ -39,6 +39,7 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
     public static final String BOOST_QUERIES = "BOOST_QUERIES";
     public static final String UP = "UP";
     public static final String DOWN = "DOWN";
+    public static final String MULT = "MULT";
 
     // properties further down the tree
     public static final String PROP_BOOST = "boost";
@@ -64,8 +65,10 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
 
         final Collection<BoostQuery> boostUpQueries = query.getBoostUpQueries();
         final Collection<BoostQuery> boostDownQueries = query.getBoostDownQueries();
+        final Collection<BoostQuery> multiplicativeBoostQueries = query.getMultiplicativeBoostQueries();
         final List<Map<String, Object>> up;
         final List<Map<String, Object>> down;
+        final List<Map<String, Object>> mult;
 
         if (boostUpQueries != null) {
             up = boostUpQueries.stream().map(bq -> {
@@ -89,13 +92,27 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
             down = null;
         }
 
-        if (up != null || down !=null) {
+        if (multiplicativeBoostQueries != null) {
+            mult = multiplicativeBoostQueries.stream().map(bq -> {
+                final LinkedHashMap<String, Object> data = new LinkedHashMap<>(2);
+                data.put(PROP_QUERY, snapshooter.takeSnapshot(bq.getQuery()));
+                data.put(PROP_FACTOR, bq.getBoost());
+                return data;
+            }).collect(Collectors.toList());
+        } else {
+            mult = null;
+        }
+
+        if (up != null || down !=null || mult != null) {
             final Map<String, List<?>> boosts = new HashMap<>();
             if (up != null) {
                 boosts.put(UP, up);
             }
             if (down != null) {
                 boosts.put(DOWN, down);
+            }
+            if (mult != null) {
+                boosts.put(MULT, mult);
             }
             snapshot.put(BOOST_QUERIES, boosts);
         }

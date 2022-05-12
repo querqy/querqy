@@ -21,6 +21,7 @@ import static querqy.explain.SnapshotRewriter.BOOST_QUERIES;
 import static querqy.explain.SnapshotRewriter.DOWN;
 import static querqy.explain.SnapshotRewriter.FILTER_QUERIES;
 import static querqy.explain.SnapshotRewriter.MATCHING_QUERY;
+import static querqy.explain.SnapshotRewriter.MULT;
 import static querqy.explain.SnapshotRewriter.UP;
 
 public class SnapshotRewriterTest {
@@ -68,6 +69,7 @@ public class SnapshotRewriterTest {
         eq.addFilterQuery(new StringRawQuery(null, "raw", Clause.Occur.MUST, true));
         eq.addBoostUpQuery(new BoostQuery(BooleanQueryBuilder.bq("boost1", "boost2").build(), 10f));
         eq.addBoostDownQuery(new BoostQuery(new StringRawQuery(null, "boostdown", Clause.Occur.MUST, true), 20f));
+        eq.addMultiplicativeBoostQuery(new BoostQuery(BooleanQueryBuilder.bq("boostmult").build(), 0.5f));
 
         SnapshotRewriter rewriter = new SnapshotRewriter();
         rewriter.rewrite(eq, null);
@@ -93,7 +95,8 @@ public class SnapshotRewriterTest {
         final Map<String, Object> boostQueries = (Map<String, Object>) snapshot.get(BOOST_QUERIES);
 
         assertNotNull(boostQueries);
-        assertEquals(2, boostQueries.size());
+        assertEquals(3, boostQueries.size());
+
         final List<Map<String, Object>> upQueries = (List<Map<String, Object>>) boostQueries.get(UP);
         assertEquals(1, upQueries.size());
         assertEquals("{query={" +
@@ -116,7 +119,17 @@ public class SnapshotRewriterTest {
                         "}, factor=20.0}",
                 downQueries.get(0).toString());
 
-
+        final List<Map<String, Object>> multiplicativeBoostQueries = (List<Map<String, Object>>) boostQueries.get(MULT);
+        assertEquals(1, multiplicativeBoostQueries.size());
+        assertEquals("{query={" +
+                        "BOOL={" +
+                            "occur=SHOULD, " +
+                            "clauses=[" +
+                                "{DISMAX={" +
+                                    "occur=SHOULD, " +
+                                    "clauses=[" +
+                                        "{TERM={generated=false, value=boostmult}}]}}]}}, " +
+                        "factor=0.5}", multiplicativeBoostQueries.get(0).toString());
     }
 
 }
