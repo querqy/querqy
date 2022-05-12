@@ -127,15 +127,16 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
         if (query instanceof querqy.model.BooleanQuery) {
             parentType = ParentType.BQ;
-            final LuceneQueryFactory<?> factory = query.accept(this);
+            final LuceneQueryFactory<?> origFactory = query.accept(this);
+            final LuceneQueryFactory<?> factory = mustAddMultiMatchDmq
+                    ? new MultiMatchDismaxQueryStructurePostProcessor(dmqTieBreakerMultiplier,
+                        multiMatchTieBreakerMultiplier).process(origFactory)
+                    : origFactory;
 
             termQueryBuilder.getDocumentFrequencyCorrection()
                     .ifPresent(dfc -> factory.prepareDocumentFrequencyCorrection(dfc, false));
 
-            return (mustAddMultiMatchDmq)
-                    ? new MultiMatchDismaxQueryStructurePostProcessor(dmqTieBreakerMultiplier,
-                        multiMatchTieBreakerMultiplier).process(factory).createQuery(null, termQueryBuilder)
-                    : factory.createQuery(null, termQueryBuilder);
+            return factory.createQuery(null, termQueryBuilder);
 
 
         } else if (query instanceof MatchAllQuery) {
