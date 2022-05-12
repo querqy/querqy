@@ -91,107 +91,11 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
         final int numDisjuncts = dmq.getNumberOfDisjuncts();
         if (numDisjuncts > 1) {
 
-            final Map<String, List<LuceneQueryFactory<?>>> factoriesByField = new HashMap<>();
+            final Map<String, List<LuceneQueryFactory<?>>> factoriesByField = RegroupDisjunctsByFieldProcessor
+                    .regroupByFields(dmq.disjuncts);
 
-            // we use a LuceneQueryFactoryVisitor to make sure we cover all LuceneQueryFactory implementations (now
-            // and in the future)
-            final LuceneQueryFactoryVisitor<Void> visitor = new LuceneQueryFactoryVisitor<Void>() {
-
-                protected void visitTerm(final String fieldname, final LuceneQueryFactory<?> factory) {
-                    factoriesByField.computeIfAbsent(fieldname, k -> new ArrayList<>()).add(factory);
-                }
-
-                @Override
-                public Void visit(final TermQueryFactory factory) {
-                    visitTerm(factory.getFieldname(), factory);
-                    return null;
-                }
-
-                @Override
-                public Void visit(final TermSubQueryFactory factory) {
-                    visitTerm(factory.getFieldname(), factory);
-                    return null;
-                }
-
-                @Override
-                public Void visit(final NeverMatchQueryFactory factory) {
-                    factoriesByField.computeIfAbsent(null, k -> Collections.singletonList(factory));
-                    return null;
-                }
-
-                @Override
-                public Void visit(final DisjunctionMaxQueryFactory factory) {
-                    // pull up the disjuncts one level
-                    // FIXME: nested BooleanQuery!
-                    factory.disjuncts.forEach(disjunct -> disjunct.accept(this));
-                    return null;
-                }
-
-                @Override
-                public Void visit(final BooleanQueryFactory factory) {
-
-                    final Set<String> fieldnames = FieldnameCollector.collectFieldnames(factory);
-
-                    switch (fieldnames.size()) {
-                        case 0: break;
-                        case 1: factoriesByField
-                                    .computeIfAbsent(fieldnames.iterator().next(), k -> new ArrayList<>())
-                                    .add(factory);
-                                break;
-                        default:
-                            for (final String fieldname : fieldnames) {
-
-                                final LuceneQueryFactoryVisitor<LuceneQueryFactory<?>> copyVisitor =
-                                        new LuceneQueryFactoryVisitor<LuceneQueryFactory<?>>() {
-
-                                    public LuceneQueryFactory<?> visit(final BooleanQueryFactory factory) {
-
-                                        return new BooleanQueryFactory(
-                                                factory.getClauses().stream()
-                                                        .map(clause -> new Clause(clause.queryFactory.accept(this),
-                                                                clause.occur))
-                                                        .collect(Collectors.toList()),
-                                                factory.normalizeBoost);
-
-
-                                    }
-
-                                    public LuceneQueryFactory<?> visit(final DisjunctionMaxQueryFactory factory) {
-                                        return new DisjunctionMaxQueryFactory(
-                                                factory.disjuncts.stream()
-                                                        .map(disjunct -> (LuceneQueryFactory<?>) disjunct.accept(this))
-                                                        .collect(Collectors.toList()), factory.tieBreaker);
-
-                                    }
-
-                                    public LuceneQueryFactory<?> visit(final TermSubQueryFactory factory) {
-                                        final SingleFieldBoost singleFieldBoost = new SingleFieldBoost(fieldname,
-                                                factory.boost);
-                                        return new TermSubQueryFactory(factory.root.accept(this), factory.prmsQuery,
-                                                singleFieldBoost, factory.getSourceTerm(), factory.getFieldname());
-
-                                    }
-                                    public LuceneQueryFactory<?> visit(final TermQueryFactory factory) {
-                                        return factory;
-                                    }
-
-                                    public LuceneQueryFactory<?> visit(final NeverMatchQueryFactory factory) {
-                                        return factory;
-                                    }
-                                };
-
-                                factoriesByField
-                                        .computeIfAbsent(fieldname, k -> new ArrayList<>())
-                                        .add(factory.accept(copyVisitor));
-                            }
-
-                    }
-
-                    return null;
-                }
-            };
-            dmq.disjuncts.forEach(factory -> factory.accept(visitor));
             dmq.disjuncts.clear();
+
             for (final Map.Entry<String, List<LuceneQueryFactory<?>>> entry : factoriesByField.entrySet()) {
                 final List<LuceneQueryFactory<?>> factories = entry.getValue();
                 if (factories.size() == 1) {
@@ -202,8 +106,126 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
             }
             dmq.setTieBreaker(dmqTieBreakerMultiplier);
 
+        }
+    }
+
+    public static class RegroupDisjunctsByFieldProcessor extends LuceneQueryFactoryVisitor<Void> {
+
+        public static Map<String, List<LuceneQueryFactory<?>>> regroupByFields(final List<LuceneQueryFactory<?>>
+                                                                                       disjuncts) {
+
+            final RegroupDisjunctsByFieldProcessor processor = new RegroupDisjunctsByFieldProcessor();
+            disjuncts.forEach(factory -> factory.accept(processor));
+            return processor.factoriesByField;
 
         }
+
+        private final Map<String, List<LuceneQueryFactory<?>>> factoriesByField = new HashMap<>();
+
+        private RegroupDisjunctsByFieldProcessor() {}
+
+        public void visitTerm(final String fieldname, final LuceneQueryFactory<?> factory) {
+            factoriesByField.computeIfAbsent(fieldname, k -> new ArrayList<>()).add(factory);
+        }
+
+        @Override
+        public Void visit(final TermQueryFactory factory) {
+            visitTerm(factory.getFieldname(), factory);
+            return null;
+        }
+
+        @Override
+        public Void visit(final TermSubQueryFactory factory) {
+            visitTerm(factory.getFieldname(), factory);
+            return null;
+        }
+
+        @Override
+        public Void visit(final NeverMatchQueryFactory factory) {
+            factoriesByField.computeIfAbsent(null, k -> Collections.singletonList(factory));
+            return null;
+        }
+
+        @Override
+        public Void visit(final DisjunctionMaxQueryFactory factory) {
+            // pull up the disjuncts one level
+            // FIXME: nested BooleanQuery?
+            factory.disjuncts.forEach(disjunct -> disjunct.accept(this));
+            return null;
+        }
+
+        @Override
+        public Void visit(final BooleanQueryFactory factory) {
+
+            final Set<String> fieldnames = FieldnameCollector.collectFieldnames(factory);
+
+            switch (fieldnames.size()) {
+                case 0: break;
+                case 1: factoriesByField
+                        .computeIfAbsent(fieldnames.iterator().next(), k -> new ArrayList<>())
+                        .add(factory);
+                    break;
+                default:
+                    for (final String fieldname : fieldnames) {
+                        factoriesByField
+                                .computeIfAbsent(fieldname, k -> new ArrayList<>())
+                                .add(SingleFieldBoostCopy.copy(fieldname, factory));
+                    }
+
+            }
+
+            return null;
+        }
+    }
+
+    public static class SingleFieldBoostCopy extends LuceneQueryFactoryVisitor<LuceneQueryFactory<?>> {
+
+        public static LuceneQueryFactory<?> copy(final String fieldname, final LuceneQueryFactory<?> factory) {
+            return factory.accept(new SingleFieldBoostCopy(fieldname));
+        }
+
+        private final String fieldname;
+
+        public SingleFieldBoostCopy(final String fieldname) {
+            this.fieldname = fieldname;
+        }
+
+        public LuceneQueryFactory<?> visit(final BooleanQueryFactory factory) {
+
+            final List<Clause> clausesCopy = factory.getClauses()
+                    .stream()
+                    .map(clause -> new Clause(clause.queryFactory.accept(this), clause.occur))
+                    .collect(Collectors.toList());
+
+            return new BooleanQueryFactory(clausesCopy, factory.normalizeBoost);
+
+        }
+
+        public LuceneQueryFactory<?> visit(final DisjunctionMaxQueryFactory factory) {
+
+            final List<LuceneQueryFactory<?>> disjunctsCopy = factory.disjuncts.stream()
+                    .map(disjunct -> (LuceneQueryFactory<?>) disjunct.accept(this))
+                    .collect(Collectors.toList());
+
+            return new DisjunctionMaxQueryFactory(disjunctsCopy, factory.tieBreaker);
+        }
+
+        public LuceneQueryFactory<?> visit(final TermSubQueryFactory factory) {
+
+            final SingleFieldBoost singleFieldBoost = new SingleFieldBoost(fieldname, factory.boost);
+            final LuceneQueryFactory<?> rootCopy = factory.root.accept(this);
+            return new TermSubQueryFactory(rootCopy, factory.prmsQuery, singleFieldBoost, factory.getSourceTerm(),
+                    factory.getFieldname());
+
+        }
+        public LuceneQueryFactory<?> visit(final TermQueryFactory factory) {
+            return factory;
+        }
+
+        public LuceneQueryFactory<?> visit(final NeverMatchQueryFactory factory) {
+            return factory;
+        }
+
     }
 
     /**
