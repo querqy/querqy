@@ -44,4 +44,8 @@ public class TermQueryFactory implements LuceneQueryFactory<TermQuery> {
     public <R> R accept(final LuceneQueryFactoryVisitor<R> visitor) {
         return visitor.visit(this);
     }
+
+    public String getFieldname() {
+        return term.field();
+    }
 }

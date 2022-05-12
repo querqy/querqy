@@ -38,6 +38,7 @@ import querqy.model.BooleanQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
+import querqy.model.QuerqyQuery;
 import querqy.model.Term;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -50,7 +51,7 @@ import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 @RunWith(MockitoJUnitRunner.class)
 public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
-    Analyzer keywordAnalyzer;
+    Analyzer analyzer;
     Map<String, Float> searchFields;
     Set<String> stopWords;
 
@@ -59,7 +60,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
     @Before
     public void setUp() {
-        keywordAnalyzer = new Analyzer() {
+        analyzer = new Analyzer() {
             @Override
             protected TokenStreamComponents createComponents(String fieldName) {
                 WhitespaceTokenizer source = new WhitespaceTokenizer();
@@ -112,7 +113,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, 1f, null);
+                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, 1f, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -130,7 +131,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
+                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -146,7 +147,9 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
                 searchEngineRequestAdapter);
 
-        return builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery());
+
+        final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery();
+        return builder.createQuery(userQuery);
 
     }
    
@@ -332,9 +335,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    }
 
     @Test
-    public void testMultiMatch01() throws Exception {
+    public void testMultiMatchNotApplied() throws Exception {
         float tie = (float) Math.random();
-        Query q = buildWithSynonyms("nn j", tie, 1f, "f1", "f2");
+        final float multiMatchTie = 1f; // do not rewrite for 1f
+        Query q = buildWithSynonyms("nn j", tie, multiMatchTie, "f1", "f2");
         assertThat(q,
                 bq(
                         dmq(BooleanClause.Occur.SHOULD, 1f, tie,
@@ -362,11 +366,52 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         );
     }
 
+    @Test
+    public void testMultiMatch01() throws Exception {
+        float tie = 0.7f;
+        final float multiMatchTie = 0.6f;
+        Query q = buildWithSynonyms("j", tie, multiMatchTie, "f1", "f2");
+        assertThat(q,
+                dmq(1f, tie,
+                        dmq(1f, multiMatchTie,
+                                dtq(1f, "f1", "j"),
+                                dtq(0.2f, "f1", "q"), // synonym weight is 0.2
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "s"),
+                                                dtq(0f, "f2", "s")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "t"),
+                                                dtq(0f, "f2", "t")
+                                        )
+                                )
+
+
+                        ),
+                        dmq(1f, multiMatchTie,
+                                dtq(2f, "f2", "j"),
+                                dtq(0.2f*2f, "f2", "q"), // synonym = 0.2, field weight = 2
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(0f, "f1", "s"),
+                                                dtq(2f, "f2", "s")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(0f, "f1", "t"),
+                                                dtq(2f, "f2", "t")
+                                        )
+                                )
+
+                        )
+                )
+        );
+    }
 
     @Test
     public void testMultiMatch02() throws Exception {
+        float tie = 0.7f;
         final float multiMatchTie = 0.6f;
-        final float tie = 0.8f;
         Query q = buildWithSynonyms("nn j", tie, multiMatchTie, "f1", "f2");
         assertThat(q,
                 bq(
@@ -375,30 +420,39 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                                 dtq(2f, "f2", "nn")
 
                         ),
-
-                        dmq(BooleanClause.Occur.SHOULD, 1f, multiMatchTie,
-                                dmq(1f, tie,
-                                        dtq(1f, "f1", "j"),
-                                        dtq(2f, "f2", "j")
-
-                                ),
-                                bq(0.5f,
+                        dmq(BooleanClause.Occur.SHOULD, 1f, tie,
+                                dmq(1f, multiMatchTie,
+                                    dtq(1f, "f1", "j"),
+                                    dtq(0.2f, "f1", "q"), // synonym weight is 0.2
+                                    bq(0.5f,
                                         dmq(BooleanClause.Occur.MUST, 1f, tie,
                                                 dtq(1f, "f1", "s"),
-                                                dtq(2f, "f2", "s")
+                                                dtq(0f, "f2", "s")
                                         ),
                                         dmq(BooleanClause.Occur.MUST, 1f, tie,
                                                 dtq(1f, "f1", "t"),
-                                                dtq(2f, "f2", "t")
+                                                dtq(0f, "f2", "t")
                                         )
+                                    )
+
+
                                 ),
-                                dmq(1f, tie,
-                                        dtq(0.2f, "f1", "q"), // synonym weight is 0.2
-                                        dtq(0.2f*2f, "f2", "q") // synonym = 0.2, field weight = 2
+                                dmq(1f, multiMatchTie,
+                                        dtq(2f, "f2", "j"),
+                                        dtq(0.2f*2f, "f2", "q"), // synonym = 0.2, field weight = 2
+                                        bq(0.5f,
+                                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                        dtq(0f, "f1", "s"),
+                                                        dtq(2f, "f2", "s")
+                                                ),
+                                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                        dtq(0f, "f1", "t"),
+                                                        dtq(2f, "f2", "t")
+                                                )
+                                        )
 
                                 )
-                        )
-
+                    )
                 )
         );
     }
@@ -410,55 +464,68 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         Query q = buildWithSynonyms("100-2 j", tie, multiMatchTie, "f1", "f2");
         assertThat(q,
                 bq(
-                        dmq(BooleanClause.Occur.SHOULD, 1f, multiMatchTie,
-                                dmq( 1f, tie,
+                        //clause 1
+                        dmq(BooleanClause.Occur.SHOULD, 1f, tie,
+
+                                // f1:
+                                dmq(1f, multiMatchTie,
                                         dtq(1f, "f1", "onehundreddashtwo"),
-                                        dtq(2f, "f2", "onehundreddashtwo")
+                                        dmq(1f, 0f,
+                                            dtq(1f, "f1", "100-2"),
+                                            bq(0.5f,
+                                                    dtq(BooleanClause.Occur.MUST, 1f, "f1", "100"),
+                                                    dtq(BooleanClause.Occur.MUST, 1f, "f1", "2")
+                                            )
+                                        )
 
                                 ),
-                                dmq( 1f, tie,
+                                // f2:
+                                dmq(1f, multiMatchTie,
+                                        dtq(2f, "f2", "onehundreddashtwo"),
                                         dmq(1f, 0f,
-                                                dtq(2f, "f2", "100-2"),
-                                                bq(0.5f,
-                                                        dtq(BooleanClause.Occur.MUST, 2f, "f2", "100"),
-                                                        dtq(BooleanClause.Occur.MUST, 2f, "f2", "2")
-                                                )
-                                        ),
-                                        dmq(1f, 0f,
-                                                dtq(1f, "f1", "100-2"),
-                                                bq(0.5f,
-                                                        dtq(BooleanClause.Occur.MUST, 1f, "f1", "100"),
-                                                        dtq(BooleanClause.Occur.MUST, 1f, "f1", "2")
-                                                )
+                                            dtq(2f, "f2", "100-2"),
+                                            bq(0.5f,
+                                                    dtq(BooleanClause.Occur.MUST, 2f, "f2", "100"),
+                                                    dtq(BooleanClause.Occur.MUST, 2f, "f2", "2")
+
+                                            )
                                         )
 
                                 )
-
                         )
-                        ,
-                        dmq(BooleanClause.Occur.SHOULD, 1f, multiMatchTie,
-                                dmq(1f, tie,
+                        , //clause 2
+                        dmq(BooleanClause.Occur.SHOULD, 1f, tie,
+                                dmq(1f, multiMatchTie,
                                         dtq(1f, "f1", "j"),
-                                        dtq(2f, "f2", "j")
+                                        bq(0.5f,
+                                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                        dtq(1f, "f1", "s"),
+                                                        dtq(0f, "f2", "s")
+                                                ),
+                                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                        dtq(1f, "f1", "t"),
+                                                        dtq(0f, "f2", "t")
+                                                )
+                                        ),
+                                        dtq(0.2f, "f1", "q") // synonym weight is 0.2
 
                                 ),
-                                bq(0.5f,
-                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
-                                                dtq(1f, "f1", "s"),
-                                                dtq(2f, "f2", "s")
+                                dmq(1f, multiMatchTie,
+                                        dtq(2f, "f2", "j"),
+                                        bq(0.5f,
+                                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                        dtq(0f, "f1", "s"),
+                                                        dtq(2f, "f2", "s")
+                                                ),
+                                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                        dtq(0f, "f1", "t"),
+                                                        dtq(2f, "f2", "t")
+                                                )
                                         ),
-                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
-                                                dtq(1f, "f1", "t"),
-                                                dtq(2f, "f2", "t")
-                                        )
-                                ),
-                                dmq(1f, tie,
-                                        dtq(0.2f, "f1", "q"), // synonym weight is 0.2
                                         dtq(0.2f*2f, "f2", "q") // synonym = 0.2, field weight = 2
 
                                 )
                         )
-
                 )
         );
     }
@@ -469,13 +536,14 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         final float tie = 0.8f;
         Query q = buildWithSynonyms("abc", tie, multiMatchTie, "f1", "f2");
         assertThat(q,
-                dmq(1f, multiMatchTie,
-                        dmq( 1f, tie,
+                dmq(1f, tie,
+                        dmq( 1f, multiMatchTie,
                                 dtq(1f, "f1", "abc"),
-                                dtq(2f, "f2", "abc")
+                                dtq(1f, "f1", "def")
+
                         ),
-                        dmq( 1f, tie,
-                                dtq(1f, "f1", "def"),
+                        dmq( 1f, multiMatchTie,
+                                dtq(2f, "f2", "abc"),
                                 dtq(2f, "f2", "def")
 
                         )
@@ -490,20 +558,33 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         final float tie = 0.8f;
         Query q = buildWithSynonyms("f", tie, multiMatchTie, "f1", "f2");
         assertThat(q,
-                dmq(1f, multiMatchTie,
-                        dmq( 1f, tie,
+                dmq(1f, tie,
+                        // field 1
+                        dmq(1f, multiMatchTie,
                                 dtq(1f, "f1", "f"),
-                                dtq(2f, "f2", "f")
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "k"),
+                                                dtq(0f, "f2", "k")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(1f, "f1", "l"),
+                                                dtq(0f, "f2", "l")
+                                        )
+                                )
                         ),
-
-                        bq(0.5f,
-                                dmq(BooleanClause.Occur.MUST, 1f, tie,
-                                        dtq(1f, "f1", "k"),
-                                        dtq(2f, "f2", "k")
-                                ),
-                                dmq(BooleanClause.Occur.MUST, 1f, tie,
-                                        dtq(1f, "f1", "l"),
-                                        dtq(2f, "f2", "l")
+                        // field 2
+                        dmq(1f, multiMatchTie,
+                                dtq(2f, "f2", "f"),
+                                bq(0.5f,
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(0f, "f1", "k"),
+                                                dtq(2f, "f2", "k")
+                                        ),
+                                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                                dtq(0f, "f1", "l"),
+                                                dtq(2f, "f2", "l")
+                                        )
                                 )
                         )
                 )
@@ -551,60 +632,63 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         final float tie = 0.8f;
 
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), keywordAnalyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
-
-
+                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
 
         assertThat(builder.createQuery(bq0),
                 bq(
-                        dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
-                                dmq( 1f, tie,
+                        // clause 1:
+                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                dmq( 1f, multiMatchTie,
                                         dtq(1f, "f1", "term1a"),
-                                        dtq(2f, "f2", "term1a")
+                                        dtq(1f, "f1", "term1b")
+
 
                                 ),
-                                dmq( 1f, tie,
-                                        dtq(1f, "f1", "term1b"),
+                                dmq( 1f, multiMatchTie,
+                                        dtq(2f, "f2", "term1a"),
                                         dtq(2f, "f2", "term1b")
 
                                 )
                         ),
+                        // clause 2:
                         bq(BooleanClause.Occur.MUST,
-                                dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
-                                        dmq( 1f, tie,
+                                // clause 2.1
+                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                        // f1
+                                        dmq( 1f, multiMatchTie,
                                                 dtq(1f, "f1", "term2a"),
-                                                dtq(2f, "f2", "term2a")
+                                                dtq(1f, "f1", "term2b")
 
                                         ),
-                                        dmq( 1f, tie,
-                                                dtq(1f, "f1", "term2b"),
-                                                dtq(2f, "f2", "term2b")
-
+                                        // f2
+                                        dmq( 1f, multiMatchTie,
+                                                dtq(2f, "f2", "term2b"),
+                                                dtq(2f, "f2", "term2a")
                                         )
                                 ),
-                                dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
-                                        dmq( 1f, tie,
+                                // clause 2.2
+                                dmq(BooleanClause.Occur.MUST, 1f, tie,
+
+                                        dmq( 1f, multiMatchTie,
                                                 dtq(1f, "f1", "term2c"),
-                                                dtq(2f, "f2", "term2c")
+                                                dtq(1f, "f1", "term2d")
 
                                         ),
-                                        dmq( 1f, tie,
-                                                dtq(1f, "f1", "term2d"),
+                                        dmq( 1f, multiMatchTie,
+                                                dtq(2f, "f2", "term2c"),
                                                 dtq(2f, "f2", "term2d")
-
                                         )
                                 )
                         ),
-                        dmq(BooleanClause.Occur.MUST, 1f, multiMatchTie,
-                                dmq( 1f, tie,
+                        // clause 3:
+                        dmq(BooleanClause.Occur.MUST, 1f, tie,
+                                dmq( 1f, multiMatchTie,
                                         dtq(1f, "f1", "term1c"),
-                                        dtq(2f, "f2", "term1c")
-
+                                        dtq(1f, "f1", "term1d")
                                 ),
-                                dmq( 1f, tie,
-                                        dtq(1f, "f1", "term1d"),
+                                dmq( 1f, multiMatchTie,
+                                        dtq(2f, "f2", "term1c"),
                                         dtq(2f, "f2", "term1d")
-
                                 )
                         )
 
@@ -626,7 +710,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
 
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-                keywordAnalyzer, searchFieldsAndBoosting, tie, 1f, null);
+                analyzer, searchFieldsAndBoosting, tie, 1f, null);
 
         Query q = builder.createQuery(new FieldAwareWhiteSpaceQuerqyParser().parse("-ab"));
 
@@ -653,7 +737,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fieldsQuery, fieldsGenerated, 0.8f);
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-            keywordAnalyzer, searchFieldsAndBoosting, 0.1f, 1f, null);
+               analyzer, searchFieldsAndBoosting, 0.1f, 1f, null);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");

@@ -330,15 +330,16 @@ public class AbstractLuceneQueryTest {
           if (fieldBoost == null) {
               return false;
           }
-          if (fieldBoost instanceof IndependentFieldBoost || fieldBoost instanceof BoostedDelegatingFieldBoost) {
+          if (fieldBoost instanceof IndependentFieldBoost || fieldBoost instanceof BoostedDelegatingFieldBoost
+                  || fieldBoost instanceof SingleFieldBoost) {
               try {
                   return boost == fieldBoost.getBoost(term.field(), null);
               } catch (final IOException e) {
                   throw new RuntimeException(e);
               }
           } else {
-              throw new RuntimeException("Cannot test FieldBoosts other than IndependentFieldBoost and " +
-                      "BoostedDelegatingFieldBoost");
+              throw new RuntimeException("Cannot test FieldBoosts other than IndependentFieldBoost, SingleFieldBoost " +
+                      "and BoostedDelegatingFieldBoost");
           }
                 
        }
