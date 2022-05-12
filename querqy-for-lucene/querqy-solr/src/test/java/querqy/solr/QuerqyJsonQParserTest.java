@@ -141,7 +141,8 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
                 bq(dmq("tv")),
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Collections.singletonList(boost(bq("television"), 5.0f))
+                Collections.singletonList(boost(bq("television"), 5.0f)),
+                Collections.emptyList()
         );
 
         final ModifiableSolrParams params = new ModifiableSolrParams();

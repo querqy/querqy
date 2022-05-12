@@ -44,11 +44,13 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
     public static final String FIELD_NAME_FILTER_QUERIES = "filter_queries";
     public static final String FIELD_NAME_BOOST_UP_QUERIES = "boost_up_queries";
     public static final String FIELD_NAME_BOOST_DOWN_QUERIES = "boost_down_queries";
+    public static final String FIELD_NAME_BOOST_MULT_QUERIES = "boost_mult_queries";
 
     private QuerqyQueryBuilder userQuery;
     private List<QuerqyQueryBuilder> filterQueries = emptyList();
     private List<BoostQueryBuilder> boostUpQueries = emptyList();
     private List<BoostQueryBuilder> boostDownQueries = emptyList();
+    private List<BoostQueryBuilder> boostMultQueries = emptyList();
 
     public ExpandedQueryBuilder(final ExpandedQuery expanded) {
         this.setAttributesFromObject(expanded);
@@ -93,6 +95,10 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
             expandedQuery.addBoostDownQuery(boostDownQuery.build());
         }
 
+        for (final BoostQueryBuilder boostMultQuery : boostMultQueries) {
+            expandedQuery.addMultiplicativeBoostQuery(boostMultQuery.build());
+        }
+
         return expandedQuery;
 
     }
@@ -121,6 +127,12 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
             this.setBoostDownQueries(boostDownQueries.stream().map(BoostQueryBuilder::new).collect(toList()));
         }
 
+        // TODO: Change expanded query to return empty list instead of null
+        final Collection<BoostQuery> boostMultQueries = expanded.getMultiplicativeBoostQueries();
+        if (nonNull(boostMultQueries)) {
+            this.setBoostMultQueries(boostMultQueries.stream().map(BoostQueryBuilder::new).collect(toList()));
+        }
+
         return this;
     }
 
@@ -134,6 +146,8 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
         mapConverterConfig.convertAndPut(map, FIELD_NAME_BOOST_UP_QUERIES, this.boostUpQueries,
                 LIST_OF_QUERY_NODE_MV_CONVERTER);
         mapConverterConfig.convertAndPut(map, FIELD_NAME_BOOST_DOWN_QUERIES, this.boostDownQueries,
+                LIST_OF_QUERY_NODE_MV_CONVERTER);
+        mapConverterConfig.convertAndPut(map, FIELD_NAME_BOOST_MULT_QUERIES, this.boostMultQueries,
                 LIST_OF_QUERY_NODE_MV_CONVERTER);
 
         return map;
@@ -158,6 +172,9 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
                 BoostQueryBuilder::new));
         this.setBoostDownQueries(TypeCastingUtils.castAndParseListOfMaps(map.get(FIELD_NAME_BOOST_DOWN_QUERIES),
                 BoostQueryBuilder::new));
+        this.setBoostMultQueries(TypeCastingUtils.castAndParseListOfMaps(map.get(FIELD_NAME_BOOST_MULT_QUERIES),
+                BoostQueryBuilder::new));
+
 
         return this;
     }
@@ -172,19 +189,20 @@ public class ExpandedQueryBuilder implements QueryNodeBuilder<ExpandedQueryBuild
 
     public static ExpandedQueryBuilder expanded(final QuerqyQueryBuilder userQuery,
                                                 final QuerqyQueryBuilder... filters) {
-        return new ExpandedQueryBuilder(userQuery, asList(filters), emptyList(), emptyList());
+        return new ExpandedQueryBuilder(userQuery, asList(filters), emptyList(), emptyList(), emptyList());
     }
 
     public static ExpandedQueryBuilder expanded(final QuerqyQueryBuilder userQuery,
                                                 final BoostQueryBuilder... boostUps) {
-        return new ExpandedQueryBuilder(userQuery, emptyList(), asList(boostUps), emptyList());
+        return new ExpandedQueryBuilder(userQuery, emptyList(), asList(boostUps), emptyList(), emptyList());
     }
 
     public static ExpandedQueryBuilder expanded(final QuerqyQueryBuilder userQuery,
                                                 final List<QuerqyQueryBuilder> filters,
                                                 final List<BoostQueryBuilder> boostUps,
-                                                final List<BoostQueryBuilder> boostDowns) {
-        return new ExpandedQueryBuilder(userQuery, filters, boostUps, boostDowns);
+                                                final List<BoostQueryBuilder> boostDowns,
+                                                final List<BoostQueryBuilder> multiplicativeBoosts) {
+        return new ExpandedQueryBuilder(userQuery, filters, boostUps, boostDowns, multiplicativeBoosts);
     }
 
     public static ExpandedQueryBuilder expanded(final QuerqyQueryBuilder userQuery) {
