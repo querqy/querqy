@@ -1,5 +1,6 @@
 package querqy.solr;
 
+import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 import static querqy.solr.QuerqyDismaxParams.GFB;
 import static querqy.solr.QuerqyDismaxParams.GQF;
 import static querqy.solr.QuerqyDismaxParams.MULTI_MATCH_TIE;
@@ -22,6 +23,8 @@ import querqy.infologging.MultiSinkInfoLogging;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
+import querqy.model.convert.builder.BoostQueryBuilder;
+import querqy.model.convert.builder.StringRawQueryBuilder;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
@@ -58,6 +61,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         withCommonRulesRewriter(h.getCore(), "common_rules",
                 "configs/commonrules/rules-QuerqyDismaxQParserTest.txt");
         withRewriter(h.getCore(), "match_all_filter", MatchAllRewriter.class);
+        withRewriter(h.getCore(), "boost_mult_rewriter_w87up", MultiplicativeBoostRewriter.class);
 
     }
 
@@ -896,7 +900,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         assertQ("bq not applied",
                 req,
                 "//lst[@name='explain']/str[@name='8'][contains(.,'weight(FunctionScoreQuery(f1:aaa, " +
-                        "scored by boost(score((f2:w87)^100.0))))')]",
+                        "scored by boost(query((f2:w87)^100.0,def=1.0))))')]",
                 "//doc[1]/str[@name='id'][text()='8']"
 
         );
@@ -923,6 +927,46 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         );
         req.close();
+    }
+
+
+    @Test
+    public void testQuerqyGeneratedMultiplicativeBoostIsApplied() {
+
+        SolrQueryRequest req = req("q", "aaa",
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "boost_mult_rewriter");
+
+        String expectedBoostQuery = "product(if(query(f2:w87,def=0.0),const(5.0),const(1.0)),if(query(f1:vv,def=0.0),const(0.5),const(1.0)))";
+
+        assertQ("multiplicative boost from raw query not applied",
+                req,
+                "//lst[@name='explain']/str[@name='8'][contains(.,'weight(FunctionScoreQuery(f1:aaa, scored by boost(" + expectedBoostQuery + ")))')]",
+                "//lst[@name='explain']/str[@name='8'][contains(.,'5.0 = product')]",
+                "//doc[1]/str[@name='id'][text()='8']"
+        );
+
+        req.close();
+
+        req = req("q", "xx",
+                DisMaxParams.QF, "f1 f2",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "boost_mult_rewriter");
+
+        expectedBoostQuery = "product(if(query(f2:w87,def=0.0),const(5.0),const(1.0)),if(query(f1:vv f2:vv,def=0.0),const(0.5),const(1.0)))";
+
+        assertQ("multiplicative boost from boolean query not applied",
+                req,
+                "//lst[@name='explain']/str[@name='10'][contains(.,'weight(FunctionScoreQuery((f1:xx | f2:xx), scored by boost(" + expectedBoostQuery + ")))')]",
+                "//lst[@name='explain']/str[@name='10'][contains(.,'0.5 = product(')]",
+                "//doc[1]/str[@name='id'][text()='11']"
+        );
+
+        req.close();
+
     }
 
 
@@ -979,6 +1023,41 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                     return query -> {
                         query.setUserQuery(new MatchAllQuery());
                         query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
+                        return query;
+                    };
+                }
+
+                @Override
+                public Set<Term> getCacheableGenerableTerms() {
+                    return Collections.emptySet();
+                }
+            };
+        }
+    }
+
+    public static class MultiplicativeBoostRewriter extends SolrRewriterFactoryAdapter {
+
+        public MultiplicativeBoostRewriter(final String rewriterId) {
+            super(rewriterId);
+        }
+
+        @Override
+        public void configure(final Map<String, Object> config) { }
+
+        @Override
+        public List<String> validateConfiguration(final Map<String, Object> config) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public RewriterFactory getRewriterFactory() {
+            return new RewriterFactory(rewriterId) {
+                @Override
+                public QueryRewriter createRewriter(final ExpandedQuery input,
+                                                    final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+                    return query -> {
+                        query.addMultiplicativeBoostQuery(BoostQueryBuilder.boost(StringRawQueryBuilder.raw("f2:w87"), 5f).build());
+                        query.addMultiplicativeBoostQuery(BoostQueryBuilder.boost(bq("vv"), 0.5f).build());
                         return query;
                     };
                 }
