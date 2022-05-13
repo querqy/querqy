@@ -4,6 +4,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queries.function.ValueSource;
+import org.apache.lucene.queries.function.valuesource.ConstValueSource;
+import org.apache.lucene.queries.function.valuesource.IfFunction;
 import org.apache.lucene.queries.function.valuesource.ProductFloatFunction;
 import org.apache.lucene.queries.function.valuesource.QueryValueSource;
 import org.apache.lucene.search.BooleanClause;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_DATA;
 import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_ENABLED;
@@ -202,18 +205,23 @@ public class QueryParsingController {
         final List<Query> filterQueries = transformFilterQueries(rewrittenQuery.getFilterQueries());
 
         // additive boosts from Querqy query rewriters
-        final List<Query> additiveBoostsFromQuerqy = needsScores ? getQuerqyBoostQueries(rewrittenQuery) : Collections.emptyList();
+        final List<Query> additiveBoostsFromQuerqy = needsScores ? getAdditiveQuerqyBoostQueries(rewrittenQuery) : Collections.emptyList();
         final boolean hasAdditiveBoostsFromQuerqy = !additiveBoostsFromQuerqy.isEmpty();
 
-        final boolean hasQuerqyBoostQueriesOnMainQuery = hasAdditiveBoostsFromQuerqy && addQuerqyBoostQueriesToMainQuery;
+        // multiplicative boosts from Querqy query rewriters
+        final List<ValueSource> multiplicativeBoostsFromQuerqy = needsScores ? getQuerqyMultiplicativeBoostQueries(rewrittenQuery) : Collections.emptyList();
+        final boolean hasMultiplicativeBoostsFromQuerqy = !multiplicativeBoostsFromQuerqy.isEmpty();
 
-        // do we have to add boost query/ies (either from the request or created as part of the rewrite chain) as an optional clause to the main query?
-        final boolean hasOptBoost = needsScores &&
+        final boolean hasQuerqyBoostQueriesOnMainQuery = (hasAdditiveBoostsFromQuerqy || hasMultiplicativeBoostsFromQuerqy) && addQuerqyBoostQueriesToMainQuery;
+
+        // do we have to add optional boost query/ies (either from the request or created as part of the rewrite chain)
+        // as an optional clause to the main query or wrap the main query's scoring into a multiplicative function?
+        final boolean mainQueryNeedsBoost = needsScores &&
                 (hasAdditiveBoostsFromRequest || hasMultiplicativeBoostsFromRequest || hasQuerqyBoostQueriesOnMainQuery);
 
         final Query userQuery = mainQuery;
 
-        if (hasOptBoost) {
+        if (mainQueryNeedsBoost) {
 
             final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
@@ -236,18 +244,16 @@ public class QueryParsingController {
 
             final BooleanQuery bq = builder.build();
 
-            if (hasMultiplicativeBoostsFromRequest) {
+            if (hasMultiplicativeBoostsFromRequest || hasMultiplicativeBoostsFromQuerqy) {
+                ValueSource[] multiplicativeValueSources = Stream.concat(
+                        multiplicativeBoostsFromRequest.stream().map(LuceneQueryUtil::queryToValueSource),
+                        multiplicativeBoostsFromQuerqy.stream()
+                ).toArray(ValueSource[]::new);
 
-                if (multiplicativeBoostsFromRequest.size() > 1) {
-                    final ValueSource prod = new ProductFloatFunction(
-                            multiplicativeBoostsFromRequest
-                                .stream()
-                                .map(LuceneQueryUtil::queryToValueSource)
-                                .toArray(ValueSource[]::new)
-                    );
-                    mainQuery = FunctionScoreQuery.boostByValue(bq, prod.asDoubleValuesSource());
+                if (multiplicativeValueSources.length > 1) {
+                    mainQuery = FunctionScoreQuery.boostByValue(bq, new ProductFloatFunction(multiplicativeValueSources).asDoubleValuesSource());
                 } else {
-                    mainQuery = FunctionScoreQuery.boostByValue(bq, LuceneQueryUtil.queryToDoubleValueSource(multiplicativeBoostsFromRequest.get(0)));
+                    mainQuery = FunctionScoreQuery.boostByValue(bq, multiplicativeValueSources[0].asDoubleValuesSource());
                 }
             } else {
                 mainQuery = bq;
@@ -256,7 +262,10 @@ public class QueryParsingController {
 
         LuceneQueries luceneQueries;
         if ((!addQuerqyBoostQueriesToMainQuery) && hasAdditiveBoostsFromQuerqy) {
-            // boost queries have not been applied to the main query, they are returned separately here, external rank queries are ignored
+            // boost queries have not been applied to the main query, they are returned separately to be applied as QuerqyReRankQueries
+            // externally requested re-rank queries (via querqy.rq) are ignored
+            //
+            // todo: this currently ignores Querqy multiplicativeBoosts as the QuerqyReRankQuery performs an addition of optionally matching SHOULD clause scores
             luceneQueries = new LuceneQueries(mainQuery, filterQueries, additiveBoostsFromQuerqy, userQuery, null, dfc != null,
                     false);
         } else {
@@ -323,11 +332,11 @@ public class QueryParsingController {
 
     }
 
-    protected List<Query> getQuerqyBoostQueries(final ExpandedQuery expandedQuery) throws SyntaxException {
+    protected List<Query> getAdditiveQuerqyBoostQueries(final ExpandedQuery expandedQuery) throws SyntaxException {
 
-        final List<Query> result = transformBoostQueries(expandedQuery.getBoostUpQueries(),
+        final List<Query> result = transformAdditiveBoostQueries(expandedQuery.getBoostUpQueries(),
                 requestAdapter.getPositiveQuerqyBoostWeight().orElse(DEFAULT_POSITIVE_QUERQY_BOOST_WEIGHT));
-        final List<Query> down = transformBoostQueries(expandedQuery.getBoostDownQueries(),
+        final List<Query> down = transformAdditiveBoostQueries(expandedQuery.getBoostDownQueries(),
                 -requestAdapter.getNegativeQuerqyBoostWeight().map(Math::abs).orElse(DEFAULT_NEGATIVE_QUERQY_BOOST_WEIGHT));
 
         if (down != null) {
@@ -343,7 +352,7 @@ public class QueryParsingController {
     }
 
 
-    public List<Query> transformBoostQueries(final Collection<BoostQuery> boostQueries, final float factor)
+    public List<Query> transformAdditiveBoostQueries(final Collection<BoostQuery> boostQueries, final float factor)
             throws SyntaxException {
 
         final List<Query> result;
@@ -433,6 +442,53 @@ public class QueryParsingController {
 
             }
 
+        } else {
+            result = null;
+        }
+
+        return result;
+    }
+
+    protected List<ValueSource> getQuerqyMultiplicativeBoostQueries(ExpandedQuery expandedQuery) throws SyntaxException {
+        final List<ValueSource> result = transformMultiplicativeBoostQueries(expandedQuery.getMultiplicativeBoostQueries());
+        return result != null ? result : Collections.emptyList();
+    }
+
+    protected List<ValueSource> transformMultiplicativeBoostQueries(Collection<BoostQuery> boostQueries) throws SyntaxException {
+        final List<ValueSource> result;
+
+        if (boostQueries != null && !boostQueries.isEmpty()) {
+            result = new LinkedList<>();
+
+            for (final BoostQuery boostQuery : boostQueries) {
+                final Query luceneQuery;
+                final QuerqyQuery<?> query = boostQuery.getQuery();
+
+                // todo: this is copied from transformAdditiveBoostQueries, any way to combine or simplify?
+                if (query instanceof RawQuery) {
+                    luceneQuery = requestAdapter.parseRawQuery((RawQuery) query);
+                } else if (query instanceof querqy.model.Query) {
+                    final LuceneQueryBuilder luceneQueryBuilder =
+                            new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
+                                    boostSearchFieldsAndBoostings,
+                                    requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
+                                    1f, // we don't have to apply multiMatchTie for boostings
+                                    requestAdapter.getTermQueryCache().orElse(null));
+                    luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) query, true);
+                } else {
+                    luceneQuery = null;
+                }
+
+                if (luceneQuery != null) {
+                    ValueSource queryValueSource = new QueryValueSource(luceneQuery, 0f);
+                    ValueSource matchingValue = new ConstValueSource(boostQuery.getBoost());
+                    ValueSource nonMatchingValue = new ConstValueSource(1f);
+
+                    // create a BoolFunction as an input for multiplication that emits the boost factor if the query matches, or 1f if not
+                    IfFunction boostIf = new IfFunction(queryValueSource, matchingValue, nonMatchingValue);
+                    result.add(boostIf);
+                }
+            }
         } else {
             result = null;
         }
