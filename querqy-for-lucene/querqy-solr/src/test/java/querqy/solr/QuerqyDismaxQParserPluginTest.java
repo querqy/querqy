@@ -61,7 +61,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         withCommonRulesRewriter(h.getCore(), "common_rules",
                 "configs/commonrules/rules-QuerqyDismaxQParserTest.txt");
         withRewriter(h.getCore(), "match_all_filter", MatchAllRewriter.class);
-        withRewriter(h.getCore(), "boost_mult_rewriter_w87up", MultiplicativeBoostRewriter.class);
+        withRewriter(h.getCore(), "boost_mult_rewriter", MultiplicativeBoostRewriter.class);
 
     }
 

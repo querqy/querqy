@@ -91,6 +91,7 @@ public class QueryRewritingHandler {
                     rewriterId,
                     new StringReader(config),
                     true,
+                    false,
                     new WhiteSpaceQuerqyParserFactory(),
                     true,
                     Collections.emptyMap(),

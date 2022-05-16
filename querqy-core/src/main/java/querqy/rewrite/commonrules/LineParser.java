@@ -24,6 +24,7 @@ import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 
 /**
  * @author René Kriegler, @renekrie
@@ -46,6 +47,12 @@ public class LineParser {
 
     public static Object parse(final String line, final Input inputPattern,
                                final QuerqyParserFactory querqyParserFactory) {
+        return parse(line, inputPattern, querqyParserFactory, false);
+    }
+
+    public static Object parse(final String line, final Input inputPattern,
+                               final QuerqyParserFactory querqyParserFactory,
+                               boolean multiplicativeBoosts) {
 
 
         if (line.endsWith("=>")) {
@@ -140,12 +147,14 @@ public class LineParser {
             }
         }
 
+        BoostMethod boostMethod = multiplicativeBoosts ? BoostMethod.MULTIPLICATIVE : BoostMethod.ADDITIVE;
+
         if (lcLine.startsWith(INSTR_BOOST_DOWN)) {
-            return parseBoostInstruction(line, lcLine, 4, BoostDirection.DOWN, querqyParserFactory);
+            return parseBoostInstruction(line, lcLine, 4, BoostDirection.DOWN, boostMethod, querqyParserFactory);
         }
 
         if (lcLine.startsWith(INSTR_BOOST_UP)) {
-            return parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, querqyParserFactory);
+            return parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, boostMethod, querqyParserFactory);
         }
 
         if (lcLine.startsWith(INSTR_SYNONYM)) {
@@ -284,7 +293,7 @@ public class LineParser {
     }
 
     public static Object parseBoostInstruction(final String line, final String lcLine, final int lengthPredicate,
-                                               final BoostDirection direction,
+                                               final BoostDirection direction, final BoostMethod boostMethod,
                                                final QuerqyParserFactory querqyParserFactory) {
 
         if (lcLine.length() == lengthPredicate) {
@@ -341,7 +350,7 @@ public class LineParser {
 
             final String rawQueryString = boostLine.substring(1).trim();
             try {
-                return new BoostInstruction(parseRawQuery(rawQueryString, Occur.SHOULD), direction, boost);
+                return new BoostInstruction(parseRawQuery(rawQueryString, Occur.SHOULD), direction, boostMethod, boost);
             } catch (RuleParseException e) {
                 return new ValidationError(e.getMessage());
             }
@@ -353,7 +362,7 @@ public class LineParser {
 
         } else {
             QuerqyParser parser = querqyParserFactory.createParser();
-            return new BoostInstruction(parser.parse(boostLine), direction, boost);
+            return new BoostInstruction(parser.parse(boostLine), direction, boostMethod, boost);
         }
     }
 

@@ -17,14 +17,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import querqy.model.Input;
+import querqy.model.*;
+import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.rewrite.commonrules.model.BoostInstruction;
-import querqy.model.Clause;
-import querqy.model.ParametrizedRawQuery;
-import querqy.model.RawQuery;
-import querqy.model.StringRawQuery;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
@@ -105,6 +103,7 @@ public class LineParserTest {
                         Clause.Occur.SHOULD,
                         false),
                 BoostDirection.UP,
+                BoostMethod.ADDITIVE,
                 1.0f));
     }
 
@@ -344,7 +343,7 @@ public class LineParserTest {
         String line = "UP: x";
         String lcLine = line.toLowerCase();
         final Object instruction = LineParser
-                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
+                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, BoostMethod.ADDITIVE, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof BoostInstruction);
     }
 
@@ -353,8 +352,17 @@ public class LineParserTest {
         String line = "UP(5): x";
         String lcLine = line.toLowerCase();
         final Object instruction = LineParser
-                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
+                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, BoostMethod.ADDITIVE, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof BoostInstruction);
+    }
+
+    @Test
+    public void testThatBoostInstructionsAreParsedAsMultiplicativeIfConfigured() {
+        String line = "UP(5): x";
+        final Object instruction = LineParser.parse(line, SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory(), true);
+        assertTrue(instruction instanceof BoostInstruction);
+        assertThat(((BoostInstruction) instruction).getDirection(), is(BoostDirection.UP));
+        assertThat(((BoostInstruction) instruction).getBoostMethod(), is(BoostMethod.MULTIPLICATIVE));
     }
 
     @Test
@@ -362,7 +370,7 @@ public class LineParserTest {
         String line = "UP(500): 3$1";
         String lcLine = line.toLowerCase();
         final Object instruction = LineParser
-                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, new WhiteSpaceQuerqyParserFactory());
+                .parseBoostInstruction(line, lcLine, 2, BoostDirection.UP, BoostMethod.ADDITIVE, new WhiteSpaceQuerqyParserFactory());
         assertTrue(instruction instanceof BoostInstruction);
         assertTrue(((BoostInstruction) instruction).hasPlaceHolderInBoostQuery());
     }

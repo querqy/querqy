@@ -16,6 +16,7 @@ public class RuleParserConfig {
     @Default private final Set<InstructionType> allowedInstructionTypes = InstructionType.getAll();
     @Default private final QuerqyParserFactory querqyParserFactory = new WhiteSpaceQuerqyParserFactory();
     @Default private final boolean isAllowedToParseBooleanInput = false;
+    @Default private final boolean generateMultiplicativeBoosts = false;
 
     public static RuleParserConfig defaultConfig() {
         return RuleParserConfig.builder().build();

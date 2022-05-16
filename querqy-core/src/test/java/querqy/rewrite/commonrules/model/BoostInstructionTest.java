@@ -23,6 +23,7 @@ import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.LineParser;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 
 public class BoostInstructionTest extends AbstractCommonRulesTest {
     
@@ -32,7 +33,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
         
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP,
-                0.5f);
+                BoostMethod.ADDITIVE, 0.5f);
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
 
@@ -63,7 +64,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(),
-                BoostDirection.UP, 0.5f);
+                BoostDirection.UP, BoostMethod.ADDITIVE, 0.5f);
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
 
@@ -95,7 +96,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a +b").getUserQuery(), BoostDirection.UP,
-                0.5f);
+                BoostMethod.ADDITIVE,0.5f);
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
 
@@ -127,7 +128,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(),
-                BoostDirection.UP, 0.5f);
+                BoostDirection.UP, BoostMethod.ADDITIVE,0.5f);
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
 
@@ -159,7 +160,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a").getUserQuery(), BoostDirection.UP,
-                0.5f);
+                BoostMethod.ADDITIVE,0.5f);
 
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
@@ -184,6 +185,64 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
     }
 
+    @Test
+    public void testMultiplicativeBoostQuery() {
+
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.UP,
+                BoostMethod.MULTIPLICATIVE,2f);
+
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, "1", singletonList(boostInstruction)));
+
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+
+        ExpandedQuery query = makeQuery("x");
+        Collection<BoostQuery> multiplicativeBoostQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
+                .getMultiplicativeBoostQueries();
+
+        assertThat(multiplicativeBoostQueries,
+                contains(
+                        boostQ(
+                                bq(
+                                        dmq(must(), term("a", true))
+                                ),
+                                2f
+
+                        )));
+    }
+
+    @Test
+    public void testMultiplicativeDownBoost() {
+
+        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+
+        BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a").getUserQuery(), BoostDirection.DOWN,
+                BoostMethod.MULTIPLICATIVE,2f);
+
+        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
+                new Instructions(1, "1", singletonList(boostInstruction)));
+
+        RulesCollection rules = builder.build();
+        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+
+        ExpandedQuery query = makeQuery("x");
+        Collection<BoostQuery> multiplicativeBoostQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
+                .getMultiplicativeBoostQueries();
+
+        assertThat(multiplicativeBoostQueries,
+                contains(
+                        boostQ(
+                                bq(
+                                        dmq(must(), term("a", true))
+                                ),
+                                0.5f
+
+                        )));
+    }
+
 
     @Test
     public void testThatMainQueryIsNotMarkedAsGenerated() {
@@ -191,7 +250,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("-a b").getUserQuery(), BoostDirection.UP,
-                0.5f);
+                BoostMethod.ADDITIVE, 0.5f);
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
 
@@ -210,7 +269,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b").getUserQuery(), BoostDirection.UP,
-                0.5f);
+                BoostMethod.ADDITIVE, 0.5f);
         builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
                 new Instructions(1, "1", singletonList(boostInstruction)));
 
@@ -231,7 +290,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b$1").getUserQuery(), BoostDirection.DOWN,
-                0.2f);
+                BoostMethod.ADDITIVE, 0.2f);
 
         builder.addRule((Input.SimpleInput) LineParser.parseInput("x k*"), new Instructions(1, "1",
                 singletonList(boostInstruction)));
@@ -260,7 +319,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a b$1").getUserQuery(), BoostDirection.DOWN,
-                0.2f);
+                BoostMethod.ADDITIVE, 0.2f);
 
         builder.addRule((Input.SimpleInput) LineParser.parseInput("x k*"), new Instructions(1, "1",
                 singletonList(boostInstruction)));
@@ -302,7 +361,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a $1").getUserQuery(), BoostDirection.DOWN,
-                0.3f);
+                BoostMethod.ADDITIVE, 0.3f);
 
         builder.addRule((Input.SimpleInput) LineParser.parseInput("x k*"), new Instructions(1, "1",
                 singletonList(boostInstruction)));
@@ -343,7 +402,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
 
         BoostInstruction boostInstruction = new BoostInstruction(makeQuery("a c$1d").getUserQuery(), BoostDirection.UP,
-                0.3f);
+                BoostMethod.ADDITIVE, 0.3f);
 
         builder.addRule((Input.SimpleInput) LineParser.parseInput("k*"), new Instructions(1, "1",
                 singletonList(boostInstruction)));
