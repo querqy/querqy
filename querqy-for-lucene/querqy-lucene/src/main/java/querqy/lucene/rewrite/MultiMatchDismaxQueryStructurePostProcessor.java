@@ -13,26 +13,58 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * <p>A post-processor of a structure of {@link LuceneQueryFactory}s that wraps a
- * {@link org.apache.lucene.search.DisjunctionMaxQuery} around clauses of DisjunctionMaxQuerys that were created from
- * the same input token.</p>
- * <p>Let's assume an input query 'asus laptop' and a synonym expansion 'notebook' for laptop, and two query fields
- * f1 and f2. This gives us DisMax(f1:asus | f2:asus) and DisMax(f1:laptop|f2:laptop|f1:notebook|f2:notebook) as DisMax
- * queries, each wrapping the term queries that were derived from a common input token. A second level of grouping is
- * applied per token value. This time we wrap a DisMax query around token values so that the disjunction-maximization of
- * scores works between fields: DisMax(DisMax(f1:laptop|f2:laptop)|DisMax(f1:notebook|f2:notebook))</p>
- * <p>Each grouping level comes with its own tie parameter, where the per-value grouping (dmqTieBreakerMultiplier)
- * corresponds to the tie parameter as it is known from Lucene's dismax, and where the multiMatchTieBreakerMultiplier
- * is the tie for the newly introduced grouping per input term:
+ * <p>A post-processor of a structure of {@link LuceneQueryFactory}s that groups clauses of a
+ * {@link org.apache.lucene.search.DisjunctionMaxQuery} by fields. The fields are taken from the terms that are found
+ * within the clauses, including descendants further down in the query tree. Each group will be wrapped in a new
+ * DisjunctionMaxQuery so that all sub-queries under such a wrapper query relate to the same field. This allows us
+ * to apply a tie breaker factor between fields and between the matches within a single field, which can be used to
+ * avoid giving a high score to documents that match more than one query time synonym.</p>
+ *
+ <p>Let's assume an input query 'asus laptop' and a synonym expansion 'notebook' for laptop, and two query fields
+ * f1 and f2. This gives us a BooleanQuery with two clauses: DisMax(f1:asus | f2:asus) and
+ * DisMax(f1:laptop|f2:laptop|f1:notebook|f2:notebook), each of these DisMax queries wrapping the term queries that were
+ * derived from a single input token. If a document now matched on notebook and laptop in, say, f2, it would receive a
+ * greater score than documents that match on just oone of these terms.</p>
+ * <p>In order to overcome this issue, we apply the grouping that we explained above and introduce
+ * 'multiMatchTieBreakerMultiplier` as a new parameter:
  * <pre>
  *     DisMax(f1:asus | f2:asus)~dmqTieBreakerMultiplier
  *     DisMax(
- *          DisMax(f1:laptop|f2:laptop)~dmqTieBreakerMultiplier
+ *          DisMax(f1:laptop|f1:notebook)~multiMatchTieBreakerMultiplier
  *          |
- *          DisMax(f1:notebook|f2:notebook)~dmqTieBreakerMultiplier
- *     )~multiMatchTieBreakerMultiplier
+ *          DisMax(f2:laptop|f2:notebook)~multiMatchTieBreakerMultiplier
+ *     )~dmqTieBreakerMultiplier
  * </pre>
  *
+ * Now multiMatchTieBreakerMultiplier allows us to control how scores are aggregated for the terms matching within the
+ * same field and dmqTieBreakerMultiplier controls the aggregation across fields.
+ * </p>
+ * <p>If we want to group the clauses of a DisMaxQuery that contain a BooleanQuery (BQ), we will have to make sure that
+ * the clauses of the BQ can still match across fields after the grouping that we described above. We apply the
+ * following solution: Given synonyms 'PC = personal computer' as query
+ * 'DisMax(f1:PC | f2:PC | BQ(DisMax(f1:personal | f2:personal), DisMax(f1:computer | f2:computer)' we produce the
+ * following rewritten query:
+ * <pre>
+ *     DisMax(
+ *          DisMax(f1:PC | BQ(
+ *                              DisMax(f1:personal | f2:personal^0),
+ *                              DisMax(f1:computer | f2:computer^0)
+ *                            )
+ *          )~multiMatchTieBreakerMultiplier
+ *          |
+ *          DisMax(f2:PC | BQ(
+ *                              DisMax(f1:personal^0 | f2:personal),
+ *                              DisMax(f1:computer^0 | f2:computer)
+ *                            )
+ *          )~multiMatchTieBreakerMultiplier
+ *     )~dmqTieBreakerMultiplier
+ *
+ * </pre>
+ * i.e. we repeat the BQ in each field group but only accept the weight of the field of the group and set all other
+ * field weights to 0. This structure allows us to match the clauses of the BQ across fields - just like in the original
+ * query.
+ * </p>
+ * @author renekrie
  */
 public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFactoryVisitor<Void> {
 
