@@ -2,7 +2,6 @@ package querqy.rewrite.commonrules;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,6 +58,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      * @param rewriterId The id of this rewriter
      * @param reader The reader to access the rewriter configuration
      * @param allowBooleanInput Iff true, rule input can have boolean expressions
+     * @param generateMultiplicativeBoosts Iff true, create {@link querqy.rewrite.commonrules.model.BoostInstruction}s
+     *                                     with multiplicative boosts
      * @param querqyParserFactory A parser for the right-hand side of rules
      * @param ignoreCase Iff true, rule input matching is case insensitive.
      * @param selectionStrategyFactories A mapping between names of rule selection strategies and their factories.
@@ -70,6 +71,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     public SimpleCommonRulesRewriterFactory(final String rewriterId,
                                             final Reader reader,
                                             final boolean allowBooleanInput,
+                                            final boolean generateMultiplicativeBoosts,
                                             final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
@@ -101,8 +103,10 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .build())
                     .ruleParserConfig(RuleParserConfig.builder()
                             .isAllowedToParseBooleanInput(allowBooleanInput)
+                            .generateMultiplicativeBoosts(generateMultiplicativeBoosts)
                             .querqyParserFactory(querqyParserFactory)
                             .allowedInstructionTypes(ALLOWED_TYPES)
+                            .generateMultiplicativeBoosts(generateMultiplicativeBoosts)
                             .build())
                     .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase))
                     .build();

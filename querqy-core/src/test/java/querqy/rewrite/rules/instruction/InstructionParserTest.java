@@ -55,6 +55,7 @@ public class InstructionParserTest {
                 new BoostInstruction(
                         new StringRawQuery(null, "a:b", Clause.Occur.SHOULD, false),
                         BoostInstruction.BoostDirection.UP,
+                        BoostInstruction.BoostMethod.ADDITIVE,
                         1.0f
                 ));
     }
@@ -65,6 +66,7 @@ public class InstructionParserTest {
                 new BoostInstruction(
                         querqyParserFactory.createParser().parse(" b "),
                         BoostInstruction.BoostDirection.UP,
+                        BoostInstruction.BoostMethod.ADDITIVE,
                         2.5f
                 ));
     }
@@ -81,6 +83,7 @@ public class InstructionParserTest {
                 new BoostInstruction(
                         querqyParserFactory.createParser().parse(" b "),
                         BoostInstruction.BoostDirection.DOWN,
+                        BoostInstruction.BoostMethod.ADDITIVE,
                         2.5f
                 ));
     }

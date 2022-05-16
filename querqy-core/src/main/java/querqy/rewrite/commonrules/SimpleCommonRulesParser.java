@@ -45,23 +45,28 @@ public class SimpleCommonRulesParser {
     private int instructionsCount = 0;
     private List<Instruction> instructionList = null;
     private final PropertiesBuilder propertiesBuilder;
+    private final boolean multiplicativeBoosts;
 
     private final Set<Object> seenInstructionIds = new HashSet<>();
     private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;
 
     public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
-                                   final QuerqyParserFactory querqyParserFactory, final boolean ignoreCase) {
-        this(in, allowBooleanInput, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase));
+                                   final QuerqyParserFactory querqyParserFactory,
+                                   final boolean ignoreCase,
+                                   final boolean multiplicativeBoosts) {
+        this(in, allowBooleanInput, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase), multiplicativeBoosts);
     }
 
     public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
                                    final QuerqyParserFactory querqyParserFactory,
-                                   final RulesCollectionBuilder builder) {
+                                   final RulesCollectionBuilder builder,
+                                   final boolean multiplicativeBoosts) {
         this.reader = new BufferedReader(in);
         this.querqyParserFactory = querqyParserFactory;
         this.builder = builder;
         this.propertiesBuilder = new PropertiesBuilder();
         this.booleanInputParser = allowBooleanInput ? new BooleanInputParser() : null;
+        this.multiplicativeBoosts = multiplicativeBoosts;
     }
 
     public SimpleCommonRulesParser setLineNumberMapper(final IntUnaryOperator lineNumberMapper) {
@@ -148,7 +153,7 @@ public class SimpleCommonRulesParser {
     private void nextLine(final String newLine) throws RuleParseException {
         final String line = stripLine(newLine);
         if (line.length() > 0) {
-            final Object lineObject = LineParser.parse(line, inputPattern, querqyParserFactory);
+            final Object lineObject = LineParser.parse(line, inputPattern, querqyParserFactory, multiplicativeBoosts);
 
             if (lineObject instanceof InputString) {
 

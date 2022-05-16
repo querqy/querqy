@@ -3,8 +3,6 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import static querqy.model.Clause.Occur.*;
-
 import java.util.*;
 
 import querqy.ComparableCharSequence;
@@ -22,18 +20,28 @@ public class BoostInstruction implements Instruction {
         UP, DOWN
     }
 
+    public enum BoostMethod {
+        ADDITIVE, MULTIPLICATIVE
+    }
+
     final QuerqyQuery<?> query;
     final BoostDirection direction;
+    final BoostMethod boostMethod;
     final boolean hasPlaceHolder;
     final float boost;
 
-    public BoostInstruction(final QuerqyQuery<?> query, final BoostDirection direction, final float boost) {
+    public BoostInstruction(final QuerqyQuery<?> query, final BoostDirection direction, final BoostMethod boostMethod,
+                            final float boost) {
         if (query == null) {
             throw new IllegalArgumentException("query must not be null");
         }
 
         if (direction == null) {
             throw new IllegalArgumentException("direction must not be null");
+        }
+
+        if (boostMethod == null) {
+            throw new IllegalArgumentException("boost method must not be null");
         }
 
         if (query instanceof BooleanQuery) {
@@ -46,6 +54,7 @@ public class BoostInstruction implements Instruction {
         }
 
         this.direction = direction;
+        this.boostMethod = boostMethod;
         this.boost = boost;
     }
 
@@ -59,16 +68,38 @@ public class BoostInstruction implements Instruction {
                       final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
                       final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
+        if (boost == 0) {
+            // zero boost = no boost
+            return;
+        }
+
         // TODO: we might not need to clone here, if we already cloned all queries in the constructor
         final QuerqyQuery<?> q = (hasPlaceHolder)
                 ? new CloneAndReplacePlaceHolderRewriter(termMatches).cloneAndReplace(query)
                 : query.clone(null, true);
 
-        final BoostQuery bq = new BoostQuery(q, boost);
-        if (direction == BoostDirection.DOWN) {
-            expandedQuery.addBoostDownQuery(bq);
-        } else {
-            expandedQuery.addBoostUpQuery(bq);
+        switch(boostMethod) {
+            case ADDITIVE:
+                switch (direction) {
+                    case DOWN:
+                        expandedQuery.addBoostDownQuery(new BoostQuery(q, boost));
+                        break;
+                    case UP:
+                        expandedQuery.addBoostUpQuery(new BoostQuery(q, boost));
+                        break;
+                }
+                break;
+            case MULTIPLICATIVE:
+                // in multiplicative case boost are interpreted as UP(factor) = score * factor and DOWN(factor) = score * 1/factor
+                switch (direction) {
+                    case DOWN:
+                        expandedQuery.addMultiplicativeBoostQuery(new BoostQuery(q, 1 / boost));
+                        break;
+                    case UP:
+                        expandedQuery.addMultiplicativeBoostQuery(new BoostQuery(q, boost));
+                        break;
+                }
+                break;
         }
 
     }
@@ -78,6 +109,14 @@ public class BoostInstruction implements Instruction {
         return (query instanceof Query)
                 ? TermsCollector.collectGenerableTerms((Query) query)
                 : QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+
+    public BoostDirection getDirection() {
+        return direction;
+    }
+
+    public BoostMethod getBoostMethod() {
+        return boostMethod;
     }
 
     public boolean hasPlaceHolderInBoostQuery() {
@@ -92,6 +131,8 @@ public class BoostInstruction implements Instruction {
         result = prime * result + Float.floatToIntBits(boost);
         result = prime * result
                 + ((direction == null) ? 0 : direction.hashCode());
+        result = prime * result
+                + ((boostMethod == null) ? 0 : boostMethod.hashCode());
         result = prime * result + ((query == null) ? 0 : query.hashCode());
         return result;
     }
@@ -109,6 +150,8 @@ public class BoostInstruction implements Instruction {
             return false;
         if (direction != other.direction)
             return false;
+        if (boostMethod != other.boostMethod)
+            return false;
         if (query == null) {
             if (other.query != null)
                 return false;
@@ -120,7 +163,7 @@ public class BoostInstruction implements Instruction {
     @Override
     public String toString() {
         return "BoostInstruction [query=" + query + ", direction=" + direction
-                + ", boost=" + boost + "]";
+                + ", boostMethod=" + boostMethod + ", boost=" + boost + "]";
     }
 
     class CloneAndReplacePlaceHolderRewriter extends AbstractNodeVisitor<Node> {

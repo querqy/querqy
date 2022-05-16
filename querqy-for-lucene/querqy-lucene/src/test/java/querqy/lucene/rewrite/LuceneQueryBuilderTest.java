@@ -152,7 +152,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("CommonRulesRewriter",
                 new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                         getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
-                        StandardCharsets.UTF_8)), true,
+                        StandardCharsets.UTF_8)), true, false,
                 new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                 true);
@@ -806,7 +806,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("CommonRulesRewriter",
                new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                        getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
-                       StandardCharsets.UTF_8)), true,
+                       StandardCharsets.UTF_8)), true, false,
                new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                true);

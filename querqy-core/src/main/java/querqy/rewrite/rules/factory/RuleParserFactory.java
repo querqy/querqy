@@ -34,6 +34,7 @@ public class RuleParserFactory {
                         QuerqyQueryParser.createPrototypeOf(ruleParserConfig.getQuerqyParserFactory()))
                 .termsParser(TermsParser.createPrototype())
                 .supportedTypes(ruleParserConfig.getAllowedInstructionTypes())
+                .multiplicativeBoosts(ruleParserConfig.isGenerateMultiplicativeBoosts())
                 .build();
     }
 

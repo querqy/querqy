@@ -30,6 +30,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
     public static final String CONF_IGNORE_CASE = "ignoreCase";
     public static final String CONF_ALLOW_BOOLEAN_INPUT = "allowBooleanInput";
+    public static final String CONF_MULTIPLICATIVE_BOOSTS = "multiplicativeBoosts";
     public static final String CONF_RHS_QUERY_PARSER = "querqyParser";
     public static final String CONF_RULES = "rules";
     public static final String CONF_RULE_SELECTION_STRATEGIES = "ruleSelectionStrategies";
@@ -51,6 +52,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
         final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
+        final boolean multiplicativeBoosts = ConfigUtils.getArg(config, CONF_MULTIPLICATIVE_BOOSTS, false);
 
         final QuerqyParserFactory querqyParser = ConfigUtils.getInstanceFromArg(config, CONF_RHS_QUERY_PARSER,
                 DEFAULT_RHS_QUERY_PARSER);
@@ -63,8 +65,8 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         try {
             delegate = new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
-                    new StringReader(rules), allowBooleanInput, querqyParser, ignoreCase, selectionStrategyFactories,
-                    DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
+                    new StringReader(rules), allowBooleanInput, multiplicativeBoosts, querqyParser, ignoreCase,
+                    selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
         } catch (final IOException e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
                     "Could not create delegate factory ", e);
@@ -98,13 +100,14 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
         final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
+        final boolean multiplicativeBoosts = ConfigUtils.getArg(config, CONF_MULTIPLICATIVE_BOOSTS, false);
 
         final Boolean buildTermCache = ConfigUtils.getArg(config, CONF_BUILD_TERM_CACHE, true);
 
         try {
             new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
-                    new StringReader(rules), allowBooleanInput, querqyParser, ignoreCase, selectionStrategyFactories,
-                    DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
+                    new StringReader(rules), allowBooleanInput, multiplicativeBoosts, querqyParser, ignoreCase,
+                    selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
         } catch (final IOException e) {
             return Collections.singletonList("Cannot create rewriter: " + e.getMessage());
         }

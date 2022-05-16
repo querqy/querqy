@@ -156,7 +156,8 @@ public class ParserMigrationTest {
                 config.getRulesContentReader(),
                 ruleParserConfig.isAllowedToParseBooleanInput(),
                 ruleParserConfig.getQuerqyParserFactory(),
-                TestRulesCollectionBuilder.create());
+                TestRulesCollectionBuilder.create(),
+                false);
     }
 
     private RulesParser createNewParser(final TextParserConfig config, final RuleParserConfig ruleParserConfig) {

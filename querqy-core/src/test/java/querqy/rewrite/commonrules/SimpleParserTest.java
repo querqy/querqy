@@ -24,6 +24,7 @@ import querqy.model.StringRawQuery;
 import querqy.model.Term;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 
 @Deprecated
 @Ignore("Method equals() of Instructions has been changed in order to consider InstructionsProperties additionally." +
@@ -39,12 +40,12 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
 
     SimpleCommonRulesParser createParserFromString(final String rulesString, final boolean ignoreCase) {
         reader = new StringReader(rulesString);
-        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase);
+        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, false);
     }
 
     SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
-        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase);
+        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, false);
     }
 
     RulesCollection createRulesFromResource(String resourceName, boolean ignoreCase) throws IOException, RuleParseException {
@@ -130,7 +131,8 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                         new Instructions(6, "6",
                                 Collections.singletonList(
                                         new BoostInstruction(
-                                                new StringRawQuery(null, "color:x", Occur.SHOULD, false), BoostDirection.DOWN, 2f)
+                                                new StringRawQuery(null, "color:x", Occur.SHOULD, false),
+                                                BoostDirection.DOWN, BoostMethod.ADDITIVE, 2f)
                                 )),
                         new TermMatches(new TermMatch(t1)), 0, 1)
 
@@ -152,7 +154,8 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
                 new Action(
                                 new Instructions(1, "1",
                                         Collections.singletonList(
-                                                new BoostInstruction(makeQueryUsingFactory("tboost tb2"), BoostDirection.UP, 3.5f)
+                                                new BoostInstruction(makeQueryUsingFactory("tboost tb2"),
+                                                        BoostDirection.UP, BoostInstruction.BoostMethod.ADDITIVE, 3.5f)
                                         )),
                                                         new TermMatches(Arrays.asList(new TermMatch(t1), new TermMatch(t2))), 0, 2)
 
