@@ -117,8 +117,6 @@ public class QuerqyDismaxQParser extends QParser {
                     extendedQuery().setCache(false);
                 } else if (CommonParams.TRUE.equals(cacheStr)) {
                     extendedQuery().setCache(true);
-                } else if ("sep".equals(cacheStr) && !luceneQueries.areQueriesInterdependent) {
-                    extendedQuery().setCacheSep(true);
                 }
             }
 
@@ -135,7 +133,6 @@ public class QuerqyDismaxQParser extends QParser {
             return (ExtendedQuery) query;
         } else {
             WrappedQuery wq = new WrappedQuery(query);
-            wq.setCacheSep(!luceneQueries.areQueriesInterdependent);
             query = wq;
             return wq;
         }
@@ -144,12 +141,10 @@ public class QuerqyDismaxQParser extends QParser {
     protected Query maybeWrapQuery(final Query query) {
         if (!luceneQueries.areQueriesInterdependent) {
             if (query instanceof ExtendedQuery) {
-                ((ExtendedQuery) query).setCacheSep(false);
                 return query;
             } else {
-                final WrappedQuery wrappedQuery = new WrappedQuery(query);
-                wrappedQuery.setCacheSep(false);
-                return wrappedQuery;
+                // make it an ExtendedQuery
+                return new WrappedQuery(query);
             }
         } else {
             return query;

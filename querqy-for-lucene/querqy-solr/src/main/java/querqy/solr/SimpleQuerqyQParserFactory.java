@@ -5,7 +5,7 @@ package querqy.solr;
 
 import java.io.IOException;
 
-import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.lucene.util.ResourceLoader;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -33,7 +33,7 @@ public class SimpleQuerqyQParserFactory implements SolrQuerqyParserFactory {
     * , org.apache.lucene.analysis.util.ResourceLoader)
     */
    @Override
-   public void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader) throws IOException,
+   public void init(@SuppressWarnings("rawtypes") NamedList parserConfig, final ResourceLoader loader) throws IOException,
          SolrException {
 
       String className = (String) parserConfig.get("class");

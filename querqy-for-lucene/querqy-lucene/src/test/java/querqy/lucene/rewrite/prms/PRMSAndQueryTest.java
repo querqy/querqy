@@ -1,5 +1,6 @@
 package querqy.lucene.rewrite.prms;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
-        List<Query> disjuncts = dmq.getDisjuncts();
+        List<Query> disjuncts = new ArrayList<>(dmq.getDisjuncts());
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);
@@ -104,7 +105,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
             disjunct1 = ((BoostQuery) disjunct1).getQuery();
         }
         assertTrue(disjunct1 instanceof BooleanQuery);
-        
+
         BooleanQuery bq1 = (BooleanQuery) disjunct1;
 
         Query disjunct2 = disjuncts.get(1);
@@ -137,7 +138,13 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         // capturedBoosts = boosts of [bq1.term1, bq1.term2, bq2.term1, bq2.term2 ]
         assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);
         assertEquals(capturedBoosts.get(2), capturedBoosts.get(3), 0.00001);
-        assertEquals(2f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
+
+        final Query query1 = bq1.clauses().get(0).getQuery();
+        assertTrue(query1 instanceof DependentTermQueryBuilder.DependentTermQuery);
+        final String field1 = ((DependentTermQueryBuilder.DependentTermQuery) query1).getTerm().field();
+        // Dismax clauses are a set - we have no guarantee about order -> identify by field name
+
+        assertEquals("f1".equals(field1) ? 2f : 0.5f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
 
         indexReader.close();
         directory.close();

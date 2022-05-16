@@ -167,11 +167,6 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
             }
 
             @Override
-            public void extractTerms(final Set<Term> terms) {
-                terms.add(getTerm());
-            }
-
-            @Override
             public boolean isCacheable(LeafReaderContext ctx) {
                 return true;
             }

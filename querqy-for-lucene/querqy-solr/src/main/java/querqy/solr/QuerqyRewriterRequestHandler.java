@@ -14,6 +14,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.handler.NestedRequestHandler;
+import org.apache.solr.metrics.SolrMetricsContext;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
@@ -34,6 +35,14 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     public static final String PARAM_ACTION = "action";
     public static final String PATH_EXPLAIN_CHAIN = "/_explain/chain";
 
+    @Override
+    public void initializeMetrics(final SolrMetricsContext parentContext, final String scope) {
+    }
+
+    @Override
+    public SolrMetricsContext getSolrMetricsContext() {
+        return null;
+    }
 
 
     public enum ActionParam {
@@ -243,6 +252,16 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         }
 
         return new SolrRequestHandler() {
+            @Override
+            public void initializeMetrics(final SolrMetricsContext parentContext, final String scope) {
+
+            }
+
+            @Override
+            public SolrMetricsContext getSolrMetricsContext() {
+                return null;
+            }
+
             @Override
             public void init(final NamedList args) {
 

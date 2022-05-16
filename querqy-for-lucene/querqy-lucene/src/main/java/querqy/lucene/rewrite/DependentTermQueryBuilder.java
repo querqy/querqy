@@ -13,6 +13,10 @@ import org.apache.lucene.search.CollectionStatistics;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.LeafSimScorer;
+import org.apache.lucene.search.Matches;
+import org.apache.lucene.search.MatchesIterator;
+import org.apache.lucene.search.MatchesUtils;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
@@ -77,10 +81,6 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
 
             if (dftcp == null) {
                 throw new IllegalArgumentException("DocumentFrequencyAndTermContextProvider must not be null");
-            }
-
-            if (term == null) {
-                throw new IllegalArgumentException("Term must not be null");
             }
 
             this.tqIndex  = tqIndex;
@@ -184,7 +184,7 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
                 this.termStates = termStates;
                 this.similarity = searcher.getSimilarity();
 
-                final long df = termStates.docFreq();
+                final int df = termStates.docFreq();
 
                 final CollectionStatistics collectionStats;
                 final TermStatistics termStats;
@@ -199,7 +199,11 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
 
                     collectionStats = new CollectionStatistics(term.field(), maxDoc, maxDoc,
                             Math.max(sumTotalTermFreq, sumDocFreq), sumDocFreq);
-                    termStats = searcher.termStatistics(term, termStates);
+
+                    termStats =
+                            termStates.docFreq() > 0
+                                    ? searcher.termStatistics(term, df, termStates.totalTermFreq())
+                                    : null;
 
                 } else {
                     // we do not need the actual stats, use fake stats with docFreq=maxDoc=ttf=1
@@ -225,6 +229,23 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
             @Override
             public boolean isCacheable(LeafReaderContext ctx) {
                 return true;
+            }
+
+            @Override
+            public Matches matches(LeafReaderContext context, int doc) throws IOException {
+                TermsEnum te = getTermsEnum(context);
+                if (te == null) {
+                    return null;
+                }
+                return MatchesUtils.forField(
+                        getTerm().field(),
+                        () -> {
+                            PostingsEnum pe = te.postings(null, PostingsEnum.OFFSETS);
+                            if (pe.advance(doc) != doc) {
+                                return null;
+                            }
+                            return new TermMatchesIterator(getQuery(), pe);
+                        });
             }
 
             @Override
@@ -310,11 +331,6 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
                 return Explanation.noMatch("no matching term");
             }
 
-            @Override
-            public void extractTerms(Set<Term> terms) {
-                terms.add(getTerm());
-            }
-
         }
 
         public class NeverMatchWeight extends Weight {
@@ -336,14 +352,66 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
             }
 
             @Override
-            public void extractTerms(Set<Term> terms) {
-                terms.add(getTerm());
-            }
-
-            @Override
             public boolean isCacheable(LeafReaderContext ctx) {
                 return true;
             }
+        }
+
+    }
+
+    /**
+     * Copied from org.apache.lucene.search.TermMatchesIterator
+     */
+    static class TermMatchesIterator implements MatchesIterator {
+
+        private int upto;
+        private int pos;
+        private final PostingsEnum pe;
+        private final Query query;
+
+        TermMatchesIterator(Query query, PostingsEnum pe) throws IOException {
+            this.pe = pe;
+            this.query = query;
+            this.upto = pe.freq();
+        }
+
+        @Override
+        public boolean next() throws IOException {
+            if (upto-- > 0) {
+                pos = pe.nextPosition();
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public int startPosition() {
+            return pos;
+        }
+
+        @Override
+        public int endPosition() {
+            return pos;
+        }
+
+        @Override
+        public int startOffset() throws IOException {
+            return pe.startOffset();
+        }
+
+        @Override
+        public int endOffset() throws IOException {
+            return pe.endOffset();
+        }
+
+        @Override
+        public MatchesIterator getSubMatches() throws IOException {
+            return null;
+        }
+
+        @Override
+        public Query getQuery() {
+            return query;
         }
 
     }

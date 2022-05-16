@@ -67,6 +67,11 @@ public class QuerqyReRankQuery extends RankQuery {
     }
 
     @Override
+    public void visit(final QueryVisitor visitor) {
+        visitor.visitLeaf(this);
+    }
+
+    @Override
     public Weight createWeight(final IndexSearcher searcher, final ScoreMode scoreMode, final float boost)
             throws IOException {
         return new ReRankWeight(mainQuery, reRankQuery, reRankWeight, searcher, scoreMode, boost);
@@ -126,13 +131,6 @@ public class QuerqyReRankQuery extends RankQuery {
             this.reRankWeight = reRankWeight;
             this.mainWeight = mainQuery.createWeight(searcher, scoreMode, boost);
             this.rankWeight = reRankQuery.createWeight(searcher, scoreMode, boost);
-        }
-
-        @Override
-        public void extractTerms(final Set<Term> terms) {
-            final QueryVisitor visitor = QueryVisitor.termCollector(terms);
-            parentQuery.visit(visitor);
-            reRankQuery.visit(visitor);
         }
 
         public Scorer scorer(final LeafReaderContext context) throws IOException {

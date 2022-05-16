@@ -105,8 +105,12 @@ public class BoostMethodTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='parsedquery'][(starts-with(.,'QuerqyReRankQuery'))]",
-                "//str[@name='parsedquery'][(contains(.,\"mainQuery='(f1:qup | f2:qup)'\"))]",
-                "//str[@name='parsedquery'][(contains(.,\"reRankQuery='AdditiveBoostFunction(100.0,query(+(f1:u100 | f2:u100),def=0.0))\"))]"
+                "//str[@name='parsedquery'][(contains(.,\"mainQuery='(f1:qup | f2:qup)'\"))] or " +
+                        "//str[@name='parsedquery'][(contains(.,\"mainQuery='(f2:qup | f1:qup)'\"))]",
+                "//str[@name='parsedquery'][(contains(.,\"reRankQuery='" +
+                        "AdditiveBoostFunction(100.0,query(+(f1:u100 | f2:u100),def=0.0))\"))] or " +
+                        "//str[@name='parsedquery'][(contains(.,\"reRankQuery='" +
+                        "AdditiveBoostFunction(100.0,query(+(f2:u100 | f1:u100),def=0.0))\"))]"
         );
         req.close();
 

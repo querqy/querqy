@@ -44,7 +44,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                     assertQ("Missing querqy cache",
                        req,
                             "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']/lst[@name='stats']/" +
-                            "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
+                            "int[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='1']");
                     attempts = 0;
                 }  catch (final RuntimeException e) {
                     if (attempts <= 1) {
@@ -76,7 +76,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         assertQ("Querqy cache not prefilled",
                  req2,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                         + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
+                         + "/lst[@name='stats']/int[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
         req2.close();
          
@@ -113,7 +113,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
         assertQ("Querqy cache was updated unexpectedly",
                  reqStats,
                  "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                         + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
+                         + "/lst[@name='stats']/int[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
         reqStats.close();
 
@@ -136,7 +136,7 @@ public class SolrTermQueryCachePreloadTest extends SolrTestCaseJ4 {
                     assertQ("common_rules update didn't trigger preloader",
                             reqAfterReloaderUpdate,
                             "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']/lst[@name='stats']/" +
-                                    "long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='4']");
+                                    "int[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='4']");
                     attempts = 0;
 
                 }  catch (final RuntimeException e) {

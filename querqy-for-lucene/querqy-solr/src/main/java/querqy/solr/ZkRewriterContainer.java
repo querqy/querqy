@@ -5,7 +5,9 @@ import static querqy.solr.utils.JsonUtil.*;
 import org.apache.solr.cloud.ZkController;
 import org.apache.solr.cloud.ZkSolrResourceLoader;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.zookeeper.CreateMode;
@@ -77,8 +79,13 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         final String zkConfigName;
         try {
-            zkConfigName = args.getStringOrDefault(CONF_CONFIG_NAME,
-                    zkController.getZkStateReader().readConfigName(collection));
+            final String configuredName = args.getStringOrDefault(CONF_CONFIG_NAME, null);
+            if (configuredName != null) {
+                zkConfigName = configuredName;
+            } else {
+                final DocCollection docCollection = zkController.getSolrCloudManager().getClusterState().getCollection(collection);
+                zkConfigName = docCollection.getConfigName();
+            }
         } catch (final Exception e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Failed to load config name for collection:" +
                     collection  + " due to: ", e);

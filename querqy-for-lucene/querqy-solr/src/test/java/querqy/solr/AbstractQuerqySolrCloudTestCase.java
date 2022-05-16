@@ -27,7 +27,7 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
 
     public static void waitForRecoveriesToFinish(final CloudSolrClient client) throws Exception {
         assert null != client.getDefaultCollection();
-        AbstractDistribZkTestBase.waitForRecoveriesToFinish(client.getDefaultCollection(), client.getZkStateReader(),
+        AbstractDistribZkTestBase.waitForRecoveriesToFinish(client.getDefaultCollection(), cluster.getZkStateReader(),
                 true, true, 330);
     }
 

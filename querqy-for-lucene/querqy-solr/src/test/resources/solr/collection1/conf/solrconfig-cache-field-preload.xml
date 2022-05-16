@@ -19,7 +19,7 @@
 	<query>
 	
 		<cache name="querqyTermQueryCache"
-              class="solr.LFUCache"
+              class="solr.CaffeineCache"
               size="1024"
               initialSize="1024"
               autowarmCount="0"

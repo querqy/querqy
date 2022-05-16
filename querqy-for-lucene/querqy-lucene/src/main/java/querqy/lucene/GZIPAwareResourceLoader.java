@@ -1,6 +1,6 @@
 package querqy.lucene;
 
-import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.lucene.util.ResourceLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +8,7 @@ import java.io.PushbackInputStream;
 import java.util.zip.GZIPInputStream;
 
 /**
- * A {@link org.apache.lucene.analysis.util.ResourceLoader} which detects GZIP compression by its magic byte signature
+ * A {@link org.apache.lucene.util.ResourceLoader} which detects GZIP compression by its magic byte signature
  * and decompresses if necessary.
  */
 public class GZIPAwareResourceLoader implements ResourceLoader {

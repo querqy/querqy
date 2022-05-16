@@ -5,7 +5,7 @@
         <groupId>org.querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>5.4.lucene810.0-SNAPSHOT</version>
+        <version>5.4.lucene900.0-SNAPSHOT</version>
     </parent>
     <artifactId>querqy-lucene</artifactId>
 
@@ -16,15 +16,20 @@
         <!--
             The Solr test framework needs to be loaded before Lucene core,
             otherwise we run into trouble loading the codec for testing
-        -->
+
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-test-framework</artifactId>
             <version>${lucene.version}</version>
             <scope>test</scope>
         </dependency>
-
-
+-->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-test-framework</artifactId>
+            <version>${lucene.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -47,7 +52,7 @@
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-common</artifactId>
+            <artifactId>lucene-analysis-common</artifactId>
             <version>${lucene.version}</version>
             <scope>provided</scope>
         </dependency>

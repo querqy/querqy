@@ -3,8 +3,6 @@ package querqy.solr;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.lucene.analysis.util.ResourceLoader;
-
 public interface FactoryAdapter<T> {
 
     /**
