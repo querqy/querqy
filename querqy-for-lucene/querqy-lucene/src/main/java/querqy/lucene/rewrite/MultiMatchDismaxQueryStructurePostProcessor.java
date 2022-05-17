@@ -143,11 +143,17 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
 
     public static class RegroupDisjunctsByFieldProcessor extends LuceneQueryFactoryVisitor<Void> {
 
+        /**
+         * Group {$link LuceneQueryFactory}s by the field names of the term queries contained.
+         *
+         * @param factories The factories
+         * @return A mapping from field names to lists of factories.
+         */
         public static Map<String, List<LuceneQueryFactory<?>>> regroupByFields(final List<LuceneQueryFactory<?>>
-                                                                                       disjuncts) {
+                                                                                       factories) {
 
             final RegroupDisjunctsByFieldProcessor processor = new RegroupDisjunctsByFieldProcessor();
-            disjuncts.forEach(factory -> factory.accept(processor));
+            factories.forEach(factory -> factory.accept(processor));
             return processor.factoriesByField;
 
         }
@@ -156,19 +162,24 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
 
         private RegroupDisjunctsByFieldProcessor() {}
 
-        public void visitTerm(final String fieldname, final LuceneQueryFactory<?> factory) {
+        /**
+         * Collects the {@link LuceneQueryFactory} for a given fieldname into the factoriesByField map.
+         * @param fieldname The field name
+         * @param factory The factory
+         */
+        protected void collectFactoryForField(final String fieldname, final LuceneQueryFactory<?> factory) {
             factoriesByField.computeIfAbsent(fieldname, k -> new ArrayList<>()).add(factory);
         }
 
         @Override
         public Void visit(final TermQueryFactory factory) {
-            visitTerm(factory.getFieldname(), factory);
+            collectFactoryForField(factory.getFieldname(), factory);
             return null;
         }
 
         @Override
         public Void visit(final TermSubQueryFactory factory) {
-            visitTerm(factory.getFieldname(), factory);
+            collectFactoryForField(factory.getFieldname(), factory);
             return null;
         }
 
@@ -181,7 +192,6 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
         @Override
         public Void visit(final DisjunctionMaxQueryFactory factory) {
             // pull up the disjuncts one level
-            // FIXME: nested BooleanQuery?
             factory.disjuncts.forEach(disjunct -> disjunct.accept(this));
             return null;
         }
@@ -212,8 +222,16 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
 
     public static class SingleFieldBoostCopy extends LuceneQueryFactoryVisitor<LuceneQueryFactory<?>> {
 
-        public static LuceneQueryFactory<?> copy(final String fieldname, final LuceneQueryFactory<?> factory) {
-            return factory.accept(new SingleFieldBoostCopy(fieldname));
+        /**
+         * Copies a sub-query tree so that all field boosts will be set to 0 except for a single field, which will keep
+         * its original boost.
+         *
+         * @param fieldname Keep boosts for this field
+         * @param structure The root of the sub-query
+         * @return The copy
+         */
+        public static LuceneQueryFactory<?> copy(final String fieldname, final LuceneQueryFactory<?> structure) {
+            return structure.accept(new SingleFieldBoostCopy(fieldname));
         }
 
         private final String fieldname;
@@ -222,6 +240,7 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
             this.fieldname = fieldname;
         }
 
+        @Override
         public LuceneQueryFactory<?> visit(final BooleanQueryFactory factory) {
 
             final List<Clause> clausesCopy = factory.getClauses()
@@ -233,6 +252,7 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
 
         }
 
+        @Override
         public LuceneQueryFactory<?> visit(final DisjunctionMaxQueryFactory factory) {
 
             final List<LuceneQueryFactory<?>> disjunctsCopy = factory.disjuncts.stream()
@@ -242,6 +262,7 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
             return new DisjunctionMaxQueryFactory(disjunctsCopy, factory.tieBreaker);
         }
 
+        @Override
         public LuceneQueryFactory<?> visit(final TermSubQueryFactory factory) {
 
             final SingleFieldBoost singleFieldBoost = new SingleFieldBoost(fieldname, factory.boost);
@@ -250,10 +271,13 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
                     factory.getFieldname());
 
         }
+
+        @Override
         public LuceneQueryFactory<?> visit(final TermQueryFactory factory) {
             return factory;
         }
 
+        @Override
         public LuceneQueryFactory<?> visit(final NeverMatchQueryFactory factory) {
             return factory;
         }
@@ -265,9 +289,15 @@ public class MultiMatchDismaxQueryStructurePostProcessor extends LuceneQueryFact
      */
     public final static class FieldnameCollector extends LuceneQueryFactoryVisitor<Void> {
 
-        public static Set<String> collectFieldnames(final LuceneQueryFactory<?> factory) {
+        /**
+         * Collect all field names from a {@link LuceneQueryFactory} and its sub-queries.
+         *
+         * @param structure The root of the sub-query
+         * @return The set of field names found
+         */
+        public static Set<String> collectFieldnames(final LuceneQueryFactory<?> structure) {
             final FieldnameCollector collector = new FieldnameCollector();
-            factory.accept(collector);
+            structure.accept(collector);
             return collector.fieldnames;
         }
 
