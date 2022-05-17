@@ -23,10 +23,23 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.BooleanSimilarity;
+import org.apache.lucene.store.ByteBuffersDirectory;
+import org.apache.lucene.store.Directory;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -697,6 +710,54 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         );
 
 
+    }
+
+    @Test
+    public void testMultiMatchScoring() throws IOException {
+
+        IndexWriterConfig iwc = new IndexWriterConfig();
+        iwc.setSimilarity(new BooleanSimilarity());
+
+        try (final Directory directory = new ByteBuffersDirectory()) {
+
+            final IndexWriter indexWriter = new IndexWriter(directory, iwc);
+            final Document doc1 = new Document();
+            doc1.add(new TextField("f1", "a", Field.Store.YES));
+            doc1.add(new TextField("f2", "a", Field.Store.YES));
+            doc1.add(new TextField("f3", "a x", Field.Store.YES));
+            indexWriter.addDocument(doc1);
+
+            final Document doc2 = new Document();
+            doc2.add(new TextField("f1", "a", Field.Store.YES));
+            doc2.add(new TextField("f2", "a", Field.Store.YES));
+            doc2.add(new TextField("f3", "x", Field.Store.YES));
+            indexWriter.addDocument(doc2);
+
+            final Document doc3 = new Document();
+            doc3.add(new TextField("f1", "a", Field.Store.YES));
+            doc3.add(new TextField("f2", "a", Field.Store.YES));
+            doc3.add(new TextField("f3", "a", Field.Store.YES));
+            indexWriter.addDocument(doc3);
+
+            final Document doc4 = new Document();
+            doc4.add(new TextField("f1", "x", Field.Store.YES));
+            doc4.add(new TextField("f2", "x", Field.Store.YES));
+            doc4.add(new TextField("f3", "x", Field.Store.YES));
+            indexWriter.addDocument(doc4);
+
+            indexWriter.close();
+
+            try(final IndexReader indexReader = DirectoryReader.open(directory)) {
+                final IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+                indexSearcher.setSimilarity(new BooleanSimilarity());
+                final Query query = buildWithSynonyms("a", 0.2f, 0f);
+                final TopDocs topDocs = indexSearcher.search(query, 10);
+                for (int i = 1; i < topDocs.scoreDocs.length; i++) {
+                    Assert.assertEquals(topDocs.scoreDocs[0].score, topDocs.scoreDocs[i].score, 0.001f);
+                }
+            }
+
+        }
     }
 
     @Test
