@@ -58,5 +58,11 @@ x1 =>
    SYNONYM: x2
    SYNONYM: x3
 
+multboost =>
+    UP(10): multup1
+    UP(5): multup2
+    DOWN(5): multdown
+
+
 
 

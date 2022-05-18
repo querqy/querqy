@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.infologging.MultiSinkInfoLogging;
+import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.Term;
@@ -51,6 +52,11 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         assertU(adoc("id", "11", "f1", "xx yy zz tt ll ff gg hh"));
         assertU(adoc("id", "12", "f1", "x1 x2 x3 y1 m1"));
         assertU(adoc("id", "13", "f1", "x1 y1 z1 k1 m1"));
+        assertU(adoc("id", "14", "f1", "multboost"));
+        assertU(adoc("id", "15", "f1", "multboost multup1"));
+        assertU(adoc("id", "16", "f1", "multboost multup1 multup2"));
+        assertU(adoc("id", "17", "f1", "multboost multdown"));
+        assertU(adoc("id", "18", "f1", "multboost multup1 multdown"));
 
         assertU(commit());
     }
@@ -62,7 +68,8 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 "configs/commonrules/rules-QuerqyDismaxQParserTest.txt");
         withRewriter(h.getCore(), "match_all_filter", MatchAllRewriter.class);
         withRewriter(h.getCore(), "boost_mult_rewriter", MultiplicativeBoostRewriter.class);
-
+        withCommonRulesRewriter(h.getCore(), "common_rules_multiplicative",
+                "configs/commonrules/rules-QuerqyDismaxQParserTest.txt", true);
     }
 
     @Override
@@ -249,7 +256,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
       assertQ("Matchall fails",
             req,
             "//str[@name='parsedquery'][contains(.,'*:*')]",
-            "//result[@name='response' and @numFound='13']"
+            "//result[@name='response' and @numFound='18']"
 
       );
 
@@ -854,7 +861,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("bq not applied to MatchAll",
                 req,
-                "//result[@numFound='13']",
+                "//result[@numFound='18']",
                 "//str[@name='parsedquery'][contains(.,'f2:w87')]",
                 "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
                 "//doc[1]/str[@name='id'][text()='8']"
@@ -877,7 +884,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("bq not applied to MatchAll",
                 req,
-                "//result[@numFound='13']",
+                "//result[@numFound='18']",
                 "//str[@name='parsedquery'][contains(.,'f2:w87')]",
                 "//str[@name='parsedquery'][not(contains(.,'BoostedQuery'))]",
                 "//doc[1]/str[@name='id'][text()='8']"
@@ -969,6 +976,47 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
     }
 
+    @Test
+    public void testMultiplicativeRulesAreMultiplied() {
+
+        SolrQueryRequest req = req("q", "multboost",
+                DisMaxParams.QF, "f1",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules_multiplicative");
+
+        assertQ("multiplicative boost from rule is not applied",
+                req,
+                "//doc[1]/str[@name='id'][text()='16']",
+                "//lst[@name='explain']/str[@name='16'][contains(.,'50.0 = product')]", // UP(10) * UP(5)
+                "//lst[@name='explain']/str[@name='15'][contains(.,'10.0 = product')]", // UP(10)
+                "//lst[@name='explain']/str[@name='17'][contains(.,'0.2 = product')]",  // DOWN(5)
+                "//lst[@name='explain']/str[@name='18'][contains(.,'2.0 = product')]"   // UP(10) * DOWN(5)
+        );
+
+        req.close();
+    }
+
+    @Test
+    public void testMultiplicativeRulesAreCombinedWithBoostRequestParameter() {
+
+        SolrQueryRequest req = req("q", "multboost",
+                DisMaxParams.QF, "f1",
+                QuerqyDismaxParams.MULT_BOOST, "if(exists(query({!v='f1:multup2'})),0.1,1)",
+                "defType", "querqy",
+                "debugQuery", "true",
+                PARAM_REWRITERS, "common_rules_multiplicative");
+
+        assertQ("multiplicative boost from rule is not applied",
+                req,
+                "//doc[1]/str[@name='id'][text()='15']",
+                "//lst[@name='explain']/str[@name='15'][contains(.,'10.0 = product')]",
+                "//lst[@name='explain']/str[@name='16'][contains(.,'5.0 = product')]" // * UP(10) * UP(5) / 10 (by query parameter)
+        );
+
+        req.close();
+    }
+
 
     public void verifyQueryString(SolrQueryRequest req, String q, String... expectedSubstrings) throws Exception {
 
@@ -1035,7 +1083,11 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         }
     }
 
+    // rewriter that just adds some static up/down boost
     public static class MultiplicativeBoostRewriter extends SolrRewriterFactoryAdapter {
+
+        private static final BoostQuery UP_BOOST = BoostQueryBuilder.boost(StringRawQueryBuilder.raw("f2:w87"), 5f).build();
+        private static final BoostQuery DOWN_BOOST = BoostQueryBuilder.boost(bq("vv"), 0.5f).build();
 
         public MultiplicativeBoostRewriter(final String rewriterId) {
             super(rewriterId);
@@ -1056,8 +1108,8 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 public QueryRewriter createRewriter(final ExpandedQuery input,
                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
                     return query -> {
-                        query.addMultiplicativeBoostQuery(BoostQueryBuilder.boost(StringRawQueryBuilder.raw("f2:w87"), 5f).build());
-                        query.addMultiplicativeBoostQuery(BoostQueryBuilder.boost(bq("vv"), 0.5f).build());
+                        query.addMultiplicativeBoostQuery(UP_BOOST);
+                        query.addMultiplicativeBoostQuery(DOWN_BOOST);
                         return query;
                     };
                 }
