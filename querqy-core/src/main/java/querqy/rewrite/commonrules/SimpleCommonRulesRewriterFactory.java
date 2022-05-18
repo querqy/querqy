@@ -106,7 +106,6 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .generateMultiplicativeBoosts(generateMultiplicativeBoosts)
                             .querqyParserFactory(querqyParserFactory)
                             .allowedInstructionTypes(ALLOWED_TYPES)
-                            .generateMultiplicativeBoosts(generateMultiplicativeBoosts)
                             .build())
                     .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase))
                     .build();

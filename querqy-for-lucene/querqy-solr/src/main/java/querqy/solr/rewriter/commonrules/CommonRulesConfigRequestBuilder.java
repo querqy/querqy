@@ -17,6 +17,7 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
 
     private Boolean ignoreCase = null;
     private Boolean allowBooleanInput = null;
+    private Boolean multiplicativeBoosts = null;
     private Class<? extends QuerqyParserFactory> rhsParser = null;
     private String rules = null;
     private final Map<String, Map<String, Object>> ruleSelectionStrategies = new HashMap<>();
@@ -32,6 +33,11 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
 
     public CommonRulesConfigRequestBuilder allowBooleanInput(final boolean allowBooleanInput) {
         this.allowBooleanInput = allowBooleanInput;
+        return this;
+    }
+
+    public CommonRulesConfigRequestBuilder multiplicativeBoosts(final boolean multiplicativeBoosts) {
+        this.multiplicativeBoosts = multiplicativeBoosts;
         return this;
     }
 
@@ -79,6 +85,10 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
 
         if (allowBooleanInput != null) {
             config.put(CommonRulesRewriterFactory.CONF_ALLOW_BOOLEAN_INPUT, allowBooleanInput);
+        }
+
+        if (multiplicativeBoosts != null) {
+            config.put(CommonRulesRewriterFactory.CONF_MULTIPLICATIVE_BOOSTS, multiplicativeBoosts);
         }
 
         if (rules == null) {

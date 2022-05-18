@@ -25,17 +25,32 @@ import java.util.stream.Collectors;
 public interface StandaloneSolrTestSupport {
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName) {
-        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap());
+        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), null);
+    }
+
+    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                        final Boolean generateMultiplicativeBoosts) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), generateMultiplicativeBoosts);
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
                                         final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
                                                 ruleSelectionStrategies) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, ruleSelectionStrategies, null);
+    }
+
+    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                        final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
+                                                ruleSelectionStrategies,
+                                        final Boolean generateMultiplicativeBoosts) {
 
         try {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                     .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName));
             ruleSelectionStrategies.forEach(builder::ruleSelectionStrategy);
+            if (generateMultiplicativeBoosts != null) {
+                builder.multiplicativeBoosts(generateMultiplicativeBoosts);
+            }
             withCommonRulesRewriter(core, rewriterId, builder);
         } catch (IOException e) {
             throw new RuntimeException(e);
