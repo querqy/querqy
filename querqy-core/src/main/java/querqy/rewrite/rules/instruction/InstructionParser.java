@@ -32,7 +32,7 @@ public class InstructionParser {
     private final Set<InstructionType> supportedTypes;
     private final QuerqyQueryParser querqyQueryParser;
     private final TermsParser termsParser;
-    private final boolean multiplicativeBoosts;
+    private final BoostInstruction.BoostMethod boostMethod;
 
     private final List<Term> inputTerms;
     private final List<InstructionSkeleton> skeletons;
@@ -43,17 +43,17 @@ public class InstructionParser {
     protected InstructionParser(@Singular final Set<InstructionType> supportedTypes,
                                 final QuerqyQueryParser querqyQueryParser,
                                 final TermsParser termsParser,
-                                final boolean multiplicativeBoosts) {
+                                final BoostInstruction.BoostMethod boostMethod) {
         this.supportedTypes = supportedTypes;
         this.querqyQueryParser = querqyQueryParser;
         this.termsParser = termsParser;
-        this.multiplicativeBoosts = multiplicativeBoosts;
+        this.boostMethod = boostMethod;
         this.inputTerms = Collections.emptyList();
         this.skeletons = Collections.emptyList();
     }
 
     public InstructionParser with(final List<Term> inputTerms, final List<InstructionSkeleton> skeletons) {
-        return of(supportedTypes, querqyQueryParser, termsParser, multiplicativeBoosts, inputTerms, skeletons);
+        return of(supportedTypes, querqyQueryParser, termsParser, boostMethod, inputTerms, skeletons);
     }
 
     public List<Instruction> parse() {
@@ -115,10 +115,6 @@ public class InstructionParser {
         final float param = getParamAsFloat();
         final String value = getValueOrElseThrow();
         final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.SHOULD).parse();
-        final BoostInstruction.BoostMethod boostMethod = multiplicativeBoosts
-                ? BoostInstruction.BoostMethod.MULTIPLICATIVE
-                : BoostInstruction.BoostMethod.ADDITIVE;
-
         instructions.add(new BoostInstruction(querqyQuery, direction, boostMethod, param));
     }
 

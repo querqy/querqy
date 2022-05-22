@@ -45,6 +45,7 @@ import querqy.rewrite.ContextAwareQueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -138,7 +139,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("CommonRulesRewriter",
                 new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                         getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
-                        StandardCharsets.UTF_8)), true, false,
+                        StandardCharsets.UTF_8)), true, BoostMethod.ADDITIVE,
                 new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                 true);
@@ -661,7 +662,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("CommonRulesRewriter",
                new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                        getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
-                       StandardCharsets.UTF_8)), true, false,
+                       StandardCharsets.UTF_8)), true, BoostMethod.ADDITIVE,
                new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                true);

@@ -1,6 +1,7 @@
 package querqy.solr.rewriter.commonrules;
 
 import querqy.rewrite.commonrules.QuerqyParserFactory;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.RewriterConfigRequestBuilder;
@@ -17,7 +18,7 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
 
     private Boolean ignoreCase = null;
     private Boolean allowBooleanInput = null;
-    private Boolean multiplicativeBoosts = null;
+    private BoostInstruction.BoostMethod boostMethod = null;
     private Class<? extends QuerqyParserFactory> rhsParser = null;
     private String rules = null;
     private final Map<String, Map<String, Object>> ruleSelectionStrategies = new HashMap<>();
@@ -36,8 +37,8 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
         return this;
     }
 
-    public CommonRulesConfigRequestBuilder multiplicativeBoosts(final boolean multiplicativeBoosts) {
-        this.multiplicativeBoosts = multiplicativeBoosts;
+    public CommonRulesConfigRequestBuilder boostMethod(final BoostInstruction.BoostMethod boostMethod) {
+        this.boostMethod = boostMethod;
         return this;
     }
 
@@ -87,8 +88,8 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
             config.put(CommonRulesRewriterFactory.CONF_ALLOW_BOOLEAN_INPUT, allowBooleanInput);
         }
 
-        if (multiplicativeBoosts != null) {
-            config.put(CommonRulesRewriterFactory.CONF_MULTIPLICATIVE_BOOSTS, multiplicativeBoosts);
+        if (boostMethod != null) {
+            config.put(CommonRulesRewriterFactory.CONF_BOOST_METHOD, boostMethod.name());
         }
 
         if (rules == null) {
