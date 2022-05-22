@@ -10,6 +10,7 @@ import querqy.rewrite.commonrules.FieldAwareWhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.contrib.ReplaceRewriterFactory;
@@ -91,7 +92,7 @@ public class QueryRewritingHandler {
                     rewriterId,
                     new StringReader(config),
                     true,
-                    false,
+                    BoostMethod.ADDITIVE,
                     new WhiteSpaceQuerqyParserFactory(),
                     true,
                     Collections.emptyMap(),

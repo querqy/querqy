@@ -31,6 +31,7 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 
 import java.util.*;
 
@@ -69,7 +70,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         withRewriter(h.getCore(), "match_all_filter", MatchAllRewriter.class);
         withRewriter(h.getCore(), "boost_mult_rewriter", MultiplicativeBoostRewriter.class);
         withCommonRulesRewriter(h.getCore(), "common_rules_multiplicative",
-                "configs/commonrules/rules-QuerqyDismaxQParserTest.txt", true);
+                "configs/commonrules/rules-QuerqyDismaxQParserTest.txt", BoostInstruction.BoostMethod.MULTIPLICATIVE);
     }
 
     @Override

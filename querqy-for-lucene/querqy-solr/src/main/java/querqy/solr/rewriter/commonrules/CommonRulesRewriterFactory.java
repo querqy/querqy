@@ -7,6 +7,7 @@ import org.apache.solr.common.util.NamedList;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.solr.FactoryAdapter;
@@ -30,7 +31,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
     public static final String CONF_IGNORE_CASE = "ignoreCase";
     public static final String CONF_ALLOW_BOOLEAN_INPUT = "allowBooleanInput";
-    public static final String CONF_MULTIPLICATIVE_BOOSTS = "multiplicativeBoosts";
+    public static final String CONF_BOOST_METHOD = "boostMethod";
     public static final String CONF_RHS_QUERY_PARSER = "querqyParser";
     public static final String CONF_RULES = "rules";
     public static final String CONF_RULE_SELECTION_STRATEGIES = "ruleSelectionStrategies";
@@ -52,7 +53,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
         final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
-        final boolean multiplicativeBoosts = ConfigUtils.getArg(config, CONF_MULTIPLICATIVE_BOOSTS, false);
+        final BoostMethod boostMethod = readBoostMethod(config);
 
         final QuerqyParserFactory querqyParser = ConfigUtils.getInstanceFromArg(config, CONF_RHS_QUERY_PARSER,
                 DEFAULT_RHS_QUERY_PARSER);
@@ -65,7 +66,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         try {
             delegate = new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
-                    new StringReader(rules), allowBooleanInput, multiplicativeBoosts, querqyParser, ignoreCase,
+                    new StringReader(rules), allowBooleanInput, boostMethod, querqyParser, ignoreCase,
                     selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
         } catch (final IOException e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
@@ -100,19 +101,24 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
         final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
-        final boolean multiplicativeBoosts = ConfigUtils.getArg(config, CONF_MULTIPLICATIVE_BOOSTS, false);
+        final BoostMethod boostMethod = readBoostMethod(config);
 
         final Boolean buildTermCache = ConfigUtils.getArg(config, CONF_BUILD_TERM_CACHE, true);
 
         try {
             new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
-                    new StringReader(rules), allowBooleanInput, multiplicativeBoosts, querqyParser, ignoreCase,
+                    new StringReader(rules), allowBooleanInput, boostMethod, querqyParser, ignoreCase,
                     selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
         } catch (final IOException e) {
             return Collections.singletonList("Cannot create rewriter: " + e.getMessage());
         }
 
         return null;
+    }
+
+    protected BoostMethod readBoostMethod(final Map<String, Object> config) {
+        final String boostMethodConfig = ConfigUtils.getArg(config, CONF_BOOST_METHOD, BoostMethod.ADDITIVE.name());
+        return BoostMethod.valueOf(boostMethodConfig.toUpperCase());
     }
 
     protected Map<String, SelectionStrategyFactory> loadSelectionStrategyFactories(final Map<String, Object> config) {

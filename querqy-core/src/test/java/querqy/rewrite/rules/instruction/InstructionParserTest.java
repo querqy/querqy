@@ -199,6 +199,7 @@ public class InstructionParserTest {
                 .supportedType(DELETE)
                 .querqyQueryParser(QuerqyQueryParser.createPrototypeOf(querqyParserFactory))
                 .termsParser(TermsParser.createPrototype())
+                .boostMethod(BoostInstruction.BoostMethod.ADDITIVE)
                 .build();
     }
 

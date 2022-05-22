@@ -8,6 +8,7 @@ import org.apache.solr.request.LocalSolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.response.SolrQueryResponse;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
@@ -29,8 +30,8 @@ public interface StandaloneSolrTestSupport {
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
-                                        final Boolean generateMultiplicativeBoosts) {
-        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), generateMultiplicativeBoosts);
+                                        final BoostInstruction.BoostMethod boostMethod) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), boostMethod);
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
@@ -42,14 +43,14 @@ public interface StandaloneSolrTestSupport {
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
                                         final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
                                                 ruleSelectionStrategies,
-                                        final Boolean generateMultiplicativeBoosts) {
+                                        final BoostInstruction.BoostMethod boostMethod) {
 
         try {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                     .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName));
             ruleSelectionStrategies.forEach(builder::ruleSelectionStrategy);
-            if (generateMultiplicativeBoosts != null) {
-                builder.multiplicativeBoosts(generateMultiplicativeBoosts);
+            if (boostMethod != null) {
+                builder.boostMethod(boostMethod);
             }
             withCommonRulesRewriter(core, rewriterId, builder);
         } catch (IOException e) {

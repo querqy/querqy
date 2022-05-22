@@ -17,6 +17,7 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.TemplateParseException;
+import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
@@ -58,8 +59,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      * @param rewriterId The id of this rewriter
      * @param reader The reader to access the rewriter configuration
      * @param allowBooleanInput Iff true, rule input can have boolean expressions
-     * @param generateMultiplicativeBoosts Iff true, create {@link querqy.rewrite.commonrules.model.BoostInstruction}s
-     *                                     with multiplicative boosts
+     * @param boostMethod The {@link querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod} to use when creating
+     *                    {@link querqy.rewrite.commonrules.model.BoostInstruction}s
      * @param querqyParserFactory A parser for the right-hand side of rules
      * @param ignoreCase Iff true, rule input matching is case insensitive.
      * @param selectionStrategyFactories A mapping between names of rule selection strategies and their factories.
@@ -71,7 +72,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     public SimpleCommonRulesRewriterFactory(final String rewriterId,
                                             final Reader reader,
                                             final boolean allowBooleanInput,
-                                            final boolean generateMultiplicativeBoosts,
+                                            final BoostMethod boostMethod,
                                             final QuerqyParserFactory querqyParserFactory,
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
@@ -103,7 +104,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .build())
                     .ruleParserConfig(RuleParserConfig.builder()
                             .isAllowedToParseBooleanInput(allowBooleanInput)
-                            .generateMultiplicativeBoosts(generateMultiplicativeBoosts)
+                            .boostMethod(boostMethod)
                             .querqyParserFactory(querqyParserFactory)
                             .allowedInstructionTypes(ALLOWED_TYPES)
                             .build())
