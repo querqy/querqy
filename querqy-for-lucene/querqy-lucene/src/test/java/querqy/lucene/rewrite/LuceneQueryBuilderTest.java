@@ -380,7 +380,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
 
     @Test
-    public void testMultiMatch01() throws Exception {
+    public void testMultiMatchSingleTermWithSynonym() throws Exception {
         float tie = 0.7f;
         final float multiMatchTie = 0.6f;
         Query q = buildWithSynonyms("j", tie, multiMatchTie, "f1", "f2");
@@ -422,7 +422,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
 
     @Test
-    public void testMultiMatch02() throws Exception {
+    public void testMultiMatchWithSynonymOnLastClause() throws Exception {
         float tie = 0.7f;
         final float multiMatchTie = 0.6f;
         Query q = buildWithSynonyms("nn j", tie, multiMatchTie, "f1", "f2");
@@ -471,7 +471,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
 
     @Test
-    public void testMultiMatch03() throws Exception {
+    public void testMultiMatchWithSynonymsOnAllClauses() throws Exception {
         final float multiMatchTie = 0.6f;
         final float tie = 0.8f;
         Query q = buildWithSynonyms("100-2 j", tie, multiMatchTie, "f1", "f2");
