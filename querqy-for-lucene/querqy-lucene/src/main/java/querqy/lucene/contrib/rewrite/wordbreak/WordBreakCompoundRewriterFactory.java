@@ -51,8 +51,9 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
      * @param alwaysAddReverseCompounds   Iff true, reverse shingles will be added to the query
      * @param maxDecompoundExpansions     The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
-     * @param compoundMorphologyName      The name of compounding morphology to use
+     * @param protectedWords              Do not split these words
      * @param decompoundMorphologyName    The name of decompounding morphology to use
+     * @param compoundMorphologyName      The name of compounding morphology to use
      */
     public WordBreakCompoundRewriterFactory(final String rewriterId,
                                             final Supplier<IndexReader> indexReaderSupplier,

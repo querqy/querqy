@@ -48,6 +48,7 @@ public class ClassicWordBreakCompoundRewriterFactory extends RewriterFactory {
      * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
      * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param protectedWords Do not split these words
      */
     public ClassicWordBreakCompoundRewriterFactory(final String rewriterId,
                                                    final Supplier<IndexReader> indexReaderSupplier,

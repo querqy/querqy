@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  *     )~dmqTieBreakerMultiplier
  * </pre>
  *
- * Now multiMatchTieBreakerMultiplier allows us to control how scores are aggregated for the terms matching within the
+ * <p>Now multiMatchTieBreakerMultiplier allows us to control how scores are aggregated for the terms matching within the
  * same field and dmqTieBreakerMultiplier controls the aggregation across fields.
  * </p>
  * <p>If we want to group the clauses of a DisMaxQuery that contain a BooleanQuery (BQ), we will have to make sure that
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
  *     )~dmqTieBreakerMultiplier
  *
  * </pre>
- * i.e. we repeat the BQ in each field group but only accept the weight of the field of the group and set all other
+ * <p>i.e. we repeat the BQ in each field group but only accept the weight of the field of the group and set all other
  * field weights to 0. This structure allows us to match the clauses of the BQ across fields - just like in the original
  * query.
  * </p>
