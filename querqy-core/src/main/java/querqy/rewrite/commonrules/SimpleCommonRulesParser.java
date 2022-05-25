@@ -1,6 +1,7 @@
 package querqy.rewrite.commonrules;
 
 import querqy.model.Input;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollection;
@@ -45,7 +46,7 @@ public class SimpleCommonRulesParser {
     private int instructionsCount = 0;
     private List<Instruction> instructionList = null;
     private final PropertiesBuilder propertiesBuilder;
-    private final boolean multiplicativeBoosts;
+    private final BoostInstruction.BoostMethod boostMethod;
 
     private final Set<Object> seenInstructionIds = new HashSet<>();
     private IntUnaryOperator lineNumberMapper = lineNumb -> lineNumb;
@@ -53,20 +54,20 @@ public class SimpleCommonRulesParser {
     public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
                                    final QuerqyParserFactory querqyParserFactory,
                                    final boolean ignoreCase,
-                                   final boolean multiplicativeBoosts) {
-        this(in, allowBooleanInput, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase), multiplicativeBoosts);
+                                   final BoostInstruction.BoostMethod boostMethod) {
+        this(in, allowBooleanInput, querqyParserFactory, new TrieMapRulesCollectionBuilder(ignoreCase), boostMethod);
     }
 
     public SimpleCommonRulesParser(final Reader in, final boolean allowBooleanInput,
                                    final QuerqyParserFactory querqyParserFactory,
                                    final RulesCollectionBuilder builder,
-                                   final boolean multiplicativeBoosts) {
+                                   final BoostInstruction.BoostMethod boostMethod) {
         this.reader = new BufferedReader(in);
         this.querqyParserFactory = querqyParserFactory;
         this.builder = builder;
         this.propertiesBuilder = new PropertiesBuilder();
         this.booleanInputParser = allowBooleanInput ? new BooleanInputParser() : null;
-        this.multiplicativeBoosts = multiplicativeBoosts;
+        this.boostMethod = boostMethod;
     }
 
     public SimpleCommonRulesParser setLineNumberMapper(final IntUnaryOperator lineNumberMapper) {
@@ -153,7 +154,7 @@ public class SimpleCommonRulesParser {
     private void nextLine(final String newLine) throws RuleParseException {
         final String line = stripLine(newLine);
         if (line.length() > 0) {
-            final Object lineObject = LineParser.parse(line, inputPattern, querqyParserFactory, multiplicativeBoosts);
+            final Object lineObject = LineParser.parse(line, inputPattern, querqyParserFactory, boostMethod);
 
             if (lineObject instanceof InputString) {
 

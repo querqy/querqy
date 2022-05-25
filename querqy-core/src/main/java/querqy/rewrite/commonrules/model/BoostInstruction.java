@@ -80,12 +80,13 @@ public class BoostInstruction implements Instruction {
 
         switch(boostMethod) {
             case ADDITIVE:
+                final BoostQuery boostQuery = new BoostQuery(q, boost);
                 switch (direction) {
                     case DOWN:
-                        expandedQuery.addBoostDownQuery(new BoostQuery(q, boost));
+                        expandedQuery.addBoostDownQuery(boostQuery);
                         break;
                     case UP:
-                        expandedQuery.addBoostUpQuery(new BoostQuery(q, boost));
+                        expandedQuery.addBoostUpQuery(boostQuery);
                         break;
                 }
                 break;

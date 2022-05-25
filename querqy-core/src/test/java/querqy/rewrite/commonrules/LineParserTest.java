@@ -4,6 +4,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.Matchers.*;
+import static querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod.MULTIPLICATIVE;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,7 +19,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import querqy.model.*;
-import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.*;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
@@ -359,10 +359,11 @@ public class LineParserTest {
     @Test
     public void testThatBoostInstructionsAreParsedAsMultiplicativeIfConfigured() {
         String line = "UP(5): x";
-        final Object instruction = LineParser.parse(line, SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory(), true);
+        final Object instruction = LineParser.parse(line, SIMPLE_INPUT_PATTERN, new WhiteSpaceQuerqyParserFactory(),
+                MULTIPLICATIVE);
         assertTrue(instruction instanceof BoostInstruction);
         assertThat(((BoostInstruction) instruction).getDirection(), is(BoostDirection.UP));
-        assertThat(((BoostInstruction) instruction).getBoostMethod(), is(BoostMethod.MULTIPLICATIVE));
+        assertThat(((BoostInstruction) instruction).getBoostMethod(), is(MULTIPLICATIVE));
     }
 
     @Test

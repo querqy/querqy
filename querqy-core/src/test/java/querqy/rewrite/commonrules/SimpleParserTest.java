@@ -40,12 +40,12 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
 
     SimpleCommonRulesParser createParserFromString(final String rulesString, final boolean ignoreCase) {
         reader = new StringReader(rulesString);
-        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, false);
+        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, BoostMethod.ADDITIVE);
     }
 
     SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
         reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
-        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, false);
+        return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, BoostMethod.ADDITIVE);
     }
 
     RulesCollection createRulesFromResource(String resourceName, boolean ignoreCase) throws IOException, RuleParseException {
