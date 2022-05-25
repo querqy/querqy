@@ -2,6 +2,7 @@ package querqy.rewrite.commonrules;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
+import static querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import querqy.model.Input;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 
@@ -32,7 +34,7 @@ public class SimpleCommonRulesParserTest {
                 "SYNONYM: syn1";
 
         final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
-                rulesCollectionBuilder, false);
+                rulesCollectionBuilder, ADDITIVE);
         parser.parse();
 
 
@@ -52,7 +54,7 @@ public class SimpleCommonRulesParserTest {
                 "@_id:\"The Id\"";
 
         final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
-                rulesCollectionBuilder, false);
+                rulesCollectionBuilder, ADDITIVE);
         parser.parse();
 
 
@@ -72,7 +74,7 @@ public class SimpleCommonRulesParserTest {
                 "@prop1:[\"v1\",\"v2\"]";
 
         final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
-                rulesCollectionBuilder, false);
+                rulesCollectionBuilder, ADDITIVE);
         parser.parse();
 
 
@@ -95,7 +97,7 @@ public class SimpleCommonRulesParserTest {
                 "}@";
 
         final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
-                rulesCollectionBuilder, false);
+                rulesCollectionBuilder, ADDITIVE);
         parser.parse();
 
 
@@ -120,7 +122,7 @@ public class SimpleCommonRulesParserTest {
                 "}@";
 
         final SimpleCommonRulesParser parser = new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory,
-                rulesCollectionBuilder, false);
+                rulesCollectionBuilder, ADDITIVE);
         parser.parse();
 
 
@@ -144,7 +146,7 @@ public class SimpleCommonRulesParserTest {
                 "@_id:\"1\"";
 
 
-        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true, false).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true, ADDITIVE).parse();
 
     }
 
@@ -156,7 +158,7 @@ public class SimpleCommonRulesParserTest {
                 "@_id:[\"1\"]";
 
 
-        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true, false).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true, ADDITIVE).parse();
 
     }
 
@@ -166,7 +168,7 @@ public class SimpleCommonRulesParserTest {
         final String rules = "input1 AND OR => \n" +
                 "UP: juu";
 
-        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true, false).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), true, parserFactory, true, ADDITIVE).parse();
 
     }
 
@@ -176,17 +178,17 @@ public class SimpleCommonRulesParserTest {
         final String rules = "input1 AND OR => \n" +
                 "UP: juu";
 
-        new SimpleCommonRulesParser(new StringReader(rules), false, parserFactory, true, false).parse();
+        new SimpleCommonRulesParser(new StringReader(rules), false, parserFactory, true, ADDITIVE).parse();
 
     }
 
     @Test
     public void testThatNonBooleanInputIsParsedIfBooleanIsEnabled() throws IOException, RuleParseException {
 
-        new SimpleCommonRulesParser(new StringReader("input1 AND_THEN y => \nUP: juu"), true, parserFactory, true, false)
-                .parse();
+        new SimpleCommonRulesParser(new StringReader("input1 AND_THEN y => \nUP: juu"), true, parserFactory, true,
+                ADDITIVE).parse();
 
-        new SimpleCommonRulesParser(new StringReader("input1 (c) => \nUP: juu"), true, parserFactory, true, false)
+        new SimpleCommonRulesParser(new StringReader("input1 (c) => \nUP: juu"), true, parserFactory, true, ADDITIVE)
                 .parse();
 
     }

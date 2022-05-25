@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod.ADDITIVE;
 
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
@@ -157,7 +158,7 @@ public class ParserMigrationTest {
                 ruleParserConfig.isAllowedToParseBooleanInput(),
                 ruleParserConfig.getQuerqyParserFactory(),
                 TestRulesCollectionBuilder.create(),
-                false);
+                ADDITIVE);
     }
 
     private RulesParser createNewParser(final TextParserConfig config, final RuleParserConfig ruleParserConfig) {

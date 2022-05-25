@@ -22,9 +22,15 @@ import querqy.model.ParametrizedRawQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
-import querqy.rewrite.commonrules.model.*;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
+import querqy.rewrite.commonrules.model.DecorateInstruction;
+import querqy.rewrite.commonrules.model.DeleteInstruction;
+import querqy.rewrite.commonrules.model.FilterInstruction;
+import querqy.rewrite.commonrules.model.PrefixTerm;
+import querqy.rewrite.commonrules.model.SynonymInstruction;
+import querqy.rewrite.commonrules.model.Term;
 
 /**
  * @author René Kriegler, @renekrie
@@ -47,12 +53,12 @@ public class LineParser {
 
     public static Object parse(final String line, final Input inputPattern,
                                final QuerqyParserFactory querqyParserFactory) {
-        return parse(line, inputPattern, querqyParserFactory, false);
+        return parse(line, inputPattern, querqyParserFactory, BoostMethod.ADDITIVE);
     }
 
     public static Object parse(final String line, final Input inputPattern,
                                final QuerqyParserFactory querqyParserFactory,
-                               boolean multiplicativeBoosts) {
+                               final BoostMethod boostMethod) {
 
 
         if (line.endsWith("=>")) {
@@ -147,7 +153,7 @@ public class LineParser {
             }
         }
 
-        BoostMethod boostMethod = multiplicativeBoosts ? BoostMethod.MULTIPLICATIVE : BoostMethod.ADDITIVE;
+        //BoostMethod boostMethod = multiplicativeBoosts ? BoostMethod.MULTIPLICATIVE : BoostMethod.ADDITIVE;
 
         if (lcLine.startsWith(INSTR_BOOST_DOWN)) {
             return parseBoostInstruction(line, lcLine, 4, BoostDirection.DOWN, boostMethod, querqyParserFactory);
