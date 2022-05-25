@@ -94,7 +94,7 @@
 
         <querqy.core.version>3.13.0</querqy.core.version>
         <lucene.version>9.0.0</lucene.version>
-        <commons.io.version>2.5</commons.io.version>
+        <commons.io.version>2.11.0</commons.io.version>
 
     </properties>
 
@@ -158,8 +158,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
+                        <release>11</release>
                         <showDeprecation>true</showDeprecation>
                     </configuration>
                 </plugin>
