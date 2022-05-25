@@ -47,7 +47,7 @@ public class ExpandedQuery {
       return userQuery;
    }
 
-   public final void setUserQuery(QuerqyQuery<?> userQuery) {
+   public final void setUserQuery(final QuerqyQuery<?> userQuery) {
       if (userQuery == null) {
          throw new IllegalArgumentException("userQuery required");
       }
@@ -58,7 +58,7 @@ public class ExpandedQuery {
       return filterQueries;
    }
 
-   public void addFilterQuery(QuerqyQuery<?> filterQuery) {
+   public void addFilterQuery(final QuerqyQuery<?> filterQuery) {
       if (filterQueries == null) {
          filterQueries = new LinkedList<>();
       }
@@ -69,7 +69,7 @@ public class ExpandedQuery {
       return boostUpQueries;
    }
 
-   public void addBoostUpQuery(BoostQuery boostUpQuery) {
+   public void addBoostUpQuery(final BoostQuery boostUpQuery) {
       if (boostUpQueries == null) {
          boostUpQueries = new LinkedList<>();
       }
@@ -80,7 +80,7 @@ public class ExpandedQuery {
       return boostDownQueries;
    }
 
-   public void addBoostDownQuery(BoostQuery boostDownQuery) {
+   public void addBoostDownQuery(final BoostQuery boostDownQuery) {
       if (boostDownQueries == null) {
          boostDownQueries = new LinkedList<>();
       }
@@ -91,11 +91,11 @@ public class ExpandedQuery {
       return multiplicativeBoostQueries;
    }
 
-   public void addMultiplicativeBoostQuery(BoostQuery boostDownQuery) {
+   public void addMultiplicativeBoostQuery(final BoostQuery multiplicativeBoostQuery) {
       if (multiplicativeBoostQueries == null) {
          multiplicativeBoostQueries = new LinkedList<>();
       }
-      multiplicativeBoostQueries.add(boostDownQuery);
+      multiplicativeBoostQueries.add(multiplicativeBoostQuery);
    }
 
 }
