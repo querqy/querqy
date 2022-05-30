@@ -972,7 +972,10 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("multiplicative boost from boolean query not applied",
                 req,
-                "//lst[@name='explain']/str[@name='10'][contains(.,'weight(FunctionScoreQuery((f1:xx | f2:xx), scored by boost(" + expectedBoostQuery + ")))')]",
+                "//lst[@name='explain']/str[@name='10'][contains(.,'weight(FunctionScoreQuery((f1:xx | f2:xx), " +
+                        "scored by boost(" + expectedBoostQuery + ")))')] or " +
+                        "//lst[@name='explain']/str[@name='10'][contains(.,'weight(FunctionScoreQuery((f2:xx | f1:xx), " +
+                        "scored by boost(" + expectedBoostQuery + ")))')]"                ,
                 "//lst[@name='explain']/str[@name='10'][contains(.,'0.5 = product(')]",
                 "//doc[1]/str[@name='id'][text()='11']"
         );
