@@ -70,7 +70,7 @@
         <hamcrest.version>2.2</hamcrest.version>
         <mockito.version>4.5.1</mockito.version>
 
-        <jackson.version>2.13.2</jackson.version>
+        <jackson.version>2.13.3</jackson.version>
         <json-path.version>2.4.0</json-path.version>
     </properties>
 
