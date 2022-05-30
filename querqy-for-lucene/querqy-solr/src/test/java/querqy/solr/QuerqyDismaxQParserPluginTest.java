@@ -351,7 +351,8 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         assertQ("Analysis not applied for pf",
                 req,
                 // Query terms should be lower-cased in analysis for pf fields
-                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f1_lc:\"k l m\" | f2_lc:\"k l m\"))')]",
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f1_lc:\"k l m\" | f2_lc:\"k l m\"))')] or " +
+                        "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f2_lc:\"k l m\" | f1_lc:\"k l m\"))')]",
                 // but not for query fields
                 "//str[@name='parsedquery'][contains(.,'(f1:K f1:L f1:M)')]");
 
@@ -376,7 +377,8 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         assertQ("Analysis not applied for pf2",
                 req,
                 // Query terms should be lower-cased in analysis for pf2 fields
-                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery(((f1_lc:\"k l\" f1_lc:\"l m\") | (f2_lc:\"k l\" f2_lc:\"l m\")))')]",
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery(((f1_lc:\"k l\" f1_lc:\"l m\") | (f2_lc:\"k l\" f2_lc:\"l m\")))')] or " +
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery(((f2_lc:\"k l\" f2_lc:\"l m\") | (f1_lc:\"k l\" f1_lc:\"l m\")))')]",
                 // but not for query fields
                 "//str[@name='parsedquery'][contains(.,'(f1:K f1:L f1:M)')]");
 
@@ -401,7 +403,8 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
         assertQ("Analysis not applied for pf",
                 req,
                 // Query terms should be lower-cased in analysis for pf fields
-                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f1_lc:\"k l m\" | f2_lc:\"k l m\"))')]",
+                "//str[@name='parsedquery'][contains(.,'DisjunctionMaxQuery((f1_lc:\"k l m\" | f2_lc:\"k l m\"))') or " +
+                        "contains(.,'DisjunctionMaxQuery((f2_lc:\"k l m\" | f1_lc:\"k l m\"))')]",
                 // but not for query fields
                 "//str[@name='parsedquery'][contains(.,'(f1:K f1:L f1:M)')]");
 
@@ -585,7 +588,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ(GFB + " not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6')]",
+            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f1:x^1.6') or contains(.,'f1:x^1.6 | f1:a^2.0')]",
             "//str[@name='parsedquery'][contains(.,'PhraseQuery(f1:\"a b\")^0.5')]");
 
         req.close();
@@ -603,7 +606,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("Generated query field boosts not working",
             req,
-            "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f2:a^3.0 | f2:x^10.0')]"
+            "//str[@name='parsedquery'][contains(.,'f1:a^2.0') and contains(.,'f2:a^3.0') and contains(.,'f2:x^10.0')]"
         );
         req.close();
     }
@@ -620,7 +623,8 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
 
         assertQ("Generated query fields not working",
                 req,
-                "//str[@name='parsedquery'][contains(.,'f1:a^2.0 | f2:a^3.0 | f2:x^2.4 | f4:x^0.8')]"
+                "//str[@name='parsedquery'][contains(.,'f1:a^2.0') and contains(.,'f2:a^3.0') and" +
+                        " contains(.,'f2:x^2.4') and contains(.,'f4:x^0.8')]"
         );
         req.close();
     }
@@ -733,7 +737,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
     public void testThatHighlightingIsApplied() {
         SolrQueryRequest req = req("q", "a",
                 DisMaxParams.QF, "f1",
-                HighlightParams.HIGHLIGHT, "true",
+                HighlightParams.HIGHLIGHT, "on",
                 HighlightParams.FIELDS, "f1",
                 HighlightParams.SIMPLE_PRE, "PRE",
                 HighlightParams.SIMPLE_POST, "POST",

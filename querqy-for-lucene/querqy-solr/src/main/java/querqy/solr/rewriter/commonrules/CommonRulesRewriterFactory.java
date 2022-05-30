@@ -1,7 +1,7 @@
 package querqy.solr.rewriter.commonrules;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.lucene.util.ResourceLoader;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
 import querqy.rewrite.RewriterFactory;
@@ -155,7 +155,8 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     }
 
     @Override
-    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration,
+                                                                      final ResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
         final Map<Object, Object> conf = new HashMap<>();

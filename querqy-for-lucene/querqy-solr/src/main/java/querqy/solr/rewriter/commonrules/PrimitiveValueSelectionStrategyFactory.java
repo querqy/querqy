@@ -1,7 +1,5 @@
 package querqy.solr.rewriter.commonrules;
 
-import org.apache.lucene.analysis.util.ResourceLoader;
-import org.apache.solr.common.util.NamedList;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.solr.FactoryAdapter;

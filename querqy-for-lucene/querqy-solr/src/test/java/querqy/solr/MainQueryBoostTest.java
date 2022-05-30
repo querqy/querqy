@@ -136,15 +136,18 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='1'][contains(.,'idf')]",
                 // uq.boost=70 * f1^10 * (1.2 + 1) // BM25Similarity.k1 +1:
-                "//str[@name='1'][contains(.,'1540.0 = boost')]",
+                "//str[@name='1'][contains(.,'700.0 = boost')]",
                 "//str[@name='1'][contains(.,'0.0 = FunctionQuery(AdditiveBoostFunction(100.0,query(+(f1:u100^10.0 | " +
-                        "f2:u100^2.0),def=0.0))')]",
+                        "f2:u100^2.0),def=0.0))')] or //str[@name='1'][contains(.,'0.0 = FunctionQuery(" +
+                        "AdditiveBoostFunction(100.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0))')]",
                 "//str[@name='2'][contains(.,'idf')]",
-                "//str[@name='2'][contains(.,'1540.0 = boost')]", // uq.boost=70 * f1^10 * (1.2 + 1)
+                "//str[@name='2'][contains(.,'700.0 = boost')]", // uq.boost=70 * f1^10 * (1.2 + 1)
                 "//str[@name='2'][not(contains(.,'AdditiveBoostFunction(100.0,query(+(f1:u100^10.0 | f2:u100^2.0)," +
-                        "def=0.0)=0.0'))]",
+                        "def=0.0)=0.0'))] or //str[@name='2'][not(contains(.,'" +
+                        "AdditiveBoostFunction(100.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0)=0.0'))]",
                 "//str[@name='2'][contains(.,'AdditiveBoostFunction(100.0,query(+(f1:u100^10.0 | f2:u100^2.0)," +
-                        "def=0.0)')]");
+                        "def=0.0)')] or //str[@name='2'][contains(.,'" +
+                        "AdditiveBoostFunction(100.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0)')]");
         req.close();
     }
 
@@ -167,14 +170,16 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='1'][contains(.,'idf')]",
-                "//str[@name='1'][contains(.,'1760.0 = boost')]", // uq.boost=80 * f1^10 * (1.2 + 1) (BM25.k1 + 1)
+                "//str[@name='1'][contains(.,'800.0 = boost')]", // uq.boost=80 * f1^10
                 "//str[@name='2'][contains(.,'idf')]",
-                "//str[@name='2'][contains(.,'1760.0 = boost')]", // uq.boost=80 * f1^10 * (1.2 + 1)
+                "//str[@name='2'][contains(.,'800.0 = boost')]", // uq.boost=80 * f1^10
                 // 300 = UP(100) * qboost.weight=3
                 "//str[@name='2'][contains(.,'AdditiveBoostFunction(300.0,query(+(f1:u100^10.0 | f2:u100^2.0)," +
-                        "def=0.0)')]",
+                        "def=0.0)')] or //str[@name='2'][contains(.,'" +
+                        "AdditiveBoostFunction(300.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0)')]",
                 "//str[@name='2'][not(contains(.,'AdditiveBoostFunction(300.0,query(+(f1:u100^10.0 | f2:u100^2.0)," +
-                        "def=0.0)=0'))]");
+                        "def=0.0)=0'))] or //str[@name='2'][not(contains(.,'" +
+                        "AdditiveBoostFunction(300.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0)=0'))]");
         req.close();
     }
 
@@ -201,11 +206,13 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 "//str[@name='1'][contains(.,'80.0 = queryBoost')]", // uq.boost=80
                 "//str[@name='1'][contains(.,'10.0 = fieldBoost')]", // f1^10
                 "//str[@name='1'][contains(.,'0.0 = AdditiveBoostFunction(300.0,query(+(f1:u100^10.0 | f2:u100^2.0)," +
-                        "def=0.0)=0.0)')]",
+                        "def=0.0)=0.0)')] or //str[@name='1'][contains(.,'0.0 = " +
+                        "AdditiveBoostFunction(300.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0)=0.0)')]",
 
                 // boost = (QBOOST_WEIGHT = 3) * UP(100) = 300 * similarity score (should not end in .0)
                 "//str[@name='2'][contains(.,'AdditiveBoostFunction(300.0,query(+(f1:u100^10.0 | f2:u100^2.0)," +
-                        "def=0.0)')]",
+                        "def=0.0)')] or //str[@name='2'][contains(.,'" +
+                        "AdditiveBoostFunction(300.0,query(+(f2:u100^2.0 | f1:u100^10.0),def=0.0)')]",
                 "//str[@name='2'][not(substring(.,string-length(.) - 2) = '0)')]",
                 // similarity is on for boost
                 "//str[@name='2'][contains(.,'800.0 = product of')]",
@@ -404,13 +411,17 @@ public class MainQueryBoostTest extends SolrTestCaseJ4 {
                 req,
                 "//result[@name='response'][@numFound='2']",
                 "//str[@name='6'][contains(.,'5.0 = AdditiveBoostFunction(10.0,query(+(f1:1u10 | f2:1u10)," +
-                        "def=0.0)=1.0)')]",
+                        "def=0.0)=1.0)')] or //str[@name='6'][contains(.,'5.0 = " +
+                        "AdditiveBoostFunction(10.0,query(+(f2:1u10 | f1:1u10),def=0.0)=1.0)')]",
                 "//str[@name='6'][contains(.,'5.0 = AdditiveBoostFunction(-10.0,query(+(f1:1d10 f2:1d10)," +
-                        "def=0.0)=1.0)')]",
+                        "def=0.0)=1.0)')] or //str[@name='6'][contains(.,'5.0 = " +
+                        "AdditiveBoostFunction(-10.0,query(+(f2:1d10 f1:1d10),def=0.0)=1.0)')]",
                 "//str[@name='7'][contains(.,'0.0 = AdditiveBoostFunction(10.0,query(+(f1:1u10 | f2:1u10)," +
-                        "def=0.0)=0.0)')]",
+                        "def=0.0)=0.0)')] or //str[@name='7'][contains(.,'0.0 = " +
+                        "AdditiveBoostFunction(10.0,query(+(f2:1u10 | f1:1u10),def=0.0)=0.0)')]",
                 "//str[@name='7'][contains(.,'10.0 = AdditiveBoostFunction(-10.0,query(+(f1:1d10 f2:1d10)," +
-                        "def=0.0)=0.0)')]"
+                        "def=0.0)=0.0)')] or //str[@name='7'][contains(.,'10.0 = " +
+                        "AdditiveBoostFunction(-10.0,query(+(f2:1d10 f1:1d10),def=0.0)=0.0)')]"
         );
         req.close();
     }

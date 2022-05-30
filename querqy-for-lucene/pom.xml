@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>5.5.lucene810.0-SNAPSHOT</version>
+    <version>5.4.lucene900.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -93,8 +93,8 @@
         <skipITs>true</skipITs>
 
         <querqy.core.version>3.14.0</querqy.core.version>
-        <lucene.version>8.1.0</lucene.version>
-        <commons.io.version>2.5</commons.io.version>
+        <lucene.version>9.0.0</lucene.version>
+        <commons.io.version>2.11.0</commons.io.version>
 
     </properties>
 
@@ -145,7 +145,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene80</tests.codec>
+                        <tests.codec>Lucene90</tests.codec>
                         <java.security.egd>file:/dev/./urandom</java.security.egd>
                     </systemPropertyVariables>
                 </configuration>
@@ -158,8 +158,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
+                        <release>11</release>
                         <showDeprecation>true</showDeprecation>
                     </configuration>
                 </plugin>

@@ -95,36 +95,6 @@ public class TermBoostQueryTest extends LuceneTestCase {
     }
 
     @Test
-    public void testExtractTerms() throws Exception {
-
-        Analyzer analyzer = new MockAnalyzer(random());
-
-        Directory directory = newDirectory();
-        RandomIndexWriter indexWriter = new RandomIndexWriter(random(), directory, analyzer);
-
-        TestUtil.addNumDocsWithStringField("f1", "v1", indexWriter, 1);
-
-        indexWriter.close();
-
-
-        IndexReader indexReader = DirectoryReader.open(directory);
-        IndexSearcher indexSearcher = newSearcher(indexReader);
-
-        final Set<Term> terms = new HashSet<>();
-        final Term term = new Term("f1", "v1");
-        new FieldBoostTermQueryBuilder.FieldBoostTermQuery(term, new ConstantFieldBoost(1f))
-                .createWeight(indexSearcher, ScoreMode.COMPLETE, 1f)
-                .extractTerms(terms);
-
-        assertTrue(terms.contains(term));
-
-        indexReader.close();
-        directory.close();
-        analyzer.close();
-
-    }
-
-    @Test
     public void testThatSimilarityIsNotUsedForCollectionStats() throws Exception {
 
         ConstantFieldBoost fieldBoost = new ConstantFieldBoost(1f);

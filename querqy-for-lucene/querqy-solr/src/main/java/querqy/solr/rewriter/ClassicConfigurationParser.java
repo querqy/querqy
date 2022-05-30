@@ -1,6 +1,6 @@
 package querqy.solr.rewriter;
 
-import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.lucene.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 import querqy.solr.SolrRewriterFactoryAdapter;
 

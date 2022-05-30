@@ -54,8 +54,9 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
         
         assertQ("Boost factors are not applied to terms", 
                 req, 
-                "//str[@name='parsedquery'][contains(.,'f1:a^10.0 | f2:a^200.0 | f1:b^4.0 | f2:b^80.0')]",
-                "//str[@name='parsedquery'][contains(.,'f1:c^10.0 | f2:c^200.0')]");
+                "//str[@name='parsedquery'][contains(.,'f1:a^10.0') and contains(.,'f2:a^200.0') and " +
+                        "contains(.,'f1:b^4.0') and contains(.,'f2:b^80.0')]",
+                "//str[@name='parsedquery'][contains(.,'f1:c^10.0 | f2:c^200.0') or contains(.,'f2:c^200.0 | f1:c^10.0')]");
         req.close();
         
         SolrQueryRequest  req2 = req("q", q,
@@ -70,8 +71,10 @@ public class SolrTermQueryCacheBoostFactorTest extends SolrTestCaseJ4 {
           
         assertQ("Boost factors are not applied to terms", 
                 req2, 
-                "//str[@name='parsedquery'][contains(.,'f1:a^88.0 | f2:a^1600.0 | f1:b^22.0 | f2:b^400.0')]",
-                "//str[@name='parsedquery'][contains(.,'f1:c^88.0 | f2:c^1600.0')]");
+                "//str[@name='parsedquery'][contains(.,'f1:a^88.0') and contains(.,'f2:a^1600.0') and " +
+                        "contains(.,'f1:b^22.0') and contains(.,'f2:b^400.0')]",
+                "//str[@name='parsedquery'][contains(.,'f1:c^88.0 | f2:c^1600.0') or " +
+                        "contains(.,'f2:c^1600.0 | f1:c^88.0')]");
         
         // make sure we've hit the cache
         SolrQueryRequest reqStats = req(

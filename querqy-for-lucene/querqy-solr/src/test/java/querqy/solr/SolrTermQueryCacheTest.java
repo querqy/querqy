@@ -83,7 +83,7 @@ public class SolrTermQueryCacheTest extends SolrTestCaseJ4 {
         assertQ("Missing querqy cache",
                 reqStats,
               "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                      + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
+                      + "/lst[@name='stats']/int[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
         reqStats.close();
         
@@ -117,7 +117,7 @@ public class SolrTermQueryCacheTest extends SolrTestCaseJ4 {
           assertQ("Missing querqy cache",
                   reqStats2,
                 "//lst[@name='CACHE']/lst[@name='querqyTermQueryCache']"
-                        + "/lst[@name='stats']/long[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
+                        + "/lst[@name='stats']/int[@name='CACHE.searcher.querqyTermQueryCache.size'][text()='2']");
 
           reqStats2.close();
     }

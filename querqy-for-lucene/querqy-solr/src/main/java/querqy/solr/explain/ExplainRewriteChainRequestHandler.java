@@ -6,6 +6,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.metrics.SolrMetricsContext;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
@@ -144,5 +145,14 @@ public class ExplainRewriteChainRequestHandler implements SolrRequestHandler {
     @Override
     public Category getCategory() {
         return Category.OTHER;
+    }
+
+    @Override
+    public void initializeMetrics(final SolrMetricsContext parentContext, final String scope) {
+    }
+
+    @Override
+    public SolrMetricsContext getSolrMetricsContext() {
+        return null;
     }
 }

@@ -112,6 +112,11 @@ public abstract class RewriterConfigRequestBuilder {
         }
 
         @Override
+        public String getRequestType() {
+            return SolrRequestType.UNSPECIFIED.toString();
+        }
+
+        @Override
         public SolrParams getParams() {
             return SAVE.params();
         }
@@ -147,6 +152,11 @@ public abstract class RewriterConfigRequestBuilder {
         }
 
         @Override
+        public String getRequestType() {
+            return SolrRequestType.UNSPECIFIED.toString();
+        }
+
+        @Override
         public SolrParams getParams() {
             return DELETE.params();
         }
@@ -165,6 +175,11 @@ public abstract class RewriterConfigRequestBuilder {
         }
 
         @Override
+        public String getRequestType() {
+            return SolrRequestType.UNSPECIFIED.toString();
+        }
+
+        @Override
         public SolrParams getParams() {
             return GET.params();
         }
@@ -180,6 +195,11 @@ public abstract class RewriterConfigRequestBuilder {
 
         public ListRewriterConfigsSolrRequest(final String requestHandlerName) {
             super(SolrRequest.METHOD.GET, requestHandlerName);
+        }
+
+        @Override
+        public String getRequestType() {
+            return SolrRequestType.UNSPECIFIED.toString();
         }
 
         @Override

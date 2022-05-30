@@ -1,6 +1,7 @@
 package querqy.lucene.rewrite.prms;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +75,7 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
-        List<Query> disjuncts = dmq.getDisjuncts();
+        List<Query> disjuncts = new ArrayList<>(dmq.getDisjuncts());
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);
@@ -108,7 +109,10 @@ public class PRMSFieldBoostTest extends LuceneTestCase {
         float bf1 = capturedBoosts.get(0);
         float bf2 = capturedBoosts.get(1);
 
-        assertEquals(2f, bf2 / bf1, 0.00001);
+        final String field1 = ((DependentTermQueryBuilder.DependentTermQuery) disjunct1).getTerm().field();
+        // Dismax clauses are a set - we have no guarantee about order -> identify by field name
+
+        assertEquals("f1".equals(field1) ? 2f : 0.5f, bf2 / bf1, 0.00001);
 
         indexReader.close();
         directory.close();

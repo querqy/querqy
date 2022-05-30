@@ -1,5 +1,6 @@
 package querqy.lucene.rewrite.prms;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         assertTrue(query instanceof DisjunctionMaxQuery);
         
         DisjunctionMaxQuery dmq = (DisjunctionMaxQuery) query;
-        List<Query> disjuncts = dmq.getDisjuncts();
+        List<Query> disjuncts = new ArrayList<>(dmq.getDisjuncts());
         assertEquals(2, disjuncts.size());
         
         Query disjunct1 = disjuncts.get(0);
@@ -146,7 +147,12 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         // capturedBoosts = boosts of [dmq1.term1, dmq1.term2, dmq2.term1, dmq2.term2 ]
         assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);
         assertEquals(capturedBoosts.get(2), capturedBoosts.get(3), 0.00001);
-        assertEquals(0.8f / 0.6f, capturedBoosts.get(0) / capturedBoosts.get(3), 0.00001);
+
+        // Dismax clauses are a set - we have no guarantee about order
+        float ratio = capturedBoosts.get(0) /  capturedBoosts.get(3);
+
+        assertEquals(ratio > 1f ? 0.8f / 0.6f : 0.6f / 0.8f, capturedBoosts.get(0) / capturedBoosts.get(3),
+                0.00001);
 
         indexReader.close();
         directory.close();

@@ -108,54 +108,5 @@ public class QuerqyDismaxQParserTest {
 
     }
 
-    @Test
-    public void testThatInterdependentLuceneQueriesWillNotBeCachedSeparately() throws Exception {
-
-        when(request.getSchema()).thenReturn(schema);
-        when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
-
-        final ModifiableSolrParams solrParams = new ModifiableSolrParams();
-        solrParams.add("qf", "f1");
-
-        final ModifiableSolrParams localParams = new ModifiableSolrParams();
-        localParams.add(CommonParams.CACHE, "sep");
-
-        final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
-                querqyParser, rewriteChain, infoLogging, null);
-        parser.luceneQueries = new LuceneQueries(new MatchAllDocsQuery(), Collections.emptyList(),
-                Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), null, true, false);
-        parser.applyLocalParams();
-
-        final Query query = parser.getQuery();
-        Assert.assertFalse(query instanceof ExtendedQuery);
-    }
-
-    @Test
-    public void testThatNonInterdependentLuceneQueriesCanBeCachedSeparately() throws Exception {
-
-        when(request.getSchema()).thenReturn(schema);
-        when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-
-        final ModifiableSolrParams solrParams = new ModifiableSolrParams();
-        solrParams.add("qf", "f1");
-
-        final ModifiableSolrParams localParams = new ModifiableSolrParams();
-        localParams.add(CommonParams.CACHE, "sep");
-
-        final QuerqyDismaxQParser parser = new QuerqyDismaxQParser("*:*", localParams, solrParams, request,
-                querqyParser, rewriteChain, infoLogging, null);
-        parser.luceneQueries = new LuceneQueries(new MatchAllDocsQuery(), Collections.emptyList(),
-                Collections.singletonList(new MatchAllDocsQuery()), new MatchAllDocsQuery(), null, false, false);
-        parser.applyLocalParams();
-
-        final Query query = parser.getQuery();
-        Assert.assertTrue(query instanceof ExtendedQuery);
-
-        final ExtendedQuery extendedQuery = (ExtendedQuery) query;
-        Assert.assertTrue(extendedQuery.getCache());
-        Assert.assertTrue(extendedQuery.getCacheSep());
-
-    }
 
 }

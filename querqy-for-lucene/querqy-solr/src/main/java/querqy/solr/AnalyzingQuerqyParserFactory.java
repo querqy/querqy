@@ -2,7 +2,7 @@ package querqy.solr;
 
 import com.google.common.base.Preconditions;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.lucene.util.ResourceLoader;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -20,7 +20,7 @@ public class AnalyzingQuerqyParserFactory implements SolrQuerqyParserFactory {
     protected String queryParsingFieldType = null;
 
     @Override
-    public void init(@SuppressWarnings("rawtypes") NamedList parserConfig, ResourceLoader loader) throws SolrException {
+    public void init(final @SuppressWarnings("rawtypes") NamedList parserConfig, final ResourceLoader loader) throws SolrException {
 
         synonymsfieldType = (String) parserConfig.get("synonymFieldType");
         queryParsingFieldType = (String) parserConfig
