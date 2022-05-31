@@ -31,13 +31,13 @@
             <scope>test</scope>
         </dependency>
 
-      <!--  <dependency>
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons.io.version}</version>
             <scope>provided</scope>
         </dependency>
--->
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>querqy-lucene</artifactId>
@@ -53,6 +53,10 @@
                 <exclusion>
                     <groupId>com.jayway.jsonpath</groupId>
                     <artifactId>json-path</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
                 </exclusion>
 
             </exclusions>
