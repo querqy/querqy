@@ -1,5 +1,6 @@
 package querqy.solr;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static querqy.solr.utils.JsonUtil.*;
 
 import org.apache.solr.cloud.ZkController;
@@ -163,7 +164,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         try {
 
-            final byte[] infoData = new RewriterStorageInfo(uuids, dataDirectory).toJsonString().getBytes();
+            final byte[] infoData = new RewriterStorageInfo(uuids, dataDirectory).toJsonString().getBytes(UTF_8);
 
             if (stat == null) {
 

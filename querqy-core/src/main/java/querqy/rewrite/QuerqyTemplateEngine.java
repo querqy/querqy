@@ -1,5 +1,7 @@
 package querqy.rewrite;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -105,7 +107,7 @@ public class QuerqyTemplateEngine {
                     writeLine(outputStream, line, originalLineNumberMapping.get(lineNumber), lineNumberMapping);
                 }
             }
-            return new RenderedRules(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray())),
+            return new RenderedRules(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()), UTF_8),
                     lineNumberMapping);
         }
     }
@@ -123,7 +125,7 @@ public class QuerqyTemplateEngine {
                            final String line,
                            final int originalLineNumber,
                            final Map<Integer, Integer> lineNumberMapping) throws IOException {
-        outputStream.write(line.getBytes());
+        outputStream.write(line.getBytes(UTF_8));
         outputStream.write(LINE_BREAK);
         lineNumberMapping.put(lineNumberMapping.size() + 1, originalLineNumber);
     }
@@ -234,13 +236,13 @@ public class QuerqyTemplateEngine {
 
                     this.templates.put(templateName, new Template(templateName, parameters, templateBody));
                 } else {
-                    outputStream.write(line.getBytes());
+                    outputStream.write(line.getBytes(UTF_8));
                     outputStream.write(LINE_BREAK);
                     lineNumberMapping.put(lineNumberMapping.size() + 1, lineNumber);
                 }
             }
 
-            return new RenderedRules(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray())),
+            return new RenderedRules(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()), UTF_8),
                     lineNumberMapping);
         }
     }

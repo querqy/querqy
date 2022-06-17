@@ -1,5 +1,6 @@
 package querqy.lucene;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,7 +46,7 @@ public class GZIPAwareResourceLoaderTest {
 
         final GZIPAwareResourceLoader loader = new GZIPAwareResourceLoader(resourceLoader);
         try (final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(loader.openResource("some_name")))) {
+                new InputStreamReader(loader.openResource("some_name"), UTF_8))) {
             assertEquals("HELLO QUERQY!", reader.readLine());
             assertNull(reader.readLine());
         }
@@ -62,7 +63,7 @@ public class GZIPAwareResourceLoaderTest {
 
         final GZIPAwareResourceLoader loader = new GZIPAwareResourceLoader(resourceLoader);
         try (final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(loader.openResource("some_name")))) {
+                new InputStreamReader(loader.openResource("some_name"), UTF_8))) {
 
             assertEquals("HELLO, I wasn't zipped!", reader.readLine());
             assertNull(reader.readLine());

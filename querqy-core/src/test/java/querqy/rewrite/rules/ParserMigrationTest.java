@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod.ADDITIVE;
 
@@ -173,7 +174,7 @@ public class ParserMigrationTest {
 
     private Reader reader(final String filePath) {
         final InputStream is = getClass().getClassLoader().getResourceAsStream(BASE_PATH + filePath);
-        return new BufferedReader(new InputStreamReader(is));
+        return new BufferedReader(new InputStreamReader(is, UTF_8));
     }
 
 
