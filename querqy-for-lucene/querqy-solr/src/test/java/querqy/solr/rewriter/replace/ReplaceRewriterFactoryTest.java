@@ -248,33 +248,13 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
     }
     
     @Test
-    public void testThatNonUtf8EncodedRulesAreParsed() throws NoSuchFieldException, IllegalAccessException {
-        resetCachedDefaultCharsetConstant();
-        
-        String previousFileEncodingSystemPropertyValue = System.getProperty("file.encoding");
-        System.setProperty("file.encoding", "US-ASCII");
-        
-        try {
-            String rules = "veľkostná; veľkostné => velkostna";
-            Map<String, Object> params = Map.of(
-                    CONF_RULES, rules,
-                    CONF_INPUT_DELIMITER, ";"
-            );
-            Assertions.assertThat(factory.validateConfiguration(params)).isNull();
-        } finally {
-            resetCachedDefaultCharsetConstant();
-            if (previousFileEncodingSystemPropertyValue == null) {
-                System.clearProperty("file.encoding");
-            } else {
-                System.setProperty("file.encoding", previousFileEncodingSystemPropertyValue);
-            }
-        }
+    public void testThatNonUtf8EncodedRulesAreParsed() {
+        // issue-346: fails when Strings are parsed with US-ASCII system default
+        String rules = "veľkostná; veľkostné => velkostna";
+        Map<String, Object> params = Map.of(
+                CONF_RULES, rules,
+                CONF_INPUT_DELIMITER, ";"
+        );
+        Assertions.assertThat(factory.validateConfiguration(params)).isNull();
     }
-    
-    private static void resetCachedDefaultCharsetConstant() throws NoSuchFieldException, IllegalAccessException {
-        Field charset = Charset.class.getDeclaredField("defaultCharset");
-        charset.setAccessible(true);
-        charset.set(null, null);
-    }     
-        
 }
