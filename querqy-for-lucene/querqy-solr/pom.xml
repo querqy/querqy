@@ -122,6 +122,9 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <excludedGroups>querqy.solr.it.IntegrationTest</excludedGroups>
+                    <!-- Use narrow US-ASCII as default Java character set (via file.encoding system property)
+                         to increase the chance of catching code that relies on the JDK default encoding -->
+                    <argLine>-Dfile.encoding=US-ASCII</argLine>
                 </configuration>
             </plugin>
 
