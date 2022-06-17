@@ -1,5 +1,7 @@
 package querqy.rewrite.experimental;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import querqy.model.ExpandedQuery;
 import querqy.model.convert.builder.ExpandedQueryBuilder;
 import querqy.parser.QuerqyParser;
@@ -74,11 +76,11 @@ public class QueryRewritingHandler {
 
         // TODO: Replace these methods by a method addRewriterFactoryBuilder(...) and by builders in the respective
         //  factories
-        public QueryRewritingHandler.Builder addReplaceRewriter(final String config) throws IOException {
+        public QueryRewritingHandler.Builder addReplaceRewriter(final String rules) throws IOException {
             final String rewriterId = "querqy_replace_" + this.rewriterIdCounter++;
             rewriterFactories.add(new ReplaceRewriterFactory(
                     rewriterId,
-                    new InputStreamReader(new ByteArrayInputStream(config.getBytes())),
+                    new InputStreamReader(new ByteArrayInputStream(rules.getBytes(UTF_8)), UTF_8),
                     true,
                     "\t",
                     new WhiteSpaceQuerqyParserFactory().createParser()));
@@ -86,11 +88,11 @@ public class QueryRewritingHandler {
             return this;
         }
 
-        public QueryRewritingHandler.Builder addCommonRulesRewriter(final String config) throws IOException {
+        public QueryRewritingHandler.Builder addCommonRulesRewriter(final String rules) throws IOException {
             final String rewriterId = "querqy_commonrules_" + this.rewriterIdCounter++;
             rewriterFactories.add(new SimpleCommonRulesRewriterFactory(
                     rewriterId,
-                    new StringReader(config),
+                    new StringReader(rules),
                     true,
                     BoostMethod.ADDITIVE,
                     new WhiteSpaceQuerqyParserFactory(),

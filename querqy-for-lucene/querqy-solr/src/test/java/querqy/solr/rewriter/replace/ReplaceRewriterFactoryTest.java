@@ -14,6 +14,8 @@ import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.solr.StandaloneSolrTestSupport;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -244,4 +246,35 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
         Assertions.assertThat(rewriterFactory).isInstanceOf(querqy.rewrite.contrib.ReplaceRewriterFactory.class);
         Assertions.assertThat(factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG))).isNull();
     }
+    
+    @Test
+    public void testThatNonUtf8EncodedRulesAreParsed() throws NoSuchFieldException, IllegalAccessException {
+        resetCachedDefaultCharsetConstant();
+        
+        String previousFileEncodingSystemPropertyValue = System.getProperty("file.encoding");
+        System.setProperty("file.encoding", "US-ASCII");
+        
+        try {
+            String rules = "veľkostná; veľkostné => velkostna";
+            Map<String, Object> params = Map.of(
+                    CONF_RULES, rules,
+                    CONF_INPUT_DELIMITER, ";"
+            );
+            Assertions.assertThat(factory.validateConfiguration(params)).isNull();
+        } finally {
+            resetCachedDefaultCharsetConstant();
+            if (previousFileEncodingSystemPropertyValue == null) {
+                System.clearProperty("file.encoding");
+            } else {
+                System.setProperty("file.encoding", previousFileEncodingSystemPropertyValue);
+            }
+        }
+    }
+    
+    private static void resetCachedDefaultCharsetConstant() throws NoSuchFieldException, IllegalAccessException {
+        Field charset = Charset.class.getDeclaredField("defaultCharset");
+        charset.setAccessible(true);
+        charset.set(null, null);
+    }     
+        
 }
