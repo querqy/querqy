@@ -15,4 +15,7 @@ public class PropertySkeletonInput {
     private String rawInput;
     private String strippedInput;
 
+    // make javadoc happy when working with Lombok
+    public static class Builder {}
+
 }

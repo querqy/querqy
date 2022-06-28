@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuerqyTemplateEngineTest {
@@ -92,7 +93,7 @@ public class QuerqyTemplateEngineTest {
     }
 
     private Reader resource(String resourceName) {
-        return new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
+        return new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName), UTF_8);
     }
 
     private List<String> list(Reader reader) throws IOException {

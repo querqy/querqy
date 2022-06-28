@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplaceRewriterParserTest {
@@ -101,7 +102,7 @@ public class ReplaceRewriterParserTest {
     }
 
     private ReplaceRewriterParser createParser(String rules, boolean ignoreCase) {
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes(UTF_8)), UTF_8);
         return new ReplaceRewriterParser(
                 input, ignoreCase, "\t", new WhiteSpaceQuerqyParser());
     }
@@ -128,7 +129,7 @@ public class ReplaceRewriterParserTest {
                 + " abc* => ae \n"
                 + " ab* => af \n";
 
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(rules.getBytes(UTF_8)), UTF_8);
         ReplaceRewriterParser replaceRewriterParser = new ReplaceRewriterParser(
                 input, true, "\t", new WhiteSpaceQuerqyParser());
 

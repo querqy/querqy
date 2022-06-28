@@ -14,6 +14,8 @@ import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.solr.StandaloneSolrTestSupport;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -243,5 +245,16 @@ public class ReplaceRewriterFactoryTest extends SolrTestCaseJ4 {
 
         Assertions.assertThat(rewriterFactory).isInstanceOf(querqy.rewrite.contrib.ReplaceRewriterFactory.class);
         Assertions.assertThat(factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG))).isNull();
+    }
+    
+    @Test
+    public void testThatNonUtf8EncodedRulesAreParsed() {
+        // issue-346: fails when Strings are parsed with US-ASCII system default
+        String rules = "veľkostná; veľkostné => velkostna";
+        Map<String, Object> params = Map.of(
+                CONF_RULES, rules,
+                CONF_INPUT_DELIMITER, ";"
+        );
+        Assertions.assertThat(factory.validateConfiguration(params)).isNull();
     }
 }

@@ -1,5 +1,7 @@
 package querqy.solr.rewriter.commonrules;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
@@ -56,7 +58,7 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
     }
 
     public CommonRulesConfigRequestBuilder rules(final InputStream inputStream) throws IOException {
-        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
             rules = reader.lines().collect(Collectors.joining("\n"));
         }
         return this;

@@ -1,5 +1,6 @@
 package querqy.lucene;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -10,7 +11,6 @@ import org.apache.lucene.analysis.util.ResourceLoader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.BufferedReader;
@@ -18,8 +18,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringReader;
 import java.nio.charset.Charset;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,7 +47,7 @@ public class GZIPAwareResourceLoaderTest {
 
         final GZIPAwareResourceLoader loader = new GZIPAwareResourceLoader(resourceLoader);
         try (final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(loader.openResource("some_name")))) {
+                new InputStreamReader(loader.openResource("some_name"), UTF_8))) {
             assertEquals("HELLO QUERQY!", reader.readLine());
             assertNull(reader.readLine());
         }
@@ -66,7 +64,7 @@ public class GZIPAwareResourceLoaderTest {
 
         final GZIPAwareResourceLoader loader = new GZIPAwareResourceLoader(resourceLoader);
         try (final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(loader.openResource("some_name")))) {
+                new InputStreamReader(loader.openResource("some_name"), UTF_8))) {
 
             assertEquals("HELLO, I wasn't zipped!", reader.readLine());
             assertNull(reader.readLine());

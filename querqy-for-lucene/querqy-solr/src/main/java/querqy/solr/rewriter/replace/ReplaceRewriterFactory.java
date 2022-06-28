@@ -45,7 +45,7 @@ public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter implement
     @Override
     public void configure(final Map<String, Object> config) {
         final String rules = (String) config.get(CONF_RULES);
-        final InputStreamReader rulesReader = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        final InputStreamReader rulesReader = new InputStreamReader(new ByteArrayInputStream(rules.getBytes(UTF_8)), UTF_8);
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, DEFAULT_IGNORE_CASE);
 
@@ -70,7 +70,7 @@ public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter implement
             return Collections.singletonList("Property '" + CONF_RULES + "' not configured");
         }
 
-        final InputStreamReader rulesReader = new InputStreamReader(new ByteArrayInputStream(rules.getBytes()));
+        final InputStreamReader rulesReader = new InputStreamReader(new ByteArrayInputStream(rules.getBytes(UTF_8)), UTF_8);
 
         final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, DEFAULT_IGNORE_CASE);
 
@@ -100,7 +100,8 @@ public class ReplaceRewriterFactory extends SolrRewriterFactoryAdapter implement
     }
 
     @Override
-    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration, final ResourceLoader resourceLoader) throws RuntimeException {
+    public Map<String, Object> parseConfigurationToRequestHandlerBody(final NamedList<Object> configuration,
+                                                                      final ResourceLoader resourceLoader) throws RuntimeException {
 
         final Map<String, Object> result = new HashMap<>();
         final Map<Object, Object> conf = new HashMap<>();

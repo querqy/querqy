@@ -1,5 +1,7 @@
 package querqy.solr.rewriter.replace;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.solr.RewriterConfigRequestBuilder;
 
@@ -57,7 +59,7 @@ public class ReplaceConfigRequestBuilder extends RewriterConfigRequestBuilder {
     }
 
     public ReplaceConfigRequestBuilder rules(final InputStream inputStream) throws IOException {
-        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
             rules = reader.lines().collect(Collectors.joining("\n"));
         }
         return this;

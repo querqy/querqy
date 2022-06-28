@@ -1,5 +1,6 @@
 package querqy.rewrite.commonrules;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.not;
@@ -44,7 +45,7 @@ public class SimpleParserTest extends AbstractCommonRulesTest {
     }
 
     SimpleCommonRulesParser createParserFromResource(String resourceName, boolean ignoreCase) {
-        reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName));
+        reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName), UTF_8);
         return new SimpleCommonRulesParser(reader, true, querqyParserFactory, ignoreCase, BoostMethod.ADDITIVE);
     }
 

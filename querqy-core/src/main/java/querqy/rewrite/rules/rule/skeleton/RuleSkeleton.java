@@ -42,4 +42,7 @@ public class RuleSkeleton {
 
         return RuleSkeleton.of(inputSkeleton, instructionSkeletons, properties);
     }
+
+    // make javadoc happy when working with Lombok
+    public static class RuleSkeletonBuilder {}
 }

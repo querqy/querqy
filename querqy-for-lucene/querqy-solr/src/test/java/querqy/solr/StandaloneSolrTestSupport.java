@@ -1,5 +1,6 @@
 package querqy.solr;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.*;
 
 import org.apache.solr.common.util.ContentStreamBase;
@@ -155,7 +156,7 @@ public interface StandaloneSolrTestSupport {
     static String resourceToString(final String resourceName) throws IOException {
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(
                 Objects.requireNonNull(StandaloneSolrTestSupport.class.getClassLoader()
-                        .getResourceAsStream(resourceName))))) {
+                        .getResourceAsStream(resourceName)), UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));
         }
     }
