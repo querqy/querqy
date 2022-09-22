@@ -9,11 +9,17 @@
 
 # Querqy
 
-Querqy is a framework for query preprocessing in Java-based search engines. 
+Querqy is a framework for query preprocessing in Java-based search engines.
+
+This is the repository for `querqy-core`, `querqy-lucene` and `querqy-solr`. Repositories 
+for further Querqy integrations can be found at:
+
+* https://github.com/querqy/querqy-elasticsearch/ (Querqy for Elasticsearch)
+* https://github.com/querqy/querqy-opensearch/ (Querqy for OpenSearch)
+* https://github.com/querqy/querqy-unplugged/ (Querqy for rewriting queries outside the search engine)
 
 
 ## Documentation and 'Getting started'
-
 
 [Visit docs.querqy.org/querqy/ for detailed documentation.](https://docs.querqy.org/querqy/index.html) 
 
