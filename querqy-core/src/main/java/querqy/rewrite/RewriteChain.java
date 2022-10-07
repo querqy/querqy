@@ -12,6 +12,7 @@ import java.util.Optional;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.infologging.InfoLoggingContext;
+import querqy.model.RewrittenQuery;
 
 /**
  * The chain of rewriters to manipulate a {@link Query}.
@@ -47,7 +48,7 @@ public class RewriteChain {
     public ExpandedQuery rewrite(final ExpandedQuery query,
                                  final SearchEngineRequestAdapter searchEngineRequestAdapter) {
       
-        ExpandedQuery work = query;
+        RewrittenQuery rewrittenQuery = new RewrittenQuery(query);
 
         final Optional<InfoLoggingContext> loggingContext = searchEngineRequestAdapter.getInfoLoggingContext();
 
@@ -59,11 +60,13 @@ public class RewriteChain {
 
                 loggingContext.ifPresent(context -> context.setRewriterId(factory.getRewriterId()));
 
-                final QueryRewriter rewriter = factory.createRewriter(work, searchEngineRequestAdapter);
+                final QueryRewriter rewriter = factory.createRewriter(
+                        rewrittenQuery.getExpandedQuery(), searchEngineRequestAdapter);
 
-                work = (rewriter instanceof ContextAwareQueryRewriter)
-                        ? ((ContextAwareQueryRewriter) rewriter).rewrite(work, searchEngineRequestAdapter)
-                        : rewriter.rewrite(work);
+                rewrittenQuery = (rewriter instanceof ContextAwareQueryRewriter)
+                        ? ((ContextAwareQueryRewriter) rewriter).rewrite(
+                                rewrittenQuery.getExpandedQuery(), searchEngineRequestAdapter)
+                        : rewriter.rewrite(rewrittenQuery.getExpandedQuery());
 
             }
 
@@ -71,7 +74,7 @@ public class RewriteChain {
             loggingContext.ifPresent(context -> context.setRewriterId(oldRewriterId));
         }
 
-        return work;
+        return rewrittenQuery.getExpandedQuery();
     }
 
     @Deprecated

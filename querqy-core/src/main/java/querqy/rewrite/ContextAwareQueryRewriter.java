@@ -10,6 +10,7 @@ import querqy.model.ExpandedQuery;
  * @author René Kriegler, @renekrie
  *
  */
+@Deprecated
 public interface ContextAwareQueryRewriter extends QueryRewriter {
 
     /**
@@ -21,6 +22,6 @@ public interface ContextAwareQueryRewriter extends QueryRewriter {
      * @return The rewritten query.
      *
      */
-    ExpandedQuery rewrite(ExpandedQuery query, SearchEngineRequestAdapter searchEngineRequestAdapter);
+    // ExpandedQuery rewrite(ExpandedQuery query, SearchEngineRequestAdapter searchEngineRequestAdapter);
 
 }

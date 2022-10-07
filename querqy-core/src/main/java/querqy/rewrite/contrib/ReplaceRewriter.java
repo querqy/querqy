@@ -7,6 +7,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.ContextAwareQueryRewriter;
@@ -39,19 +40,19 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query) {
+    public RewrittenQuery rewrite(final ExpandedQuery query) {
         throw new UnsupportedOperationException("This rewriter needs a query context");
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery,
+    public RewrittenQuery rewrite(final ExpandedQuery expandedQuery,
                                  final SearchEngineRequestAdapter searchEngineRequestAdapter,
                                  final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
         if (!(querqyQuery instanceof Query)) {
-            return expandedQuery;
+            return new RewrittenQuery(expandedQuery);
         }
 
         collectedTerms = new LinkedList<>();
@@ -125,7 +126,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextA
                     collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
-        return hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery;
+        return new RewrittenQuery(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery);
     }
 
     private ExpandedQuery buildQueryFromSeqList(final ExpandedQuery oldQuery, final List<CharSequence> tokens) {
