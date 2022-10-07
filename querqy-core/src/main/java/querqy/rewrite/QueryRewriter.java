@@ -24,6 +24,15 @@ public interface QueryRewriter {
 
     RewrittenQuery rewrite(final ExpandedQuery query);
 
+    /**
+     * Rewrite the query. The caller of this method should expect that the query that was passed as an argument to this
+     * method could be modified.
+     *
+     * @param query The query to be rewritten
+     * @param searchEngineRequestAdapter Encapsulates the request context.
+     * @return The rewritten query.
+     *
+     */
     default RewrittenQuery rewrite(final ExpandedQuery query,
                                    final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return rewrite(query);

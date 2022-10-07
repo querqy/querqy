@@ -10,7 +10,7 @@ import querqy.model.Query;
 import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.rewrite.AbstractLoggingRewriter;
-import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.trie.LookupUtils;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ReplaceRewriter extends AbstractLoggingRewriter implements ContextAwareQueryRewriter {
+public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRewriter {
 
     private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
