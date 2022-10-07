@@ -12,7 +12,7 @@ import querqy.model.Query;
 import querqy.model.RawQuery;
 import querqy.model.RewrittenQuery;
 import querqy.model.Term;
-import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
 import java.util.Collection;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SnapshotRewriter implements ContextAwareQueryRewriter {
+public class SnapshotRewriter implements QueryRewriter {
 
     // Query types from Querqy's query object model
     public static final String TYPE_QUERY = "QUERY";

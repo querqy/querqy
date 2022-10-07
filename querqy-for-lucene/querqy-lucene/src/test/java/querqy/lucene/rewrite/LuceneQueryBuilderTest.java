@@ -55,7 +55,7 @@ import querqy.model.QuerqyQuery;
 import querqy.model.Term;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
@@ -158,7 +158,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                 true);
 
-        ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
+        QueryRewriter rewriter = factory.createRewriter(null,
                 searchEngineRequestAdapter);
 
 
@@ -812,7 +812,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                true);
 
-       ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
+       QueryRewriter rewriter = factory.createRewriter(null,
                searchEngineRequestAdapter);
 
        Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery());

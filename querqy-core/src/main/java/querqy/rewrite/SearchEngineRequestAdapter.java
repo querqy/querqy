@@ -9,8 +9,6 @@ import java.util.Optional;
  * A SearchEngineRequestAdapter is mainly used to pass context-specific information to
  * {@link querqy.rewrite.QueryRewriter}s while hiding search engine specifics from Querqy core.
  *
- * @see querqy.rewrite.ContextAwareQueryRewriter
- *
  */
 public interface SearchEngineRequestAdapter {
     /**
@@ -23,7 +21,6 @@ public interface SearchEngineRequestAdapter {
     /**
      * <p>Get a map to hold context information while rewriting the query.</p>
      *
-     * @see querqy.rewrite.ContextAwareQueryRewriter
      * @return A non-null context map.
      */
     Map<String, Object> getContext();

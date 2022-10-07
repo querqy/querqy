@@ -11,7 +11,7 @@ import querqy.model.Query;
 import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.rewrite.AbstractLoggingRewriter;
-import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.InputBoundary;
@@ -31,7 +31,7 @@ import java.util.Set;
  * @author rene
  *
  */
-public class CommonRulesRewriter extends AbstractLoggingRewriter implements ContextAwareQueryRewriter {
+public class CommonRulesRewriter extends AbstractLoggingRewriter implements QueryRewriter {
 
     static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
     static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);

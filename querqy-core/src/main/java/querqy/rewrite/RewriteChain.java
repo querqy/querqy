@@ -63,11 +63,7 @@ public class RewriteChain {
                 final QueryRewriter rewriter = factory.createRewriter(
                         rewrittenQuery.getExpandedQuery(), searchEngineRequestAdapter);
 
-                rewrittenQuery = (rewriter instanceof ContextAwareQueryRewriter)
-                        ? ((ContextAwareQueryRewriter) rewriter).rewrite(
-                                rewrittenQuery.getExpandedQuery(), searchEngineRequestAdapter)
-                        : rewriter.rewrite(rewrittenQuery.getExpandedQuery());
-
+                rewrittenQuery = rewriter.rewrite(rewrittenQuery.getExpandedQuery(), searchEngineRequestAdapter);
             }
 
         } finally {
