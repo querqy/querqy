@@ -7,6 +7,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
@@ -41,12 +42,12 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery expandedQuery) {
+    public RewrittenQuery rewrite(final ExpandedQuery expandedQuery) {
 
         final QuerqyQuery<?> userQuery = expandedQuery.getUserQuery();
 
         if (!(userQuery instanceof Query)){
-            return expandedQuery;
+            return new RewrittenQuery(expandedQuery);
         }
 
         final Query query = (Query) userQuery;
@@ -71,7 +72,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             expandedQuery.setUserQuery(new MatchAllQuery());
         }
 
-        return expandedQuery;
+        return new RewrittenQuery(expandedQuery);
     }
 
     @Override

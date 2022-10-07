@@ -8,6 +8,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.ContextAwareQueryRewriter;
@@ -51,12 +52,12 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query) {
+    public RewrittenQuery rewrite(final ExpandedQuery query) {
         throw new UnsupportedOperationException("This rewriter needs a query context");
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
+    public RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
                                  final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
@@ -80,7 +81,7 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Cont
             }
         }
 
-        return query;
+        return new RewrittenQuery(query);
     }
 
    @Override

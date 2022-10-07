@@ -23,6 +23,7 @@ import querqy.infologging.MultiSinkInfoLogging;
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.model.convert.builder.BoostQueryBuilder;
 import querqy.model.convert.builder.StringRawQueryBuilder;
@@ -1079,7 +1080,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                     return query -> {
                         query.setUserQuery(new MatchAllQuery());
                         query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
-                        return query;
+                        return new RewrittenQuery(query);
                     };
                 }
 
@@ -1118,7 +1119,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                     return query -> {
                         query.addMultiplicativeBoostQuery(UP_BOOST);
                         query.addMultiplicativeBoostQuery(DOWN_BOOST);
-                        return query;
+                        return new RewrittenQuery(query);
                     };
                 }
 

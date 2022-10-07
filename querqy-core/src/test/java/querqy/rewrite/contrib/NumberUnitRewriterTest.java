@@ -64,7 +64,7 @@ public class NumberUnitRewriterTest {
 
         NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
 
-        ExpandedQuery expandedQuery = numberUnitRewriter.rewrite(expanded(query).build());
+        ExpandedQuery expandedQuery = numberUnitRewriter.rewrite(expanded(query).build()).getExpandedQuery();
         BooleanQueryBuilder rewrittenQuery = bq((Query) expandedQuery.getUserQuery());
 
         assertThat(rewrittenQuery).isEqualTo(
@@ -81,7 +81,7 @@ public class NumberUnitRewriterTest {
 
         NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
 
-        ExpandedQuery expandedQuery = numberUnitRewriter.rewrite(expanded(query).build());
+        ExpandedQuery expandedQuery = numberUnitRewriter.rewrite(expanded(query).build()).getExpandedQuery();
         BooleanQueryBuilder rewrittenQuery = bq((Query) expandedQuery.getUserQuery());
 
         assertThat(rewrittenQuery).isEqualTo(

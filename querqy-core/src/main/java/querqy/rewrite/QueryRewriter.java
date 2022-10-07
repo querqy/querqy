@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
+import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 
 /**
@@ -21,6 +22,10 @@ public interface QueryRewriter {
     
     Set<Term> EMPTY_GENERABLE_TERMS = Collections.emptySet();
 
-    ExpandedQuery rewrite(ExpandedQuery query);
+    RewrittenQuery rewrite(final ExpandedQuery query);
 
+    default RewrittenQuery rewrite(final ExpandedQuery query,
+                                   final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        return rewrite(query);
+    }
 }
