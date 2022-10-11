@@ -1077,7 +1077,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 @Override
                 public QueryRewriter createRewriter(final ExpandedQuery input,
                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-                    return query -> {
+                    return (query, requestAdapter) -> {
                         query.setUserQuery(new MatchAllQuery());
                         query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
                         return new RewrittenQuery(query);
@@ -1116,7 +1116,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 @Override
                 public QueryRewriter createRewriter(final ExpandedQuery input,
                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-                    return query -> {
+                    return (query, requestAdapter) -> {
                         query.addMultiplicativeBoostQuery(UP_BOOST);
                         query.addMultiplicativeBoostQuery(DOWN_BOOST);
                         return new RewrittenQuery(query);

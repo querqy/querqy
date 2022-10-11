@@ -3,6 +3,7 @@ package querqy.rewrite.contrib;
 import querqy.CompoundCharSequence;
 import querqy.model.*;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +34,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
     }
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query) {
+    public RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery != null && userQuery instanceof Query){
             previousTerm = null;

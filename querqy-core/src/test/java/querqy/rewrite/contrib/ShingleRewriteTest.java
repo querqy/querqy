@@ -32,7 +32,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "ajk");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -55,7 +55,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -73,7 +73,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "f1", "ajk");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -96,7 +96,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "f1", "ajk", true);
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter(true);
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -119,7 +119,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "f2", "ajk");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(), bq(dmq(term("cde")), dmq(term("ajk"))));
     }
@@ -131,7 +131,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "ajk");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(), bq(dmq(term("f1", "cde")), dmq(term("ajk"))));
     }
@@ -144,7 +144,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "xyz");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -173,7 +173,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "xyz", true);
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter(true);
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -204,7 +204,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "xyz", true);
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter(false);
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -232,7 +232,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         addTerm(query, "f2", "xyz");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter();
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
                 bq(
@@ -262,7 +262,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("p1xyz t2");
         query = commonRulesRewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery();
-        query = shingleRewriter.rewrite(query).getExpandedQuery();
+        query = shingleRewriter.rewrite(query, null).getExpandedQuery();
         
         assertThat((Query) query.getUserQuery(),
                 bq(
@@ -296,7 +296,7 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
         
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
         ShingleRewriter rewriter = new ShingleRewriter(false);
-        ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
                         dmq(

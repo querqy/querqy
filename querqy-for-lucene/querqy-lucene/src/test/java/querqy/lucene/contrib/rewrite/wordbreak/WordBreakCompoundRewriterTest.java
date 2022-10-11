@@ -58,7 +58,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -86,7 +86,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -116,7 +116,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -151,7 +151,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -190,7 +190,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -230,7 +230,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -269,7 +269,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -307,7 +307,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -349,7 +349,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -387,7 +387,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -425,7 +425,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -470,7 +470,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -513,7 +513,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -536,7 +536,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery2 = new ExpandedQuery(query2);
 
-        final ExpandedQuery rewritten2 = rewriter.rewrite(expandedQuery2).getExpandedQuery();
+        final ExpandedQuery rewritten2 = rewriter.rewrite(expandedQuery2, null).getExpandedQuery();
 
         assertThat((Query) rewritten2.getUserQuery(),
                 bq(
@@ -560,7 +560,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery3 = new ExpandedQuery(query3);
 
-        final ExpandedQuery rewritten3 = rewriter.rewrite(expandedQuery3).getExpandedQuery();
+        final ExpandedQuery rewritten3 = rewriter.rewrite(expandedQuery3, null).getExpandedQuery();
 
         assertThat((Query) rewritten3.getUserQuery(),
                 bq(
@@ -604,7 +604,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery1 = new ExpandedQuery(query1);
 
-        final ExpandedQuery rewritten1 = rewriter.rewrite(expandedQuery1).getExpandedQuery();
+        final ExpandedQuery rewritten1 = rewriter.rewrite(expandedQuery1, null).getExpandedQuery();
 
         assertThat((Query) rewritten1.getUserQuery(),
                 bq(
@@ -627,7 +627,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery2 = new ExpandedQuery(query2);
 
-        final ExpandedQuery rewritten2 = rewriter.rewrite(expandedQuery2).getExpandedQuery();
+        final ExpandedQuery rewritten2 = rewriter.rewrite(expandedQuery2, null).getExpandedQuery();
 
         assertThat((Query) rewritten2.getUserQuery(),
                 bq(
@@ -673,7 +673,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -714,7 +714,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         verify(wordBreakSpellChecker).suggestWordBreaks(eq(new Term("field1", "W1w2")), anyInt(), any(), any(), any());
 
@@ -735,7 +735,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         verify(wordBreakSpellChecker).suggestWordBreaks(eq(new Term("field1", "w1w2")), anyInt(), any(), any(), any());
 
@@ -757,7 +757,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[]{
                 new Term("field1", "w1"), new Term("field1", "w2")}), anyInt(), any(), any());
@@ -780,7 +780,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        rewriter.rewrite(expandedQuery);
+        rewriter.rewrite(expandedQuery, null);
 
         verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[]{
                 new Term("field1", "W1"), new Term("field1", "W2")}), anyInt(), any(), any());
@@ -811,7 +811,7 @@ public class WordBreakCompoundRewriterTest {
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
-        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery).getExpandedQuery();
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
 
         assertThat((Query) rewritten.getUserQuery(),
                 bq(
@@ -836,7 +836,7 @@ public class WordBreakCompoundRewriterTest {
         protectedTerm.put("w1w2", true);
         WordBreakCompoundRewriter rewriterWhereW1W2IsProtected = rewriter(protectedTerm);
 
-        final ExpandedQuery rewrittenNoProtected = rewriterWithNoProtectedWords.rewrite(new ExpandedQuery(query("w1w2"))).getExpandedQuery();
+        final ExpandedQuery rewrittenNoProtected = rewriterWithNoProtectedWords.rewrite(new ExpandedQuery(query("w1w2")), null).getExpandedQuery();
 
         assertThat((Query) rewrittenNoProtected.getUserQuery(),
                 bq(
@@ -850,7 +850,7 @@ public class WordBreakCompoundRewriterTest {
                 )
         );
 
-        final ExpandedQuery rewrittenProtected = rewriterWhereW1W2IsProtected.rewrite(new ExpandedQuery(query("w1w2"))).getExpandedQuery();
+        final ExpandedQuery rewrittenProtected = rewriterWhereW1W2IsProtected.rewrite(new ExpandedQuery(query("w1w2")), null).getExpandedQuery();
 
         assertThat((Query) rewrittenProtected.getUserQuery(),
                 bq(

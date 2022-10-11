@@ -52,11 +52,6 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Quer
     }
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query) {
-        throw new UnsupportedOperationException("This rewriter needs a query context");
-    }
-
-    @Override
     public RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
                                  final Set<String> infoLogMessages) {
 
