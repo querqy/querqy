@@ -42,7 +42,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
 
         assertThat(upQueries,
               contains( 
@@ -73,7 +73,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
 
         assertThat(upQueries,
                 contains(
@@ -105,7 +105,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
 
         assertThat(upQueries,
                 contains(
@@ -137,7 +137,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
 
         assertThat(upQueries,
                 contains(
@@ -170,7 +170,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
 
         assertThat(upQueries,
                 contains(
@@ -201,7 +201,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> multiplicativeBoostQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getMultiplicativeBoostQueries();
+                .getExpandedQuery().getMultiplicativeBoostQueries();
 
         assertThat(multiplicativeBoostQueries,
                 contains(
@@ -230,7 +230,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> multiplicativeBoostQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getMultiplicativeBoostQueries();
+                .getExpandedQuery().getMultiplicativeBoostQueries();
 
         assertThat(multiplicativeBoostQueries,
                 contains(
@@ -258,7 +258,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
-        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertFalse(mainQuery.isGenerated());
 
@@ -278,7 +278,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
         for (BoostQuery bq : upQueries) {
             Assert.assertTrue(bq.getQuery() instanceof Query);
         }
@@ -304,7 +304,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
 
         Collection<BoostQuery> downQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostDownQueries();
+                .getExpandedQuery().getBoostDownQueries();
 
 
         for (BoostQuery bq : downQueries) {
@@ -333,7 +333,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
 
         Collection<BoostQuery> downQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostDownQueries();
+                .getExpandedQuery().getBoostDownQueries();
 
         assertThat(downQueries,
                 contains(
@@ -375,7 +375,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
 
         Collection<BoostQuery> downQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostDownQueries();
+                .getExpandedQuery().getBoostDownQueries();
 
         assertThat(downQueries,
                 contains(
@@ -416,7 +416,7 @@ public class BoostInstructionTest extends AbstractCommonRulesTest {
 
 
         Collection<BoostQuery> upQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getBoostUpQueries();
+                .getExpandedQuery().getBoostUpQueries();
 
         assertThat(upQueries,
                 contains(

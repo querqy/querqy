@@ -122,7 +122,7 @@ public abstract class AbstractCommonRulesTest {
     public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter,
                          SearchEngineRequestAdapter searchEngineRequestAdapter) {
         ExpandedQuery query = new ExpandedQuery(queryBuilder.buildQuerqyQuery());
-        return new BooleanQueryBuilder((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getUserQuery());
+        return new BooleanQueryBuilder((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getExpandedQuery().getUserQuery());
     }
 
     public static List<String> list(String... items) {

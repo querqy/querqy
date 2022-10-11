@@ -12,7 +12,7 @@ import java.util.Optional;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.infologging.InfoLoggingContext;
-import querqy.model.RewrittenQuery;
+import querqy.model.RewritingOutput;
 
 /**
  * The chain of rewriters to manipulate a {@link Query}.
@@ -48,7 +48,7 @@ public class RewriteChain {
     public ExpandedQuery rewrite(final ExpandedQuery query,
                                  final SearchEngineRequestAdapter searchEngineRequestAdapter) {
       
-        RewrittenQuery rewrittenQuery = new RewrittenQuery(query);
+        RewritingOutput rewrittenQuery = new RewritingOutput(query);
 
         final Optional<InfoLoggingContext> loggingContext = searchEngineRequestAdapter.getInfoLoggingContext();
 

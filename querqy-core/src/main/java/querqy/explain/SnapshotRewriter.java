@@ -10,7 +10,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.RawQuery;
-import querqy.model.RewrittenQuery;
+import querqy.model.RewritingOutput;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -55,8 +55,8 @@ public class SnapshotRewriter implements QueryRewriter {
     private Map<String, Object> snapshot;
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query,
-                                  final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public RewritingOutput rewrite(final ExpandedQuery query,
+                                   final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         snapshot = new LinkedHashMap<>();
 
@@ -125,7 +125,7 @@ public class SnapshotRewriter implements QueryRewriter {
                     .collect(Collectors.toList()));
         }
 
-        return new RewrittenQuery(query);
+        return new RewritingOutput(query);
     }
 
     public Map<String, Object> getSnapshot() {

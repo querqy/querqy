@@ -34,7 +34,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
     }
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
+    public RewritingOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery != null && userQuery instanceof Query){
             previousTerm = null;
@@ -44,7 +44,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
                 term.getParent().addClause(term);
             }
         }
-        return new RewrittenQuery(query);
+        return new RewritingOutput(query);
     }
 
     @Override
