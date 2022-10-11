@@ -162,7 +162,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                 searchEngineRequestAdapter);
 
 
-        final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery();
+        final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery();
         return builder.createQuery(userQuery);
 
     }
@@ -815,7 +815,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        QueryRewriter rewriter = factory.createRewriter(null,
                searchEngineRequestAdapter);
 
-       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery());
+       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery());
        
        assertThat(query, 
            dmq(1f, 0.1f,

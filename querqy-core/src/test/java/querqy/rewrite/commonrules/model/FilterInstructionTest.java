@@ -39,7 +39,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getFilterQueries();
+                .getExpandedQuery().getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -72,7 +72,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         ExpandedQuery query = makeQuery("x");
 
         Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getFilterQueries();
+                .getExpandedQuery().getFilterQueries();
 
         assertNotNull(filterQueries);
         assertEquals(1, filterQueries.size());
@@ -107,7 +107,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
         ExpandedQuery query = makeQuery("x");
         Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
-                .getFilterQueries();
+                .getExpandedQuery().getFilterQueries();
 
         QuerqyQuery<?> qq = filterQueries.iterator().next();
         assertTrue(qq instanceof BooleanQuery);
@@ -135,7 +135,7 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
         CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("x");
-        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
         assertFalse(mainQuery.isGenerated());
 
     }

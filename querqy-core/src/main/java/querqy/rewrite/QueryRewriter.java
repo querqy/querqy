@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.RewrittenQuery;
+import querqy.model.RewritingOutput;
 import querqy.model.Term;
 
 /**
@@ -31,5 +31,5 @@ public interface QueryRewriter {
      * @return The rewritten query.
      *
      */
-    RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter);
+    RewritingOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter);
 }

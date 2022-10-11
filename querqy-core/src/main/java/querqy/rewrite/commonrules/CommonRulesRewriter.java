@@ -8,7 +8,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
-import querqy.model.RewrittenQuery;
+import querqy.model.RewritingOutput;
 import querqy.model.Term;
 import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.QueryRewriter;
@@ -52,8 +52,8 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Quer
     }
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
-                                 final Set<String> infoLogMessages) {
+    public RewritingOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                   final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
 
@@ -76,7 +76,7 @@ public class CommonRulesRewriter extends AbstractLoggingRewriter implements Quer
             }
         }
 
-        return new RewrittenQuery(query);
+        return new RewritingOutput(query);
     }
 
    @Override
