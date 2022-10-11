@@ -128,11 +128,6 @@ public class SnapshotRewriter implements QueryRewriter {
         return new RewrittenQuery(query);
     }
 
-    @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query) {
-        throw new UnsupportedOperationException("This rewriter needs a query context");
-    }
-
     public Map<String, Object> getSnapshot() {
         return snapshot == null ? Collections.emptyMap() : snapshot;
     }

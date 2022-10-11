@@ -40,11 +40,6 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query) {
-        throw new UnsupportedOperationException("This rewriter needs a query context");
-    }
-
-    @Override
     public RewrittenQuery rewrite(final ExpandedQuery expandedQuery,
                                  final SearchEngineRequestAdapter searchEngineRequestAdapter,
                                  final Set<String> infoLogMessages) {

@@ -22,8 +22,6 @@ public interface QueryRewriter {
     
     Set<Term> EMPTY_GENERABLE_TERMS = Collections.emptySet();
 
-    RewrittenQuery rewrite(final ExpandedQuery query);
-
     /**
      * Rewrite the query. The caller of this method should expect that the query that was passed as an argument to this
      * method could be modified.
@@ -33,8 +31,5 @@ public interface QueryRewriter {
      * @return The rewritten query.
      *
      */
-    default RewrittenQuery rewrite(final ExpandedQuery query,
-                                   final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return rewrite(query);
-    }
+    RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter);
 }

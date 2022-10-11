@@ -15,6 +15,7 @@ import querqy.model.Query;
 import querqy.model.RewrittenQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     @Override
-    public RewrittenQuery rewrite(final ExpandedQuery query) {
+    public RewrittenQuery rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery instanceof Query){
             previousTerms = new ArrayDeque<>();
