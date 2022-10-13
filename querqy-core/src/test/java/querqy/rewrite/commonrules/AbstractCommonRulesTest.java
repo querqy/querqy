@@ -8,6 +8,7 @@ import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -25,6 +26,7 @@ import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.InstructionsProperties;
 import querqy.rewrite.commonrules.model.PositionSequence;
 import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
@@ -96,6 +98,15 @@ public abstract class AbstractCommonRulesTest {
         return new Rule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
     }
 
+    public Rule rule(Input.SimpleInput input, Instruction instruction, Property property) {
+        int ruleCount = ruleCounter++;
+        return new Rule(
+                input,
+                new Instructions(
+                        ruleCount, ruleCount, List.of(instruction),
+                        new InstructionsProperties(Map.of(property.getKey(), property.getValue()))));
+    }
+
     public Rule rule(Input.SimpleInput input, BooleanInputLiteral literal) {
         return new Rule(input, literal);
     }
@@ -127,6 +138,10 @@ public abstract class AbstractCommonRulesTest {
 
     public EmptySearchEngineRequestAdapter emptyAdapter() {
         return new EmptySearchEngineRequestAdapter();
+    }
+
+    public Property property(final String key, final String value) {
+        return new Property(key, value);
     }
 
     public static List<String> list(String... items) {
@@ -194,6 +209,24 @@ public abstract class AbstractCommonRulesTest {
             this.input = input;
             this.instructions = instructions;
             this.literal = literal;
+        }
+    }
+
+    public static class Property {
+        public final String key;
+        public final String value;
+
+        public Property(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getValue() {
+            return value;
         }
     }
 

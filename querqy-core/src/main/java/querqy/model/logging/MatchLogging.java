@@ -19,12 +19,16 @@ public class MatchLogging {
     }
 
     public enum MatchType {
-        EXACT("exact");
+        EXACT("exact"), PREFIX("prefix");
 
-        private final String name;
+        private final String typeName;
 
-        MatchType(final String name) {
-            this.name = name;
+        MatchType(final String typeName) {
+            this.typeName = typeName;
+        }
+
+        public String getTypeName() {
+            return typeName;
         }
     }
 

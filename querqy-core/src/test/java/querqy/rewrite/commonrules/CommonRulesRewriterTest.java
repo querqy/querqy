@@ -257,48 +257,4 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
                      
           ));    
     }
-
-    @Test
-    public void testActionsAreLoggedInContext() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstructionA = new SynonymInstruction(singletonList(mkTerm("aSynonym")));
-        SynonymInstruction synInstructionB = new SynonymInstruction(singletonList(mkTerm("bSynonym")));
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), true, false, "\"a"),
-                new Instructions(1, "1", singletonList(synInstructionA)));
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("b")), true, false, "\"a"),
-                new Instructions(2, "2", singletonList(synInstructionB)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
-
-        ExpandedQuery query = makeQuery("a b");
-        SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
-        Query rewritten = (Query) rewriter.rewrite(query, searchEngineRequestAdapter).getExpandedQuery().getUserQuery();
-
-        assertThat(rewritten,
-                bq(
-                        dmq(
-                                term("a", false),
-                                term("aSynonym", true)
-                        ),
-                        dmq(
-                                term("b", false)
-
-                        )
-                ));
-
-        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA),
-                is(nullValue()));
-
-        searchEngineRequestAdapter.getContext().put(CommonRulesRewriter.CONTEXT_KEY_DEBUG_ENABLED, true);
-        rewriter.rewrite(query, searchEngineRequestAdapter).getExpandedQuery().getUserQuery();
-
-        assertThat(searchEngineRequestAdapter.getContext().containsKey(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA),
-                is(true));
-        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(),
-                containsString(synInstructionA.toString()));
-        assertThat(searchEngineRequestAdapter.getContext().get(CommonRulesRewriter.CONTEXT_KEY_DEBUG_DATA).toString(),
-                not(containsString(synInstructionB.toString())));
-    }
-
 }
