@@ -16,9 +16,11 @@ public class RewriteLoggingConfig {
     }
 
     public RewriteLoggingConfig(final boolean isActive, final boolean hasDetails) {
-        this.isActive = isActive;
-        this.hasDetails = hasDetails;
-        this.includedRewriters = Collections.emptySet();
+        this(isActive, hasDetails, Collections.emptySet());
+    }
+
+    public RewriteLoggingConfig(final boolean isActive) {
+        this(isActive, false, Collections.emptySet());
     }
 
     public boolean isActive() {
@@ -27,5 +29,15 @@ public class RewriteLoggingConfig {
 
     public boolean hasDetails() {
         return hasDetails;
+    }
+
+    public Set<String> getIncludedRewriters() {
+        return includedRewriters;
+    }
+
+    public static final RewriteLoggingConfig INACTIVE_REWRITE_LOGGING = new RewriteLoggingConfig(false);
+
+    public static RewriteLoggingConfig inactiveRewriteLogging() {
+        return INACTIVE_REWRITE_LOGGING;
     }
 }

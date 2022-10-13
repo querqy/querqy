@@ -1,6 +1,7 @@
 package querqy.rewrite;
 
 import querqy.infologging.InfoLoggingContext;
+import querqy.model.logging.RewriteLoggingConfig;
 
 import java.util.Map;
 import java.util.Optional;
@@ -91,5 +92,9 @@ public interface SearchEngineRequestAdapter {
      * @return true if debug information shall be collected, false otherwise
      */
     boolean isDebugQuery();
+
+    default RewriteLoggingConfig getRewriteLoggingConfig() {
+        return RewriteLoggingConfig.inactiveRewriteLogging();
+    }
 
 }
