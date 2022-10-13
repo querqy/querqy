@@ -125,6 +125,10 @@ public abstract class AbstractCommonRulesTest {
         return new FilterInstruction(bq(terms).build());
     }
 
+    public EmptySearchEngineRequestAdapter emptyAdapter() {
+        return new EmptySearchEngineRequestAdapter();
+    }
+
     public static List<String> list(String... items) {
         return Arrays.asList(items);
     }
