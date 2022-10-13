@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -20,6 +20,11 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
 import querqy.model.Input;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewrite.commonrules.model.SynonymInstruction;
+import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 
 public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 

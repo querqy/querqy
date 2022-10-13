@@ -1,4 +1,4 @@
-package querqy.rewrite.commonrules.model;
+package querqy.rewrite.commonrules;
 
 import org.junit.Test;
 import querqy.model.EmptySearchEngineRequestAdapter;
