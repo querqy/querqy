@@ -58,31 +58,6 @@ public abstract class AbstractCommonRulesTest {
         return collector.createActions();
     }
 
-    public DeleteInstruction delete(String... terms) {
-        return new DeleteInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
-    }
-
-    public DecorateInstruction decorate(String key, String value) {
-        return new DecorateInstruction(key, value);
-    }
-
-    public SynonymInstruction synonym(String... terms) {
-        return new SynonymInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
-    }
-
-    public FilterInstruction filter(String... terms) {
-        return new FilterInstruction(bq(terms).build());
-    }
-
-    public Input.SimpleInput input(String... terms) {
-        return new Input.SimpleInput(Arrays.stream(terms).map(this::mkTerm).collect(toList()), String.join(" ", terms));
-    }
-
-    public Input.SimpleInput input(List<String> terms) {
-        return new Input.SimpleInput(
-                terms.stream().map(this::mkTerm).collect(toList()), false, false, String.join(" ", terms));
-    }
-
     public void addRule(RulesCollectionBuilder builder, Input.SimpleInput input, Instruction... instructions) {
         int ruleCount = ruleCounter++;
         builder.addRule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
@@ -106,6 +81,16 @@ public abstract class AbstractCommonRulesTest {
         return new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
     }
 
+    public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter) {
+        return rewrite(queryBuilder, rewriter, new EmptySearchEngineRequestAdapter());
+    }
+
+    public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter,
+                         SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        ExpandedQuery query = new ExpandedQuery(queryBuilder.buildQuerqyQuery());
+        return new BooleanQueryBuilder((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getExpandedQuery().getUserQuery());
+    }
+
     public Rule rule(Input.SimpleInput input, Instruction... instructions) {
         int ruleCount = ruleCounter++;
         return new Rule(input, new Instructions(ruleCount, ruleCount, Arrays.asList(instructions)));
@@ -115,14 +100,29 @@ public abstract class AbstractCommonRulesTest {
         return new Rule(input, literal);
     }
 
-    public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter) {
-        return rewrite(queryBuilder, rewriter, new EmptySearchEngineRequestAdapter());
+    public Input.SimpleInput input(String... terms) {
+        return new Input.SimpleInput(Arrays.stream(terms).map(this::mkTerm).collect(toList()), String.join(" ", terms));
     }
 
-    public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter,
-                         SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        ExpandedQuery query = new ExpandedQuery(queryBuilder.buildQuerqyQuery());
-        return new BooleanQueryBuilder((Query) rewriter.rewrite(query, searchEngineRequestAdapter).getExpandedQuery().getUserQuery());
+    public Input.SimpleInput input(List<String> terms) {
+        return new Input.SimpleInput(
+                terms.stream().map(this::mkTerm).collect(toList()), false, false, String.join(" ", terms));
+    }
+
+    public DeleteInstruction delete(String... terms) {
+        return new DeleteInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
+    }
+
+    public DecorateInstruction decorate(String key, String value) {
+        return new DecorateInstruction(key, value);
+    }
+
+    public SynonymInstruction synonym(String... terms) {
+        return new SynonymInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
+    }
+
+    public FilterInstruction filter(String... terms) {
+        return new FilterInstruction(bq(terms).build());
     }
 
     public static List<String> list(String... items) {
