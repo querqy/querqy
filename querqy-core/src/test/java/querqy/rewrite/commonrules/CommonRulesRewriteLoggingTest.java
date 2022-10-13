@@ -22,6 +22,6 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, emptyAdapter());
 
-        assertThat(rewritingOutput.getRewriteLogging()).isPresent();
+        assertThat(rewritingOutput.getActionLoggings()).isNotEmpty();
     }
 }
