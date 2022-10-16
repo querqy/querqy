@@ -106,7 +106,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
     }
 
     @Test
-    public void testThat_instructionLoggingIsReturned_appliedRule() {
+    public void testThat_instructionLoggingIsReturned_forAppliedRule() {
         activateRewriteLoggingConfigMock();
 
         final InstructionDescription instructionDescription = InstructionDescription.builder()
@@ -129,6 +129,25 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         assertThat(instructionLogging.getType()).isEqualTo("synonym");
         assertThat(instructionLogging.getParam()).isEqualTo("1.0");
         assertThat(instructionLogging.getValue()).isEqualTo("apple");
+    }
+
+    @Test
+    public void testThat_instructionLoggingsAreReturned_forMultipleAppliedRules() {
+        activateRewriteLoggingConfigMock();
+
+        final InstructionDescription instructionDescription = InstructionDescription.builder()
+                .typeName("synonym")
+                .build();
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(input("a"), synonym("b", instructionDescription)),
+                rule(input("a"), synonym("d", instructionDescription))
+        );
+
+        final ExpandedQuery expandedQuery = expanded(bq("a")).build();
+        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+
+        assertThat(rewritingOutput.getActionLoggings()).hasSize(2);
     }
 
     private void activateRewriteLoggingConfigMock() {
