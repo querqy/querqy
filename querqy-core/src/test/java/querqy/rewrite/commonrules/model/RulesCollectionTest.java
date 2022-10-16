@@ -392,5 +392,10 @@ public class RulesCollectionTest {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
 
+      @Override
+      public InstructionDescription getInstructionDescription() {
+         return null;
+      }
+
    }
 }

@@ -21,33 +21,48 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 public class FilterInstruction implements Instruction {
 
    final QuerqyQuery<?> filterQuery;
+    private final InstructionDescription instructionDescription;
 
-   public FilterInstruction(final QuerqyQuery<?> filterQuery) {
-      if (filterQuery == null) {
-         throw new IllegalArgumentException("filterQuery must not be null");
-      }
-      this.filterQuery = filterQuery instanceof BooleanQuery
-              ? InstructionHelper.applyMinShouldMatchAndGeneratedToBooleanQuery((BooleanQuery) filterQuery)
-              : filterQuery;
-   }
+    @Deprecated // Use only for testing
+    public FilterInstruction(final QuerqyQuery<?> filterQuery) {
+        this(filterQuery, InstructionDescription.empty());
+    }
 
-   /* (non-Javadoc)
-    * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
+    public FilterInstruction(final QuerqyQuery<?> filterQuery, final InstructionDescription instructionDescription) {
+        if (filterQuery == null) {
+            throw new IllegalArgumentException("filterQuery must not be null");
+        }
+
+        this.filterQuery = filterQuery instanceof BooleanQuery
+                ? InstructionHelper.applyMinShouldMatchAndGeneratedToBooleanQuery((BooleanQuery) filterQuery)
+                : filterQuery;
+
+        this.instructionDescription = instructionDescription;
+    }
+
+
+    /* (non-Javadoc)
+    * * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
-   @Override
-   public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
-                     final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
-                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-       // TODO: we might not need to clone here, if we already cloned all queries in the constructor
-       expandedQuery.addFilterQuery(filterQuery.clone(null, true));
+    @Override
+    public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
+                      final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
-   }
+        // TODO: we might not need to clone here, if we already cloned all queries in the constructor
+        expandedQuery.addFilterQuery(filterQuery.clone(null, true));
+    }
    
     @Override
     public Set<Term> getGenerableTerms() {
         return (filterQuery instanceof Query) 
             ?  TermsCollector.collectGenerableTerms((Query) filterQuery)
             : QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+
+    @Override
+    public InstructionDescription getInstructionDescription() {
+        return instructionDescription;
     }
 
     @Override

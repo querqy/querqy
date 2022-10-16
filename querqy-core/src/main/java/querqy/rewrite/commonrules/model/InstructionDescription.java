@@ -26,6 +26,19 @@ public class InstructionDescription {
         return Optional.ofNullable(value);
     }
 
+    @Override
+    public String toString() {
+        return "InstructionDescription{" +
+                "typeName='" + typeName + '\'' +
+                ", param=" + param +
+                ", value='" + value + '\'' +
+                '}';
+    }
+
+    public static InstructionDescription empty() {
+        return InstructionDescription.builder().typeName("").build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }

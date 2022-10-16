@@ -34,9 +34,7 @@ public interface Instruction {
    
    Set<Term> getGenerableTerms();
 
-   default InstructionDescription getInstructionDescription() {
-      return null;
-   }
+   InstructionDescription getInstructionDescription();
 
 
 }

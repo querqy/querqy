@@ -155,6 +155,72 @@ public class InstructionParserTest {
                 new DecorateInstruction("par", "dec"));
     }
 
+    @Test
+    public void testThat_instructionIncludesDescription_forSynonymInstruction() {
+        final Instruction instruction = parseInstruction(SYNONYM,"b");
+        assertThat(instruction.getInstructionDescription()).isNotNull();
+        assertThat(instruction.getInstructionDescription().getTypeName()).isEqualTo("synonym");
+
+        assertThat(instruction.getInstructionDescription().getValue()).isPresent();
+        assertThat(instruction.getInstructionDescription().getValue().get()).isEqualTo("b");
+
+        assertThat(instruction.getInstructionDescription().getParam()).isNotPresent();
+    }
+
+    @Test
+    public void testThat_instructionIncludesDescription_forDeleteInstruction() {
+        final List<Term> inputTerms = terms(term("a"), term("b"));
+
+        final Instruction instruction = parseInstructionWithInputTerms(DELETE, inputTerms);
+        assertThat(instruction.getInstructionDescription()).isNotNull();
+        assertThat(instruction.getInstructionDescription().getTypeName()).isEqualTo("delete");
+
+        assertThat(instruction.getInstructionDescription().getValue()).isNotPresent();
+        assertThat(instruction.getInstructionDescription().getParam()).isNotPresent();
+    }
+
+    @Test
+    public void testThat_instructionIncludesDescription_forFilterInstruction() {
+        final Instruction instruction = parseInstruction(FILTER, "b");
+        assertThat(instruction.getInstructionDescription()).isNotNull();
+        assertThat(instruction.getInstructionDescription().getTypeName()).isEqualTo("filter");
+
+        assertThat(instruction.getInstructionDescription().getValue()).isPresent();
+        assertThat(instruction.getInstructionDescription().getValue().get()).isEqualTo("b");
+
+        assertThat(instruction.getInstructionDescription().getParam()).isNotPresent();
+    }
+
+    @Test
+    public void testThat_instructionIncludesDescription_forUpInstruction() {
+        final Instruction instruction = parseInstruction(UP, "1.5","b");
+        assertThat(instruction.getInstructionDescription()).isNotNull();
+        assertThat(instruction.getInstructionDescription().getTypeName()).isEqualTo("up");
+
+        assertThat(instruction.getInstructionDescription().getValue()).isPresent();
+        assertThat(instruction.getInstructionDescription().getValue().get()).isEqualTo("b");
+
+        assertThat(instruction.getInstructionDescription().getParam()).isPresent();
+        assertThat(instruction.getInstructionDescription().getParam().get()).isEqualTo("1.5");
+    }
+
+    @Test
+    public void testThat_instructionIncludesDescription_forDownInstruction() {
+        final Instruction instruction = parseInstruction(DOWN, "b");
+        assertThat(instruction.getInstructionDescription()).isNotNull();
+        assertThat(instruction.getInstructionDescription().getTypeName()).isEqualTo("down");
+    }
+
+    @Test
+    public void testThat_instructionIncludesDescription_forDecorateInstruction() {
+        final Instruction instruction = parseInstruction(DECORATE, "b");
+        assertThat(instruction.getInstructionDescription()).isNotNull();
+        assertThat(instruction.getInstructionDescription().getTypeName()).isEqualTo("decorate");
+
+        assertThat(instruction.getInstructionDescription().getValue()).isPresent();
+        assertThat(instruction.getInstructionDescription().getValue().get()).isEqualTo("b");
+    }
+
     private Instruction parseInstructionWithInputTerms(final InstructionType type, final List<Term> inputTerms) {
         return parse(instruction(type, null, null), inputTerms);
     }

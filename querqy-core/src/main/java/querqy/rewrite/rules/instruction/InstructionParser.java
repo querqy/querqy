@@ -116,7 +116,7 @@ public class InstructionParser {
         final float param = getParamAsFloat();
         final String value = getValueOrElseThrow();
         final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.SHOULD).parse();
-        instructions.add(new BoostInstruction(querqyQuery, direction, boostMethod, param));
+        instructions.add(new BoostInstruction(querqyQuery, direction, boostMethod, param, createInstructionDescription()));
     }
 
     private void parseAsFilter() {
@@ -125,7 +125,7 @@ public class InstructionParser {
         final String value = getValueOrElseThrow();
         final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.MUST).parse();
 
-        instructions.add(new FilterInstruction(querqyQuery));
+        instructions.add(new FilterInstruction(querqyQuery, createInstructionDescription()));
     }
 
     private void parseAsDelete() {
@@ -136,14 +136,14 @@ public class InstructionParser {
             parseAsDeleteWithValue(optionalValue.get());
 
         } else {
-            instructions.add(new DeleteInstruction(inputTerms));
+            instructions.add(new DeleteInstruction(inputTerms, createInstructionDescription()));
         }
     }
 
     private void parseAsDeleteWithValue(final String value) {
         final List<Term> deleteTerms = termsParser.with(value).parse();
         validateDeleteTerms(deleteTerms);
-        instructions.add(new DeleteInstruction(deleteTerms));
+        instructions.add(new DeleteInstruction(deleteTerms, createInstructionDescription()));
     }
 
     private void validateDeleteTerms(final List<Term> deleteTerms) {
@@ -163,10 +163,10 @@ public class InstructionParser {
         final Optional<String> optionalParam = skeleton.getParameter();
 
         if (optionalParam.isPresent()) {
-            instructions.add(new DecorateInstruction(optionalParam.get(), value));
+            instructions.add(new DecorateInstruction(optionalParam.get(), value, createInstructionDescription()));
 
         } else {
-            instructions.add(new DecorateInstruction(value));
+            instructions.add(new DecorateInstruction(null, value, createInstructionDescription()));
         }
     }
 

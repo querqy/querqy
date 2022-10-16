@@ -52,7 +52,7 @@ public class SynonymInstruction implements Instruction {
      */
     @Deprecated // Do not use for non-test purposes
     public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym) {
-        this(synonym, DEFAULT_TERM_BOOST, InstructionDescription.builder().typeName("").build());
+        this(synonym, DEFAULT_TERM_BOOST, InstructionDescription.empty());
     }
 
     /* (non-Javadoc)
