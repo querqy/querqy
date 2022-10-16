@@ -9,18 +9,10 @@ public class RewriteLoggingConfig {
     private final boolean hasDetails;
     private final Set<String> includedRewriters;
 
-    public RewriteLoggingConfig(final boolean isActive, final boolean hasDetails, final Set<String> includedRewriters) {
+    private RewriteLoggingConfig(final boolean isActive, final boolean hasDetails, final Set<String> includedRewriters) {
         this.isActive = isActive;
         this.hasDetails = hasDetails;
         this.includedRewriters = includedRewriters;
-    }
-
-    public RewriteLoggingConfig(final boolean isActive, final boolean hasDetails) {
-        this(isActive, hasDetails, Collections.emptySet());
-    }
-
-    public RewriteLoggingConfig(final boolean isActive) {
-        this(isActive, false, Collections.emptySet());
     }
 
     public boolean isActive() {
@@ -35,9 +27,46 @@ public class RewriteLoggingConfig {
         return includedRewriters;
     }
 
-    public static final RewriteLoggingConfig INACTIVE_REWRITE_LOGGING = new RewriteLoggingConfig(false);
+    public static final RewriteLoggingConfig INACTIVE_REWRITE_LOGGING = RewriteLoggingConfig.builder()
+            .isActive(false)
+            .build();
 
     public static RewriteLoggingConfig inactiveRewriteLogging() {
         return INACTIVE_REWRITE_LOGGING;
     }
+
+    public static RewriteLoggingConfigBuilder builder() {
+        return new RewriteLoggingConfigBuilder();
+    }
+
+    public static class RewriteLoggingConfigBuilder {
+
+        private boolean isActive;
+        private boolean hasDetails;
+        private Set<String> includedRewriters;
+
+        public RewriteLoggingConfigBuilder isActive(final boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
+        public RewriteLoggingConfigBuilder hasDetails(final boolean hasDetails) {
+            this.hasDetails = hasDetails;
+            return this;
+        }
+
+        public RewriteLoggingConfigBuilder includedRewriters(final Set<String> includedRewriters) {
+            this.includedRewriters = includedRewriters;
+            return this;
+        }
+
+        public RewriteLoggingConfig build() {
+            if (includedRewriters == null) {
+                includedRewriters = Collections.emptySet();
+            }
+
+            return new RewriteLoggingConfig(isActive, hasDetails, includedRewriters);
+        }
+    }
+
 }

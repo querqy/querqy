@@ -140,8 +140,6 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     private void appendActionLogging(final Action action) {
-        System.out.println(action);
-
         if (actionLoggings == null) {
             actionLoggings = new LinkedList<>();
         }

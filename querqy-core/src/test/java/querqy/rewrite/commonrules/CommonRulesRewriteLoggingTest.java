@@ -40,7 +40,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
     @Test
     public void testThat_rewriteLoggingIsEmpty_forDeactivatedRewriteLogging() {
         when(searchEngineRequestAdapter.getRewriteLoggingConfig())
-                .thenReturn(new RewriteLoggingConfig(false, false));
+                .thenReturn(RewriteLoggingConfig.builder().isActive(false).hasDetails(false).build());
 
         final CommonRulesRewriter rewriter = rewriter(
                 rule(input("iphone"), synonym("apple"))
@@ -66,7 +66,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getActionLoggings().get(0).getMatch().getTerm())
                 .isEqualTo("iphone");
-        assertThat(rewritingOutput.getActionLoggings().get(0).getMatch().getType().getTypeName())
+        assertThat(rewritingOutput.getActionLoggings().get(0).getMatch().getType())
                 .isEqualTo(MatchLogging.MatchType.EXACT.getTypeName());
     }
 
@@ -133,6 +133,6 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
 
     private void activateRewriteLoggingConfigMock() {
         when(searchEngineRequestAdapter.getRewriteLoggingConfig())
-                .thenReturn(new RewriteLoggingConfig(true, true));
+                .thenReturn(RewriteLoggingConfig.builder().isActive(true).hasDetails(true).build());
     }
 }
