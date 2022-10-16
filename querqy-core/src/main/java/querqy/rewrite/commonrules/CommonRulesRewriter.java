@@ -12,12 +12,15 @@ import querqy.model.Query;
 import querqy.model.RewritingOutput;
 import querqy.model.Term;
 import querqy.model.logging.ActionLogging;
+import querqy.model.logging.InstructionLogging;
 import querqy.model.logging.MatchLogging;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
 import querqy.rewrite.commonrules.model.InputBoundary;
 import querqy.rewrite.commonrules.model.InputBoundary.Type;
+import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.PositionSequence;
 import querqy.rewrite.commonrules.model.RulesCollection;
@@ -137,6 +140,8 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     private void appendActionLogging(final Action action) {
+        System.out.println(action);
+
         if (actionLoggings == null) {
             actionLoggings = new LinkedList<>();
         }
@@ -161,16 +166,16 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
         private final Action action;
 
-        public ActionLoggingParser(Action action) {
+        public ActionLoggingParser(final Action action) {
             this.action = action;
         }
 
         public ActionLogging parse() {
-            return new ActionLogging(
-                    parseMessage(),
-                    parseMatch(),
-                    List.of()
-            );
+            return ActionLogging.builder()
+                    .message(parseMessage())
+                    .match(parseMatch())
+                    .instructions(parseInstructions())
+                    .build();
         }
 
         private String parseMessage() {
@@ -187,10 +192,28 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
             final boolean isPrefix = action.getTermMatches().stream().anyMatch(TermMatch::isPrefix);
 
-            return new MatchLogging(
-                    term,
-                    isPrefix ? MatchLogging.MatchType.PREFIX : MatchLogging.MatchType.EXACT
-            );
+            return MatchLogging.builder()
+                    .term(term)
+                    .type(isPrefix ? MatchLogging.MatchType.PREFIX : MatchLogging.MatchType.EXACT)
+                    .build();
+        }
+
+        private List<InstructionLogging> parseInstructions() {
+
+            return action.getInstructions().stream()
+                    .map(this::parseInstruction)
+                    .collect(Collectors.toList());
+        }
+
+        private InstructionLogging parseInstruction(final Instruction instruction) {
+            final InstructionDescription instructionDescription = instruction.getInstructionDescription();
+
+            final InstructionLogging.InstructionLoggingBuilder builder = InstructionLogging.builder()
+                    .type(instructionDescription.getTypeName());
+            instructionDescription.getParam().ifPresent(param -> builder.param(param.toString()));
+            instructionDescription.getValue().ifPresent(builder::value);
+
+            return builder.build();
         }
     }
 

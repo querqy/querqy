@@ -25,6 +25,7 @@ import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.InstructionsProperties;
 import querqy.rewrite.commonrules.model.PositionSequence;
@@ -130,6 +131,10 @@ public abstract class AbstractCommonRulesTest {
 
     public SynonymInstruction synonym(String... terms) {
         return new SynonymInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
+    }
+
+    public SynonymInstruction synonym(final String term, final InstructionDescription instructionDescription) {
+        return new SynonymInstruction(List.of(mkTerm(term)), 1.0f, instructionDescription);
     }
 
     public FilterInstruction filter(String... terms) {

@@ -5,7 +5,6 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import querqy.ComparableCharSequence;
@@ -27,12 +26,15 @@ public class SynonymInstruction implements Instruction {
 
     final List<querqy.rewrite.commonrules.model.Term> synonym;
     final float boost;
+    private final InstructionDescription instructionDescription;
 
     /**
      * @param synonym The terms of the synonym expansion.
      * @param boost A boost factor of the synonym &gt;= 0f
      */
-    public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym, final float boost) {
+    public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym,
+                              final float boost,
+                              final InstructionDescription instructionDescription) {
         if (synonym == null || synonym.isEmpty()) {
             throw new IllegalArgumentException("Synonym expansion required");
         }
@@ -42,13 +44,15 @@ public class SynonymInstruction implements Instruction {
         
         this.synonym = synonym;
         this.boost = boost;
+        this.instructionDescription = instructionDescription;
     }
     
     /**
      * @param synonym The terms of the synonym expansion.
      */
+    @Deprecated // Do not use for non-test purposes
     public SynonymInstruction(final List<querqy.rewrite.commonrules.model.Term> synonym) {
-        this(synonym, DEFAULT_TERM_BOOST);
+        this(synonym, DEFAULT_TERM_BOOST, InstructionDescription.builder().typeName("").build());
     }
 
     /* (non-Javadoc)
@@ -145,6 +149,11 @@ public class SynonymInstruction implements Instruction {
             }
         }
         return result;
+    }
+
+    @Override
+    public InstructionDescription getInstructionDescription() {
+        return instructionDescription;
     }
 
     public float getTermBoost() {

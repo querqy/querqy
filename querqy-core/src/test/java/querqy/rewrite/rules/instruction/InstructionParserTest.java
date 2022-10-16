@@ -93,7 +93,8 @@ public class InstructionParserTest {
         assertThat(parseInstruction(SYNONYM, "2.5", "b")).isEqualTo(
                 new SynonymInstruction(
                         terms(term("b")),
-                        2.5f
+                        2.5f,
+                        null
                 ));
     }
 

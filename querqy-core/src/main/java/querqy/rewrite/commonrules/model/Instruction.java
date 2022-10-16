@@ -3,7 +3,6 @@
  */
 package querqy.rewrite.commonrules.model;
 
-import java.util.Map;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
@@ -35,6 +34,9 @@ public interface Instruction {
    
    Set<Term> getGenerableTerms();
 
+   default InstructionDescription getInstructionDescription() {
+      return null;
+   }
 
 
 }

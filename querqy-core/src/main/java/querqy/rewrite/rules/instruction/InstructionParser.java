@@ -11,6 +11,7 @@ import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.Term;
 import querqy.rewrite.rules.RuleParseException;
@@ -108,7 +109,7 @@ public class InstructionParser {
         final String value = getValueOrElseThrow();
         final List<Term> terms = termsParser.with(value).parse();
 
-        instructions.add(new SynonymInstruction(terms, param));
+        instructions.add(new SynonymInstruction(terms, param, createInstructionDescription()));
     }
 
     private void parseAsBoost(final BoostInstruction.BoostDirection direction) {
@@ -202,6 +203,16 @@ public class InstructionParser {
         return skeleton.getValue().orElseThrow(() ->
                 new RuleParseException(
                         String.format("Instruction of type %s requires a value", skeleton.getType().name())));
+    }
+
+    private InstructionDescription createInstructionDescription() {
+        final InstructionDescription.Builder builder = InstructionDescription.builder();
+
+        builder.typeName(skeleton.getType().getTypeName());
+        skeleton.getParameter().ifPresent(builder::param);
+        skeleton.getValue().ifPresent(builder::value);
+
+        return builder.build();
     }
 
 }

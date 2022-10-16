@@ -5,9 +5,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import querqy.model.ExpandedQuery;
 import querqy.model.RewritingOutput;
+import querqy.model.logging.InstructionLogging;
 import querqy.model.logging.MatchLogging;
 import querqy.model.logging.RewriteLoggingConfig;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.Instructions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +24,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
     SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     @Test
-    public void testThat_rewriteLoggingIsNotEmpty_forActivatedRewriteLoggingAndAppliedRule() {
+    public void testThat_rewriteLoggingIsNotEmpty_forActivatedRewriteLogging() {
         activateRewriteLoggingConfigMock();
 
         final CommonRulesRewriter rewriter = rewriter(
@@ -33,6 +35,21 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).isNotEmpty();
+    }
+
+    @Test
+    public void testThat_rewriteLoggingIsEmpty_forDeactivatedRewriteLogging() {
+        when(searchEngineRequestAdapter.getRewriteLoggingConfig())
+                .thenReturn(new RewriteLoggingConfig(false, false));
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(input("iphone"), synonym("apple"))
+        );
+
+        final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
+        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+
+        assertThat(rewritingOutput.getActionLoggings()).isEmpty();
     }
 
     @Test
@@ -71,6 +88,47 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getActionLoggings().get(0).getMessage())
                 .isEqualTo("my message");
+    }
+
+    @Test
+    public void testThat_instructionLoggingIsNotEmpty_forActivatedRewriteLogging() {
+        activateRewriteLoggingConfigMock();
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(input("iphone"), synonym("apple"))
+        );
+
+        final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
+        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+
+        assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
+        assertThat(rewritingOutput.getActionLoggings().get(0).getInstructions()).isNotEmpty();
+    }
+
+    @Test
+    public void testThat_instructionLoggingIsReturned_appliedRule() {
+        activateRewriteLoggingConfigMock();
+
+        final InstructionDescription instructionDescription = InstructionDescription.builder()
+                .typeName("synonym")
+                .param(1.0f)
+                .value("apple")
+                .build();
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(input("iphone"), synonym("apple", instructionDescription))
+        );
+
+        final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
+        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+
+        assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
+        assertThat(rewritingOutput.getActionLoggings().get(0).getInstructions()).hasSize(1);
+
+        final InstructionLogging instructionLogging = rewritingOutput.getActionLoggings().get(0).getInstructions().get(0);
+        assertThat(instructionLogging.getType()).isEqualTo("synonym");
+        assertThat(instructionLogging.getParam()).isEqualTo("1.0");
+        assertThat(instructionLogging.getValue()).isEqualTo("apple");
     }
 
     private void activateRewriteLoggingConfigMock() {
