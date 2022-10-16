@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import querqy.model.ExpandedQuery;
-import querqy.model.RewritingOutput;
+import querqy.model.rewriting.RewriterOutput;
 import querqy.model.logging.InstructionLogging;
 import querqy.model.logging.MatchLogging;
 import querqy.model.logging.RewriteLoggingConfig;
@@ -32,7 +32,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).isNotEmpty();
     }
@@ -47,7 +47,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).isEmpty();
     }
@@ -61,7 +61,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getActionLoggings().get(0).getMatch().getTerm())
@@ -83,7 +83,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getActionLoggings().get(0).getMessage())
@@ -99,7 +99,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getActionLoggings().get(0).getInstructions()).isNotEmpty();
@@ -120,7 +120,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getActionLoggings().get(0).getInstructions()).hasSize(1);
@@ -145,7 +145,7 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         );
 
         final ExpandedQuery expandedQuery = expanded(bq("a")).build();
-        final RewritingOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
         assertThat(rewritingOutput.getActionLoggings()).hasSize(2);
     }

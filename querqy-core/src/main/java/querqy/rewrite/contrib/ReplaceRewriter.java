@@ -7,7 +7,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
-import querqy.model.RewritingOutput;
+import querqy.model.rewriting.RewriterOutput;
 import querqy.model.Term;
 import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.QueryRewriter;
@@ -40,14 +40,14 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
     @Override
-    public RewritingOutput rewrite(final ExpandedQuery expandedQuery,
-                                   final SearchEngineRequestAdapter searchEngineRequestAdapter,
-                                   final Set<String> infoLogMessages) {
+    public RewriterOutput rewrite(final ExpandedQuery expandedQuery,
+                                  final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                  final Set<String> infoLogMessages) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
         if (!(querqyQuery instanceof Query)) {
-            return new RewritingOutput(expandedQuery);
+            return new RewriterOutput(expandedQuery);
         }
 
         collectedTerms = new LinkedList<>();
@@ -121,7 +121,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
                     collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
-        return new RewritingOutput(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery);
+        return new RewriterOutput(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery);
     }
 
     private ExpandedQuery buildQueryFromSeqList(final ExpandedQuery oldQuery, final List<CharSequence> tokens) {

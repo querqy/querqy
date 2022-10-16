@@ -4,7 +4,7 @@ import querqy.infologging.InfoLoggingContext;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.ExpandedQuery;
 import querqy.model.Node;
-import querqy.model.RewritingOutput;
+import querqy.model.rewriting.RewriterOutput;
 
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -38,12 +38,12 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
      * @param searchEngineRequestAdapter Encapsulates the request context.
      * @return The rewritten query.
      */
-    public RewritingOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public RewriterOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         final boolean isInfoLogging = isInfoLogging(searchEngineRequestAdapter);
 
         final Set<String> appliedRules = isInfoLogging ? new HashSet<>() : null;
 
-        final RewritingOutput rewrittenQuery = rewrite(query, searchEngineRequestAdapter, appliedRules);
+        final RewriterOutput rewrittenQuery = rewrite(query, searchEngineRequestAdapter, appliedRules);
 
         if (isInfoLogging && !appliedRules.isEmpty()) {
             final Map<String, Set<String>> message = new IdentityHashMap<>(1);
@@ -103,7 +103,7 @@ public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> 
      * @return The rewritten query.
      *
      */
-    abstract public RewritingOutput rewrite(ExpandedQuery query,
-                                            final SearchEngineRequestAdapter searchEngineRequestAdapter,
-                                            Set<String> infoLogMessages);
+    abstract public RewriterOutput rewrite(ExpandedQuery query,
+                                           final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                                           Set<String> infoLogMessages);
 }

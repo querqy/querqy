@@ -1,20 +1,21 @@
-package querqy.model;
+package querqy.model.rewriting;
 
+import querqy.model.ExpandedQuery;
 import querqy.model.logging.ActionLogging;
 
 import java.util.List;
 
-public class RewritingOutput {
+public class RewriterOutput {
 
     private final ExpandedQuery expandedQuery;
     private final List<ActionLogging> actionLoggings;
 
-    public RewritingOutput(final ExpandedQuery expandedQuery, final List<ActionLogging> actionLoggings) {
+    public RewriterOutput(final ExpandedQuery expandedQuery, final List<ActionLogging> actionLoggings) {
         this.expandedQuery = expandedQuery;
         this.actionLoggings = actionLoggings;
     }
 
-    public RewritingOutput(final ExpandedQuery expandedQuery) {
+    public RewriterOutput(final ExpandedQuery expandedQuery) {
         this(expandedQuery, List.of());
     }
 

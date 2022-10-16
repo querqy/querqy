@@ -9,7 +9,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
-import querqy.model.RewritingOutput;
+import querqy.model.rewriting.RewriterOutput;
 import querqy.model.Term;
 import querqy.model.logging.ActionLogging;
 import querqy.model.logging.InstructionLogging;
@@ -58,7 +58,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     @Override
-    public RewritingOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public RewriterOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final QuerqyQuery<?> userQuery = query.getUserQuery();
 
@@ -79,7 +79,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
             }
         }
 
-        return actionLoggings == null ? new RewritingOutput(query) : new RewritingOutput(query, actionLoggings);
+        return actionLoggings == null ? new RewriterOutput(query) : new RewriterOutput(query, actionLoggings);
     }
 
     @Override

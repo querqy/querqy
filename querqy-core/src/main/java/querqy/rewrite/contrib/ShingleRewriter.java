@@ -2,6 +2,7 @@ package querqy.rewrite.contrib;
 
 import querqy.CompoundCharSequence;
 import querqy.model.*;
+import querqy.model.rewriting.RewriterOutput;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
@@ -34,7 +35,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
     }
 
     @Override
-    public RewritingOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
+    public RewriterOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery != null && userQuery instanceof Query){
             previousTerm = null;
@@ -44,7 +45,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
                 term.getParent().addClause(term);
             }
         }
-        return new RewritingOutput(query);
+        return new RewriterOutput(query);
     }
 
     @Override
