@@ -79,7 +79,10 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
             }
         }
 
-        return actionLoggings == null ? new RewriterOutput(query) : new RewriterOutput(query, actionLoggings);
+        return actionLoggings == null ? new RewriterOutput(query) : RewriterOutput.builder()
+                .expandedQuery(query)
+                .actionLoggings(actionLoggings)
+                .build();
     }
 
     @Override
