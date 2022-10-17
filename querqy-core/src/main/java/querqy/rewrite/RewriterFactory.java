@@ -21,6 +21,10 @@ public abstract class RewriterFactory {
         this.rewriterId = rewriterId;
     }
 
+    // TODO: ExpandedQuery input is not used by any factory
+    //  SearchEngineRequestAdapter is only used by SimpleCommonRulesRewriterFactory for the creation of SelectionStrategy.
+    //  Both parameters can be fully removed, as SearchEngineRequestAdapter is also passed to the rewriter via
+    //  QueryRewriter#rewrite
     public abstract QueryRewriter createRewriter(ExpandedQuery input,
                                                  SearchEngineRequestAdapter searchEngineRequestAdapter);
 
