@@ -9,6 +9,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.model.logging.RewriterLogging;
 import querqy.model.rewriting.RewriterOutput;
 import querqy.model.Term;
 import querqy.model.logging.ActionLogging;
@@ -49,7 +50,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
     protected SelectionStrategy selectionStrategy;
 
-    private List<ActionLogging> actionLoggings;
+    private final RewriterLogging.RewriterLoggingBuilder rewriterLoggingBuilder = RewriterLogging.builder();
 
     public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
         this.rules = rules;
@@ -81,7 +82,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
         return RewriterOutput.builder()
                 .expandedQuery(query)
-                .actionLoggings(actionLoggings == null ? List.of() : actionLoggings)
+                .rewriterLogging(rewriterLoggingBuilder.build())
                 .build();
     }
 
@@ -112,6 +113,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
                             action.getEndPosition(), expandedQuery, searchEngineRequestAdapter)
             );
 
+            rewriterLoggingBuilder.hasAppliedRewriting(true);
             if (searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()) {
                 appendActionLogging(action);
             }
@@ -143,12 +145,8 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     private void appendActionLogging(final Action action) {
-        if (actionLoggings == null) {
-            actionLoggings = new LinkedList<>();
-        }
-
         final ActionLogging actionLogging = new ActionLoggingParser(action).parse();
-        actionLoggings.add(actionLogging);
+        rewriterLoggingBuilder.addActionLogging(actionLogging);
     }
 
     @Override
