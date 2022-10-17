@@ -48,7 +48,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
         final QuerqyQuery<?> userQuery = expandedQuery.getUserQuery();
 
         if (!(userQuery instanceof Query)){
-            return new RewriterOutput(expandedQuery);
+            return RewriterOutput.builder().expandedQuery(expandedQuery).build();
         }
 
         final Query query = (Query) userQuery;
@@ -73,7 +73,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
             expandedQuery.setUserQuery(new MatchAllQuery());
         }
 
-        return new RewriterOutput(expandedQuery);
+        return RewriterOutput.builder().expandedQuery(expandedQuery).build();
     }
 
     @Override

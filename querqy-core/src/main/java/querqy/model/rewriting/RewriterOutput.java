@@ -15,10 +15,6 @@ public class RewriterOutput {
         this.actionLoggings = actionLoggings;
     }
 
-    public RewriterOutput(final ExpandedQuery expandedQuery) {
-        this(expandedQuery, List.of());
-    }
-
     public ExpandedQuery getExpandedQuery() {
         return expandedQuery;
     }

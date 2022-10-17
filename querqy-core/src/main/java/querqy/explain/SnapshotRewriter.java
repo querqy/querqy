@@ -125,7 +125,7 @@ public class SnapshotRewriter implements QueryRewriter {
                     .collect(Collectors.toList()));
         }
 
-        return new RewriterOutput(query);
+        return RewriterOutput.builder().expandedQuery(query).build();
     }
 
     public Map<String, Object> getSnapshot() {

@@ -45,7 +45,7 @@ public class ShingleRewriter extends AbstractNodeVisitor<Node> implements QueryR
                 term.getParent().addClause(term);
             }
         }
-        return new RewriterOutput(query);
+        return RewriterOutput.builder().expandedQuery(query).build();
     }
 
     @Override

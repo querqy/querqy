@@ -47,7 +47,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
         if (!(querqyQuery instanceof Query)) {
-            return new RewriterOutput(expandedQuery);
+            return RewriterOutput.builder().expandedQuery(expandedQuery).build();
         }
 
         collectedTerms = new LinkedList<>();
@@ -121,7 +121,9 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
                     collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
-        return new RewriterOutput(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery);
+        return RewriterOutput.builder()
+                .expandedQuery(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery)
+                .build();
     }
 
     private ExpandedQuery buildQueryFromSeqList(final ExpandedQuery oldQuery, final List<CharSequence> tokens) {
