@@ -1080,7 +1080,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                     return (query, requestAdapter) -> {
                         query.setUserQuery(new MatchAllQuery());
                         query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
-                        return new RewriterOutput(query);
+                        return RewriterOutput.builder().expandedQuery(query).build();
                     };
                 }
 
@@ -1119,7 +1119,7 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                     return (query, requestAdapter) -> {
                         query.addMultiplicativeBoostQuery(UP_BOOST);
                         query.addMultiplicativeBoostQuery(DOWN_BOOST);
-                        return new RewriterOutput(query);
+                        return RewriterOutput.builder().expandedQuery(query).build();
                     };
                 }
 

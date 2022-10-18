@@ -22,6 +22,8 @@ import querqy.infologging.InfoLogging;
 import querqy.lucene.LuceneQueries;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.model.rewriting.RewriteChainOutput;
+import querqy.model.rewriting.RewriterOutput;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 
@@ -71,7 +73,9 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
+        when(rewriteChain.rewrite(any(), any())).thenReturn(
+                RewriteChainOutput.builder().expandedQuery(new ExpandedQuery(new MatchAllQuery())).build()
+        );
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");
@@ -92,7 +96,9 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
+        when(rewriteChain.rewrite(any(), any())).thenReturn(
+                RewriteChainOutput.builder().expandedQuery(new ExpandedQuery(new MatchAllQuery())).build()
+        );
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");
