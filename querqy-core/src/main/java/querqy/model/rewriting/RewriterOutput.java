@@ -5,6 +5,7 @@ import querqy.model.logging.ActionLogging;
 import querqy.model.logging.RewriterLogging;
 
 import java.util.List;
+import java.util.Optional;
 
 public class RewriterOutput {
 
@@ -20,8 +21,8 @@ public class RewriterOutput {
         return expandedQuery;
     }
 
-    public RewriterLogging getRewriterLogging() {
-        return rewriterLogging;
+    public Optional<RewriterLogging> getRewriterLogging() {
+        return Optional.ofNullable(rewriterLogging);
     }
 
     public static RewriterOutputBuilder builder() {

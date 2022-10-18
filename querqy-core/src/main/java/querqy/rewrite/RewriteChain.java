@@ -92,7 +92,10 @@ public class RewriteChain {
         public RewriteChainOutput rewrite() {
             for (final RewriterFactory factory : rewriterFactories) {
                 final RewriterOutput rewriterOutput = applyFactory(factory);
-                parseLogging(factory.getRewriterId(), rewriterOutput.getRewriterLogging());
+
+                rewriterOutput.getRewriterLogging().ifPresent(
+                        rewriterLogging -> parseLogging(factory.getRewriterId(), rewriterLogging));
+                ;
                 expandedQuery = rewriterOutput.getExpandedQuery();
             }
 
