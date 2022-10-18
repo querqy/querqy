@@ -190,12 +190,15 @@ public class QueryParsingController {
         final List<Query> multiplicativeBoostsFromRequest = needsScores ? requestAdapter.getMultiplicativeBoosts(parsedInput.getUserQuery()) : Collections.emptyList();
         final boolean hasMultiplicativeBoostsFromRequest = !multiplicativeBoostsFromRequest.isEmpty();
 
+        // TODO: to be removed
         final Map<String, Object> context = requestAdapter.getContext();
         if (debugQuery) {
             context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
         }
 
-        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
+        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain()
+                .rewrite(parsedInput, requestAdapter)
+                .getExpandedQuery();
 
         Query mainQuery = transformUserQuery(rewrittenQuery.getUserQuery(), builder);
 
@@ -505,6 +508,8 @@ public class QueryParsingController {
             if (parserDebugInfo != null) {
                 info.put("querqy.parser", parserDebugInfo);
             }
+
+            // TODO: to be refactored
             final Object contextDebugInfo = requestAdapter.getContext()
                     .get(CONTEXT_KEY_DEBUG_DATA);
             if (contextDebugInfo != null) {

@@ -109,7 +109,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             termsToDelete.forEach(this::removeIfNotOnlyChild);
 
         }
-        return new RewriterOutput(query);
+        return RewriterOutput.builder().expandedQuery(query).build();
     }
 
     public void removeIfNotOnlyChild(final Term term) {

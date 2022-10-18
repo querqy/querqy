@@ -4,6 +4,7 @@ import static org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter.
 import static org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter.PRESERVE_ORIGINAL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,6 +54,7 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Term;
+import querqy.model.logging.RewriteLoggingConfig;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
@@ -140,6 +142,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
     protected Query buildWithSynonyms(final String input, final float tie, final float multiMatchTie,
                                       final String... names) throws IOException {
+        prepareRequestAdapterForLogging();
+
         Map<String, Float> fields = fields(names);
        
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
@@ -165,6 +169,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery();
         return builder.createQuery(userQuery);
 
+    }
+
+    protected void prepareRequestAdapterForLogging() {
+        when(searchEngineRequestAdapter.getRewriteLoggingConfig()).thenReturn(RewriteLoggingConfig.inactiveRewriteLogging());
     }
    
     protected Query buildWithStopWords(String input, float tie, String... names) {
@@ -787,7 +795,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    
    @Test
    public void testSynonymsWithRestrictedFieldsForGeneratedTerms() throws Exception {
-       
+       prepareRequestAdapterForLogging();
        
        Map<String, Float> fieldsQuery = new HashMap<>();
        fieldsQuery.put("f1", 2f);

@@ -27,7 +27,7 @@ public class RewriteLoggingConfig {
         return includedRewriters;
     }
 
-    public static final RewriteLoggingConfig INACTIVE_REWRITE_LOGGING = RewriteLoggingConfig.builder()
+    private static final RewriteLoggingConfig INACTIVE_REWRITE_LOGGING = RewriteLoggingConfig.builder()
             .isActive(false)
             .build();
 
