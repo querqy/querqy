@@ -26,6 +26,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
+import querqy.model.rewriting.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
@@ -171,6 +172,8 @@ public class QueryParsingController {
         } else {
             final QuerqyParser parser = requestAdapter.createQuerqyParser()
                     .orElseGet(QueryParsingController::newDefaultQuerqyParser);
+
+            // TODO: What is happening here ?!?
             if (debugQuery) {
                 parserDebugInfo = parser.getClass().getName();
             }
@@ -196,23 +199,22 @@ public class QueryParsingController {
             context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
         }
 
-        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain()
-                .rewrite(parsedInput, requestAdapter)
-                .getExpandedQuery();
+        final RewriteChainOutput rewriteChainOutput = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
+        final ExpandedQuery rewrittenExpandedQuery = rewriteChainOutput.getExpandedQuery();
 
-        Query mainQuery = transformUserQuery(rewrittenQuery.getUserQuery(), builder);
+        Query mainQuery = transformUserQuery(rewrittenExpandedQuery.getUserQuery(), builder);
 
         if (dfc != null) dfc.finishedUserQuery();
 
 
-        final List<Query> filterQueries = transformFilterQueries(rewrittenQuery.getFilterQueries());
+        final List<Query> filterQueries = transformFilterQueries(rewrittenExpandedQuery.getFilterQueries());
 
         // additive boosts from Querqy query rewriters
-        final List<Query> additiveBoostsFromQuerqy = needsScores ? getAdditiveQuerqyBoostQueries(rewrittenQuery) : Collections.emptyList();
+        final List<Query> additiveBoostsFromQuerqy = needsScores ? getAdditiveQuerqyBoostQueries(rewrittenExpandedQuery) : Collections.emptyList();
         final boolean hasAdditiveBoostsFromQuerqy = !additiveBoostsFromQuerqy.isEmpty();
 
         // multiplicative boosts from Querqy query rewriters
-        final List<ValueSource> multiplicativeBoostsFromQuerqy = needsScores ? getQuerqyMultiplicativeBoostQueries(rewrittenQuery) : Collections.emptyList();
+        final List<ValueSource> multiplicativeBoostsFromQuerqy = needsScores ? getQuerqyMultiplicativeBoostQueries(rewrittenExpandedQuery) : Collections.emptyList();
         final boolean hasMultiplicativeBoostsFromQuerqy = !multiplicativeBoostsFromQuerqy.isEmpty();
 
         final boolean hasQuerqyBoostQueriesOnMainQuery = (hasAdditiveBoostsFromQuerqy || hasMultiplicativeBoostsFromQuerqy) && addQuerqyBoostQueriesToMainQuery;
@@ -505,6 +507,7 @@ public class QueryParsingController {
 
             Map<String, Object> info = new TreeMap<>();
 
+            // TODO: remove above
             if (parserDebugInfo != null) {
                 info.put("querqy.parser", parserDebugInfo);
             }
