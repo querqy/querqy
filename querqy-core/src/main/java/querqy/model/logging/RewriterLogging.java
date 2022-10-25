@@ -28,7 +28,7 @@ public class RewriterLogging {
     public static class RewriterLoggingBuilder {
 
         private boolean hasAppliedRewriting;
-        private List<ActionLogging> actionLogging;
+        private List<ActionLogging> actionLoggings;
 
         public RewriterLoggingBuilder hasAppliedRewriting(final boolean hasAppliedRewriting) {
             this.hasAppliedRewriting = hasAppliedRewriting;
@@ -36,20 +36,25 @@ public class RewriterLogging {
         }
 
         public RewriterLoggingBuilder addActionLogging(final ActionLogging actionLogging) {
-            if (this.actionLogging == null) {
-                this.actionLogging = new LinkedList<>();
+            if (this.actionLoggings == null) {
+                this.actionLoggings = new LinkedList<>();
             }
 
-            this.actionLogging.add(actionLogging);
+            this.actionLoggings.add(actionLogging);
+            return this;
+        }
+
+        public RewriterLoggingBuilder actionLoggings(final List<ActionLogging> actionLoggings) {
+            this.actionLoggings = actionLoggings;
             return this;
         }
 
         public RewriterLogging build() {
-            if (actionLogging == null) {
-                actionLogging = List.of();
+            if (actionLoggings == null) {
+                actionLoggings = List.of();
             }
 
-            return new RewriterLogging(hasAppliedRewriting, actionLogging);
+            return new RewriterLogging(hasAppliedRewriting, actionLoggings);
         }
     }
 }
