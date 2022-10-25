@@ -193,7 +193,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
             return MatchLogging.builder()
                     .term(term)
-                    .type(isPrefix ? MatchLogging.MatchType.PREFIX : MatchLogging.MatchType.EXACT)
+                    .type(isPrefix ? MatchLogging.MatchType.AFFIX : MatchLogging.MatchType.EXACT)
                     .build();
         }
 
