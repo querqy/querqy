@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 
+@Deprecated
 public abstract class AbstractLoggingRewriter extends AbstractNodeVisitor<Node> {
 
     /**

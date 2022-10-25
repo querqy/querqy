@@ -1,5 +1,6 @@
 package querqy.rewrite.contrib;
 
+import querqy.model.AbstractNodeVisitor;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
@@ -7,9 +8,10 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.model.logging.ActionLogging;
+import querqy.model.logging.RewriterLogging;
 import querqy.model.rewriting.RewriterOutput;
 import querqy.model.Term;
-import querqy.rewrite.AbstractLoggingRewriter;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
@@ -19,15 +21,12 @@ import querqy.trie.model.ExactMatch;
 import querqy.trie.model.PrefixMatch;
 import querqy.trie.model.SuffixMatch;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRewriter {
+public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
     private final SequenceLookup<ReplaceInstruction> sequenceLookup;
 
@@ -41,8 +40,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
 
     @Override
     public RewriterOutput rewrite(final ExpandedQuery expandedQuery,
-                                  final SearchEngineRequestAdapter searchEngineRequestAdapter,
-                                  final Set<String> infoLogMessages) {
+                                  final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final QuerqyQuery<?> querqyQuery = expandedQuery.getUserQuery();
 
@@ -55,8 +53,8 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
 
         visit((Query) querqyQuery);
 
-        final Map<String, Set<CharSequence>> replacedTerms =
-                isInfoLogging(searchEngineRequestAdapter) ? new HashMap<>() : null;
+        final List<ActionLogging> actionLoggings = searchEngineRequestAdapter.getRewriteLoggingConfig().isActive()
+                ? new ArrayList<>() : null;
 
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
         if (!exactMatches.isEmpty()) {
@@ -72,7 +70,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
                             collectedTerms,
                             exactMatch.lookupStart,
                             exactMatch.lookupExclusiveEnd - exactMatch.lookupStart,
-                            replacedTerms
+                            actionLoggings
                     )
             );
         }
@@ -89,7 +87,7 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
                             suffixMatch.getLookupOffset(),
                             1,
                             suffixMatch.wildcardMatch,
-                            replacedTerms
+                            actionLoggings
                     ));
         }
 
@@ -105,24 +103,15 @@ public class ReplaceRewriter extends AbstractLoggingRewriter implements QueryRew
                             prefixMatch.getLookupOffset(),
                             1,
                             prefixMatch.wildcardMatch,
-                            replacedTerms
+                            actionLoggings
                     ));
-        }
-
-        /*
-         * Add some debug and logging info
-         */
-        if (replacedTerms != null && !replacedTerms.isEmpty()) {
-            replacedTerms.forEach((replacement, foundMatches) ->
-                    infoLogMessages.add(String.join(",", foundMatches) + " => " + replacement));
-        }
-        if (isDebug(searchEngineRequestAdapter)) {
-            getDebugInfo(searchEngineRequestAdapter).add(this.getClass().getName() + " terms: " +
-                    collectedTerms.stream().map(CharSequence::toString).collect(Collectors.joining(" ")));
         }
 
         return RewriterOutput.builder()
                 .expandedQuery(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery)
+                .rewriterLogging(RewriterLogging.builder()
+                        .actionLoggings(actionLoggings)
+                        .build())
                 .build();
     }
 

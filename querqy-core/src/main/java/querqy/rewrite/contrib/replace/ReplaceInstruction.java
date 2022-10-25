@@ -1,5 +1,9 @@
 package querqy.rewrite.contrib.replace;
 
+import querqy.model.logging.ActionLogging;
+import querqy.model.logging.InstructionLogging;
+import querqy.model.logging.MatchLogging;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +20,10 @@ public abstract class ReplaceInstruction {
      * @param start            Startposition of the term in the list
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param wildcardMatch    Wildcard match that should be used to generate a replacement
-     * @param appliedRules     Debug information about replaced terms and their replacement
+     * @param actionLoggings   Debug information about replaced terms and their replacement
      */
     abstract public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                               final CharSequence wildcardMatch, final Map<String, Set<CharSequence>> appliedRules);
+                               final CharSequence wildcardMatch, List<ActionLogging> actionLoggings);
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset) {
         this.apply(seq, start, exclusiveOffset, "", null);
@@ -31,8 +35,8 @@ public abstract class ReplaceInstruction {
     }
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final Map<String, Set<CharSequence>> appliedRules) {
-        this.apply(seq, start, exclusiveOffset, "", appliedRules);
+                      final List<ActionLogging> actionLoggings) {
+        this.apply(seq, start, exclusiveOffset, "", actionLoggings);
     }
 
     /**
@@ -42,16 +46,37 @@ public abstract class ReplaceInstruction {
      * @param start            Startposition of the term in the list
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param replacementTerms Terms that should be used as replacement
-     * @param appliedRules     Debug information about replaced terms and their replacement
+     * @param actionLoggings   Debug information about replaced terms and their replacement
      */
+    // TODO: this definitely needs to be refactored, but requires more comprehensive refactoring in the replace rewriter
     public void removeTermFromSequence(final List<CharSequence> seq, final int start,
                                        final int exclusiveOffset, List<? extends CharSequence> replacementTerms,
-                                       final Map<String, Set<CharSequence>> appliedRules) {
-        Set<CharSequence> removedTerms = IntStream.range(0, exclusiveOffset)
-                .mapToObj(i -> seq.remove(start)).collect(Collectors.toSet());
+                                       final List<ActionLogging> actionLoggings,
+                                       final MatchLogging.MatchType matchType) {
+        final List<CharSequence> removedTerms = IntStream.range(0, exclusiveOffset)
+                .mapToObj(i -> seq.remove(start)).collect(Collectors.toList());
 
-        if (appliedRules != null) {
-            appliedRules.computeIfAbsent(replacementTerms.toString(), e -> new HashSet<>()).addAll(removedTerms);
+        final String removedTermsInfo = String.join(" ", removedTerms);
+        final String replacementTermsInfo = String.join(" ", replacementTerms);
+
+        if (actionLoggings != null) {
+            actionLoggings.add(
+                    ActionLogging.builder()
+                            .message(String.format("%s => %s", removedTermsInfo, replacementTermsInfo))
+                            .match(
+                                    MatchLogging.builder()
+                                            .type(matchType)
+                                            .term(removedTermsInfo)
+                                            .build()
+                            )
+                            .instructions(List.of(
+                                    InstructionLogging.builder()
+                                            .type("replace")
+                                            .value(replacementTermsInfo)
+                                            .build()
+                            ))
+                            .build()
+            );
         }
     }
 }
