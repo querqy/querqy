@@ -1,5 +1,8 @@
 package querqy.model.logging;
 
+import javax.swing.text.html.Option;
+import java.util.Optional;
+
 public class InstructionLogging {
 
     private final String type;
@@ -16,12 +19,12 @@ public class InstructionLogging {
         return type;
     }
 
-    public Object getParam() {
-        return param;
+    public Optional<Object> getParam() {
+        return Optional.ofNullable(param);
     }
 
-    public String getValue() {
-        return value;
+    public Optional<String> getValue() {
+        return Optional.ofNullable(value);
     }
 
     public static InstructionLoggingBuilder builder() {
