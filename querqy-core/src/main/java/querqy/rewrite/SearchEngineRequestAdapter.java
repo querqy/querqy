@@ -1,6 +1,5 @@
 package querqy.rewrite;
 
-import querqy.infologging.InfoLoggingContext;
 import querqy.model.logging.RewriteLoggingConfig;
 
 import java.util.Map;
@@ -75,20 +74,10 @@ public interface SearchEngineRequestAdapter {
     Optional<Double> getDoubleRequestParam(String name);
 
     /**
-     * <p>Get the per-request info logging. Return an empty option if logging hasn't been configured or was disabled
-     * for this request.</p>
-     *
-     * @return the InfoLoggingContext object
-     */
-    Optional<InfoLoggingContext> getInfoLoggingContext();
-
-    /**
      * @return true if debug information shall be collected, false otherwise
      */
     boolean isDebugQuery();
 
-    default RewriteLoggingConfig getRewriteLoggingConfig() {
-        return RewriteLoggingConfig.off();
-    }
+    RewriteLoggingConfig getRewriteLoggingConfig();
 
 }

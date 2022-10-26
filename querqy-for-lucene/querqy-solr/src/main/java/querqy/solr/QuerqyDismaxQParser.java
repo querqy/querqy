@@ -20,10 +20,10 @@ import querqy.lucene.LuceneQueries;
 import querqy.lucene.QueryParsingController;
 import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.infologging.InfoLogging;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.infologging.InfoLogging;
 
 import java.util.List;
 import java.util.Map;
@@ -170,7 +170,7 @@ public class QuerqyDismaxQParser extends QParser {
 
     }
 
-      public SearchEngineRequestAdapter getSearchEngineRequestAdapter() {
+    public LuceneSearchEngineRequestAdapter getSearchEngineRequestAdapter() {
         return requestAdapter;
     }
 

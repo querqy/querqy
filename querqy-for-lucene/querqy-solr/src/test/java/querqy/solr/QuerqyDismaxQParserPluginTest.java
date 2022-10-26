@@ -19,7 +19,7 @@ import org.apache.solr.search.WrappedQuery;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.infologging.MultiSinkInfoLogging;
+import querqy.lucene.rewrite.infologging.MultiSinkInfoLogging;
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;

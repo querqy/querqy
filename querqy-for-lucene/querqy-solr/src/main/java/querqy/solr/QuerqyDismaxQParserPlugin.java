@@ -3,8 +3,8 @@ package querqy.solr;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
-import querqy.infologging.InfoLogging;
 import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.infologging.InfoLogging;
 import querqy.rewrite.RewriteChain;
 
 /**

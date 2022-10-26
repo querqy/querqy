@@ -1,4 +1,4 @@
-package querqy.infologging;
+package querqy.lucene.rewrite.infologging;
 
 import querqy.rewrite.SearchEngineRequestAdapter;
 

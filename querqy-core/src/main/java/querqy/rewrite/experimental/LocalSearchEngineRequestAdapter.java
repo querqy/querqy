@@ -1,6 +1,6 @@
 package querqy.rewrite.experimental;
 
-import querqy.infologging.InfoLoggingContext;
+import querqy.model.logging.RewriteLoggingConfig;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
@@ -100,14 +100,14 @@ public class LocalSearchEngineRequestAdapter implements SearchEngineRequestAdapt
         return Optional.empty();
     }
 
-    // TODO: needs to be implemented in general
-    @Override
-    public Optional<InfoLoggingContext> getInfoLoggingContext() {
-        return Optional.empty();
-    }
-
     @Override
     public boolean isDebugQuery() {
         return false;
     }
+
+    @Override
+    public RewriteLoggingConfig getRewriteLoggingConfig() {
+        return RewriteLoggingConfig.off();
+    }
+
 }

@@ -2,14 +2,12 @@ package querqy.solr;
 
 import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.response.SolrQueryResponse;
-import querqy.infologging.Sink;
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class ResponseSink implements Sink {
 
