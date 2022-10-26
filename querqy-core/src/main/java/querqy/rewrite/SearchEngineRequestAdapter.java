@@ -94,7 +94,7 @@ public interface SearchEngineRequestAdapter {
     boolean isDebugQuery();
 
     default RewriteLoggingConfig getRewriteLoggingConfig() {
-        return RewriteLoggingConfig.inactiveRewriteLogging();
+        return RewriteLoggingConfig.off();
     }
 
 }

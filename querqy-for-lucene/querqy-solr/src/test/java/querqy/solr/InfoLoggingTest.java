@@ -13,6 +13,9 @@ import org.junit.Test;
 public class InfoLoggingTest extends SolrTestCaseJ4 {
 
     private final static String REWRITERS = "common1,common2";
+    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy.rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
+    private static final String ACTIONS_PATH = REWRITE_CHAIN_PATH + "/arr[@name='actions']/lst";
+
 
     @BeforeClass
     public static void beforeTests() throws Exception {
@@ -22,117 +25,25 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
     }
 
     @Test
-    public void testThatTheLogPropertyIsReturned() {
-
-        String q = "a x";
-
-        SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
-        );
-
-        assertQ("Log property is missing",
-                req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'log msg 1 of input a']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 1"
-        );
-
-        req.close();
-    }
-
-    @Test
-    public void testThatThereIsNoLogOutputIfOneRewriterDoesntSupplyAMessage() {
-
-        String q = "a x";
-
-        SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
-        );
-
-        assertQ("Empty log output for rewriter",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common2']) = 0"
-        );
-
-        req.close();
-    }
-
-    @Test
-    public void testThatTheIdIsReturnedIfThereIsNoLogProperty() {
+    public void testThatOnlyIdAreReturnedForGivenParam() {
 
         String q = "c";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.REWRITER_ID.getValue(),                "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logged ID is missing",
                 req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'ID 1']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 1"
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common1']",
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common2']",
+                "count(" + REWRITE_CHAIN_PATH + "/arr[@name='actions']) = 0"
         );
 
         req.close();
     }
-
-    @Test
-    public void testThatMatchExpressionPlusOrdIsReturnedIfThereIsNeitherLogPropertyNorIdConfigured() {
-
-        String q = "d";
-
-        SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
-        );
-
-        assertQ("Synthetic log message missing",
-                req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'd#2']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 1"
-        );
-
-        req.close();
-    }
-
-    @Test
-    public void testThatLogPropertyIsReturnedEvenIfIdIsConfigured() {
-
-        String q = "k";
-
-        SolrQueryRequest req = req("q", q,
-                DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
-        );
-
-        assertQ("Log not returned if ID is configured",
-                req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG for k']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 1"
-        );
-
-        req.close();
-    }
-
 
     @Test
     public void testThatLogsAreReturnedForAllMatchingRules() {
@@ -141,19 +52,16 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
                 req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG 1 for m']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG 2 for m']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 2"
+                ACTIONS_PATH + "/str[@name='message' and text()='LOG 1 for m']",
+                ACTIONS_PATH + "/str[@name='message' and text()='LOG 2 for m']",
+                "count(" + ACTIONS_PATH + "/str) = 2"
         );
 
         req.close();
@@ -166,53 +74,62 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "on",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
                 "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
+                PARAM_REWRITERS, "common1"
         );
 
         assertQ("Logging multiple logs for same input false",
                 req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'log msg 1 of input a']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'ID 1']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG for k']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'd#2']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG 1 for m']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG 2 for m']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 6"
+                ACTIONS_PATH + "/str[@name='message' and text()='log msg 1 of input a']",
+                ACTIONS_PATH + "/str[@name='message' and text()='ID 1']",
+                ACTIONS_PATH + "/str[@name='message' and text()='LOG for k']",
+                ACTIONS_PATH + "/str[@name='message' and text()='d#2']",
+                ACTIONS_PATH + "/str[@name='message' and text()='LOG 1 for m']",
+                ACTIONS_PATH + "/str[@name='message' and text()='LOG 2 for m']",
+                "count(" + ACTIONS_PATH + ") = 6"
         );
 
         req.close();
     }
 
     public void testThatLogsAreReturnedForAllRewriters() {
-
         String q = "k";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
                 req,
-                "//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'LOG for k']",
-                "//lst[@name='querqy.infoLog']/arr[@name='common2']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str[text() = 'k in rewriter 2']",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 1",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='common1']/lst/arr[@name='APPLIED_RULES']/" +
-                        "str) = 1"
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common1']",
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common2']"
+        );
+    }
+
+    public void testThatDetailedLogsAreReturnedForGivenParam() {
+
+        String q = "k";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
+        );
+
+        assertQ("Logging multiple logs for same input false",
+                req,
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common1']",
+                ACTIONS_PATH + "/str[@name='message' and text()='LOG for k']",
+                ACTIONS_PATH + "/lst[@name='match']/str[@name='term' and text()='k']",
+                ACTIONS_PATH + "/lst[@name='match']/str[@name='type' and text()='exact']",
+                ACTIONS_PATH + "/arr[@name='instructions']/lst/str[@name='type' and text()='synonym']",
+                ACTIONS_PATH + "/arr[@name='instructions']/lst/str[@name='value' and text()='h']"
         );
 
         req.close();
@@ -230,7 +147,7 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
 
         assertQ("Logging multiple logs for same input false",
                 req,
-                "count(//lst[@name='querqy.infoLog']/arr) = 0"
+                "count(" + REWRITE_CHAIN_PATH + ") = 0"
         );
 
         req.close();
@@ -242,14 +159,14 @@ public class InfoLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                QuerqyDismaxParams.INFO_LOGGING, "off",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.OFF.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("Logging multiple logs for same input false",
                 req,
-                "count(//lst[@name='querqy.infoLog']/arr) = 0"
+                "count(" + REWRITE_CHAIN_PATH + ") = 0"
         );
 
         req.close();

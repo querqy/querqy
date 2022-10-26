@@ -172,7 +172,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
     }
 
     protected void prepareRequestAdapterForLogging() {
-        when(searchEngineRequestAdapter.getRewriteLoggingConfig()).thenReturn(RewriteLoggingConfig.inactiveRewriteLogging());
+        when(searchEngineRequestAdapter.getRewriteLoggingConfig()).thenReturn(RewriteLoggingConfig.off());
     }
    
     protected Query buildWithStopWords(String input, float tie, String... names) {

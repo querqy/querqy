@@ -2,6 +2,7 @@ package querqy.solr;
 
 import static querqy.lucene.PhraseBoosting.makePhraseFieldsBoostQuery;
 import static querqy.solr.QuerqyDismaxParams.*;
+import static querqy.solr.RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause;
@@ -35,6 +36,7 @@ import querqy.model.ParametrizedRawQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
+import querqy.model.logging.RewriteLoggingConfig;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.infologging.InfoLoggingContext;
@@ -95,6 +97,11 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     private final QParser qParser;
     private final InfoLoggingContext infoLoggingContext;
 
+    private final boolean isDebug;
+
+    private final RewriteLoggingParameter rewriteLoggingParameter;
+    private final RewriteLoggingConfig rewriteLoggingConfig;
+
     private Map<String, String> additionalParams = null;
 
     public DismaxSearchEngineRequestAdapter(final QParser qParser, final SolrQueryRequest request,
@@ -106,13 +113,21 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
         this.userQueryString = queryString;
         this.solrParams = solrParams;
         this.termQueryCache = termQueryCache;
-        this.infoLoggingContext = solrParams.getBool(INFO_LOGGING, false) && infoLogging != null
-                ? new InfoLoggingContext(infoLogging, this)
-                : null;
+
         this.querqyParser = querqyParser;
         this.request = request;
         this.rewriteChain = rewriteChain;
         this.context = new HashMap<>();
+        this.isDebug = solrParams.getBool(CommonParams.DEBUG_QUERY, false);
+
+        this.rewriteLoggingParameter = RewriteLoggingParameter.of(solrParams.get(REWRITE_LOGGING_PARAM_KEY, "OFF"));
+        this.rewriteLoggingConfig = createRewriteLoggingConfig();
+        if (rewriteLoggingConfig.isActive()) {
+            this.infoLoggingContext = new InfoLoggingContext(infoLogging, this);
+
+        } else {
+            this.infoLoggingContext = null;
+        }
 
         final int ps0 = solrParams.getInt(PS, 0);
         final int ps2 = solrParams.getInt(PS2, ps0);
@@ -133,6 +148,18 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
         minShouldMatch = DisMaxQParser.parseMinShouldMatch(request.getSchema(), solrParams);
 
+    }
+
+    private RewriteLoggingConfig createRewriteLoggingConfig() {
+        if (isDebug || RewriteLoggingParameter.DETAILS.equals(rewriteLoggingParameter)) {
+            return RewriteLoggingConfig.details();
+
+        } else if (RewriteLoggingParameter.REWRITER_ID.equals(rewriteLoggingParameter)) {
+            return RewriteLoggingConfig.idsOnly();
+
+        } else {
+            return RewriteLoggingConfig.off();
+        }
     }
 
     @Override
@@ -208,7 +235,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
     @Override
     public boolean isDebugQuery() {
-        return solrParams.getBool(CommonParams.DEBUG_QUERY, false);
+        return isDebug;
     }
 
     @Override
@@ -586,4 +613,10 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     public Optional<Double> getDoubleRequestParam(final String name) {
         return Optional.ofNullable(solrParams.getDouble(name));
     }
+
+    @Override
+    public RewriteLoggingConfig getRewriteLoggingConfig() {
+        return rewriteLoggingConfig;
+    }
+
 }

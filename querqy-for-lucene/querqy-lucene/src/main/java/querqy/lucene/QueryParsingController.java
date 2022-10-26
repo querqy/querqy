@@ -1,5 +1,8 @@
 package querqy.lucene;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
@@ -26,6 +29,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
+import querqy.model.logging.RewriteChainLogging;
 import querqy.model.rewriting.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -38,9 +42,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_DATA;
-import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_ENABLED;
 
 /**
  * Created by rene on 23/05/2017.
@@ -84,7 +85,6 @@ public class QueryParsingController {
     protected final Analyzer queryAnalyzer;
     protected final SearchFieldsAndBoosting searchFieldsAndBoosting;
     protected final DocumentFrequencyCorrection dfc;
-    protected final boolean debugQuery;
     protected final LuceneQueryBuilder builder;
     protected final TermQueryBuilder boostTermQueryBuilder;
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
@@ -158,11 +158,6 @@ public class QueryParsingController {
                     requestAdapter.getTermQueryCache().orElse(null));
 
         }
-
-
-        debugQuery = requestAdapter.isDebugQuery();
-
-
     }
 
     public ExpandedQuery createExpandedQuery() {
@@ -174,12 +169,31 @@ public class QueryParsingController {
                     .orElseGet(QueryParsingController::newDefaultQuerqyParser);
 
             // TODO: What is happening here ?!?
-            if (debugQuery) {
+            //  build rewrite logging config
+
+            if (requestAdapter.isDebugQuery()) {
                 parserDebugInfo = parser.getClass().getName();
             }
 
             return new ExpandedQuery(parser.parse(queryString));
         }
+    }
+
+    private void processRewriteLogging(final RewriteChainLogging rewriteChainLogging) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+        requestAdapter.getInfoLoggingContext().ifPresent(
+                infoLoggingContext -> {
+                    for (final RewriteChainLogging.RewriteLoggingEntry entry : rewriteChainLogging.getRewriteChain()) {
+                        infoLoggingContext.setRewriterId(entry.getRewriterId());
+                        final List<Object> rewriteActions = objectMapper.convertValue(
+                                entry.getActions(), new TypeReference<>() {});
+                        infoLoggingContext.log(rewriteActions);
+                    }
+                }
+        );
     }
 
     public LuceneQueries process() throws SyntaxException {
@@ -195,11 +209,13 @@ public class QueryParsingController {
 
         // TODO: to be removed
         final Map<String, Object> context = requestAdapter.getContext();
-        if (debugQuery) {
-            context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
+        if (requestAdapter.isDebugQuery()) {
+            // context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
         }
 
         final RewriteChainOutput rewriteChainOutput = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
+        rewriteChainOutput.getRewriteLogging().ifPresent(this::processRewriteLogging);
+
         final ExpandedQuery rewrittenExpandedQuery = rewriteChainOutput.getExpandedQuery();
 
         Query mainQuery = transformUserQuery(rewrittenExpandedQuery.getUserQuery(), builder);
@@ -503,7 +519,7 @@ public class QueryParsingController {
 
     public Map<String, Object> getDebugInfo() {
 
-        if (debugQuery) {
+        if (requestAdapter.isDebugQuery()) {
 
             Map<String, Object> info = new TreeMap<>();
 
@@ -513,11 +529,10 @@ public class QueryParsingController {
             }
 
             // TODO: to be refactored
-            final Object contextDebugInfo = requestAdapter.getContext()
-                    .get(CONTEXT_KEY_DEBUG_DATA);
-            if (contextDebugInfo != null) {
-                info.put("querqy.rewrite", contextDebugInfo);
-            }
+//            final Object contextDebugInfo = requestAdapter.getContext().get(CONTEXT_KEY_DEBUG_DATA);
+//            if (contextDebugInfo != null) {
+//                info.put("querqy.rewrite", contextDebugInfo);
+//            }
             return info;
 
         } else {

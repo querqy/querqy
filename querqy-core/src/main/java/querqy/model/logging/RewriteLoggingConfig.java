@@ -27,12 +27,30 @@ public class RewriteLoggingConfig {
         return includedRewriters;
     }
 
-    private static final RewriteLoggingConfig INACTIVE_REWRITE_LOGGING = RewriteLoggingConfig.builder()
+    private static final RewriteLoggingConfig INACTIVE = RewriteLoggingConfig.builder()
             .isActive(false)
             .build();
 
-    public static RewriteLoggingConfig inactiveRewriteLogging() {
-        return INACTIVE_REWRITE_LOGGING;
+    private static final RewriteLoggingConfig FULL = RewriteLoggingConfig.builder()
+            .isActive(true)
+            .hasDetails(true)
+            .build();
+
+    private static final RewriteLoggingConfig IDS_ONLY = RewriteLoggingConfig.builder()
+            .isActive(true)
+            .hasDetails(false)
+            .build();
+
+    public static RewriteLoggingConfig off() {
+        return INACTIVE;
+    }
+
+    public static RewriteLoggingConfig idsOnly() {
+        return IDS_ONLY;
+    }
+
+    public static RewriteLoggingConfig details() {
+        return FULL;
     }
 
     public static RewriteLoggingConfigBuilder builder() {
