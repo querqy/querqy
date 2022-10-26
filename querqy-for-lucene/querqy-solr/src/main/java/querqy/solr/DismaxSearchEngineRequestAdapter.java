@@ -122,7 +122,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
         this.rewriteLoggingParameter = RewriteLoggingParameter.of(solrParams.get(REWRITE_LOGGING_PARAM_KEY, "OFF"));
         this.rewriteLoggingConfig = createRewriteLoggingConfig();
-        if (rewriteLoggingConfig.isActive()) {
+        if (infoLogging != null && rewriteLoggingConfig.isActive()) {
             this.infoLoggingContext = new InfoLoggingContext(infoLogging, this);
 
         } else {
