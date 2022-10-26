@@ -14,6 +14,7 @@ import querqy.model.logging.RewriterLogging;
 import querqy.model.rewriting.RewriterOutput;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,10 +75,11 @@ public class RewriteChainTest {
         activateRewriteLogging(true);
 
         final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
-        final RewriteChainLogging rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
+        final Optional<RewriteChainLogging> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
                 .getRewriteLogging();
 
-        assertThat(rewriteChainLogging).isEqualTo(
+        assertThat(rewriteChainLogging).isPresent();
+        assertThat(rewriteChainLogging.get()).isEqualTo(
                 RewriteChainLogging.builder()
                         .add("1", List.of(actionLogging1))
                         .add("2", List.of(actionLogging2))
@@ -92,10 +94,11 @@ public class RewriteChainTest {
         activateRewriteLogging(false);
 
         final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
-        final RewriteChainLogging rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
+        final Optional<RewriteChainLogging> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
                 .getRewriteLogging();
 
-        assertThat(rewriteChainLogging).isEqualTo(
+        assertThat(rewriteChainLogging).isPresent();
+        assertThat(rewriteChainLogging.get()).isEqualTo(
                 RewriteChainLogging.builder()
                         .add("1", List.of())
                         .add("2", List.of())
@@ -110,10 +113,11 @@ public class RewriteChainTest {
         activateRewriteLogging(true, "1");
 
         final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
-        final RewriteChainLogging rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
+        final Optional<RewriteChainLogging> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
                 .getRewriteLogging();
 
-        assertThat(rewriteChainLogging).isEqualTo(
+        assertThat(rewriteChainLogging).isPresent();
+        assertThat(rewriteChainLogging.get()).isEqualTo(
                 RewriteChainLogging.builder()
                         .add("1", List.of(actionLogging1))
                         .build()
@@ -127,10 +131,11 @@ public class RewriteChainTest {
         activateRewriteLogging(false, "1");
 
         final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
-        final RewriteChainLogging rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
+        final Optional<RewriteChainLogging> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
                 .getRewriteLogging();
 
-        assertThat(rewriteChainLogging).isEqualTo(
+        assertThat(rewriteChainLogging).isPresent();
+        assertThat(rewriteChainLogging.get()).isEqualTo(
                 RewriteChainLogging.builder()
                         .add("1", List.of())
                         .build()

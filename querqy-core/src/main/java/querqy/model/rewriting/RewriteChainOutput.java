@@ -3,6 +3,8 @@ package querqy.model.rewriting;
 import querqy.model.ExpandedQuery;
 import querqy.model.logging.RewriteChainLogging;
 
+import java.util.Optional;
+
 public class RewriteChainOutput {
 
     private final ExpandedQuery expandedQuery;
@@ -17,8 +19,8 @@ public class RewriteChainOutput {
         return expandedQuery;
     }
 
-    public RewriteChainLogging getRewriteLogging() {
-        return rewriteLogging;
+    public Optional<RewriteChainLogging> getRewriteLogging() {
+        return Optional.ofNullable(rewriteLogging);
     }
 
     public static RewriteChainOutputBuilder builder() {
