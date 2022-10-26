@@ -19,12 +19,12 @@ public class InstructionLogging {
         return type;
     }
 
-    public Optional<Object> getParam() {
-        return Optional.ofNullable(param);
+    public Object getParam() {
+        return param;
     }
 
-    public Optional<String> getValue() {
-        return Optional.ofNullable(value);
+    public String getValue() {
+        return value;
     }
 
     public static InstructionLoggingBuilder builder() {

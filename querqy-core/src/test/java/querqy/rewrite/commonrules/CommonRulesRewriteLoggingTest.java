@@ -133,10 +133,8 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
 
         final InstructionLogging instructionLogging = rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions().get(0);
         assertThat(instructionLogging.getType()).isEqualTo("synonym");
-        assertThat(instructionLogging.getParam()).isPresent();
-        assertThat(instructionLogging.getParam().get()).isEqualTo("1.0");
-        assertThat(instructionLogging.getValue()).isPresent();
-        assertThat(instructionLogging.getValue().get()).isEqualTo("apple");
+        assertThat(instructionLogging.getParam()).isEqualTo("1.0");
+        assertThat(instructionLogging.getValue()).isEqualTo("apple");
     }
 
     @Test

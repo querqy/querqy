@@ -143,9 +143,7 @@ public class ReplaceRewriterLoggingTest {
 
         final InstructionLogging instructionLogging = rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions().get(0);
         assertThat(instructionLogging.getType()).isEqualTo("replace");
-        assertThat(instructionLogging.getParam()).isNotPresent();
-        assertThat(instructionLogging.getValue()).isPresent();
-        assertThat(instructionLogging.getValue().get()).isEqualTo("apple");
+        assertThat(instructionLogging.getValue()).isEqualTo("apple");
     }
 
     private void activateRewriteLoggingConfigMock() {
