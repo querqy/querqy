@@ -83,12 +83,6 @@ public interface SearchEngineRequestAdapter {
     Optional<InfoLoggingContext> getInfoLoggingContext();
 
     /**
-     * <p>Should debug information be collected while rewriting the query?</p>
-     * <p>Debug information will be kept in the context map under the
-     * {@link querqy.rewrite.AbstractLoggingRewriter#CONTEXT_KEY_DEBUG_DATA} key.</p>
-     *
-     * @see #getContext()
-     *
      * @return true if debug information shall be collected, false otherwise
      */
     boolean isDebugQuery();
