@@ -142,6 +142,20 @@ public class RewriteChainTest {
         );
     }
 
+    @Test
+    public void testThat_noLoggingIsCollected_forActivatedLoggingButNoRewriting() {
+        setupRewriterFactories();
+        setupRewriter(false);
+        activateRewriteLogging(false, "1");
+
+        final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
+        final Optional<RewriteChainLogging> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
+                .getRewriteLogging();
+
+        assertThat(rewriteChainLogging).isPresent();
+        assertThat(rewriteChainLogging.get()).isEqualTo(RewriteChainLogging.builder().build());
+    }
+
     private void setupRewriterFactories() {
         when(rewriterFactory1.getRewriterId()).thenReturn("1");
         when(rewriterFactory2.getRewriterId()).thenReturn("2");
@@ -151,16 +165,20 @@ public class RewriteChainTest {
     }
 
     private void setupRewriter() {
+        setupRewriter(true);
+    }
+
+    private void setupRewriter(final boolean hasAppliedRewriting) {
         when(queryRewriter1.rewrite(any(), any())).thenReturn(
                 RewriterOutput.builder()
                         .expandedQuery(expandedQuery1)
-                        .rewriterLogging(createRewriteLogging(actionLogging1))
+                        .rewriterLogging(createRewriteLogging(hasAppliedRewriting, actionLogging1))
                         .build()
         );
         when(queryRewriter2.rewrite(any(), any())).thenReturn(
                 RewriterOutput.builder()
                         .expandedQuery(expandedQuery2)
-                        .rewriterLogging(createRewriteLogging(actionLogging2))
+                        .rewriterLogging(createRewriteLogging(hasAppliedRewriting, actionLogging2))
                         .build()
         );
     }
@@ -174,9 +192,9 @@ public class RewriteChainTest {
                         .build());
     }
 
-    private RewriterLogging createRewriteLogging(final ActionLogging actionLogging) {
+    private RewriterLogging createRewriteLogging(final boolean hasAppliedRewriting, final ActionLogging actionLogging) {
         return RewriterLogging.builder()
-                .hasAppliedRewriting(true)
+                .hasAppliedRewriting(hasAppliedRewriting)
                 .addActionLogging(actionLogging)
                 .build();
     }

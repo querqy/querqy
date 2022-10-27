@@ -93,9 +93,11 @@ public class RewriteChain {
             for (final RewriterFactory factory : rewriterFactories) {
                 final RewriterOutput rewriterOutput = applyFactory(factory);
 
-                rewriterOutput.getRewriterLogging().ifPresent(
-                        rewriterLogging -> parseLogging(factory.getRewriterId(), rewriterLogging));
-                ;
+                if (rewriteLoggingConfig.isActive() && rewriterOutput.getRewriterLogging().isPresent()) {
+                    addLoggingIfRewritingHasBeenApplied(
+                            factory.getRewriterId(), rewriterOutput.getRewriterLogging().get());
+                }
+
                 expandedQuery = rewriterOutput.getExpandedQuery();
             }
 
@@ -107,17 +109,21 @@ public class RewriteChain {
             return rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
         }
 
-        private void parseLogging(final String factoryId, final RewriterLogging rewriterLogging) {
-            final Set<String> includedIds = rewriteLoggingConfig.getIncludedRewriters();
-
-            if (rewriteLoggingConfig.isActive()) {
-                if (includedIds.isEmpty() || includedIds.contains(factoryId)) {
-                    addLogging(factoryId, rewriterLogging);
-                }
+        private void addLoggingIfRewritingHasBeenApplied(final String factoryId, final RewriterLogging rewriterLogging) {
+            if (rewriterLogging.hasAppliedRewriting()) {
+                addLoggingIfRewriterIdIsIncluded(factoryId, rewriterLogging);
             }
         }
 
-        private void addLogging(final String factoryId, final RewriterLogging rewriterLogging) {
+        private void addLoggingIfRewriterIdIsIncluded(final String factoryId, final RewriterLogging rewriterLogging) {
+            final Set<String> includedIds = rewriteLoggingConfig.getIncludedRewriters();
+
+            if (includedIds.isEmpty() || includedIds.contains(factoryId)) {
+                addLoggingWithOrWithoutDetails(factoryId, rewriterLogging);
+            }
+        }
+
+        private void addLoggingWithOrWithoutDetails(final String factoryId, final RewriterLogging rewriterLogging) {
             if (rewriteLoggingConfig.hasDetails()) {
                 rewriteChainLoggingBuilder.add(factoryId, rewriterLogging.getActionLoggings());
 

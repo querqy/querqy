@@ -19,6 +19,7 @@ public class RewriteChainOutput {
         return expandedQuery;
     }
 
+    // TODO: needed to be optional?
     public Optional<RewriteChainLogging> getRewriteLogging() {
         return Optional.ofNullable(rewriteLogging);
     }
