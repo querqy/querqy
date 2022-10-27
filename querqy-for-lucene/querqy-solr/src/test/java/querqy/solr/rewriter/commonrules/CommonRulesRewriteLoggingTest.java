@@ -1,4 +1,4 @@
-package querqy.solr;
+package querqy.solr.rewriter.commonrules;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
@@ -8,9 +8,11 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.solr.QuerqyDismaxParams;
+import querqy.solr.RewriteLoggingParameter;
 
 @SolrTestCaseJ4.SuppressSSL
-public class InfoLoggingTest extends SolrTestCaseJ4 {
+public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
     private final static String REWRITERS = "common1,common2";
     private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy.rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
