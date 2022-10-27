@@ -40,7 +40,6 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         assertQ("Logged ID is missing",
                 req,
                 REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common1']",
-                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common2']",
                 "count(" + REWRITE_CHAIN_PATH + "/arr[@name='actions']) = 0"
         );
 
@@ -148,6 +147,25 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         );
 
         assertQ("Logging multiple logs for same input false",
+                req,
+                "count(" + REWRITE_CHAIN_PATH + ") = 0"
+        );
+
+        req.close();
+    }
+
+    public void testThatLogOutputIsEmptyForNoMatch() {
+
+        String q = "nomatch";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
+        );
+
+        assertQ(
                 req,
                 "count(" + REWRITE_CHAIN_PATH + ") = 0"
         );

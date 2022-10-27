@@ -1,10 +1,11 @@
 package querqy.solr.rewriter.replace;
 
 import org.apache.solr.SolrTestCaseJ4;
+import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.solr.QuerqyDismaxParams;
+import querqy.solr.RewriteLoggingParameter;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withReplaceRewriter;
@@ -13,6 +14,8 @@ import static querqy.solr.StandaloneSolrTestSupport.withReplaceRewriter;
 public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
 
     private final static String REWRITERS = "replace1,replace2";
+    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy.rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
+    private static final String ACTIONS_PATH = REWRITE_CHAIN_PATH + "/arr[@name='actions']/lst";
 
     @BeforeClass
     public static void beforeTests() throws Exception {
@@ -21,24 +24,30 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         withReplaceRewriter(h.getCore(), "replace2", "configs/replace/replace-rules-defaults.txt");
     }
 
-    @Test
-    public void testThatTheLogPropertyIsReturned() {
+    public void testThatDetailedLogsAreReturnedForGivenParam() {
 
         String q = "testword";
 
         SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
+                DisMaxParams.QF, "f1 f2 f3",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
-        assertQ("Log property is missing",
+        assertQ("Logging multiple logs for same input false",
                 req,
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']/str[1][text() = 'testword => [word]']) = 1"
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='replace1']",
+                ACTIONS_PATH + "/str[@name='message' and text()='testword => word']",
+                ACTIONS_PATH + "/lst[@name='match']/str[@name='term' and text()='testword']",
+                ACTIONS_PATH + "/lst[@name='match']/str[@name='type' and text()='exact']",
+                ACTIONS_PATH + "/arr[@name='instructions']/lst/str[@name='type' and text()='replace']",
+                ACTIONS_PATH + "/arr[@name='instructions']/lst/str[@name='value' and text()='word']"
         );
 
         req.close();
     }
+
 
     @Test
     public void testThatThereIsNoLogOutputIfThereIsNoMatch() {
@@ -46,14 +55,13 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "notpresent";
 
         SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
-        assertQ("There should be no output for no match",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']) = 0"
+        assertQ(req,
+                "count(" + REWRITE_CHAIN_PATH + ") = 0"
         );
 
         req.close();
@@ -65,57 +73,15 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "wordtest testword";
 
         SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
-        assertQ("Rules for all replace rewriters should be returned",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']/str[1][text() = 'testword => [word]']) = 1",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace2']/lst/arr[@name='APPLIED_RULES']/str[1][text() = 'wordtest => [test]']) = 1"
-                );
-
-        req.close();
-    }
-
-    public void testThatLogsAreReturnedForAllMatchingRules() {
-
-        String q = "testword superword wordword replaceme wordtest testtesttest testtest";
-
-        SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
+        assertQ(req,
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='replace1']",
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='replace2']"
         );
-
-        assertQ("Multiple rules for all replace rewriters should be returned",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']/str[1][text() = 'replaceme => [replaced]']) = 1",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']/str[2][text() = 'wordword,superword,testword => [word]']) = 1",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace2']/lst/arr[@name='APPLIED_RULES']/str[1][text() = 'testtesttest,testtest => [tested]']) = 1",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace2']/lst/arr[@name='APPLIED_RULES']/str[2][text() = 'wordtest => [test]']) = 1"
-        );
-
-        req.close();
-    }
-
-    @Test
-    public void testThatLogsAreReturnedForAllMatchingInputsOfTheSameRewriter() {
-
-        String q = "testword superword replaceme";
-
-        SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
-        );
-
-        assertQ("Multiple rules for one replace rewriter should be returned",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']/str[1][text() = 'replaceme => [replaced]']) = 1",
-                "count(//lst[@name='querqy.infoLog']/arr[@name='replace1']/lst/arr[@name='APPLIED_RULES']/str[2][text() = 'superword,testword => [word]']) = 1"
-                );
 
         req.close();
     }
@@ -129,9 +95,8 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
                 PARAM_REWRITERS, REWRITERS
         );
 
-        assertQ("Logging should be off by default",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr) = 0"
+        assertQ(req,
+                "count(" + REWRITE_CHAIN_PATH + ") = 0"
         );
 
         req.close();
@@ -142,14 +107,13 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "testword";
 
         SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "off",
+                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.OFF.getValue(),
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
-        assertQ("Logging should be off by param",
-                req,
-                "count(//lst[@name='querqy.infoLog']/arr) = 0"
+        assertQ(req,
+                "count(" + REWRITE_CHAIN_PATH + ") = 0"
         );
 
         req.close();
