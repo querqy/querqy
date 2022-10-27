@@ -55,6 +55,20 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
     }
 
     @Test
+    public void testThat_rewriteLoggingIsEmpty_forActiveLoggingButNoMatch() {
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(input("iphone"), synonym("apple"))
+        );
+
+        final ExpandedQuery expandedQuery = expanded(bq("iphones")).build();
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+
+        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
+        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).isEmpty();
+        assertThat(rewritingOutput.getRewriterLogging().get().hasAppliedRewriting()).isFalse();
+    }
+
+    @Test
     public void testThat_matchInformationIsReturned_forAppliedRule() {
         activateRewriteLoggingConfigMock();
 

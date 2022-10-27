@@ -72,6 +72,24 @@ public class ReplaceRewriterLoggingTest {
 
         assertThat(rewritingOutput.getRewriterLogging()).isPresent();
         assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).isEmpty();
+        assertThat(rewritingOutput.getRewriterLogging().get().hasAppliedRewriting()).isTrue();
+    }
+
+    @Test
+    public void testThat_rewriteLoggingIsEmpty_forActiveLoggingButNoMatch() {
+        when(searchEngineRequestAdapter.getRewriteLoggingConfig())
+                .thenReturn(RewriteLoggingConfig.builder().isActive(true).hasDetails(true).build());
+
+        final ReplaceRewriter rewriter = rewriter(
+                rule(input("iphone"), termsInstruction("apple"))
+        );
+
+        final ExpandedQuery expandedQuery = expanded(bq("iphones")).build();
+        final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+
+        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
+        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).isEmpty();
+        assertThat(rewritingOutput.getRewriterLogging().get().hasAppliedRewriting()).isFalse();
     }
 
     @Test

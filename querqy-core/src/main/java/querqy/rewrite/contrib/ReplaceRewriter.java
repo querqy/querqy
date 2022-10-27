@@ -53,7 +53,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        final List<ActionLogging> actionLoggings = searchEngineRequestAdapter.getRewriteLoggingConfig().isActive()
+        final List<ActionLogging> actionLoggings = searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()
                 ? new ArrayList<>() : null;
 
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
@@ -110,6 +110,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
         return RewriterOutput.builder()
                 .expandedQuery(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery)
                 .rewriterLogging(RewriterLogging.builder()
+                        .hasAppliedRewriting(hasReplacement)
                         .actionLoggings(actionLoggings)
                         .build())
                 .build();
