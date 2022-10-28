@@ -78,6 +78,9 @@ public class QueryParsingController {
      */
     protected static final Class<? extends QuerqyParser> DEFAULT_PARSER_CLASS = WhiteSpaceQuerqyParser.class;
 
+    protected static final ObjectMapper REWRITE_LOGGING_OBJECT_MAPPER = new ObjectMapper()
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
     protected final LuceneSearchEngineRequestAdapter requestAdapter;
     protected final String queryString;
@@ -90,6 +93,7 @@ public class QueryParsingController {
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
     protected final boolean addQuerqyBoostQueriesToMainQuery;
     protected String parserDebugInfo = null;
+    protected RewriteChainLogging rewriteChainLogging = null;
 
     public QueryParsingController(final LuceneSearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;
@@ -179,23 +183,6 @@ public class QueryParsingController {
         }
     }
 
-    private void processRewriteLogging(final RewriteChainLogging rewriteChainLogging) {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-
-        requestAdapter.getInfoLoggingContext().ifPresent(
-                infoLoggingContext -> {
-                    for (final RewriteChainLogging.RewriteLoggingEntry entry : rewriteChainLogging.getRewriteChain()) {
-                        infoLoggingContext.setRewriterId(entry.getRewriterId());
-                        final List<Object> rewriteActions = objectMapper.convertValue(
-                                entry.getActions(), new TypeReference<>() {});
-                        infoLoggingContext.log(rewriteActions);
-                    }
-                }
-        );
-    }
-
     public LuceneQueries process() throws SyntaxException {
         final ExpandedQuery parsedInput = createExpandedQuery();
 
@@ -207,14 +194,12 @@ public class QueryParsingController {
         final List<Query> multiplicativeBoostsFromRequest = needsScores ? requestAdapter.getMultiplicativeBoosts(parsedInput.getUserQuery()) : Collections.emptyList();
         final boolean hasMultiplicativeBoostsFromRequest = !multiplicativeBoostsFromRequest.isEmpty();
 
-        // TODO: to be removed
-        final Map<String, Object> context = requestAdapter.getContext();
-        if (requestAdapter.isDebugQuery()) {
-            // context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
-        }
-
         final RewriteChainOutput rewriteChainOutput = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
-        rewriteChainOutput.getRewriteLogging().ifPresent(this::processRewriteLogging);
+
+        if (rewriteChainOutput.getRewriteLogging().isPresent()) {
+            this.rewriteChainLogging = rewriteChainOutput.getRewriteLogging().get();
+            processRewriteLogging();
+        }
 
         final ExpandedQuery rewrittenExpandedQuery = rewriteChainOutput.getExpandedQuery();
 
@@ -517,22 +502,35 @@ public class QueryParsingController {
         return result;
     }
 
+    private void processRewriteLogging() {
+        requestAdapter.getInfoLoggingContext().ifPresent(
+                infoLoggingContext -> rewriteChainLogging.getRewriteChain().forEach(
+                        rewriteLoggingEntry -> {
+                            infoLoggingContext.setRewriterId(rewriteLoggingEntry.getRewriterId());
+                            final List<Object> rewriteActions = REWRITE_LOGGING_OBJECT_MAPPER.convertValue(
+                                    rewriteLoggingEntry.getActions(), new TypeReference<>() {});
+                            infoLoggingContext.log(rewriteActions);
+                        }
+                )
+        );
+    }
+
     public Map<String, Object> getDebugInfo() {
 
         if (requestAdapter.isDebugQuery()) {
 
             Map<String, Object> info = new TreeMap<>();
 
-            // TODO: remove above
             if (parserDebugInfo != null) {
                 info.put("querqy.parser", parserDebugInfo);
             }
 
-            // TODO: to be refactored
-//            final Object contextDebugInfo = requestAdapter.getContext().get(CONTEXT_KEY_DEBUG_DATA);
-//            if (contextDebugInfo != null) {
-//                info.put("querqy.rewrite", contextDebugInfo);
-//            }
+            if (rewriteChainLogging != null && !rewriteChainLogging.getRewriteChain().isEmpty()) {
+                info.put(
+                        "querqy.rewrite",
+                        REWRITE_LOGGING_OBJECT_MAPPER.convertValue(rewriteChainLogging, new TypeReference<>() {})
+                );
+            }
             return info;
 
         } else {

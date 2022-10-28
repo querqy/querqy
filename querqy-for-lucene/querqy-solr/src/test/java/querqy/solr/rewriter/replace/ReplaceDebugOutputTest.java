@@ -27,36 +27,15 @@ public class ReplaceDebugOutputTest extends SolrTestCaseJ4 {
         String q = "testword superword wordword";
 
         SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
                 "debugQuery", "true",
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
-        assertQ("Log property is missing",
+        assertQ(
                 req,
-                "count(//lst[@name='debug']/arr[@name='querqy.rewrite']/str[1][text() = 'querqy.rewrite.contrib.ReplaceRewriter terms: word word word']) = 1"
-        );
-
-        req.close();
-    }
-
-    @Test
-    public void testThatAllReplacedWordsAreWrittenForMultipleRewriters() {
-
-        String q = "testword superword wordword testtesttest testtest";
-
-        SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
-                "debugQuery", "true",
-                "defType", "querqy",
-                PARAM_REWRITERS, REWRITERS
-        );
-
-        assertQ("Log property is missing",
-                req,
-                "count(//lst[@name='debug']/arr[@name='querqy.rewrite']/str[1][text() = 'querqy.rewrite.contrib.ReplaceRewriter terms: word word word testtesttest testtest']) = 1",
-                "count(//lst[@name='debug']/arr[@name='querqy.rewrite']/str[2][text() = 'querqy.rewrite.contrib.ReplaceRewriter terms: word word word tested tested']) = 1"
+                "//lst[@name='debug']/str[@name='querqy.parser' and text()='querqy.parser.WhiteSpaceQuerqyParser']",
+                "//lst[@name='debug']/lst[@name='querqy.rewrite']/arr[@name='rewriteChain']"
         );
 
         req.close();
@@ -68,14 +47,14 @@ public class ReplaceDebugOutputTest extends SolrTestCaseJ4 {
         String q = "notpresent";
 
         SolrQueryRequest req = req("q", q,
-                QuerqyDismaxParams.INFO_LOGGING, "on",
+                "debugQuery", "true",
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
         assertQ("There should be no output for no match",
                 req,
-                "count(//lst[@name='debug']/arr[@name='querqy.rewrite']/str) = 0"
+                "count(//lst[@name='debug']/arr[@name='querqy.rewrite']) = 0"
         );
 
         req.close();

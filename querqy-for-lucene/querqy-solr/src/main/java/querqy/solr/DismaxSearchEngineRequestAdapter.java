@@ -122,17 +122,11 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
         this.rewriteLoggingParameter = RewriteLoggingParameter.of(solrParams.get(REWRITE_LOGGING_PARAM_KEY, "OFF"));
         this.rewriteLoggingConfig = createRewriteLoggingConfig();
-        if (infoLogging != null && rewriteLoggingConfig.isActive()) {
-            this.infoLoggingContext = new InfoLoggingContext(infoLogging, this);
-
-        } else {
-            this.infoLoggingContext = null;
-        }
+        this.infoLoggingContext = createInfoLoggingContext(infoLogging);
 
         final int ps0 = solrParams.getInt(PS, 0);
         final int ps2 = solrParams.getInt(PS2, ps0);
         final int ps3 = solrParams.getInt(PS3, ps0);
-
 
         final List<FieldParams> phraseFields = SolrPluginUtils
                 .parseFieldBoostsAndSlop(solrParams.getParams(PF),0,ps0);
@@ -159,6 +153,15 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
         } else {
             return RewriteLoggingConfig.off();
+        }
+    }
+
+    private InfoLoggingContext createInfoLoggingContext(final InfoLogging infoLogging) {
+        if (infoLogging == null || RewriteLoggingParameter.OFF.equals(rewriteLoggingParameter)) {
+            return null;
+
+        } else {
+            return new InfoLoggingContext(infoLogging, this);
         }
     }
 
@@ -618,5 +621,30 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     public RewriteLoggingConfig getRewriteLoggingConfig() {
         return rewriteLoggingConfig;
     }
+
+//
+//    private static class LoggingAndDebugHandler {
+//
+//        private final boolean isDebug;
+//        private final RewriteLoggingParameter rewriteLoggingParameter;
+//        private final InfoLoggingContext infoLoggingContext;
+//
+//        private final RewriteLoggingConfig rewriteLoggingConfig;
+//
+//        public LoggingAndDebugHandler(boolean isDebug, RewriteLoggingParameter rewriteLoggingParameter, InfoLogging infoLogging) {
+//            this.isDebug = isDebug;
+//            this.rewriteLoggingParameter = rewriteLoggingParameter;
+//
+//            this.rewriteLoggingConfig = createRewriteLoggingConfig();
+//
+//            if (infoLogging != null && rewriteLoggingConfig.isActive()) {
+//                this.infoLoggingContext = new InfoLoggingContext(infoLogging, this);
+//
+//            } else {
+//                this.infoLoggingContext = null;
+//            }
+//
+//        }
+//    }
 
 }
