@@ -7,7 +7,7 @@ import querqy.model.ExpandedQuery;
 import querqy.rewrite.logging.InstructionLogging;
 import querqy.rewrite.logging.MatchLogging;
 import querqy.rewrite.logging.RewriteLoggingConfig;
-import querqy.model.rewriting.RewriterOutput;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.rewrite.contrib.replace.TermsReplaceInstruction;

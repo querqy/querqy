@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.rewriting.RewriterOutput;
 import querqy.model.Term;
 
 /**

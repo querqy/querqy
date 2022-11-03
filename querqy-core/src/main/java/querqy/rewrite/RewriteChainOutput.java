@@ -1,4 +1,4 @@
-package querqy.model.rewriting;
+package querqy.rewrite;
 
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.logging.RewriteChainLogging;

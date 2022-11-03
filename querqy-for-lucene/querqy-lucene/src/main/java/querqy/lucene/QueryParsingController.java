@@ -30,7 +30,7 @@ import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.rewrite.logging.RewriteChainLogging;
-import querqy.model.rewriting.RewriteChainOutput;
+import querqy.rewrite.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 

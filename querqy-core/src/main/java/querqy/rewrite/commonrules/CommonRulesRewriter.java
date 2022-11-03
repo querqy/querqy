@@ -10,7 +10,7 @@ import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.rewrite.logging.RewriterLogging;
-import querqy.model.rewriting.RewriterOutput;
+import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
 import querqy.rewrite.logging.ActionLogging;
 import querqy.rewrite.logging.InstructionLogging;

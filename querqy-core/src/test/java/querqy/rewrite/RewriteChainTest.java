@@ -11,7 +11,6 @@ import querqy.rewrite.logging.ActionLogging;
 import querqy.rewrite.logging.RewriteChainLogging;
 import querqy.rewrite.logging.RewriteLoggingConfig;
 import querqy.rewrite.logging.RewriterLogging;
-import querqy.model.rewriting.RewriterOutput;
 
 import java.util.List;
 import java.util.Optional;

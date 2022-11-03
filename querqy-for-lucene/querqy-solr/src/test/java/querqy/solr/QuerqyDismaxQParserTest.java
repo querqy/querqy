@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
@@ -21,7 +20,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import querqy.lucene.rewrite.infologging.InfoLogging;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
-import querqy.model.rewriting.RewriteChainOutput;
+import querqy.rewrite.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 

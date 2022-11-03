@@ -14,8 +14,6 @@ import querqy.model.Query;
 import querqy.rewrite.logging.RewriteChainLogging;
 import querqy.rewrite.logging.RewriteLoggingConfig;
 import querqy.rewrite.logging.RewriterLogging;
-import querqy.model.rewriting.RewriteChainOutput;
-import querqy.model.rewriting.RewriterOutput;
 
 /**
  * The chain of rewriters to manipulate a {@link Query}.

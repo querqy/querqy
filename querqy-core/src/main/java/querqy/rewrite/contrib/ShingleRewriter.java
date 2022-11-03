@@ -2,7 +2,7 @@ package querqy.rewrite.contrib;
 
 import querqy.CompoundCharSequence;
 import querqy.model.*;
-import querqy.model.rewriting.RewriterOutput;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 

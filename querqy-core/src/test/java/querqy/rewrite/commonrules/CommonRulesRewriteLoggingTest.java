@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import querqy.model.ExpandedQuery;
-import querqy.model.rewriting.RewriterOutput;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.logging.InstructionLogging;
 import querqy.rewrite.logging.MatchLogging;
 import querqy.rewrite.logging.RewriteLoggingConfig;
