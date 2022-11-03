@@ -6,7 +6,7 @@ import org.mockito.Mock;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.logging.InstructionLogging;
 import querqy.rewrite.logging.MatchLogging;
-import querqy.rewrite.logging.RewriteLoggingConfig;
+import querqy.rewrite.RewriteLoggingConfig;
 import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;

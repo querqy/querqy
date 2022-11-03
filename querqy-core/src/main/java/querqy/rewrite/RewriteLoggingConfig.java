@@ -1,4 +1,4 @@
-package querqy.rewrite.logging;
+package querqy.rewrite;
 
 import java.util.Collections;
 import java.util.Set;

@@ -9,7 +9,6 @@ import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.logging.ActionLogging;
 import querqy.rewrite.logging.RewriteChainLogging;
-import querqy.rewrite.logging.RewriteLoggingConfig;
 import querqy.rewrite.logging.RewriterLogging;
 
 import java.util.List;

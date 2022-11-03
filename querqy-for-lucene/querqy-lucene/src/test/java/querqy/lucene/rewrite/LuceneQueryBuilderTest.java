@@ -54,7 +54,7 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Term;
-import querqy.rewrite.logging.RewriteLoggingConfig;
+import querqy.rewrite.RewriteLoggingConfig;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;

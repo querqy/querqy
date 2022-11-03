@@ -37,7 +37,7 @@ import querqy.model.ParametrizedRawQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
-import querqy.rewrite.logging.RewriteLoggingConfig;
+import querqy.rewrite.RewriteLoggingConfig;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 

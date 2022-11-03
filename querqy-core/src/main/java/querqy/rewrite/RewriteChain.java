@@ -12,7 +12,6 @@ import java.util.Set;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewrite.logging.RewriteChainLogging;
-import querqy.rewrite.logging.RewriteLoggingConfig;
 import querqy.rewrite.logging.RewriterLogging;
 
 /**
