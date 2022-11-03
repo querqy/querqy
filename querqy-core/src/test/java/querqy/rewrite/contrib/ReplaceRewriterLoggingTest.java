@@ -4,8 +4,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import querqy.model.ExpandedQuery;
-import querqy.rewrite.logging.InstructionLogging;
-import querqy.rewrite.logging.MatchLogging;
+import querqy.rewrite.logging.InstructionLog;
+import querqy.rewrite.logging.MatchLog;
 import querqy.rewrite.RewriteLoggingConfig;
 import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -108,7 +108,7 @@ public class ReplaceRewriterLoggingTest {
         assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getMatch().getTerm())
                 .isEqualTo("iphone");
         assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getMatch().getType())
-                .isEqualTo(MatchLogging.MatchType.EXACT.getTypeName());
+                .isEqualTo(MatchLog.MatchType.EXACT.getTypeName());
     }
 
     @Test
@@ -159,7 +159,7 @@ public class ReplaceRewriterLoggingTest {
         assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).hasSize(1);
         assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions()).hasSize(1);
 
-        final InstructionLogging instructionLogging = rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions().get(0);
+        final InstructionLog instructionLogging = rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions().get(0);
         assertThat(instructionLogging.getType()).isEqualTo("replace");
         assertThat(instructionLogging.getValue()).isEqualTo("apple");
     }

@@ -1,8 +1,8 @@
 package querqy.rewrite.contrib.replace;
 
-import querqy.rewrite.logging.ActionLogging;
-import querqy.rewrite.logging.InstructionLogging;
-import querqy.rewrite.logging.MatchLogging;
+import querqy.rewrite.logging.ActionLog;
+import querqy.rewrite.logging.InstructionLog;
+import querqy.rewrite.logging.MatchLog;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +20,7 @@ public abstract class ReplaceInstruction {
      * @param actionLoggings   Debug information about replaced terms and their replacement
      */
     abstract public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                               final CharSequence wildcardMatch, List<ActionLogging> actionLoggings);
+                               final CharSequence wildcardMatch, List<ActionLog> actionLoggings);
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset) {
         this.apply(seq, start, exclusiveOffset, "", null);
@@ -32,7 +32,7 @@ public abstract class ReplaceInstruction {
     }
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final List<ActionLogging> actionLoggings) {
+                      final List<ActionLog> actionLoggings) {
         this.apply(seq, start, exclusiveOffset, "", actionLoggings);
     }
 
@@ -48,8 +48,8 @@ public abstract class ReplaceInstruction {
     // TODO: this definitely needs to be refactored, but requires more comprehensive refactoring in the replace rewriter
     public void removeTermFromSequence(final List<CharSequence> seq, final int start,
                                        final int exclusiveOffset, List<? extends CharSequence> replacementTerms,
-                                       final List<ActionLogging> actionLoggings,
-                                       final MatchLogging.MatchType matchType) {
+                                       final List<ActionLog> actionLoggings,
+                                       final MatchLog.MatchType matchType) {
         final List<CharSequence> removedTerms = IntStream.range(0, exclusiveOffset)
                 .mapToObj(i -> seq.remove(start)).collect(Collectors.toList());
 
@@ -58,16 +58,16 @@ public abstract class ReplaceInstruction {
 
         if (actionLoggings != null) {
             actionLoggings.add(
-                    ActionLogging.builder()
+                    ActionLog.builder()
                             .message(String.format("%s => %s", removedTermsInfo, replacementTermsInfo))
                             .match(
-                                    MatchLogging.builder()
+                                    MatchLog.builder()
                                             .type(matchType)
                                             .term(removedTermsInfo)
                                             .build()
                             )
                             .instructions(List.of(
-                                    InstructionLogging.builder()
+                                    InstructionLog.builder()
                                             .type("replace")
                                             .value(replacementTermsInfo)
                                             .build()

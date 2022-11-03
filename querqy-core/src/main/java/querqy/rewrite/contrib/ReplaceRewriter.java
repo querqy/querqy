@@ -8,8 +8,8 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
-import querqy.rewrite.logging.ActionLogging;
-import querqy.rewrite.logging.RewriterLogging;
+import querqy.rewrite.logging.ActionLog;
+import querqy.rewrite.logging.RewriterLog;
 import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -53,7 +53,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        final List<ActionLogging> actionLoggings = searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()
+        final List<ActionLog> actionLoggings = searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()
                 ? new ArrayList<>() : null;
 
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
@@ -109,7 +109,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         return RewriterOutput.builder()
                 .expandedQuery(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery)
-                .rewriterLogging(RewriterLogging.builder()
+                .rewriterLogging(RewriterLog.builder()
                         .hasAppliedRewriting(hasReplacement)
                         .actionLoggings(actionLoggings)
                         .build())

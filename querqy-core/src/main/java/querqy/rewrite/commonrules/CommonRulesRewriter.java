@@ -9,12 +9,12 @@ import querqy.model.MatchAllQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
-import querqy.rewrite.logging.RewriterLogging;
+import querqy.rewrite.logging.RewriterLog;
 import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
-import querqy.rewrite.logging.ActionLogging;
-import querqy.rewrite.logging.InstructionLogging;
-import querqy.rewrite.logging.MatchLogging;
+import querqy.rewrite.logging.ActionLog;
+import querqy.rewrite.logging.InstructionLog;
+import querqy.rewrite.logging.MatchLog;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
@@ -50,7 +50,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
     protected SelectionStrategy selectionStrategy;
 
-    private final RewriterLogging.RewriterLoggingBuilder rewriterLoggingBuilder = RewriterLogging.builder();
+    private final RewriterLog.RewriterLogBuilder rewriterLoggingBuilder = RewriterLog.builder();
 
     public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
         this.rules = rules;
@@ -145,7 +145,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     private void appendActionLogging(final Action action) {
-        final ActionLogging actionLogging = new ActionLoggingConverter(action).convert();
+        final ActionLog actionLogging = new ActionLoggingConverter(action).convert();
         rewriterLoggingBuilder.addActionLogging(actionLogging);
     }
 
@@ -169,8 +169,8 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
             this.action = action;
         }
 
-        public ActionLogging convert() {
-            return ActionLogging.builder()
+        public ActionLog convert() {
+            return ActionLog.builder()
                     .message(convertMessage())
                     .match(convertMatch())
                     .instructions(convertInstructions())
@@ -183,7 +183,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
                     .orElse("");
         }
 
-        private MatchLogging convertMatch() {
+        private MatchLog convertMatch() {
             final String term = action.getTermMatches().stream()
                     .map(TermMatch::getQueryTerm)
                     .map(Term::getValue)
@@ -191,23 +191,23 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
             final boolean isPrefix = action.getTermMatches().stream().anyMatch(TermMatch::isPrefix);
 
-            return MatchLogging.builder()
+            return MatchLog.builder()
                     .term(term)
-                    .type(isPrefix ? MatchLogging.MatchType.AFFIX : MatchLogging.MatchType.EXACT)
+                    .type(isPrefix ? MatchLog.MatchType.AFFIX : MatchLog.MatchType.EXACT)
                     .build();
         }
 
-        private List<InstructionLogging> convertInstructions() {
+        private List<InstructionLog> convertInstructions() {
 
             return action.getInstructions().stream()
                     .map(this::convertInstruction)
                     .collect(Collectors.toList());
         }
 
-        private InstructionLogging convertInstruction(final Instruction instruction) {
+        private InstructionLog convertInstruction(final Instruction instruction) {
             final InstructionDescription instructionDescription = instruction.getInstructionDescription();
 
-            final InstructionLogging.InstructionLoggingBuilder builder = InstructionLogging.builder()
+            final InstructionLog.InstructionLogBuilder builder = InstructionLog.builder()
                     .type(instructionDescription.getTypeName());
             instructionDescription.getParam().ifPresent(param -> builder.param(param.toString()));
             instructionDescription.getValue().ifPresent(builder::value);

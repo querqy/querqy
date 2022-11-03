@@ -1,8 +1,8 @@
 package querqy.rewrite.contrib.replace;
 
 import querqy.CompoundCharSequence;
-import querqy.rewrite.logging.ActionLogging;
-import querqy.rewrite.logging.MatchLogging;
+import querqy.rewrite.logging.ActionLog;
+import querqy.rewrite.logging.MatchLog;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,8 +41,8 @@ public class WildcardReplaceInstruction extends ReplaceInstruction {
                       final int start,
                       final int exclusiveOffset,
                       final CharSequence wildcardMatch,
-                      final List<ActionLogging> actionLoggings) {
-        removeTermFromSequence(seq, start, exclusiveOffset, seq, actionLoggings, MatchLogging.MatchType.AFFIX);
+                      final List<ActionLog> actionLoggings) {
+        removeTermFromSequence(seq, start, exclusiveOffset, seq, actionLoggings, MatchLog.MatchType.AFFIX);
         termCreators.forEach(termCreator -> seq.add(start, termCreator.createTerm(wildcardMatch)));
     }
 }

@@ -5,15 +5,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class RewriteChainLogging {
+public class RewriteChainLog {
 
-    private final List<RewriteLoggingEntry> rewriteChain;
+    private final List<RewriteLogEntry> rewriteChain;
 
-    private RewriteChainLogging(final List<RewriteLoggingEntry> rewriteChain) {
+    private RewriteChainLog(final List<RewriteLogEntry> rewriteChain) {
         this.rewriteChain = rewriteChain;
     }
 
-    public List<RewriteLoggingEntry> getRewriteChain() {
+    public List<RewriteLogEntry> getRewriteChain() {
         return rewriteChain;
     }
 
@@ -21,7 +21,7 @@ public class RewriteChainLogging {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RewriteChainLogging that = (RewriteChainLogging) o;
+        RewriteChainLog that = (RewriteChainLog) o;
         return Objects.equals(rewriteChain, that.rewriteChain);
     }
 
@@ -37,12 +37,12 @@ public class RewriteChainLogging {
                 '}';
     }
 
-    public static class RewriteLoggingEntry {
+    public static class RewriteLogEntry {
 
         private final String rewriterId;
-        private final List<ActionLogging> actions;
+        private final List<ActionLog> actions;
 
-        private RewriteLoggingEntry(final String rewriterId, final List<ActionLogging> actions) {
+        private RewriteLogEntry(final String rewriterId, final List<ActionLog> actions) {
             this.rewriterId = rewriterId;
             this.actions = actions;
         }
@@ -51,7 +51,7 @@ public class RewriteChainLogging {
             return rewriterId;
         }
 
-        public List<ActionLogging> getActions() {
+        public List<ActionLog> getActions() {
             return actions;
         }
 
@@ -59,7 +59,7 @@ public class RewriteChainLogging {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            RewriteLoggingEntry that = (RewriteLoggingEntry) o;
+            RewriteLogEntry that = (RewriteLogEntry) o;
             return Objects.equals(rewriterId, that.rewriterId) && Objects.equals(actions, that.actions);
         }
 
@@ -77,25 +77,25 @@ public class RewriteChainLogging {
         }
     }
 
-    public static RewriteChainLoggingBuilder builder() {
-        return new RewriteChainLoggingBuilder();
+    public static RewriteChainLogBuilder builder() {
+        return new RewriteChainLogBuilder();
     }
 
-    public static class RewriteChainLoggingBuilder {
+    public static class RewriteChainLogBuilder {
 
-        private final List<RewriteLoggingEntry> rewriteChain = new LinkedList<>();
+        private final List<RewriteLogEntry> rewriteChain = new LinkedList<>();
 
-        public RewriteChainLoggingBuilder add(final String rewriterId) {
+        public RewriteChainLogBuilder add(final String rewriterId) {
             return add(rewriterId, Collections.emptyList());
         }
 
-        public RewriteChainLoggingBuilder add(final String rewriterId, final List<ActionLogging> actions) {
-            rewriteChain.add(new RewriteLoggingEntry(rewriterId, actions));
+        public RewriteChainLogBuilder add(final String rewriterId, final List<ActionLog> actions) {
+            rewriteChain.add(new RewriteLogEntry(rewriterId, actions));
             return this;
         }
 
-        public RewriteChainLogging build() {
-            return new RewriteChainLogging(rewriteChain);
+        public RewriteChainLog build() {
+            return new RewriteChainLog(rewriteChain);
         }
     }
 

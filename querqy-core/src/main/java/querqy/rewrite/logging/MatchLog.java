@@ -1,11 +1,11 @@
 package querqy.rewrite.logging;
 
-public class MatchLogging {
+public class MatchLog {
 
     private final String term;
     private final String type;
 
-    private MatchLogging(final String term, final String type) {
+    private MatchLog(final String term, final String type) {
         this.term = term;
         this.type = type;
     }
@@ -32,27 +32,27 @@ public class MatchLogging {
         }
     }
 
-    public static MatchLoggingBuilder builder() {
-        return new MatchLoggingBuilder();
+    public static MatchLogBuilder builder() {
+        return new MatchLogBuilder();
     }
 
-    public static class MatchLoggingBuilder {
+    public static class MatchLogBuilder {
 
         private String term;
         private MatchType type;
 
-        public MatchLoggingBuilder term(final String term) {
+        public MatchLogBuilder term(final String term) {
             this.term = term;
             return this;
         }
 
-        public MatchLoggingBuilder type(final MatchType type) {
+        public MatchLogBuilder type(final MatchType type) {
             this.type = type;
             return this;
         }
 
-        public MatchLogging build() {
-            return new MatchLogging(term, type.getTypeName());
+        public MatchLog build() {
+            return new MatchLog(term, type.getTypeName());
         }
     }
 

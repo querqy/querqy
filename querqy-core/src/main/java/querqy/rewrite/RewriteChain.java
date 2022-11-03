@@ -11,8 +11,8 @@ import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
-import querqy.rewrite.logging.RewriteChainLogging;
-import querqy.rewrite.logging.RewriterLogging;
+import querqy.rewrite.logging.RewriteChainLog;
+import querqy.rewrite.logging.RewriterLog;
 
 /**
  * The chain of rewriters to manipulate a {@link Query}.
@@ -71,7 +71,7 @@ public class RewriteChain {
 
         private ExpandedQuery expandedQuery;
 
-        private final RewriteChainLogging.RewriteChainLoggingBuilder rewriteChainLoggingBuilder = RewriteChainLogging.builder();
+        private final RewriteChainLog.RewriteChainLogBuilder rewriteChainLoggingBuilder = RewriteChainLog.builder();
 
         public RewritingExecutor(
                 final List<RewriterFactory> rewriterFactories,
@@ -106,13 +106,13 @@ public class RewriteChain {
             return rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
         }
 
-        private void addLoggingIfRewritingHasBeenApplied(final String factoryId, final RewriterLogging rewriterLogging) {
+        private void addLoggingIfRewritingHasBeenApplied(final String factoryId, final RewriterLog rewriterLogging) {
             if (rewriterLogging.hasAppliedRewriting()) {
                 addLoggingIfRewriterIdIsIncluded(factoryId, rewriterLogging);
             }
         }
 
-        private void addLoggingIfRewriterIdIsIncluded(final String factoryId, final RewriterLogging rewriterLogging) {
+        private void addLoggingIfRewriterIdIsIncluded(final String factoryId, final RewriterLog rewriterLogging) {
             final Set<String> includedIds = rewriteLoggingConfig.getIncludedRewriters();
 
             if (includedIds.isEmpty() || includedIds.contains(factoryId)) {
@@ -120,7 +120,7 @@ public class RewriteChain {
             }
         }
 
-        private void addLoggingWithOrWithoutDetails(final String factoryId, final RewriterLogging rewriterLogging) {
+        private void addLoggingWithOrWithoutDetails(final String factoryId, final RewriterLog rewriterLogging) {
             if (rewriteLoggingConfig.hasDetails()) {
                 rewriteChainLoggingBuilder.add(factoryId, rewriterLogging.getActionLoggings());
 

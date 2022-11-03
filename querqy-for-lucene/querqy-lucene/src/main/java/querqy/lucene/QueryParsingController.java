@@ -29,7 +29,7 @@ import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
-import querqy.rewrite.logging.RewriteChainLogging;
+import querqy.rewrite.logging.RewriteChainLog;
 import querqy.rewrite.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
@@ -93,7 +93,7 @@ public class QueryParsingController {
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
     protected final boolean addQuerqyBoostQueriesToMainQuery;
     protected String parserDebugInfo = null;
-    protected RewriteChainLogging rewriteChainLogging = null;
+    protected RewriteChainLog rewriteChainLogging = null;
 
     public QueryParsingController(final LuceneSearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;

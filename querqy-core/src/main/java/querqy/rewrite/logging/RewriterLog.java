@@ -3,12 +3,12 @@ package querqy.rewrite.logging;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RewriterLogging {
+public class RewriterLog {
 
     private final boolean hasAppliedRewriting;
-    private final List<ActionLogging> actionLoggings;
+    private final List<ActionLog> actionLoggings;
 
-    private RewriterLogging(final boolean hasAppliedRewriting, final List<ActionLogging> actionLoggings) {
+    private RewriterLog(final boolean hasAppliedRewriting, final List<ActionLog> actionLoggings) {
         this.hasAppliedRewriting = hasAppliedRewriting;
         this.actionLoggings = actionLoggings;
     }
@@ -17,25 +17,25 @@ public class RewriterLogging {
         return hasAppliedRewriting;
     }
 
-    public List<ActionLogging> getActionLoggings() {
+    public List<ActionLog> getActionLoggings() {
         return actionLoggings;
     }
 
-    public static RewriterLoggingBuilder builder() {
-        return new RewriterLoggingBuilder();
+    public static RewriterLogBuilder builder() {
+        return new RewriterLogBuilder();
     }
 
-    public static class RewriterLoggingBuilder {
+    public static class RewriterLogBuilder {
 
         private boolean hasAppliedRewriting;
-        private List<ActionLogging> actionLoggings;
+        private List<ActionLog> actionLoggings;
 
-        public RewriterLoggingBuilder hasAppliedRewriting(final boolean hasAppliedRewriting) {
+        public RewriterLogBuilder hasAppliedRewriting(final boolean hasAppliedRewriting) {
             this.hasAppliedRewriting = hasAppliedRewriting;
             return this;
         }
 
-        public RewriterLoggingBuilder addActionLogging(final ActionLogging actionLogging) {
+        public RewriterLogBuilder addActionLogging(final ActionLog actionLogging) {
             if (this.actionLoggings == null) {
                 this.actionLoggings = new LinkedList<>();
             }
@@ -44,17 +44,17 @@ public class RewriterLogging {
             return this;
         }
 
-        public RewriterLoggingBuilder actionLoggings(final List<ActionLogging> actionLoggings) {
+        public RewriterLogBuilder actionLoggings(final List<ActionLog> actionLoggings) {
             this.actionLoggings = actionLoggings;
             return this;
         }
 
-        public RewriterLogging build() {
+        public RewriterLog build() {
             if (actionLoggings == null) {
                 actionLoggings = List.of();
             }
 
-            return new RewriterLogging(hasAppliedRewriting, actionLoggings);
+            return new RewriterLog(hasAppliedRewriting, actionLoggings);
         }
     }
 }
