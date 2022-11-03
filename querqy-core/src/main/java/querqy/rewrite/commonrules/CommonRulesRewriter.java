@@ -145,7 +145,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     private void appendActionLogging(final Action action) {
-        final ActionLogging actionLogging = new ActionLoggingParser(action).parse();
+        final ActionLogging actionLogging = new ActionLoggingConverter(action).convert();
         rewriterLoggingBuilder.addActionLogging(actionLogging);
     }
 
@@ -161,29 +161,29 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
         return super.visit(term);
     }
 
-    private static class ActionLoggingParser {
+    private static class ActionLoggingConverter {
 
         private final Action action;
 
-        public ActionLoggingParser(final Action action) {
+        public ActionLoggingConverter(final Action action) {
             this.action = action;
         }
 
-        public ActionLogging parse() {
+        public ActionLogging convert() {
             return ActionLogging.builder()
-                    .message(parseMessage())
-                    .match(parseMatch())
-                    .instructions(parseInstructions())
+                    .message(convertMessage())
+                    .match(convertMatch())
+                    .instructions(convertInstructions())
                     .build();
         }
 
-        private String parseMessage() {
+        private String convertMessage() {
             return (String) action.getInstructions()
                     .getProperty(Instructions.StandardPropertyNames.LOG_MESSAGE)
                     .orElse("");
         }
 
-        private MatchLogging parseMatch() {
+        private MatchLogging convertMatch() {
             final String term = action.getTermMatches().stream()
                     .map(TermMatch::getQueryTerm)
                     .map(Term::getValue)
@@ -197,14 +197,14 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
                     .build();
         }
 
-        private List<InstructionLogging> parseInstructions() {
+        private List<InstructionLogging> convertInstructions() {
 
             return action.getInstructions().stream()
-                    .map(this::parseInstruction)
+                    .map(this::convertInstruction)
                     .collect(Collectors.toList());
         }
 
-        private InstructionLogging parseInstruction(final Instruction instruction) {
+        private InstructionLogging convertInstruction(final Instruction instruction) {
             final InstructionDescription instructionDescription = instruction.getInstructionDescription();
 
             final InstructionLogging.InstructionLoggingBuilder builder = InstructionLogging.builder()
