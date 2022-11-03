@@ -220,7 +220,7 @@ public class LineParser {
                     // should never happen
                     return new ValidationError("Cannot parse line: " + line);
                 } else {
-                    return new SynonymInstruction(synonymTerms, boost, InstructionDescription.builder().typeName("").build());
+                    return new SynonymInstruction(synonymTerms, boost, InstructionDescription.empty());
                 }
             }
         }
