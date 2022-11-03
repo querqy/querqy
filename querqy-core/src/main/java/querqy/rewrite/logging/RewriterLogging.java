@@ -8,7 +8,7 @@ public class RewriterLogging {
     private final boolean hasAppliedRewriting;
     private final List<ActionLogging> actionLoggings;
 
-    private RewriterLogging(boolean hasAppliedRewriting, final List<ActionLogging> actionLoggings) {
+    private RewriterLogging(final boolean hasAppliedRewriting, final List<ActionLogging> actionLoggings) {
         this.hasAppliedRewriting = hasAppliedRewriting;
         this.actionLoggings = actionLoggings;
     }
