@@ -1,8 +1,8 @@
 package querqy.rewrite.contrib.replace;
 
 import querqy.CompoundCharSequence;
-import querqy.model.logging.ActionLogging;
-import querqy.model.logging.MatchLogging;
+import querqy.rewrite.logging.ActionLogging;
+import querqy.rewrite.logging.MatchLogging;
 
 import java.util.LinkedList;
 import java.util.List;

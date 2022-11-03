@@ -1,4 +1,4 @@
-package querqy.model.logging;
+package querqy.rewrite.logging;
 
 public class MatchLogging {
 

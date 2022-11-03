@@ -1,13 +1,10 @@
 package querqy.rewrite.contrib.replace;
 
-import querqy.model.logging.ActionLogging;
-import querqy.model.logging.InstructionLogging;
-import querqy.model.logging.MatchLogging;
+import querqy.rewrite.logging.ActionLogging;
+import querqy.rewrite.logging.InstructionLogging;
+import querqy.rewrite.logging.MatchLogging;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 

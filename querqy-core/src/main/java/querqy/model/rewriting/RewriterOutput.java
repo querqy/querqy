@@ -1,10 +1,8 @@
 package querqy.model.rewriting;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.logging.ActionLogging;
-import querqy.model.logging.RewriterLogging;
+import querqy.rewrite.logging.RewriterLogging;
 
-import java.util.List;
 import java.util.Optional;
 
 public class RewriterOutput {

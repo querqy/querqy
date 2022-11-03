@@ -1,6 +1,6 @@
 package querqy.model;
 
-import querqy.model.logging.RewriteLoggingConfig;
+import querqy.rewrite.logging.RewriteLoggingConfig;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
 

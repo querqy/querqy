@@ -1,4 +1,4 @@
-package querqy.model.logging;
+package querqy.rewrite.logging;
 
 import java.util.Collections;
 import java.util.Set;

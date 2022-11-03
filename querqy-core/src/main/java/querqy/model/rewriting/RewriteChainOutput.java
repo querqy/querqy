@@ -1,7 +1,7 @@
 package querqy.model.rewriting;
 
 import querqy.model.ExpandedQuery;
-import querqy.model.logging.RewriteChainLogging;
+import querqy.rewrite.logging.RewriteChainLogging;
 
 import java.util.Optional;
 

@@ -1,7 +1,6 @@
-package querqy.model.logging;
+package querqy.rewrite.logging;
 
 import java.util.List;
-import java.util.Objects;
 
 public class ActionLogging {
 

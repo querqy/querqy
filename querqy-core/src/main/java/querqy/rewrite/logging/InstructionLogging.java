@@ -1,7 +1,4 @@
-package querqy.model.logging;
-
-import javax.swing.text.html.Option;
-import java.util.Optional;
+package querqy.rewrite.logging;
 
 public class InstructionLogging {
 

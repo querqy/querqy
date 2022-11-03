@@ -1,6 +1,6 @@
 package querqy.rewrite;
 
-import querqy.model.logging.RewriteLoggingConfig;
+import querqy.rewrite.logging.RewriteLoggingConfig;
 
 import java.util.Map;
 import java.util.Optional;
