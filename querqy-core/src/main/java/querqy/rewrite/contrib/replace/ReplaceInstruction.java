@@ -44,6 +44,7 @@ public abstract class ReplaceInstruction {
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param replacementTerms Terms that should be used as replacement
      * @param actionLoggings   Debug information about replaced terms and their replacement
+     * @param matchType        Information about the type of the rule match (e.g. exact or affix)
      */
     // TODO: this definitely needs to be refactored, but requires more comprehensive refactoring in the replace rewriter
     public void removeTermFromSequence(final List<CharSequence> seq, final int start,
