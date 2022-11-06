@@ -4,9 +4,8 @@
 package querqy.rewrite;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import querqy.model.ExpandedQuery;
@@ -24,25 +23,31 @@ public class RewriteChain {
 
     final List<RewriterFactory> factories;
 
-    @Deprecated
-    final Map<String, RewriterFactory> factoriesByName;
-
     public RewriteChain() {
         this(Collections.emptyList());
     }
 
     public RewriteChain(final List<RewriterFactory> factories) {
         this.factories = factories;
-        factoriesByName = new HashMap<>(factories.size());
-        factories.forEach(factory -> {
+        ensureThatRewriterIdsAreValid();
+    }
+
+    private void ensureThatRewriterIdsAreValid() {
+        final Set<String> rewriterIds = new HashSet<>();
+
+        for (final RewriterFactory factory : this.factories) {
             final String rewriterId = factory.getRewriterId();
+
             if (rewriterId == null || rewriterId.trim().isEmpty()) {
                 throw new IllegalArgumentException("Missing rewriter id for factory: " + factory.getClass().getName());
             }
-            if (factoriesByName.put(rewriterId, factory) != null) {
+
+            if (rewriterIds.contains(rewriterId)) {
                 throw new IllegalArgumentException("Duplicate rewriter id: " + rewriterId);
             }
-        });
+
+            rewriterIds.add(rewriterId);
+        }
     }
 
     public RewriteChainOutput rewrite(final ExpandedQuery query,
@@ -50,16 +55,6 @@ public class RewriteChain {
 
         final RewritingExecutor executor = new RewritingExecutor(factories, searchEngineRequestAdapter, query);
         return executor.rewrite();
-    }
-
-    @Deprecated
-    public List<RewriterFactory> getRewriterFactories() {
-        return factories;
-    }
-
-    @Deprecated
-    public RewriterFactory getFactory(final String rewriterId) {
-        return factoriesByName.get(rewriterId);
     }
 
     private static class RewritingExecutor {

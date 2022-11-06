@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -156,9 +157,25 @@ public class RewriteChainTest {
         assertThat(rewriteChainLogging.get()).isEqualTo(RewriteChainLog.builder().build());
     }
 
+    @Test
+    public void testThat_creationOfRewriteChainFails_forDuplicateRewriterId() {
+        setupRewriterFactories("1", "1");
+        assertThatThrownBy(() -> new RewriteChain(List.of(rewriterFactory1, rewriterFactory2)));
+    }
+
+    @Test
+    public void testThat_creationOfRewriteChainFails_forBlankRewriterId() {
+        setupRewriterFactories("    ", "1");
+        assertThatThrownBy(() -> new RewriteChain(List.of(rewriterFactory1, rewriterFactory2)));
+    }
+
     private void setupRewriterFactories() {
-        when(rewriterFactory1.getRewriterId()).thenReturn("1");
-        when(rewriterFactory2.getRewriterId()).thenReturn("2");
+        setupRewriterFactories("1", "2");
+    }
+
+    private void setupRewriterFactories(final String id1, final String id2) {
+        when(rewriterFactory1.getRewriterId()).thenReturn(id1);
+        when(rewriterFactory2.getRewriterId()).thenReturn(id2);
 
         when(rewriterFactory1.createRewriter(any(), any())).thenReturn(queryRewriter1);
         when(rewriterFactory2.createRewriter(any(), any())).thenReturn(queryRewriter2);
