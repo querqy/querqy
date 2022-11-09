@@ -50,7 +50,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
     protected SelectionStrategy selectionStrategy;
 
-    private final RewriterLog.RewriterLogBuilder rewriterLoggingBuilder = RewriterLog.builder();
+    private final RewriterLog.RewriterLogBuilder rewriterLogBuilder = RewriterLog.builder();
 
     public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
         this.rules = rules;
@@ -82,7 +82,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
         return RewriterOutput.builder()
                 .expandedQuery(query)
-                .rewriterLogging(rewriterLoggingBuilder.build())
+                .rewriterLog(rewriterLogBuilder.build())
                 .build();
     }
 
@@ -113,9 +113,9 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
                             action.getEndPosition(), expandedQuery, searchEngineRequestAdapter)
             );
 
-            rewriterLoggingBuilder.hasAppliedRewriting(true);
+            rewriterLogBuilder.hasAppliedRewriting(true);
             if (searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()) {
-                appendActionLogging(action);
+                appendActionLogs(action);
             }
         }
     }
@@ -144,9 +144,9 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
         return result;
     }
 
-    private void appendActionLogging(final Action action) {
-        final ActionLog actionLogging = new ActionLoggingConverter(action).convert();
-        rewriterLoggingBuilder.addActionLogging(actionLogging);
+    private void appendActionLogs(final Action action) {
+        final ActionLog actionLog = new ActionLogConverter(action).convert();
+        rewriterLogBuilder.addActionLogs(actionLog);
     }
 
     @Override
@@ -161,11 +161,11 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
         return super.visit(term);
     }
 
-    private static class ActionLoggingConverter {
+    private static class ActionLogConverter {
 
         private final Action action;
 
-        public ActionLoggingConverter(final Action action) {
+        public ActionLogConverter(final Action action) {
             this.action = action;
         }
 

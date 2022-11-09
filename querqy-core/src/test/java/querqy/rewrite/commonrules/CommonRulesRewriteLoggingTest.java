@@ -34,8 +34,8 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).isNotEmpty();
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).isNotEmpty();
     }
 
     @Test
@@ -50,8 +50,8 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).isEmpty();
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).isEmpty();
     }
 
     @Test
@@ -63,9 +63,9 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphones")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).isEmpty();
-        assertThat(rewritingOutput.getRewriterLogging().get().hasAppliedRewriting()).isFalse();
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).isEmpty();
+        assertThat(rewritingOutput.getRewriterLog().get().hasAppliedRewriting()).isFalse();
     }
 
     @Test
@@ -79,11 +79,11 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).hasSize(1);
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getMatch().getTerm())
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).hasSize(1);
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs().get(0).getMatch().getTerm())
                 .isEqualTo("iphone");
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getMatch().getType())
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs().get(0).getMatch().getType())
                 .isEqualTo(MatchLog.MatchType.EXACT.getTypeName());
     }
 
@@ -102,9 +102,9 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).hasSize(1);
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getMessage())
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).hasSize(1);
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs().get(0).getMessage())
                 .isEqualTo("my message");
     }
 
@@ -119,9 +119,9 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).hasSize(1);
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions()).isNotEmpty();
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).hasSize(1);
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs().get(0).getInstructions()).isNotEmpty();
     }
 
     @Test
@@ -141,11 +141,11 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("iphone")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).hasSize(1);
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions()).hasSize(1);
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).hasSize(1);
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs().get(0).getInstructions()).hasSize(1);
 
-        final InstructionLog instructionLogging = rewritingOutput.getRewriterLogging().get().getActionLoggings().get(0).getInstructions().get(0);
+        final InstructionLog instructionLogging = rewritingOutput.getRewriterLog().get().getActionLogs().get(0).getInstructions().get(0);
         assertThat(instructionLogging.getType()).isEqualTo("synonym");
         assertThat(instructionLogging.getParam()).isEqualTo("1.0");
         assertThat(instructionLogging.getValue()).isEqualTo("apple");
@@ -167,8 +167,8 @@ public class CommonRulesRewriteLoggingTest extends AbstractCommonRulesTest {
         final ExpandedQuery expandedQuery = expanded(bq("a")).build();
         final RewriterOutput rewritingOutput = rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
 
-        assertThat(rewritingOutput.getRewriterLogging()).isPresent();
-        assertThat(rewritingOutput.getRewriterLogging().get().getActionLoggings()).hasSize(2);
+        assertThat(rewritingOutput.getRewriterLog()).isPresent();
+        assertThat(rewritingOutput.getRewriterLog().get().getActionLogs()).hasSize(2);
     }
 
     private void activateRewriteLoggingConfigMock() {

@@ -15,8 +15,8 @@ public class TermsReplaceInstruction extends ReplaceInstruction {
 
     @Override
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final CharSequence wildcardMatch, final List<ActionLog> actionLoggings) {
-        removeTermFromSequence(seq, start, exclusiveOffset, replacementTerms, actionLoggings, MatchLog.MatchType.EXACT);
+                      final CharSequence wildcardMatch, final List<ActionLog> actionLogs) {
+        removeTermFromSequence(seq, start, exclusiveOffset, replacementTerms, actionLogs, MatchLog.MatchType.EXACT);
         seq.addAll(start, replacementTerms);
     }
 }

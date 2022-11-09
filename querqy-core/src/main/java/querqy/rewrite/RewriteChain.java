@@ -66,7 +66,7 @@ public class RewriteChain {
 
         private ExpandedQuery expandedQuery;
 
-        private final RewriteChainLog.RewriteChainLogBuilder rewriteChainLoggingBuilder = RewriteChainLog.builder();
+        private final RewriteChainLog.RewriteChainLogBuilder rewriteChainLogBuilder = RewriteChainLog.builder();
 
         public RewritingExecutor(
                 final List<RewriterFactory> rewriterFactories,
@@ -85,9 +85,9 @@ public class RewriteChain {
             for (final RewriterFactory factory : rewriterFactories) {
                 final RewriterOutput rewriterOutput = applyFactory(factory);
 
-                if (rewriteLoggingConfig.isActive() && rewriterOutput.getRewriterLogging().isPresent()) {
-                    addLoggingIfRewritingHasBeenApplied(
-                            factory.getRewriterId(), rewriterOutput.getRewriterLogging().get());
+                if (rewriteLoggingConfig.isActive() && rewriterOutput.getRewriterLog().isPresent()) {
+                    addLogIfRewritingHasBeenApplied(
+                            factory.getRewriterId(), rewriterOutput.getRewriterLog().get());
                 }
 
                 expandedQuery = rewriterOutput.getExpandedQuery();
@@ -101,33 +101,33 @@ public class RewriteChain {
             return rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
         }
 
-        private void addLoggingIfRewritingHasBeenApplied(final String factoryId, final RewriterLog rewriterLogging) {
-            if (rewriterLogging.hasAppliedRewriting()) {
-                addLoggingIfRewriterIdIsIncluded(factoryId, rewriterLogging);
+        private void addLogIfRewritingHasBeenApplied(final String factoryId, final RewriterLog rewriterLog) {
+            if (rewriterLog.hasAppliedRewriting()) {
+                addLogIfRewriterIdIsIncluded(factoryId, rewriterLog);
             }
         }
 
-        private void addLoggingIfRewriterIdIsIncluded(final String factoryId, final RewriterLog rewriterLogging) {
+        private void addLogIfRewriterIdIsIncluded(final String factoryId, final RewriterLog rewriterLog) {
             final Set<String> includedIds = rewriteLoggingConfig.getIncludedRewriters();
 
             if (includedIds.isEmpty() || includedIds.contains(factoryId)) {
-                addLoggingWithOrWithoutDetails(factoryId, rewriterLogging);
+                addLogWithOrWithoutDetails(factoryId, rewriterLog);
             }
         }
 
-        private void addLoggingWithOrWithoutDetails(final String factoryId, final RewriterLog rewriterLogging) {
+        private void addLogWithOrWithoutDetails(final String factoryId, final RewriterLog rewriterLog) {
             if (rewriteLoggingConfig.hasDetails()) {
-                rewriteChainLoggingBuilder.add(factoryId, rewriterLogging.getActionLoggings());
+                rewriteChainLogBuilder.add(factoryId, rewriterLog.getActionLogs());
 
             } else {
-                rewriteChainLoggingBuilder.add(factoryId);
+                rewriteChainLogBuilder.add(factoryId);
             }
         }
 
         private RewriteChainOutput buildOutput() {
             return RewriteChainOutput.builder()
                     .expandedQuery(expandedQuery)
-                    .rewriteLogging(rewriteChainLoggingBuilder.build())
+                    .rewriteLog(rewriteChainLogBuilder.build())
                     .build();
         }
     }

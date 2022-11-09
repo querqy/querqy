@@ -32,7 +32,7 @@ public class RewriteChainLog {
 
     @Override
     public String toString() {
-        return "RewriteChainLogging{" +
+        return "RewriteChainLog{" +
                 "rewriteChain=" + rewriteChain +
                 '}';
     }
@@ -70,7 +70,7 @@ public class RewriteChainLog {
 
         @Override
         public String toString() {
-            return "RewriteLoggingEntry{" +
+            return "RewriteLogEntry{" +
                     "rewriterId='" + rewriterId + '\'' +
                     ", actions=" + actions +
                     '}';

@@ -41,8 +41,8 @@ public class WildcardReplaceInstruction extends ReplaceInstruction {
                       final int start,
                       final int exclusiveOffset,
                       final CharSequence wildcardMatch,
-                      final List<ActionLog> actionLoggings) {
-        removeTermFromSequence(seq, start, exclusiveOffset, seq, actionLoggings, MatchLog.MatchType.AFFIX);
+                      final List<ActionLog> actionLogs) {
+        removeTermFromSequence(seq, start, exclusiveOffset, seq, actionLogs, MatchLog.MatchType.AFFIX);
         termCreators.forEach(termCreator -> seq.add(start, termCreator.createTerm(wildcardMatch)));
     }
 }

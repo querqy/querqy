@@ -53,7 +53,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
 
         visit((Query) querqyQuery);
 
-        final List<ActionLog> actionLoggings = searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()
+        final List<ActionLog> actionLogs = searchEngineRequestAdapter.getRewriteLoggingConfig().hasDetails()
                 ? new ArrayList<>() : null;
 
         final List<ExactMatch<ReplaceInstruction>> exactMatches = sequenceLookup.findExactMatches(collectedTerms);
@@ -70,7 +70,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
                             collectedTerms,
                             exactMatch.lookupStart,
                             exactMatch.lookupExclusiveEnd - exactMatch.lookupStart,
-                            actionLoggings
+                            actionLogs
                     )
             );
         }
@@ -87,7 +87,7 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
                             suffixMatch.getLookupOffset(),
                             1,
                             suffixMatch.wildcardMatch,
-                            actionLoggings
+                            actionLogs
                     ));
         }
 
@@ -103,15 +103,15 @@ public class ReplaceRewriter extends AbstractNodeVisitor<Node> implements QueryR
                             prefixMatch.getLookupOffset(),
                             1,
                             prefixMatch.wildcardMatch,
-                            actionLoggings
+                            actionLogs
                     ));
         }
 
         return RewriterOutput.builder()
                 .expandedQuery(hasReplacement ? buildQueryFromSeqList(expandedQuery, collectedTerms) : expandedQuery)
-                .rewriterLogging(RewriterLog.builder()
+                .rewriterLog(RewriterLog.builder()
                         .hasAppliedRewriting(hasReplacement)
-                        .actionLoggings(actionLoggings)
+                        .actionLogs(actionLogs)
                         .build())
                 .build();
     }

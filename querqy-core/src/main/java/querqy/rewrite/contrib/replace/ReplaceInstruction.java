@@ -17,10 +17,10 @@ public abstract class ReplaceInstruction {
      * @param start            Startposition of the term in the list
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param wildcardMatch    Wildcard match that should be used to generate a replacement
-     * @param actionLoggings   Debug information about replaced terms and their replacement
+     * @param actionLogs       Debug information about replaced terms and their replacement
      */
     abstract public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                               final CharSequence wildcardMatch, List<ActionLog> actionLoggings);
+                               final CharSequence wildcardMatch, List<ActionLog> actionLogs);
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset) {
         this.apply(seq, start, exclusiveOffset, "", null);
@@ -32,8 +32,8 @@ public abstract class ReplaceInstruction {
     }
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final List<ActionLog> actionLoggings) {
-        this.apply(seq, start, exclusiveOffset, "", actionLoggings);
+                      final List<ActionLog> actionLogs) {
+        this.apply(seq, start, exclusiveOffset, "", actionLogs);
     }
 
     /**
@@ -43,13 +43,13 @@ public abstract class ReplaceInstruction {
      * @param start            Startposition of the term in the list
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param replacementTerms Terms that should be used as replacement
-     * @param actionLoggings   Debug information about replaced terms and their replacement
+     * @param actionLogs   Debug information about replaced terms and their replacement
      * @param matchType        Information about the type of the rule match (e.g. exact or affix)
      */
     // TODO: this definitely needs to be refactored, but requires more comprehensive refactoring in the replace rewriter
     public void removeTermFromSequence(final List<CharSequence> seq, final int start,
                                        final int exclusiveOffset, List<? extends CharSequence> replacementTerms,
-                                       final List<ActionLog> actionLoggings,
+                                       final List<ActionLog> actionLogs,
                                        final MatchLog.MatchType matchType) {
         final List<CharSequence> removedTerms = IntStream.range(0, exclusiveOffset)
                 .mapToObj(i -> seq.remove(start)).collect(Collectors.toList());
@@ -57,8 +57,8 @@ public abstract class ReplaceInstruction {
         final String removedTermsInfo = String.join(" ", removedTerms);
         final String replacementTermsInfo = String.join(" ", replacementTerms);
 
-        if (actionLoggings != null) {
-            actionLoggings.add(
+        if (actionLogs != null) {
+            actionLogs.add(
                     ActionLog.builder()
                             .message(String.format("%s => %s", removedTermsInfo, replacementTermsInfo))
                             .match(

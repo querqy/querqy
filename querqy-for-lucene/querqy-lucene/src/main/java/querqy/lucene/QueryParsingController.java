@@ -196,8 +196,8 @@ public class QueryParsingController {
 
         final RewriteChainOutput rewriteChainOutput = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
 
-        if (rewriteChainOutput.getRewriteLogging().isPresent()) {
-            this.rewriteChainLogging = rewriteChainOutput.getRewriteLogging().get();
+        if (rewriteChainOutput.getRewriteLog().isPresent()) {
+            this.rewriteChainLogging = rewriteChainOutput.getRewriteLog().get();
             processRewriteLogging();
         }
 

@@ -8,11 +8,11 @@ import java.util.Optional;
 public class RewriteChainOutput {
 
     private final ExpandedQuery expandedQuery;
-    private final RewriteChainLog rewriteLogging;
+    private final RewriteChainLog rewriteLog;
 
-    private RewriteChainOutput(ExpandedQuery expandedQuery, RewriteChainLog rewriteLogging) {
+    private RewriteChainOutput(final ExpandedQuery expandedQuery, final RewriteChainLog rewriteLog) {
         this.expandedQuery = expandedQuery;
-        this.rewriteLogging = rewriteLogging;
+        this.rewriteLog = rewriteLog;
     }
 
     public ExpandedQuery getExpandedQuery() {
@@ -20,8 +20,8 @@ public class RewriteChainOutput {
     }
 
     // TODO: needed to be optional?
-    public Optional<RewriteChainLog> getRewriteLogging() {
-        return Optional.ofNullable(rewriteLogging);
+    public Optional<RewriteChainLog> getRewriteLog() {
+        return Optional.ofNullable(rewriteLog);
     }
 
     public static RewriteChainOutputBuilder builder() {
@@ -31,20 +31,20 @@ public class RewriteChainOutput {
     public static class RewriteChainOutputBuilder {
 
         private ExpandedQuery expandedQuery;
-        private RewriteChainLog rewriteLogging;
+        private RewriteChainLog rewriteLog;
 
         public RewriteChainOutputBuilder expandedQuery(final ExpandedQuery expandedQuery) {
             this.expandedQuery = expandedQuery;
             return this;
         }
 
-        public RewriteChainOutputBuilder rewriteLogging(final RewriteChainLog rewriteLogging) {
-            this.rewriteLogging = rewriteLogging;
+        public RewriteChainOutputBuilder rewriteLog(final RewriteChainLog rewriteLog) {
+            this.rewriteLog = rewriteLog;
             return this;
         }
 
         public RewriteChainOutput build() {
-            return new RewriteChainOutput(expandedQuery, rewriteLogging);
+            return new RewriteChainOutput(expandedQuery, rewriteLog);
         }
     }
 }
