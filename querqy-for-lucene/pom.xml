@@ -92,7 +92,7 @@
         <mockito.version>4.8.0</mockito.version>
         <skipITs>true</skipITs>
 
-        <querqy.core.version>3.15.0-SNAPSHOT</querqy.core.version>
+        <querqy.core.version>3.16.0-SNAPSHOT</querqy.core.version>
         <lucene.version>9.0.0</lucene.version>
         <commons.io.version>2.11.0</commons.io.version>
 
