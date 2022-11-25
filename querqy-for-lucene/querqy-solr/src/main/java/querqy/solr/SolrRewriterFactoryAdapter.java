@@ -3,16 +3,13 @@ package querqy.solr;
 import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public abstract class SolrRewriterFactoryAdapter {
 
     protected final String rewriterId;
-    // TODO: add sink here
     private final List<Sink> sinks = new ArrayList<>();
 
     public SolrRewriterFactoryAdapter(final String rewriterId) {

@@ -1,13 +1,8 @@
 package querqy.solr;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +12,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static querqy.solr.SolrRewriterFactoryAdapter.loadInstance;
 
-@RunWith(MockitoJUnitRunner.class)
 public class SolrRewriterFactoryAdapterTest {
 
     @Test
