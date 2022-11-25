@@ -10,7 +10,7 @@ public class RewriterFactoryContext {
     private final RewriterFactory rewriterFactory;
     private final List<Sink> sinks;
 
-    public RewriterFactoryContext(RewriterFactory rewriterFactory, List<Sink> sinks) {
+    public RewriterFactoryContext(final RewriterFactory rewriterFactory, final List<Sink> sinks) {
         this.rewriterFactory = rewriterFactory;
         this.sinks = sinks;
     }

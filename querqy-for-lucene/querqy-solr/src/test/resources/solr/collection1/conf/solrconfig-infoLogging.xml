@@ -43,22 +43,6 @@
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
         </lst>
 
-		<lst name="infoLogging">
-            <lst name="sink">
-                <str name="id">responseSink</str>
-                <str name="class">querqy.solr.ResponseSink</str>
-            </lst>
-            <lst name="mapping">
-                <str name="rewriter">common1</str>
-                <str name="sink">responseSink</str>
-            </lst>
-            <lst name="mapping">
-                <str name="rewriter">common2</str>
-                <str name="sink">responseSink</str>
-            </lst>
-
-        </lst>
-     	 
 	</queryParser>
 	
 	<admin>

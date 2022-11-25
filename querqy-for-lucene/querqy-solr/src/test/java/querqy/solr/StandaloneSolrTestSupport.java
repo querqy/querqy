@@ -26,29 +26,33 @@ import java.util.stream.Collectors;
 
 public interface StandaloneSolrTestSupport {
 
-    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName) {
-        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), null);
+    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                        final String ... sinks) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), null, sinks);
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
-                                        final BoostInstruction.BoostMethod boostMethod) {
-        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), boostMethod);
-    }
-
-    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
-                                        final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
-                                                ruleSelectionStrategies) {
-        withCommonRulesRewriter(core, rewriterId, rulesName, ruleSelectionStrategies, null);
+                                        final BoostInstruction.BoostMethod boostMethod,
+                                        final String ... sinks) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), boostMethod, sinks);
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
                                         final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
                                                 ruleSelectionStrategies,
-                                        final BoostInstruction.BoostMethod boostMethod) {
+                                        final String ... sinks) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, ruleSelectionStrategies, null, sinks);
+    }
+
+    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                        final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
+                                                ruleSelectionStrategies,
+                                        final BoostInstruction.BoostMethod boostMethod, final String ... sinks) {
 
         try {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
-                    .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName));
+                    .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName))
+                    .loggingToSinks(sinks);
             ruleSelectionStrategies.forEach(builder::ruleSelectionStrategy);
             if (boostMethod != null) {
                 builder.boostMethod(boostMethod);
@@ -77,10 +81,12 @@ public interface StandaloneSolrTestSupport {
         }
     }
 
-    static void withReplaceRewriter(final SolrCore core, final String rewriterId, final String rulesName) {
+    static void withReplaceRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                    final String... sinks) {
         try {
             final ReplaceConfigRequestBuilder builder = new ReplaceConfigRequestBuilder()
-                    .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName));
+                    .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName))
+                    .loggingToSinks(sinks);
             withReplaceRewriter(core, rewriterId, builder);
         } catch (IOException e) {
             throw new RuntimeException(e);
