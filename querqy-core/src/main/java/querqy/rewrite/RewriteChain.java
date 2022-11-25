@@ -114,7 +114,7 @@ public class RewriteChain {
         private void addLogIfRewriterIdIsIncluded(final String factoryId, final RewriterLog rewriterLog) {
             final Set<String> includedIds = rewriteLoggingConfig.getIncludedRewriters();
 
-            if (includedIds.isEmpty() || includedIds.contains(factoryId)) {
+            if (includedIds.contains(factoryId)) {
                 addLogWithOrWithoutDetails(factoryId, rewriterLog);
             }
         }
