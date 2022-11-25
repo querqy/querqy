@@ -21,7 +21,7 @@ import querqy.rewrite.logging.RewriterLog;
  */
 public class RewriteChain {
 
-    final List<RewriterFactory> factories;
+    private final List<RewriterFactory> factories;
 
     public RewriteChain() {
         this(Collections.emptyList());
@@ -30,6 +30,10 @@ public class RewriteChain {
     public RewriteChain(final List<RewriterFactory> factories) {
         this.factories = factories;
         ensureThatRewriterIdsAreValid();
+    }
+
+    public List<RewriterFactory> getFactories() {
+        return factories;
     }
 
     private void ensureThatRewriterIdsAreValid() {

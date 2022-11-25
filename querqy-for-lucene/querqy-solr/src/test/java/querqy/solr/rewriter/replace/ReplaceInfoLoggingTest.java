@@ -5,9 +5,10 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.solr.RewriteLoggingParameter;
+import querqy.solr.RewriteLoggingParameters;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.RewriteLoggingParameters.PARAM_REWRITE_LOGGING_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withReplaceRewriter;
 
 @SolrTestCaseJ4.SuppressSSL
@@ -32,7 +33,8 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -57,7 +59,8 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "notpresent";
 
         SolrQueryRequest req = req("q", q,
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -75,7 +78,8 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "wordtest testword";
 
         SolrQueryRequest req = req("q", q,
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -93,6 +97,7 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "testword";
 
         SolrQueryRequest req = req("q", q,
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -109,7 +114,8 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
         String q = "testword";
 
         SolrQueryRequest req = req("q", q,
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.OFF.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.OFF.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
