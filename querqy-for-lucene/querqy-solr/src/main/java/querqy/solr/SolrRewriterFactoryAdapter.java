@@ -90,11 +90,11 @@ public abstract class SolrRewriterFactoryAdapter {
         }
 
         for (final Object sink : sinkDefinitions) {
-            try {
-                sinks.add((Sink) Class.forName((String) sink).getDeclaredConstructor().newInstance());
+            if ("response".equals(sink)) {
+                sinks.add(ResponseSink.defaultSink());
 
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
+            } else {
+                throw new RuntimeException(String.format("Definition of sink type %s is not valid", sink));
             }
         }
 
