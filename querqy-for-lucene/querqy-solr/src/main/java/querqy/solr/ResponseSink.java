@@ -14,8 +14,6 @@ public class ResponseSink implements Sink {
     private static final String CONTEXT_KEY = ResponseSink.class.getName() + ".MESSAGES";
     public static final String QUERQY_INFO_LOG = "querqy.rewriteLogging";
 
-    private static final Sink DEFAULT_SINK = new ResponseSink();
-
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void log(final Object message, final String rewriterId,
@@ -48,7 +46,4 @@ public class ResponseSink implements Sink {
 
     }
 
-    public static Sink defaultSink() {
-        return DEFAULT_SINK;
-    }
 }

@@ -8,6 +8,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.rest.ManagedResourceStorage;
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 
 import java.io.File;
@@ -23,8 +24,9 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
 
     protected static final String IO_PATH = "querqy/rewriters";
 
-    public StandAloneRewriterContainer(final SolrCore core, final SolrResourceLoader resourceLoader) {
-        super(core, resourceLoader);
+    public StandAloneRewriterContainer(final SolrCore core, final SolrResourceLoader resourceLoader,
+                                       final Map<String, Sink> infoLoggingSinks) {
+        super(core, resourceLoader, infoLoggingSinks);
     }
 
     @Override

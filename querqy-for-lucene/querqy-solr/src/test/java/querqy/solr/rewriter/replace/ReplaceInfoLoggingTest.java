@@ -20,8 +20,10 @@ public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
     @BeforeClass
     public static void beforeTests() throws Exception {
         initCore("solrconfig-replace-infoLogging.xml", "schema.xml");
-        withReplaceRewriter(h.getCore(), "replace1", "configs/replace/replace-rules.txt");
-        withReplaceRewriter(h.getCore(), "replace2", "configs/replace/replace-rules-defaults.txt");
+        withReplaceRewriter(h.getCore(), "replace1", "configs/replace/replace-rules.txt",
+                "response");
+        withReplaceRewriter(h.getCore(), "replace2", "configs/replace/replace-rules-defaults.txt",
+                "response");
     }
 
     public void testThatDetailedLogsAreReturnedForGivenParam() {

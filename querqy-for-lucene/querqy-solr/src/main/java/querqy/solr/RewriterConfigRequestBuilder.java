@@ -17,22 +17,31 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class RewriterConfigRequestBuilder {
 
     public static final String CONF_CLASS = "class";
     public static final String CONF_CONFIG = "config";
 
+    public static final String CONF_INFO_LOGGING = "info_logging";
+
     private final Class<? extends SolrRewriterFactoryAdapter> rewriterFactoryAdapterClass;
+    private List<String> infoLoggingSinks;
 
     public RewriterConfigRequestBuilder(final Class<? extends SolrRewriterFactoryAdapter> rewriterFactoryAdapterClass) {
         this.rewriterFactoryAdapterClass = rewriterFactoryAdapterClass;
     }
+
+    public <T extends RewriterConfigRequestBuilder> T loggingToSinks(final String ... sinks) {
+        if (infoLoggingSinks == null) {
+            infoLoggingSinks = new ArrayList<>(sinks.length);
+
+        }
+        infoLoggingSinks.addAll(Arrays.asList(sinks));
+        return (T) this;
+    }
+
 
     public abstract Map<String, Object> buildConfig();
 
@@ -53,6 +62,11 @@ public abstract class RewriterConfigRequestBuilder {
 
         final Map<String, Object> description = new HashMap<>();
         description.put(CONF_CLASS, rewriterFactoryAdapterClass.getName());
+        if (infoLoggingSinks != null && !infoLoggingSinks.isEmpty()) {
+            final Map<String, Object> infoLogging = new HashMap<>();
+            infoLogging.put("sinks", infoLoggingSinks);
+            description.put(CONF_INFO_LOGGING, infoLogging);
+        }
         description.put(CONF_CONFIG, config);
         return description;
 
