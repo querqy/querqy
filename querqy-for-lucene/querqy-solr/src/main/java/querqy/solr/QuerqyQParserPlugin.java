@@ -28,6 +28,8 @@ import querqy.rewrite.RewriterFactory;
 import java.io.IOException;
 import java.util.*;
 
+import static querqy.solr.RewriteLoggingParameters.PARAM_REWRITE_LOGGING_REWRITERS;
+
 public abstract class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
     /**
@@ -164,6 +166,12 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
             rewritersParam = params.get(PARAM_REWRITERS);
         }
 
+        final String loggingRewritersParam = params.get(PARAM_REWRITE_LOGGING_REWRITERS);
+        final Set<String> loggingRewriters = new HashSet<>();
+        if (loggingRewritersParam != null) {
+            Collections.addAll(loggingRewriters, loggingRewritersParam.split(","));
+        }
+
         final RewriteChain rewriteChain;
         final InfoLogging infoLogging;
         if (rewritersParam != null) {
@@ -181,9 +189,12 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
                 if (factoryOpt.isPresent()) {
                     final RewriterFactoryContext context = factoryOpt.get();
                     factories.add(context.getRewriterFactory());
-                    final List<Sink> sinks = context.getSinks();
-                    if (sinks != null && (!sinks.isEmpty())) {
-                        sinkMappings.put(rewriterId, sinks);
+
+                    if (loggingRewriters.contains(rewriterId)) {
+                        final List<Sink> sinks = context.getSinks();
+                        if (sinks != null && (!sinks.isEmpty())) {
+                            sinkMappings.put(rewriterId, sinks);
+                        }
                     }
                 } else if (skipUnknownRewriter){
                     logger.warn("Skipping unknown rewriter: {}", rewriterId);

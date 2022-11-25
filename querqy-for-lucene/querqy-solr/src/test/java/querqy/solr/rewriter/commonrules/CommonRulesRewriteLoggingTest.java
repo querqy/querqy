@@ -1,6 +1,7 @@
 package querqy.solr.rewriter.commonrules;
 
 import static querqy.solr.QuerqyQParserPlugin.PARAM_REWRITERS;
+import static querqy.solr.RewriteLoggingParameters.PARAM_REWRITE_LOGGING_REWRITERS;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
 import org.apache.solr.SolrTestCaseJ4;
@@ -9,7 +10,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import querqy.solr.QuerqyDismaxParams;
-import querqy.solr.RewriteLoggingParameter;
+import querqy.solr.RewriteLoggingParameters;
 
 @SolrTestCaseJ4.SuppressSSL
 public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
@@ -35,7 +36,9 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.REWRITER_ID.getValue(),                "defType", "querqy",
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.REWRITER_ID.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
+                "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
 
@@ -55,7 +58,8 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -77,7 +81,8 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, "common1",
                 "defType", "querqy",
                 PARAM_REWRITERS, "common1"
         );
@@ -102,7 +107,8 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
                 QuerqyDismaxParams.INFO_LOGGING, "on",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -120,7 +126,8 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -144,6 +151,7 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -156,13 +164,37 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         req.close();
     }
 
+    public void testThatLogOutputIsReturnedDependingOnRewriteLoggingRewritersParam() {
+
+        String q = "k";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, "common1",
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS,
+                "debugQuery", "on"
+        );
+
+        assertQ("Logging multiple logs for same input false",
+                req,
+                "count(" + REWRITE_CHAIN_PATH + ") = 1",
+                "count(//lst[@name = 'debug']//lst[@name = 'querqy.rewrite']/arr//str[@name = 'rewriterId']) = 2"
+
+        );
+
+        req.close();
+    }
+
     public void testThatLogOutputIsEmptyForNoMatch() {
 
         String q = "nomatch";
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.DETAILS.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );
@@ -181,7 +213,8 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
         SolrQueryRequest req = req("q", q,
                 DisMaxParams.QF, "f1 f2 f3",
-                RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameter.OFF.getValue(),
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.OFF.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, REWRITERS,
                 "defType", "querqy",
                 PARAM_REWRITERS, REWRITERS
         );

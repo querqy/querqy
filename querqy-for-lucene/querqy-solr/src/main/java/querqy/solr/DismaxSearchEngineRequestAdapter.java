@@ -2,7 +2,7 @@ package querqy.solr;
 
 import static querqy.lucene.PhraseBoosting.makePhraseFieldsBoostQuery;
 import static querqy.solr.QuerqyDismaxParams.*;
-import static querqy.solr.RewriteLoggingParameter.REWRITE_LOGGING_PARAM_KEY;
+import static querqy.solr.RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause;
@@ -40,6 +40,7 @@ import querqy.model.StringRawQuery;
 import querqy.rewrite.RewriteLoggingConfig;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
+import querqy.rewrite.RewriterFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -99,7 +101,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
     private final boolean isDebug;
 
-    private final RewriteLoggingParameter rewriteLoggingParameter;
+    private final RewriteLoggingParameters rewriteLoggingParameter;
     private final RewriteLoggingConfig rewriteLoggingConfig;
 
     private Map<String, String> additionalParams = null;
@@ -120,9 +122,9 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
         this.context = new HashMap<>();
         this.isDebug = solrParams.getBool(CommonParams.DEBUG_QUERY, false);
 
-        this.rewriteLoggingParameter = RewriteLoggingParameter.of(solrParams.get(REWRITE_LOGGING_PARAM_KEY, "OFF"));
-        this.rewriteLoggingConfig = createRewriteLoggingConfig();
+        this.rewriteLoggingParameter = RewriteLoggingParameters.of(solrParams.get(REWRITE_LOGGING_PARAM_KEY, "OFF"));
         this.infoLoggingContext = createInfoLoggingContext(infoLogging);
+        this.rewriteLoggingConfig = createRewriteLoggingConfig(infoLogging);
 
         final int ps0 = solrParams.getInt(PS, 0);
         final int ps2 = solrParams.getInt(PS2, ps0);
@@ -144,20 +146,42 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
     }
 
-    private RewriteLoggingConfig createRewriteLoggingConfig() {
-        if (isDebug || RewriteLoggingParameter.DETAILS.equals(rewriteLoggingParameter)) {
-            return RewriteLoggingConfig.details();
+    private RewriteLoggingConfig createRewriteLoggingConfig(final InfoLogging infoLogging) {
+        final RewriteLoggingConfig.RewriteLoggingConfigBuilder builder = RewriteLoggingConfig.builder();
 
-        } else if (RewriteLoggingParameter.REWRITER_ID.equals(rewriteLoggingParameter)) {
-            return RewriteLoggingConfig.idsOnly();
+        if (isDebug || RewriteLoggingParameters.DETAILS.equals(rewriteLoggingParameter)) {
+            builder.isActive(true);
+            builder.hasDetails(true);
+
+        } else if (RewriteLoggingParameters.REWRITER_ID.equals(rewriteLoggingParameter)) {
+            builder.isActive(true);
+            builder.hasDetails(false);
 
         } else {
-            return RewriteLoggingConfig.off();
+            builder.isActive(false);
+            builder.hasDetails(false);
         }
+
+        final Set<String> rewriterIds = rewriteChain.getFactories().stream()
+                .map(RewriterFactory::getRewriterId)
+                .collect(Collectors.toSet());
+
+        if (isDebug) {
+            builder.includedRewriters(rewriterIds);
+
+        } else {
+            if (infoLogging != null) {
+                builder.includedRewriters(rewriterIds.stream()
+                        .filter(infoLogging::isLoggingEnabledForRewriter)
+                        .collect(Collectors.toSet()));
+            }
+        }
+
+        return builder.build();
     }
 
     private InfoLoggingContext createInfoLoggingContext(final InfoLogging infoLogging) {
-        if (infoLogging == null || RewriteLoggingParameter.OFF.equals(rewriteLoggingParameter)) {
+        if (infoLogging == null || RewriteLoggingParameters.OFF.equals(rewriteLoggingParameter)) {
             return null;
 
         } else {
