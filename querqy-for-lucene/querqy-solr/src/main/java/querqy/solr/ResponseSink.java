@@ -14,6 +14,7 @@ public class ResponseSink implements Sink {
     private static final String CONTEXT_KEY = ResponseSink.class.getName() + ".MESSAGES";
     public static final String QUERQY_INFO_LOG = "querqy.rewriteLogging";
 
+    private static final Sink DEFAULT_SINK = new ResponseSink();
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -45,5 +46,9 @@ public class ResponseSink implements Sink {
             rsp.add(QUERQY_INFO_LOG, Map.of("rewriteChainLogging", messages));
         }
 
+    }
+
+    public static Sink defaultSink() {
+        return DEFAULT_SINK;
     }
 }
