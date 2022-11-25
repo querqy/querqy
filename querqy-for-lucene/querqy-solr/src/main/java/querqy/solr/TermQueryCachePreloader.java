@@ -88,7 +88,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener implement
         preload(newSearcher, ((QuerqyRewriterRequestHandler) rewriterRequestHandler).getRewriterFactories(this));
     }
 
-    protected void preload(final SolrIndexSearcher searcher, final Collection<RewriterFactory> rewriterFactories ) {
+    protected void preload(final SolrIndexSearcher searcher, final Collection<RewriterFactoryContext> rewriterFactories ) {
 
         if (rewriterFactories.isEmpty()) {
             LOG.info("TermQueryCachePreloader loaded. No rewriters yet");
@@ -103,8 +103,8 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener implement
 
         final TermSubQueryBuilder termSubQueryBuilder = new TermSubQueryBuilder(searcher.getSchema().getQueryAnalyzer(),
                 cache);
-        for (final RewriterFactory factory : rewriterFactories) {
-            for (final Term term: factory.getCacheableGenerableTerms()) {
+        for (final RewriterFactoryContext factoryContext : rewriterFactories) {
+            for (final Term term: factoryContext.getRewriterFactory().getCacheableGenerableTerms()) {
                 final String field = term.getField();
                 if (field != null) {
                     if (preloadFields.contains(field)) {
@@ -156,7 +156,7 @@ public class TermQueryCachePreloader extends AbstractSolrEventListener implement
 
 
     @Override
-    public void rewritersChanged(final SolrIndexSearcher indexSearcher, final Set<RewriterFactory> allRewriters) {
+    public void rewritersChanged(final SolrIndexSearcher indexSearcher, final Set<RewriterFactoryContext> allRewriters) {
         preload(indexSearcher, allRewriters);
     }
 

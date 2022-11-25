@@ -37,7 +37,7 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
     protected synchronized void deleteRewriter(final String rewriterId) {
         store.remove(rewriterId);
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         if ((newRewriters.remove(rewriterId) == null) && !store.containsKey(rewriterId)) {
             throw new SolrException(NOT_FOUND, "No such rewriter: " + rewriterId);
         }
