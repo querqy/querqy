@@ -53,8 +53,8 @@ public class SolrRewriterFactoryAdapterTest {
                         "config", Collections.emptyMap(),
                         "logging", Map.of(
                                 "sinks", List.of(
-                                        ResponseSink.defaultSink().getClass().getName(),
-                                        ResponseSink.defaultSink().getClass().getName()
+                                        "response",
+                                        "response"
                                 )
                         )
                 )
