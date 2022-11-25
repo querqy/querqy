@@ -73,7 +73,7 @@ public class RewriteChainTest {
     public void testThat_actionLoggingsAreCollected_forActivatedActionLoggingAndActivatedDetails() {
         setupRewriterFactories();
         setupRewriter();
-        activateRewriteLogging(true);
+        activateRewriteLogging(true, "1", "2");
 
         final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
         final Optional<RewriteChainLog> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
@@ -92,7 +92,7 @@ public class RewriteChainTest {
     public void testThat_onlyIdsAreCollected_forActivatedActionLoggingAndDeactivatedDetails() {
         setupRewriterFactories();
         setupRewriter();
-        activateRewriteLogging(false);
+        activateRewriteLogging(false, "1", "2");
 
         final RewriteChain rewriteChain = new RewriteChain(List.of(rewriterFactory1, rewriterFactory2));
         final Optional<RewriteChainLog> rewriteChainLogging = rewriteChain.rewrite(expandedQuery1, searchEngineRequestAdapter)
