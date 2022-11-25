@@ -101,7 +101,7 @@ public class StandAloneRewriterContainer extends RewriterContainer<SolrResourceL
         final ManagedResourceStorage.StorageIO storageIO = ManagedResourceStorage.newStorageIO(core
                 .getCoreDescriptor().getCollectionName(), resourceLoader, new NamedList<>());
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         if ((newRewriters.remove(rewriterId) == null) && !storageIO.exists(rewriterPath)) {
             throw new SolrException(SolrException.ErrorCode.NOT_FOUND, "No such rewriter: " + rewriterId);
         }

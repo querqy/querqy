@@ -25,13 +25,13 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected Map<String, RewriterFactory> rewriters = new HashMap<>();
+    protected Map<String, RewriterFactoryContext> rewriters = new HashMap<>();
     protected R resourceLoader;
     protected SolrCore core;
     private RewritersChangeListener rewritersChangeListener = null;
 
     public interface RewritersChangeListener {
-        void rewritersChanged(SolrIndexSearcher indexSearcher, Set<RewriterFactory> allRewriters);
+        void rewritersChanged(SolrIndexSearcher indexSearcher, Set<RewriterFactoryContext> allRewriters);
     }
 
     protected RewriterContainer(final SolrCore core, final R resourceLoader) {
@@ -94,11 +94,11 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
 
     }
 
-    public Optional<RewriterFactory> getRewriterFactory(final String rewriterId) {
+    public Optional<RewriterFactoryContext> getRewriterFactory(final String rewriterId) {
         return Optional.ofNullable(rewriters.get(rewriterId));
     }
 
-    public synchronized Collection<RewriterFactory> getRewriterFactories(final RewritersChangeListener listener) {
+    public synchronized Collection<RewriterFactoryContext> getRewriterFactories(final RewritersChangeListener listener) {
         this.rewritersChangeListener = listener;
         return rewriters.values();
     }
@@ -118,8 +118,14 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
                 instanceDesc);
         factoryLoader.configure((Map<String, Object>) instanceDesc.getOrDefault("config", Collections.emptyMap()));
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
-        newRewriters.put(rewriterId, factoryLoader.getRewriterFactory());
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
+        newRewriters.put(
+                rewriterId,
+                new RewriterFactoryContext(
+                        factoryLoader.getRewriterFactory(),
+                        factoryLoader.getSinks()
+                )
+        );
         rewriters = newRewriters;
         LOG.info("Loaded rewriter: {}", rewriterId);
 

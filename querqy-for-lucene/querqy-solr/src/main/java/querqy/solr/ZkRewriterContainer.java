@@ -302,7 +302,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         // We do not manipulate the 'rewriters' map but replace it with an updated map to avoid locking/synchronization
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         for (final String rewriterId : known) {
             LOG.info("Unloading rewriter: {}", rewriterId);
             newRewriters.remove(rewriterId);

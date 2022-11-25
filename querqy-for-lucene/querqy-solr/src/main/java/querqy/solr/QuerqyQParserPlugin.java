@@ -242,11 +242,11 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
             final List<RewriterFactory> factories = new ArrayList<>(rewriterIds.length);
             for (final String rewriterId: rewriterIds) {
 
-                final Optional<RewriterFactory> factoryOpt = rewriterRequestHandler
+                final Optional<RewriterFactoryContext> factoryOpt = rewriterRequestHandler
                         .getRewriterFactory(rewriterId.trim());
 
                 if (factoryOpt.isPresent()) {
-                    factories.add(factoryOpt.get());
+                    factories.add(factoryOpt.get().getRewriterFactory());
                 } else if (skipUnknownRewriter){
                     logger.warn("Skipping unknown rewriter: {}", rewriterId);
                 } else {

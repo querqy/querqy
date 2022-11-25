@@ -172,7 +172,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     @Override
     public void handleRequest(final SolrQueryRequest req, final SolrQueryResponse rsp) {
-        final Map<String, RewriterFactory> rewriters = rewriterContainer.rewriters;
+        final Map<String, RewriterFactoryContext> rewriters = rewriterContainer.rewriters;
         final Map<String, Object> result = new HashMap<>();
         final Map<String, Map<String, Object>> rewritersResult = rewriters.entrySet().stream().collect(
                 toMap(Map.Entry::getKey, entry -> {
@@ -235,11 +235,11 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         return (inMemory == null || !inMemory);
     }
 
-    public Optional<RewriterFactory> getRewriterFactory(final String rewriterId) {
+    public Optional<RewriterFactoryContext> getRewriterFactory(final String rewriterId) {
         return rewriterContainer.getRewriterFactory(rewriterId);
     }
 
-    public synchronized Collection<RewriterFactory> getRewriterFactories(final RewriterContainer.RewritersChangeListener listener) {
+    public synchronized Collection<RewriterFactoryContext> getRewriterFactories(final RewriterContainer.RewritersChangeListener listener) {
         return rewriterContainer.getRewriterFactories(listener);
     }
 
