@@ -34,7 +34,14 @@
 
 	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 
-    <requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler" />
+	<requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler">
+		<lst name="infoLogging">
+			<lst name="sink">
+				<str name="id">customSink</str>
+				<str name="class">querqy.solr.CustomInfoLoggingSinkTest$CustomSink</str>
+			</lst>
+		</lst>
+	</requestHandler>
 
 	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
 	

@@ -22,7 +22,7 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
     @BeforeClass
     public static void beforeTests() throws Exception {
-        initCore("solrconfig-infoLogging.xml", "schema.xml");
+        initCore("solrconfig.xml", "schema.xml");
         withCommonRulesRewriter(h.getCore(), "common1", "configs/commonrules/rules-infoLogging1.txt",
                 "response");
         withCommonRulesRewriter(h.getCore(), "common2", "configs/commonrules/rules-infoLogging2.txt",
