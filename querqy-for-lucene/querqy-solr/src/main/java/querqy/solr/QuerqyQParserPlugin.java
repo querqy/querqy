@@ -167,8 +167,9 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
 
         final String loggingRewritersParam = params.get(PARAM_REWRITE_LOGGING_REWRITERS);
+        final boolean hasFullRewriteLogging = "*".equals(loggingRewritersParam);
         final Set<String> loggingRewriters = new HashSet<>();
-        if (loggingRewritersParam != null) {
+        if (!hasFullRewriteLogging && loggingRewritersParam != null) {
             Collections.addAll(loggingRewriters, loggingRewritersParam.split(","));
         }
 
@@ -190,7 +191,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
                     final RewriterFactoryContext context = factoryOpt.get();
                     factories.add(context.getRewriterFactory());
 
-                    if (loggingRewriters.contains(rewriterId)) {
+                    if (hasFullRewriteLogging || loggingRewriters.contains(rewriterId)) {
                         final List<Sink> sinks = context.getSinks();
                         if (sinks != null && (!sinks.isEmpty())) {
                             sinkMappings.put(rewriterId, sinks);

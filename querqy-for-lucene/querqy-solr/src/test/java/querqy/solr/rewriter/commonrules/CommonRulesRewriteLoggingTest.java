@@ -120,6 +120,26 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         );
     }
 
+    public void testThatAllLogsAreReturnedForRewriterLoggingWildcard() {
+        String q = "k";
+
+        SolrQueryRequest req = req("q", q,
+                DisMaxParams.QF, "f1 f2 f3",
+                QuerqyDismaxParams.INFO_LOGGING, "on",
+                RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY, RewriteLoggingParameters.DETAILS.getValue(),
+                PARAM_REWRITE_LOGGING_REWRITERS, "*",
+                "defType", "querqy",
+                PARAM_REWRITERS, REWRITERS
+        );
+
+        assertQ("Logging multiple logs for same input false",
+                req,
+                "count(" + REWRITE_CHAIN_PATH + ") = 2",
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common1']",
+                REWRITE_CHAIN_PATH + "/str[@name='rewriterId' and text()='common2']"
+        );
+    }
+
     public void testThatDetailedLogsAreReturnedForGivenParam() {
 
         String q = "k";
