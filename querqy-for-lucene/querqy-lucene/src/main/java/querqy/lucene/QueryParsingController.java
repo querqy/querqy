@@ -1,5 +1,9 @@
 package querqy.lucene;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
@@ -26,6 +30,8 @@ import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
+import querqy.rewrite.logging.RewriteChainLog;
+import querqy.rewrite.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
@@ -37,9 +43,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_DATA;
-import static querqy.rewrite.AbstractLoggingRewriter.CONTEXT_KEY_DEBUG_ENABLED;
 
 /**
  * Created by rene on 23/05/2017.
@@ -76,6 +79,9 @@ public class QueryParsingController {
      */
     protected static final Class<? extends QuerqyParser> DEFAULT_PARSER_CLASS = WhiteSpaceQuerqyParser.class;
 
+    protected static final ObjectMapper REWRITE_LOGGING_OBJECT_MAPPER = new ObjectMapper()
+            .setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
     protected final LuceneSearchEngineRequestAdapter requestAdapter;
     protected final String queryString;
@@ -83,12 +89,12 @@ public class QueryParsingController {
     protected final Analyzer queryAnalyzer;
     protected final SearchFieldsAndBoosting searchFieldsAndBoosting;
     protected final DocumentFrequencyCorrection dfc;
-    protected final boolean debugQuery;
     protected final LuceneQueryBuilder builder;
     protected final TermQueryBuilder boostTermQueryBuilder;
     protected final SearchFieldsAndBoosting boostSearchFieldsAndBoostings;
     protected final boolean addQuerqyBoostQueriesToMainQuery;
     protected String parserDebugInfo = null;
+    protected RewriteChainLog rewriteChainLogging = null;
 
     public QueryParsingController(final LuceneSearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;
@@ -157,11 +163,6 @@ public class QueryParsingController {
                     requestAdapter.getTermQueryCache().orElse(null));
 
         }
-
-
-        debugQuery = requestAdapter.isDebugQuery();
-
-
     }
 
     public ExpandedQuery createExpandedQuery() {
@@ -171,7 +172,11 @@ public class QueryParsingController {
         } else {
             final QuerqyParser parser = requestAdapter.createQuerqyParser()
                     .orElseGet(QueryParsingController::newDefaultQuerqyParser);
-            if (debugQuery) {
+
+            // TODO: What is happening here ?!?
+            //  build rewrite logging config
+
+            if (requestAdapter.isDebugQuery()) {
                 parserDebugInfo = parser.getClass().getName();
             }
 
@@ -190,26 +195,28 @@ public class QueryParsingController {
         final List<Query> multiplicativeBoostsFromRequest = needsScores ? requestAdapter.getMultiplicativeBoosts(parsedInput.getUserQuery()) : Collections.emptyList();
         final boolean hasMultiplicativeBoostsFromRequest = !multiplicativeBoostsFromRequest.isEmpty();
 
-        final Map<String, Object> context = requestAdapter.getContext();
-        if (debugQuery) {
-            context.put(CONTEXT_KEY_DEBUG_ENABLED, true);
+        final RewriteChainOutput rewriteChainOutput = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
+
+        if (rewriteChainOutput.getRewriteLog().isPresent()) {
+            this.rewriteChainLogging = rewriteChainOutput.getRewriteLog().get();
+            processRewriteLogging();
         }
 
-        final ExpandedQuery rewrittenQuery = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
+        final ExpandedQuery rewrittenExpandedQuery = rewriteChainOutput.getExpandedQuery();
 
-        Query mainQuery = transformUserQuery(rewrittenQuery.getUserQuery(), builder);
+        Query mainQuery = transformUserQuery(rewrittenExpandedQuery.getUserQuery(), builder);
 
         if (dfc != null) dfc.finishedUserQuery();
 
 
-        final List<Query> filterQueries = transformFilterQueries(rewrittenQuery.getFilterQueries());
+        final List<Query> filterQueries = transformFilterQueries(rewrittenExpandedQuery.getFilterQueries());
 
         // additive boosts from Querqy query rewriters
-        final List<Query> additiveBoostsFromQuerqy = needsScores ? getAdditiveQuerqyBoostQueries(rewrittenQuery) : Collections.emptyList();
+        final List<Query> additiveBoostsFromQuerqy = needsScores ? getAdditiveQuerqyBoostQueries(rewrittenExpandedQuery) : Collections.emptyList();
         final boolean hasAdditiveBoostsFromQuerqy = !additiveBoostsFromQuerqy.isEmpty();
 
         // multiplicative boosts from Querqy query rewriters
-        final List<ValueSource> multiplicativeBoostsFromQuerqy = needsScores ? getQuerqyMultiplicativeBoostQueries(rewrittenQuery) : Collections.emptyList();
+        final List<ValueSource> multiplicativeBoostsFromQuerqy = needsScores ? getQuerqyMultiplicativeBoostQueries(rewrittenExpandedQuery) : Collections.emptyList();
         final boolean hasMultiplicativeBoostsFromQuerqy = !multiplicativeBoostsFromQuerqy.isEmpty();
 
         final boolean hasQuerqyBoostQueriesOnMainQuery = (hasAdditiveBoostsFromQuerqy || hasMultiplicativeBoostsFromQuerqy) && addQuerqyBoostQueriesToMainQuery;
@@ -496,19 +503,34 @@ public class QueryParsingController {
         return result;
     }
 
+    private void processRewriteLogging() {
+        requestAdapter.getInfoLoggingContext().ifPresent(
+                infoLoggingContext -> rewriteChainLogging.getRewriteChain().forEach(
+                        rewriteLoggingEntry -> {
+                            infoLoggingContext.setRewriterId(rewriteLoggingEntry.getRewriterId());
+                            final List<Object> rewriteActions = REWRITE_LOGGING_OBJECT_MAPPER.convertValue(
+                                    rewriteLoggingEntry.getActions(), new TypeReference<>() {});
+                            infoLoggingContext.log(rewriteActions);
+                        }
+                )
+        );
+    }
+
     public Map<String, Object> getDebugInfo() {
 
-        if (debugQuery) {
+        if (requestAdapter.isDebugQuery()) {
 
             Map<String, Object> info = new TreeMap<>();
 
             if (parserDebugInfo != null) {
                 info.put("querqy.parser", parserDebugInfo);
             }
-            final Object contextDebugInfo = requestAdapter.getContext()
-                    .get(CONTEXT_KEY_DEBUG_DATA);
-            if (contextDebugInfo != null) {
-                info.put("querqy.rewrite", contextDebugInfo);
+
+            if (rewriteChainLogging != null && !rewriteChainLogging.getRewriteChain().isEmpty()) {
+                info.put(
+                        "querqy.rewrite",
+                        REWRITE_LOGGING_OBJECT_MAPPER.convertValue(rewriteChainLogging, new TypeReference<>() {})
+                );
             }
             return info;
 

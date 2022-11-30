@@ -47,7 +47,7 @@ public class QueryRewritingHandler {
         final ExpandedQuery inputQuery = new ExpandedQuery(querqyParser.parse(queryString));
 
         final ExpandedQueryBuilder expandedQueryBuilder = new ExpandedQueryBuilder(
-                this.rewriteChain.rewrite(inputQuery, adapter));
+                this.rewriteChain.rewrite(inputQuery, adapter).getExpandedQuery());
 
         final RewrittenQuery rewrittenQuery = new RewrittenQuery(expandedQueryBuilder);
         final Map<String, Object> context = adapter.getContext();

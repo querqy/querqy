@@ -1,17 +1,14 @@
 package querqy.model;
 
-import querqy.infologging.MultiSinkInfoLogging;
+import querqy.rewrite.RewriteLoggingConfig;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.infologging.InfoLoggingContext;
 
 import java.util.*;
 
 public class EmptySearchEngineRequestAdapter implements SearchEngineRequestAdapter {
 
     Map<String, Object> context = new HashMap<>();
-
-    InfoLoggingContext loggingContext = new InfoLoggingContext(new MultiSinkInfoLogging(Collections.emptyMap()), this);
 
     @Override
     public RewriteChain getRewriteChain() {
@@ -59,7 +56,8 @@ public class EmptySearchEngineRequestAdapter implements SearchEngineRequestAdapt
     }
 
     @Override
-    public Optional<InfoLoggingContext> getInfoLoggingContext() {
-        return Optional.ofNullable(loggingContext);
+    public RewriteLoggingConfig getRewriteLoggingConfig() {
+        return RewriteLoggingConfig.off();
     }
+
 }

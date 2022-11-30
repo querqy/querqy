@@ -15,6 +15,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import querqy.lucene.GZIPAwareResourceLoader;
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.utils.JsonUtil;
 import querqy.solr.utils.NamedListWrapper;
@@ -52,8 +53,9 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
     private HashMap<String, RewriterWatcher> rewriterWatchers;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE; // TODO: Is 1 MB decimal or binary in ZK?
 
-    protected ZkRewriterContainer(final SolrCore core, final ZkSolrResourceLoader resourceLoader) {
-        super(core, resourceLoader);
+    protected ZkRewriterContainer(final SolrCore core, final ZkSolrResourceLoader resourceLoader,
+                                  final Map<String, Sink> infoLoggingSinks) {
+        super(core, resourceLoader, infoLoggingSinks);
         rewriterWatchers = new HashMap<>();
     }
 
@@ -295,7 +297,7 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
         // We do not manipulate the 'rewriters' map but replace it with an updated map to avoid locking/synchronization
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         for (final String rewriterId : known) {
             LOG.info("Unloading rewriter: {}", rewriterId);
             newRewriters.remove(rewriterId);

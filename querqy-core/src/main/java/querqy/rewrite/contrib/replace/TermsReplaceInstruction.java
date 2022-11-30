@@ -1,8 +1,9 @@
 package querqy.rewrite.contrib.replace;
 
+import querqy.rewrite.logging.ActionLog;
+import querqy.rewrite.logging.MatchLog;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class TermsReplaceInstruction extends ReplaceInstruction {
 
@@ -14,8 +15,8 @@ public class TermsReplaceInstruction extends ReplaceInstruction {
 
     @Override
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final CharSequence wildcardMatch, final Map<String, Set<CharSequence>> appliedRules) {
-        removeTermFromSequence(seq, start, exclusiveOffset, replacementTerms, appliedRules);
+                      final CharSequence wildcardMatch, final List<ActionLog> actionLogs) {
+        removeTermFromSequence(seq, start, exclusiveOffset, replacementTerms, actionLogs, MatchLog.MatchType.EXACT);
         seq.addAll(start, replacementTerms);
     }
 }

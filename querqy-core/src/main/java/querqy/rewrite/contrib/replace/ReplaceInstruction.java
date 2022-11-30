@@ -1,9 +1,10 @@
 package querqy.rewrite.contrib.replace;
 
-import java.util.HashSet;
+import querqy.rewrite.logging.ActionLog;
+import querqy.rewrite.logging.InstructionLog;
+import querqy.rewrite.logging.MatchLog;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -16,10 +17,10 @@ public abstract class ReplaceInstruction {
      * @param start            Startposition of the term in the list
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param wildcardMatch    Wildcard match that should be used to generate a replacement
-     * @param appliedRules     Debug information about replaced terms and their replacement
+     * @param actionLogs       Debug information about replaced terms and their replacement
      */
     abstract public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                               final CharSequence wildcardMatch, final Map<String, Set<CharSequence>> appliedRules);
+                               final CharSequence wildcardMatch, List<ActionLog> actionLogs);
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset) {
         this.apply(seq, start, exclusiveOffset, "", null);
@@ -31,8 +32,8 @@ public abstract class ReplaceInstruction {
     }
 
     public void apply(final List<CharSequence> seq, final int start, final int exclusiveOffset,
-                      final Map<String, Set<CharSequence>> appliedRules) {
-        this.apply(seq, start, exclusiveOffset, "", appliedRules);
+                      final List<ActionLog> actionLogs) {
+        this.apply(seq, start, exclusiveOffset, "", actionLogs);
     }
 
     /**
@@ -42,16 +43,38 @@ public abstract class ReplaceInstruction {
      * @param start            Startposition of the term in the list
      * @param exclusiveOffset  Endposition of the term in the list without offset.
      * @param replacementTerms Terms that should be used as replacement
-     * @param appliedRules     Debug information about replaced terms and their replacement
+     * @param actionLogs   Debug information about replaced terms and their replacement
+     * @param matchType        Information about the type of the rule match (e.g. exact or affix)
      */
+    // TODO: this definitely needs to be refactored, but requires more comprehensive refactoring in the replace rewriter
     public void removeTermFromSequence(final List<CharSequence> seq, final int start,
                                        final int exclusiveOffset, List<? extends CharSequence> replacementTerms,
-                                       final Map<String, Set<CharSequence>> appliedRules) {
-        Set<CharSequence> removedTerms = IntStream.range(0, exclusiveOffset)
-                .mapToObj(i -> seq.remove(start)).collect(Collectors.toSet());
+                                       final List<ActionLog> actionLogs,
+                                       final MatchLog.MatchType matchType) {
+        final List<CharSequence> removedTerms = IntStream.range(0, exclusiveOffset)
+                .mapToObj(i -> seq.remove(start)).collect(Collectors.toList());
 
-        if (appliedRules != null) {
-            appliedRules.computeIfAbsent(replacementTerms.toString(), e -> new HashSet<>()).addAll(removedTerms);
+        final String removedTermsInfo = String.join(" ", removedTerms);
+        final String replacementTermsInfo = String.join(" ", replacementTerms);
+
+        if (actionLogs != null) {
+            actionLogs.add(
+                    ActionLog.builder()
+                            .message(String.format("%s => %s", removedTermsInfo, replacementTermsInfo))
+                            .match(
+                                    MatchLog.builder()
+                                            .type(matchType)
+                                            .term(removedTermsInfo)
+                                            .build()
+                            )
+                            .instructions(List.of(
+                                    InstructionLog.builder()
+                                            .type("replace")
+                                            .value(replacementTermsInfo)
+                                            .build()
+                            ))
+                            .build()
+            );
         }
     }
 }

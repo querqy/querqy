@@ -20,7 +20,8 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.QParser;
 
 import org.apache.solr.search.RankQuery;
-import querqy.infologging.InfoLoggingContext;
+import querqy.lucene.LuceneSearchEngineRequestAdapter;
+import querqy.lucene.rewrite.infologging.InfoLoggingContext;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 
@@ -77,7 +78,7 @@ public class QuerqyQueryComponent extends QueryComponent {
 
         if (parser instanceof QuerqyDismaxQParser) {
 
-            final SearchEngineRequestAdapter searchEngineRequestAdapter =
+            final LuceneSearchEngineRequestAdapter searchEngineRequestAdapter =
                     ((QuerqyDismaxQParser) parser).getSearchEngineRequestAdapter();
 
             final Map<String, Object> context = searchEngineRequestAdapter.getContext();

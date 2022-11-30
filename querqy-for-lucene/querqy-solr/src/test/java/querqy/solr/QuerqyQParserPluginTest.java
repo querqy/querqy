@@ -14,8 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import querqy.infologging.InfoLogging;
 import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.infologging.InfoLogging;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 

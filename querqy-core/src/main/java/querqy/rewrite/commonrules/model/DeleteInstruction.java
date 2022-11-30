@@ -19,10 +19,17 @@ public class DeleteInstruction implements Instruction {
     protected final Set<CharSequence> charSequencesToDelete;
     protected final List<PrefixTerm> prefixesToDeleted;
 
+    private final InstructionDescription instructionDescription;
+
     /**
       * @param termsToDelete The terms to delete from the query
       */
+    @Deprecated // use only for test purposes
     public DeleteInstruction(final List<? extends Term> termsToDelete) {
+        this(termsToDelete, InstructionDescription.empty());
+    }
+
+    public DeleteInstruction(final List<? extends Term> termsToDelete, final InstructionDescription instructionDescription) {
         this.termsToDelete = termsToDelete;
         charSequencesToDelete = new HashSet<>();
         final List<PrefixTerm> prefixes = new ArrayList<>();
@@ -34,6 +41,7 @@ public class DeleteInstruction implements Instruction {
             }
         }
         prefixesToDeleted = prefixes.isEmpty() ? null : prefixes;
+        this.instructionDescription = instructionDescription;
     }
 
     public List<? extends Term> getTermsToDelete() {
@@ -77,8 +85,13 @@ public class DeleteInstruction implements Instruction {
    public Set<querqy.model.Term> getGenerableTerms() {
        return QueryRewriter.EMPTY_GENERABLE_TERMS;
    }
-   
-   @Override
+
+    @Override
+    public InstructionDescription getInstructionDescription() {
+        return instructionDescription;
+    }
+
+    @Override
    public int hashCode() {
       final int prime = 31;
       int result = 1;

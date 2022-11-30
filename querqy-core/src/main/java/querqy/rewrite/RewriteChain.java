@@ -4,14 +4,14 @@
 package querqy.rewrite;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
-import querqy.infologging.InfoLoggingContext;
+import querqy.rewrite.logging.RewriteChainLog;
+import querqy.rewrite.logging.RewriterLog;
 
 /**
  * The chain of rewriters to manipulate a {@link Query}.
@@ -21,10 +21,7 @@ import querqy.infologging.InfoLoggingContext;
  */
 public class RewriteChain {
 
-    final List<RewriterFactory> factories;
-
-    @Deprecated
-    final Map<String, RewriterFactory> factoriesByName;
+    private final List<RewriterFactory> factories;
 
     public RewriteChain() {
         this(Collections.emptyList());
@@ -32,55 +29,110 @@ public class RewriteChain {
 
     public RewriteChain(final List<RewriterFactory> factories) {
         this.factories = factories;
-        factoriesByName = new HashMap<>(factories.size());
-        factories.forEach(factory -> {
-            final String rewriterId = factory.getRewriterId();
-            if (rewriterId == null || rewriterId.trim().isEmpty()) {
-                throw new IllegalArgumentException("Missing rewriter id for factory: " + factory.getClass().getName());
-            }
-            if (factoriesByName.put(rewriterId, factory) != null) {
-                throw new IllegalArgumentException("Duplicate rewriter id: " + rewriterId);
-            }
-        });
+        ensureThatRewriterIdsAreValid();
     }
 
-    public ExpandedQuery rewrite(final ExpandedQuery query,
-                                 final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-      
-        ExpandedQuery work = query;
-
-        final Optional<InfoLoggingContext> loggingContext = searchEngineRequestAdapter.getInfoLoggingContext();
-
-        final String oldRewriterId = loggingContext.map(InfoLoggingContext::getRewriterId).orElse(null);
-
-        try {
-
-            for (final RewriterFactory factory : factories) {
-
-                loggingContext.ifPresent(context -> context.setRewriterId(factory.getRewriterId()));
-
-                final QueryRewriter rewriter = factory.createRewriter(work, searchEngineRequestAdapter);
-
-                work = (rewriter instanceof ContextAwareQueryRewriter)
-                        ? ((ContextAwareQueryRewriter) rewriter).rewrite(work, searchEngineRequestAdapter)
-                        : rewriter.rewrite(work);
-
-            }
-
-        } finally {
-            loggingContext.ifPresent(context -> context.setRewriterId(oldRewriterId));
-        }
-
-        return work;
-    }
-
-    @Deprecated
-    public List<RewriterFactory> getRewriterFactories() {
+    public List<RewriterFactory> getFactories() {
         return factories;
     }
 
-    @Deprecated
-    public RewriterFactory getFactory(final String rewriterId) {
-        return factoriesByName.get(rewriterId);
+    private void ensureThatRewriterIdsAreValid() {
+        final Set<String> rewriterIds = new HashSet<>();
+
+        for (final RewriterFactory factory : this.factories) {
+            final String rewriterId = factory.getRewriterId();
+
+            if (rewriterId == null || rewriterId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Missing rewriter id for factory: " + factory.getClass().getName());
+            }
+
+            if (rewriterIds.contains(rewriterId)) {
+                throw new IllegalArgumentException("Duplicate rewriter id: " + rewriterId);
+            }
+
+            rewriterIds.add(rewriterId);
+        }
+    }
+
+    public RewriteChainOutput rewrite(final ExpandedQuery query,
+                                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+
+        final RewritingExecutor executor = new RewritingExecutor(factories, searchEngineRequestAdapter, query);
+        return executor.rewrite();
+    }
+
+    private static class RewritingExecutor {
+
+        private final List<RewriterFactory> rewriterFactories;
+
+        private final SearchEngineRequestAdapter searchEngineRequestAdapter;
+        private final RewriteLoggingConfig rewriteLoggingConfig;
+
+        private ExpandedQuery expandedQuery;
+
+        private final RewriteChainLog.RewriteChainLogBuilder rewriteChainLogBuilder = RewriteChainLog.builder();
+
+        public RewritingExecutor(
+                final List<RewriterFactory> rewriterFactories,
+                final SearchEngineRequestAdapter searchEngineRequestAdapter,
+                final ExpandedQuery expandedQuery
+        ) {
+            this.rewriterFactories = rewriterFactories;
+
+            this.searchEngineRequestAdapter = searchEngineRequestAdapter;
+            this.rewriteLoggingConfig = searchEngineRequestAdapter.getRewriteLoggingConfig();
+
+            this.expandedQuery = expandedQuery;
+        }
+
+        public RewriteChainOutput rewrite() {
+            for (final RewriterFactory factory : rewriterFactories) {
+                final RewriterOutput rewriterOutput = applyFactory(factory);
+
+                if (rewriteLoggingConfig.isActive() && rewriterOutput.getRewriterLog().isPresent()) {
+                    addLogIfRewritingHasBeenApplied(
+                            factory.getRewriterId(), rewriterOutput.getRewriterLog().get());
+                }
+
+                expandedQuery = rewriterOutput.getExpandedQuery();
+            }
+
+            return buildOutput();
+        }
+
+        private RewriterOutput applyFactory(final RewriterFactory factory) {
+            final QueryRewriter rewriter = factory.createRewriter(expandedQuery, searchEngineRequestAdapter);
+            return rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
+        }
+
+        private void addLogIfRewritingHasBeenApplied(final String factoryId, final RewriterLog rewriterLog) {
+            if (rewriterLog.hasAppliedRewriting()) {
+                addLogIfRewriterIdIsIncluded(factoryId, rewriterLog);
+            }
+        }
+
+        private void addLogIfRewriterIdIsIncluded(final String factoryId, final RewriterLog rewriterLog) {
+            final Set<String> includedIds = rewriteLoggingConfig.getIncludedRewriters();
+
+            if (includedIds.contains(factoryId)) {
+                addLogWithOrWithoutDetails(factoryId, rewriterLog);
+            }
+        }
+
+        private void addLogWithOrWithoutDetails(final String factoryId, final RewriterLog rewriterLog) {
+            if (rewriteLoggingConfig.hasDetails()) {
+                rewriteChainLogBuilder.add(factoryId, rewriterLog.getActionLogs());
+
+            } else {
+                rewriteChainLogBuilder.add(factoryId);
+            }
+        }
+
+        private RewriteChainOutput buildOutput() {
+            return RewriteChainOutput.builder()
+                    .expandedQuery(expandedQuery)
+                    .rewriteLog(rewriteChainLogBuilder.build())
+                    .build();
+        }
     }
 }

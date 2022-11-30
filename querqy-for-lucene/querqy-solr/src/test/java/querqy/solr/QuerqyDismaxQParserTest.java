@@ -17,15 +17,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import querqy.infologging.InfoLogging;
 
 import querqy.lucene.LuceneQueries;
+import querqy.lucene.rewrite.infologging.InfoLogging;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.rewrite.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 
 import java.util.Collections;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class QuerqyDismaxQParserTest {
@@ -71,7 +73,9 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
+        when(rewriteChain.rewrite(any(), any())).thenReturn(
+                RewriteChainOutput.builder().expandedQuery(new ExpandedQuery(new MatchAllQuery())).build()
+        );
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");
@@ -92,7 +96,9 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
+        when(rewriteChain.rewrite(any(), any())).thenReturn(
+                RewriteChainOutput.builder().expandedQuery(new ExpandedQuery(new MatchAllQuery())).build()
+        );
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");
@@ -113,7 +119,8 @@ public class QuerqyDismaxQParserTest {
 
         when(request.getSchema()).thenReturn(schema);
         when(schema.getQueryAnalyzer()).thenReturn(new StandardAnalyzer());
-        when(rewriteChain.rewrite(any(), any())).thenReturn(new ExpandedQuery(new MatchAllQuery()));
+        when(rewriteChain.rewrite(any(), any())).thenReturn(RewriteChainOutput.builder().expandedQuery(
+                new ExpandedQuery(new MatchAllQuery())).build());
 
         final ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.add("qf", "f1");

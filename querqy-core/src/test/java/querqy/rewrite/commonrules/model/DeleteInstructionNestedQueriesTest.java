@@ -37,7 +37,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                 );
 
         ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(bq(dmq("ab"), dmq("b")));
     }
@@ -61,7 +61,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
                 );
 
         ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(q);
     }
@@ -79,7 +79,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
         BooleanQueryBuilder q = bq(dmq("a", "a", "a"));
 
         ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(bq(Collections.emptyList()));
     }
@@ -94,7 +94,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
         BooleanQueryBuilder q = bq("a", "a", "a");
 
         ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertThat(new BooleanQueryBuilder(rewritten)).isEqualTo(bq(Collections.emptyList()));
     }
@@ -112,7 +112,7 @@ public class DeleteInstructionNestedQueriesTest extends AbstractCommonRulesTest 
         BooleanQueryBuilder q = bq("a", "b", "a", "b");
 
         ExpandedQuery query = new ExpandedQuery(q.buildQuerqyQuery());
-        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getUserQuery();
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertThat(new BooleanQueryBuilder(rewritten))
                 .isEqualTo(

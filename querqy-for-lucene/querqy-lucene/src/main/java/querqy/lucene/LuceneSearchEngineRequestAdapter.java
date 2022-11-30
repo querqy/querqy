@@ -3,6 +3,7 @@ package querqy.lucene;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import querqy.lucene.rewrite.infologging.InfoLoggingContext;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.lucene.rewrite.cache.TermQueryCache;
@@ -283,6 +284,16 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
      * @return The field boost model.
      */
     Optional<FieldBoostModel> getFieldBoostModel();
+
+    /**
+     * <p>Get the per-request info logging. Return an empty option if logging hasn't been configured or was disabled
+     * for this request.</p>
+     *
+     * @return the InfoLoggingContext object
+     */
+    Optional<InfoLoggingContext> getInfoLoggingContext();
+
+
 
 
 

@@ -27,18 +27,27 @@ public class DecorateInstruction implements Instruction {
 
     protected final String decorationKey;
     protected final Object decorationValue;
-    
+
+    private final InstructionDescription instructionDescription;
+
+    @Deprecated // use only for testing
     public DecorateInstruction(final Object decorationValue) {
         this(null, decorationValue);
     }
 
+    @Deprecated // use only for testing
     public DecorateInstruction(final String decorationKey, final Object decorationValue) {
+        this(decorationKey, decorationValue, InstructionDescription.empty());
+    }
+
+    public DecorateInstruction(final String decorationKey, final Object decorationValue, final InstructionDescription instructionDescription) {
         if (decorationValue == null) {
             throw new IllegalArgumentException("decorationValue must not be null");
         }
 
         this.decorationKey = decorationKey;
         this.decorationValue = decorationValue;
+        this.instructionDescription = instructionDescription;
     }
 
     /* (non-Javadoc)
@@ -73,6 +82,11 @@ public class DecorateInstruction implements Instruction {
     @Override
     public Set<Term> getGenerableTerms() {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+
+    @Override
+    public InstructionDescription getInstructionDescription() {
+        return instructionDescription;
     }
 
     @Override

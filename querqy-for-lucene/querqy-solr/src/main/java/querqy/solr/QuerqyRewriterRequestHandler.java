@@ -18,16 +18,12 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.util.plugin.SolrCoreAware;
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 import querqy.solr.explain.ExplainRewriteChainRequestHandler;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedRequestHandler, SolrCoreAware {
 
@@ -146,6 +142,8 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     private RewriterContainer<?> rewriterContainer = null;
 
+    private Map<String, Sink> infoLoggingSinks = null;
+
     @SuppressWarnings({"rawtypes"})
     private NamedList initArgs = null;
 
@@ -163,7 +161,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     @Override
     public void handleRequest(final SolrQueryRequest req, final SolrQueryResponse rsp) {
-        final Map<String, RewriterFactory> rewriters = rewriterContainer.rewriters;
+        final Map<String, RewriterFactoryContext> rewriters = rewriterContainer.rewriters;
         final Map<String, Object> result = new HashMap<>();
         final Map<String, Map<String, Object>> rewritersResult = rewriters.entrySet().stream().collect(
                 toMap(Map.Entry::getKey, entry -> {
@@ -201,22 +199,58 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     public void inform(final SolrCore core) {
 
         final SolrResourceLoader resourceLoader = core.getResourceLoader();
+        Map<String, Sink> sinks = loadSinks(resourceLoader);
+
         final Boolean inMemory = (Boolean) initArgs.get("inMemory");
         if (inMemory != null && inMemory) {
-            rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader);
+            rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader, sinks);
         } else if (resourceLoader instanceof ZkSolrResourceLoader) {
-            rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader);
+            rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader, sinks);
 
         } else {
-            rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader);
+            rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader, sinks);
         }
+
+
         rewriterContainer.init(initArgs);
     }
 
-    /**
-     * This check is used for validation as long as we are still allowing rewriters to be configured in solrconfig.xml
-     * @return true iff rewriter configs sent to this handler will be persisted
-     */
+    public Map<String, Sink> loadSinks(final SolrResourceLoader resourceLoader) {
+
+        final Map<String, Sink> sinks = new HashMap<>();
+        sinks.put("response", new ResponseSink());
+
+        final NamedList<?> loggingConfig = (NamedList<?>) initArgs.get("infoLogging");
+
+        if (loggingConfig != null) {
+
+            @SuppressWarnings("unchecked")
+            final List<NamedList<?>> sinkConfigs = (List<NamedList<?>>) loggingConfig.getAll("sink");
+
+
+            if (sinkConfigs != null) {
+
+                for (NamedList<?> config : sinkConfigs) {
+
+                    final Sink sink = resourceLoader.newInstance((String) config.get("class"), Sink.class);
+
+                    final String id = (String) config.get("id");
+                    if (sinks.put(id, sink) != null) {
+                        throw new IllegalStateException("Sink id is not unique: " + id);
+                    }
+                }
+            }
+        }
+
+        return Collections.unmodifiableMap(sinks);
+
+    }
+
+
+        /**
+         * This check is used for validation as long as we are still allowing rewriters to be configured in solrconfig.xml
+         * @return true iff rewriter configs sent to this handler will be persisted
+         */
     @Deprecated
     public boolean isPersistingRewriters() {
         if (rewriterContainer instanceof InMemoryRewriteContainer) {
@@ -226,11 +260,11 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         return (inMemory == null || !inMemory);
     }
 
-    public Optional<RewriterFactory> getRewriterFactory(final String rewriterId) {
+    public Optional<RewriterFactoryContext> getRewriterFactory(final String rewriterId) {
         return rewriterContainer.getRewriterFactory(rewriterId);
     }
 
-    public synchronized Collection<RewriterFactory> getRewriterFactories(final RewriterContainer.RewritersChangeListener listener) {
+    public synchronized Collection<RewriterFactoryContext> getRewriterFactories(final RewriterContainer.RewritersChangeListener listener) {
         return rewriterContainer.getRewriterFactories(listener);
     }
 

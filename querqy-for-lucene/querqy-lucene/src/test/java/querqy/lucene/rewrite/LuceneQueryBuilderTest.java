@@ -4,6 +4,7 @@ import static org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter.
 import static org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter.PRESERVE_ORIGINAL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,9 +54,10 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Term;
+import querqy.rewrite.RewriteLoggingConfig;
 import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
-import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
@@ -140,6 +142,8 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
     protected Query buildWithSynonyms(final String input, final float tie, final float multiMatchTie,
                                       final String... names) throws IOException {
+        prepareRequestAdapterForLogging();
+
         Map<String, Float> fields = fields(names);
        
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
@@ -158,13 +162,17 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                 true);
 
-        ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
+        QueryRewriter rewriter = factory.createRewriter(null,
                 searchEngineRequestAdapter);
 
 
-        final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery();
+        final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery();
         return builder.createQuery(userQuery);
 
+    }
+
+    protected void prepareRequestAdapterForLogging() {
+        when(searchEngineRequestAdapter.getRewriteLoggingConfig()).thenReturn(RewriteLoggingConfig.off());
     }
    
     protected Query buildWithStopWords(String input, float tie, String... names) {
@@ -787,7 +795,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
    
    @Test
    public void testSynonymsWithRestrictedFieldsForGeneratedTerms() throws Exception {
-       
+       prepareRequestAdapterForLogging();
        
        Map<String, Float> fieldsQuery = new HashMap<>();
        fieldsQuery.put("f1", 2f);
@@ -812,10 +820,10 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                true);
 
-       ContextAwareQueryRewriter rewriter = (ContextAwareQueryRewriter) factory.createRewriter(null,
+       QueryRewriter rewriter = factory.createRewriter(null,
                searchEngineRequestAdapter);
 
-       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getUserQuery());
+       Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery());
        
        assertThat(query, 
            dmq(1f, 0.1f,

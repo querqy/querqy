@@ -1,15 +1,11 @@
 package querqy.rewrite;
 
-import querqy.infologging.InfoLoggingContext;
-
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * A SearchEngineRequestAdapter is mainly used to pass context-specific information to
  * {@link querqy.rewrite.QueryRewriter}s while hiding search engine specifics from Querqy core.
- *
- * @see querqy.rewrite.ContextAwareQueryRewriter
  *
  */
 public interface SearchEngineRequestAdapter {
@@ -23,7 +19,6 @@ public interface SearchEngineRequestAdapter {
     /**
      * <p>Get a map to hold context information while rewriting the query.</p>
      *
-     * @see querqy.rewrite.ContextAwareQueryRewriter
      * @return A non-null context map.
      */
     Map<String, Object> getContext();
@@ -77,22 +72,10 @@ public interface SearchEngineRequestAdapter {
     Optional<Double> getDoubleRequestParam(String name);
 
     /**
-     * <p>Get the per-request info logging. Return an empty option if logging hasn't been configured or was disabled
-     * for this request.</p>
-     *
-     * @return the InfoLoggingContext object
-     */
-    Optional<InfoLoggingContext> getInfoLoggingContext();
-
-    /**
-     * <p>Should debug information be collected while rewriting the query?</p>
-     * <p>Debug information will be kept in the context map under the
-     * {@link querqy.rewrite.AbstractLoggingRewriter#CONTEXT_KEY_DEBUG_DATA} key.</p>
-     *
-     * @see #getContext()
-     *
      * @return true if debug information shall be collected, false otherwise
      */
     boolean isDebugQuery();
+
+    RewriteLoggingConfig getRewriteLoggingConfig();
 
 }

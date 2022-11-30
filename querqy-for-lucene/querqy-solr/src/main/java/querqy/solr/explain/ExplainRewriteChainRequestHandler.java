@@ -17,6 +17,7 @@ import querqy.rewrite.RewriterFactory;
 import querqy.solr.DismaxSearchEngineRequestAdapter;
 import querqy.solr.QuerqyQParserPlugin;
 import querqy.solr.QuerqyRewriterRequestHandler;
+import querqy.solr.RewriterFactoryContext;
 import querqy.solr.SimpleQuerqyQParserFactory;
 
 import java.util.Collections;
@@ -58,11 +59,11 @@ public class ExplainRewriteChainRequestHandler implements SolrRequestHandler {
 
             for (final String rewriterId: rewriterIds) {
 
-                final Optional<RewriterFactory> factoryOpt = rewriterRequestHandler
+                final Optional<RewriterFactoryContext> factoryOpt = rewriterRequestHandler
                         .getRewriterFactory(rewriterId.trim());
 
                 if (factoryOpt.isPresent()) {
-                    factories.add(factoryOpt.get());
+                    factories.add(factoryOpt.get().getRewriterFactory());
                     factories.add(new SnapshotRewriterFactory(rewriterId));
                 } else {
                     throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "No such rewriter: " + rewriterId);

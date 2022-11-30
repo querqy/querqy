@@ -10,8 +10,9 @@ import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.RawQuery;
+import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
-import querqy.rewrite.ContextAwareQueryRewriter;
+import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
 import java.util.Collection;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SnapshotRewriter implements ContextAwareQueryRewriter {
+public class SnapshotRewriter implements QueryRewriter {
 
     // Query types from Querqy's query object model
     public static final String TYPE_QUERY = "QUERY";
@@ -54,8 +55,8 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
     private Map<String, Object> snapshot;
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query,
-                                 final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public RewriterOutput rewrite(final ExpandedQuery query,
+                                  final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         snapshot = new LinkedHashMap<>();
 
@@ -124,12 +125,7 @@ public class SnapshotRewriter implements ContextAwareQueryRewriter {
                     .collect(Collectors.toList()));
         }
 
-        return query;
-    }
-
-    @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query) {
-        throw new UnsupportedOperationException("This rewriter needs a query context");
+        return RewriterOutput.builder().expandedQuery(query).build();
     }
 
     public Map<String, Object> getSnapshot() {

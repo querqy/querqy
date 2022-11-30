@@ -1,7 +1,9 @@
 package querqy.solr;
 
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +39,7 @@ public abstract class SolrRewriterFactoryAdapter {
         }
 
         return loadInstance(rewriterId, className);
+
 
     }
 

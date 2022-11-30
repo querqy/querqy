@@ -2,6 +2,7 @@ package querqy.solr;
 
 import static querqy.lucene.PhraseBoosting.makePhraseFieldsBoostQuery;
 import static querqy.solr.QuerqyDismaxParams.*;
+import static querqy.solr.RewriteLoggingParameters.REWRITE_LOGGING_PARAM_KEY;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause;
@@ -24,20 +25,22 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.RankQuery;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
-import querqy.infologging.InfoLogging;
 import querqy.lucene.PhraseBoosting;
 import querqy.lucene.PhraseBoosting.PhraseBoostFieldParams;
 import querqy.lucene.QuerySimilarityScoring;
 import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting;
 import querqy.lucene.rewrite.cache.TermQueryCache;
+import querqy.lucene.rewrite.infologging.InfoLogging;
+import querqy.lucene.rewrite.infologging.InfoLoggingContext;
 import querqy.model.ParametrizedRawQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
+import querqy.rewrite.RewriteLoggingConfig;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
-import querqy.infologging.InfoLoggingContext;
+import querqy.rewrite.RewriterFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -95,6 +99,11 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     private final QParser qParser;
     private final InfoLoggingContext infoLoggingContext;
 
+    private final boolean isDebug;
+
+    private final RewriteLoggingParameters rewriteLoggingParameter;
+    private final RewriteLoggingConfig rewriteLoggingConfig;
+
     private Map<String, String> additionalParams = null;
 
     public DismaxSearchEngineRequestAdapter(final QParser qParser, final SolrQueryRequest request,
@@ -106,18 +115,20 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
         this.userQueryString = queryString;
         this.solrParams = solrParams;
         this.termQueryCache = termQueryCache;
-        this.infoLoggingContext = solrParams.getBool(INFO_LOGGING, false) && infoLogging != null
-                ? new InfoLoggingContext(infoLogging, this)
-                : null;
+
         this.querqyParser = querqyParser;
         this.request = request;
         this.rewriteChain = rewriteChain;
         this.context = new HashMap<>();
+        this.isDebug = solrParams.getBool(CommonParams.DEBUG_QUERY, false);
+
+        this.rewriteLoggingParameter = RewriteLoggingParameters.of(solrParams.get(REWRITE_LOGGING_PARAM_KEY, "OFF"));
+        this.infoLoggingContext = createInfoLoggingContext(infoLogging);
+        this.rewriteLoggingConfig = createRewriteLoggingConfig(infoLogging);
 
         final int ps0 = solrParams.getInt(PS, 0);
         final int ps2 = solrParams.getInt(PS2, ps0);
         final int ps3 = solrParams.getInt(PS3, ps0);
-
 
         final List<FieldParams> phraseFields = SolrPluginUtils
                 .parseFieldBoostsAndSlop(solrParams.getParams(PF),0,ps0);
@@ -133,6 +144,49 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
         minShouldMatch = DisMaxQParser.parseMinShouldMatch(request.getSchema(), solrParams);
 
+    }
+
+    private RewriteLoggingConfig createRewriteLoggingConfig(final InfoLogging infoLogging) {
+        final RewriteLoggingConfig.RewriteLoggingConfigBuilder builder = RewriteLoggingConfig.builder();
+
+        if (isDebug || RewriteLoggingParameters.DETAILS.equals(rewriteLoggingParameter)) {
+            builder.isActive(true);
+            builder.hasDetails(true);
+
+        } else if (RewriteLoggingParameters.REWRITER_ID.equals(rewriteLoggingParameter)) {
+            builder.isActive(true);
+            builder.hasDetails(false);
+
+        } else {
+            builder.isActive(false);
+            builder.hasDetails(false);
+        }
+
+        final Set<String> rewriterIds = rewriteChain.getFactories().stream()
+                .map(RewriterFactory::getRewriterId)
+                .collect(Collectors.toSet());
+
+        if (isDebug) {
+            builder.includedRewriters(rewriterIds);
+
+        } else {
+            if (infoLogging != null) {
+                builder.includedRewriters(rewriterIds.stream()
+                        .filter(infoLogging::isLoggingEnabledForRewriter)
+                        .collect(Collectors.toSet()));
+            }
+        }
+
+        return builder.build();
+    }
+
+    private InfoLoggingContext createInfoLoggingContext(final InfoLogging infoLogging) {
+        if (infoLogging == null || RewriteLoggingParameters.OFF.equals(rewriteLoggingParameter)) {
+            return null;
+
+        } else {
+            return new InfoLoggingContext(infoLogging, this);
+        }
     }
 
     @Override
@@ -208,7 +262,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
     @Override
     public boolean isDebugQuery() {
-        return solrParams.getBool(CommonParams.DEBUG_QUERY, false);
+        return isDebug;
     }
 
     @Override
@@ -586,4 +640,35 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     public Optional<Double> getDoubleRequestParam(final String name) {
         return Optional.ofNullable(solrParams.getDouble(name));
     }
+
+    @Override
+    public RewriteLoggingConfig getRewriteLoggingConfig() {
+        return rewriteLoggingConfig;
+    }
+
+//
+//    private static class LoggingAndDebugHandler {
+//
+//        private final boolean isDebug;
+//        private final RewriteLoggingParameter rewriteLoggingParameter;
+//        private final InfoLoggingContext infoLoggingContext;
+//
+//        private final RewriteLoggingConfig rewriteLoggingConfig;
+//
+//        public LoggingAndDebugHandler(boolean isDebug, RewriteLoggingParameter rewriteLoggingParameter, InfoLogging infoLogging) {
+//            this.isDebug = isDebug;
+//            this.rewriteLoggingParameter = rewriteLoggingParameter;
+//
+//            this.rewriteLoggingConfig = createRewriteLoggingConfig();
+//
+//            if (infoLogging != null && rewriteLoggingConfig.isActive()) {
+//                this.infoLoggingContext = new InfoLoggingContext(infoLogging, this);
+//
+//            } else {
+//                this.infoLoggingContext = null;
+//            }
+//
+//        }
+//    }
+
 }

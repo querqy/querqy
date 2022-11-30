@@ -19,10 +19,11 @@ import org.apache.solr.search.WrappedQuery;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import querqy.infologging.MultiSinkInfoLogging;
+import querqy.lucene.rewrite.infologging.MultiSinkInfoLogging;
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
 import querqy.model.convert.builder.BoostQueryBuilder;
 import querqy.model.convert.builder.StringRawQueryBuilder;
@@ -1069,10 +1070,10 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 @Override
                 public QueryRewriter createRewriter(final ExpandedQuery input,
                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-                    return query -> {
+                    return (query, requestAdapter) -> {
                         query.setUserQuery(new MatchAllQuery());
                         query.addFilterQuery(WhiteSpaceQuerqyParser.parseString("a"));
-                        return query;
+                        return RewriterOutput.builder().expandedQuery(query).build();
                     };
                 }
 
@@ -1108,10 +1109,10 @@ public class QuerqyDismaxQParserPluginTest extends SolrTestCaseJ4 {
                 @Override
                 public QueryRewriter createRewriter(final ExpandedQuery input,
                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-                    return query -> {
+                    return (query, requestAdapter) -> {
                         query.addMultiplicativeBoostQuery(UP_BOOST);
                         query.addMultiplicativeBoostQuery(DOWN_BOOST);
-                        return query;
+                        return RewriterOutput.builder().expandedQuery(query).build();
                     };
                 }
 

@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>5.5.lucene810.0-SNAPSHOT</version>
+    <version>5.6.lucene810.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -37,7 +37,7 @@
         <repository>
             <id>maven-restlet</id>
             <name>Public online Restlet repository</name>
-            <url>https://maven.restlet.com</url>
+            <url>https://maven.restlet.talend.com</url>
         </repository>
     </repositories>
 
@@ -66,7 +66,6 @@
         <url>git@github.com:querqy/querqy.git</url>
         <connection>scm:git:git@github.com:querqy/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:querqy/querqy.git</developerConnection>
-        <tag>querqy-for-lucene-5.3.lucene810.1</tag>
     </scm>
 
     <prerequisites>
@@ -75,12 +74,12 @@
 
     <properties>
 
-        <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+        <maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M6</maven-failsafe-plugin.version>
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
@@ -89,11 +88,11 @@
         <java.version>11</java.version>
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <mockito.version>4.5.1</mockito.version>
+        <mockito.version>4.9.0</mockito.version>
         <skipITs>true</skipITs>
 
-        <querqy.core.version>3.14.1</querqy.core.version>
-        <lucene.version>8.1.0</lucene.version>
+        <querqy.core.version>3.16.0</querqy.core.version>
+        <lucene.version>8.11.2</lucene.version>
         <commons.io.version>2.5</commons.io.version>
 
     </properties>
@@ -145,7 +144,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene80</tests.codec>
+                        <tests.codec>Lucene87</tests.codec>
                         <java.security.egd>file:/dev/./urandom</java.security.egd>
                         <!-- Use narrow US-ASCII as default Java character set (via file.encoding system property)
                          to increase the chance of catching code that relies on the JDK default encoding -->

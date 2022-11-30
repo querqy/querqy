@@ -4,6 +4,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.rewrite.RewriterFactory;
 
 import java.util.HashMap;
@@ -20,8 +21,9 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
 
     private final Map<String, Map<String, Object>> store = new ConcurrentHashMap<>();
 
-    public InMemoryRewriteContainer(final SolrCore core, final SolrResourceLoader resourceLoader) {
-        super(core, resourceLoader);
+    public InMemoryRewriteContainer(final SolrCore core, final SolrResourceLoader resourceLoader,
+                                    final Map<String, Sink> infoLoggingSinks) {
+        super(core, resourceLoader, infoLoggingSinks);
     }
 
     @Override
@@ -37,7 +39,7 @@ public class InMemoryRewriteContainer extends RewriterContainer<SolrResourceLoad
     protected synchronized void deleteRewriter(final String rewriterId) {
         store.remove(rewriterId);
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         if ((newRewriters.remove(rewriterId) == null) && !store.containsKey(rewriterId)) {
             throw new SolrException(NOT_FOUND, "No such rewriter: " + rewriterId);
         }

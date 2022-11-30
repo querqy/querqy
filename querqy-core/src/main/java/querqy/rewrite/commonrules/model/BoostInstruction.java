@@ -30,8 +30,15 @@ public class BoostInstruction implements Instruction {
     final boolean hasPlaceHolder;
     final float boost;
 
+    private final InstructionDescription instructionDescription;
+
     public BoostInstruction(final QuerqyQuery<?> query, final BoostDirection direction, final BoostMethod boostMethod,
                             final float boost) {
+        this(query, direction, boostMethod, boost, InstructionDescription.empty());
+    }
+
+    public BoostInstruction(final QuerqyQuery<?> query, final BoostDirection direction, final BoostMethod boostMethod,
+                            final float boost, final InstructionDescription instructionDescription) {
         if (query == null) {
             throw new IllegalArgumentException("query must not be null");
         }
@@ -56,6 +63,7 @@ public class BoostInstruction implements Instruction {
         this.direction = direction;
         this.boostMethod = boostMethod;
         this.boost = boost;
+        this.instructionDescription = instructionDescription;
     }
 
     /* (non-Javadoc)
@@ -110,6 +118,11 @@ public class BoostInstruction implements Instruction {
         return (query instanceof Query)
                 ? TermsCollector.collectGenerableTerms((Query) query)
                 : QueryRewriter.EMPTY_GENERABLE_TERMS;
+    }
+
+    @Override
+    public InstructionDescription getInstructionDescription() {
+        return instructionDescription;
     }
 
     public BoostDirection getDirection() {

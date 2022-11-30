@@ -28,6 +28,7 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
+import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.PrefixTerm;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.Term;
@@ -219,7 +220,7 @@ public class LineParser {
                     // should never happen
                     return new ValidationError("Cannot parse line: " + line);
                 } else {
-                    return new SynonymInstruction(synonymTerms, boost);
+                    return new SynonymInstruction(synonymTerms, boost, InstructionDescription.empty());
                 }
             }
         }

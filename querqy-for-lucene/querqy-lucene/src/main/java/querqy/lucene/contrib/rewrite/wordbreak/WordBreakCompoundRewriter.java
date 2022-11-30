@@ -12,8 +12,10 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
+import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;
@@ -82,7 +84,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     }
 
     @Override
-    public ExpandedQuery rewrite(final ExpandedQuery query) {
+    public RewriterOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
         if (userQuery instanceof Query){
             previousTerms = new ArrayDeque<>();
@@ -107,7 +109,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             termsToDelete.forEach(this::removeIfNotOnlyChild);
 
         }
-        return query;
+        return RewriterOutput.builder().expandedQuery(query).build();
     }
 
     public void removeIfNotOnlyChild(final Term term) {

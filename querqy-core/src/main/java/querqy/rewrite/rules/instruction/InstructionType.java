@@ -9,13 +9,23 @@ import java.util.stream.Collectors;
 
 public enum InstructionType {
 
-    SYNONYM,
-    DELETE,
-    REPLACE,
-    DECORATE,
-    UP,
-    DOWN,
-    FILTER;
+    SYNONYM("synonym"),
+    DELETE("delete"),
+    REPLACE("replace"),
+    DECORATE("decorate"),
+    UP("up"),
+    DOWN("down"),
+    FILTER("filter");
+
+    private final String typeName;
+
+    InstructionType(final String typeName) {
+        this.typeName = typeName;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
 
     public static InstructionType of(final String type) {
         try {

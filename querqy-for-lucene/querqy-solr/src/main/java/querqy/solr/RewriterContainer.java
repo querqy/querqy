@@ -9,37 +9,33 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import querqy.rewrite.RewriterFactory;
+import querqy.lucene.rewrite.infologging.Sink;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class RewriterContainer<R extends SolrResourceLoader> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected Map<String, RewriterFactory> rewriters = new HashMap<>();
+    protected Map<String, RewriterFactoryContext> rewriters = new HashMap<>();
     protected R resourceLoader;
     protected SolrCore core;
     private RewritersChangeListener rewritersChangeListener = null;
+    protected final Map<String, Sink> infoLoggingSinks;
 
     public interface RewritersChangeListener {
-        void rewritersChanged(SolrIndexSearcher indexSearcher, Set<RewriterFactory> allRewriters);
+        void rewritersChanged(SolrIndexSearcher indexSearcher, Set<RewriterFactoryContext> allRewriters);
     }
 
-    protected RewriterContainer(final SolrCore core, final R resourceLoader) {
+    protected RewriterContainer(final SolrCore core, final R resourceLoader, final Map<String, Sink> infoLoggingSinks) {
         if (core.getResourceLoader() != resourceLoader) {
             throw new IllegalArgumentException("ResourceLoader doesn't belong to this SolrCore");
         }
         this.core = core;
         this.resourceLoader = resourceLoader;
+        this.infoLoggingSinks = infoLoggingSinks;
         this.core.addCloseHook(new CloseHook(){
 
             /**
@@ -94,11 +90,11 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
 
     }
 
-    public Optional<RewriterFactory> getRewriterFactory(final String rewriterId) {
+    public Optional<RewriterFactoryContext> getRewriterFactory(final String rewriterId) {
         return Optional.ofNullable(rewriters.get(rewriterId));
     }
 
-    public synchronized Collection<RewriterFactory> getRewriterFactories(final RewritersChangeListener listener) {
+    public synchronized Collection<RewriterFactoryContext> getRewriterFactories(final RewritersChangeListener listener) {
         this.rewritersChangeListener = listener;
         return rewriters.values();
     }
@@ -118,12 +114,53 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
                 instanceDesc);
         factoryLoader.configure((Map<String, Object>) instanceDesc.getOrDefault("config", Collections.emptyMap()));
 
-        final Map<String, RewriterFactory> newRewriters = new HashMap<>(rewriters);
-        newRewriters.put(rewriterId, factoryLoader.getRewriterFactory());
+        final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
+        newRewriters.put(
+                rewriterId,
+                new RewriterFactoryContext(
+                        factoryLoader.getRewriterFactory(),
+                        getLoggingSinksFromInstanceDescription(instanceDesc)
+                )
+        );
         rewriters = newRewriters;
         LOG.info("Loaded rewriter: {}", rewriterId);
 
     }
+
+    protected List<Sink> getLoggingSinksFromInstanceDescription(final Map<String, Object> instanceDescription) {
+        final Map<String, Map<String, ?>> infoLoggingDesc = (Map<String, Map<String, ?>>)
+                instanceDescription.get("info_logging");
+        if (infoLoggingDesc != null) {
+            final List<String> sinkNames = readSinkNamesFromInstanceDescription(instanceDescription);
+            if (!sinkNames.isEmpty()) {
+                return sinkNames.stream().map(name -> {
+                    final Sink sink = infoLoggingSinks.get(name);
+                    if (sink == null) {
+                        throw new IllegalArgumentException("No such info logging sink: " + name);
+                    }
+                    return sink;
+                }).collect(Collectors.toList());
+            }
+
+
+        }
+
+        return Collections.emptyList();
+
+    }
+
+    protected List<String> readSinkNamesFromInstanceDescription(final Map<String, Object> instanceDescription) {
+        final Map<String, Map<String, ?>> infoLoggingDesc = (Map<String, Map<String, ?>>)
+                instanceDescription.get("info_logging");
+        if (infoLoggingDesc != null) {
+            final List<String> sinkNames = (List<String>) infoLoggingDesc.get("sinks");
+            if (sinkNames != null) {
+                return sinkNames;
+            }
+        }
+        return Collections.emptyList();
+    }
+
 
     protected synchronized void notifyRewritersChangeListener() {
 
@@ -144,8 +181,20 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
 
         final SolrRewriterFactoryAdapter factoryLoader = SolrRewriterFactoryAdapter.loadInstance(rewriterId,
                 instanceDescription);
-        final List<String> errors = factoryLoader.validateConfiguration(
+        List<String> errors = factoryLoader.validateConfiguration(
                 (Map<String, Object>) instanceDescription.getOrDefault("config", Collections.emptyMap()));
+
+        final List<String> sinkNames = readSinkNamesFromInstanceDescription(instanceDescription);
+        final List<String> missingSinks = sinkNames.stream().filter(sinkName -> !infoLoggingSinks.containsKey(sinkName))
+                .collect(Collectors.toList());
+
+        if (!missingSinks.isEmpty()) {
+            if (errors == null) {
+                errors = new ArrayList<>(1);
+            }
+            errors.add("One or more infoLogging sinks do not exist: " + String.join(", ", missingSinks));
+        }
+
         if (errors != null && !errors.isEmpty()) {
             throw new SolrException(SolrException.ErrorCode.BAD_REQUEST,
                     "Invalid configuration for rewriter " + rewriterId + " " + String.join("; ", errors));

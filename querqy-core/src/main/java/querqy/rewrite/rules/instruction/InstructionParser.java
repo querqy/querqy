@@ -11,6 +11,7 @@ import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
 import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.SynonymInstruction;
 import querqy.rewrite.commonrules.model.Term;
 import querqy.rewrite.rules.RuleParseException;
@@ -108,14 +109,14 @@ public class InstructionParser {
         final String value = getValueOrElseThrow();
         final List<Term> terms = termsParser.with(value).parse();
 
-        instructions.add(new SynonymInstruction(terms, param));
+        instructions.add(new SynonymInstruction(terms, param, createInstructionDescription()));
     }
 
     private void parseAsBoost(final BoostInstruction.BoostDirection direction) {
         final float param = getParamAsFloat();
         final String value = getValueOrElseThrow();
         final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.SHOULD).parse();
-        instructions.add(new BoostInstruction(querqyQuery, direction, boostMethod, param));
+        instructions.add(new BoostInstruction(querqyQuery, direction, boostMethod, param, createInstructionDescription()));
     }
 
     private void parseAsFilter() {
@@ -124,7 +125,7 @@ public class InstructionParser {
         final String value = getValueOrElseThrow();
         final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.MUST).parse();
 
-        instructions.add(new FilterInstruction(querqyQuery));
+        instructions.add(new FilterInstruction(querqyQuery, createInstructionDescription()));
     }
 
     private void parseAsDelete() {
@@ -135,14 +136,14 @@ public class InstructionParser {
             parseAsDeleteWithValue(optionalValue.get());
 
         } else {
-            instructions.add(new DeleteInstruction(inputTerms));
+            instructions.add(new DeleteInstruction(inputTerms, createInstructionDescription()));
         }
     }
 
     private void parseAsDeleteWithValue(final String value) {
         final List<Term> deleteTerms = termsParser.with(value).parse();
         validateDeleteTerms(deleteTerms);
-        instructions.add(new DeleteInstruction(deleteTerms));
+        instructions.add(new DeleteInstruction(deleteTerms, createInstructionDescription()));
     }
 
     private void validateDeleteTerms(final List<Term> deleteTerms) {
@@ -162,10 +163,10 @@ public class InstructionParser {
         final Optional<String> optionalParam = skeleton.getParameter();
 
         if (optionalParam.isPresent()) {
-            instructions.add(new DecorateInstruction(optionalParam.get(), value));
+            instructions.add(new DecorateInstruction(optionalParam.get(), value, createInstructionDescription()));
 
         } else {
-            instructions.add(new DecorateInstruction(value));
+            instructions.add(new DecorateInstruction(null, value, createInstructionDescription()));
         }
     }
 
@@ -202,6 +203,16 @@ public class InstructionParser {
         return skeleton.getValue().orElseThrow(() ->
                 new RuleParseException(
                         String.format("Instruction of type %s requires a value", skeleton.getType().name())));
+    }
+
+    private InstructionDescription createInstructionDescription() {
+        final InstructionDescription.Builder builder = InstructionDescription.builder();
+
+        builder.typeName(skeleton.getType().getTypeName());
+        skeleton.getParameter().ifPresent(builder::param);
+        skeleton.getValue().ifPresent(builder::value);
+
+        return builder.build();
     }
 
 }

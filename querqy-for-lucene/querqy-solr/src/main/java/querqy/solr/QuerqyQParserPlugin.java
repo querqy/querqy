@@ -13,24 +13,22 @@ import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SolrCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import querqy.infologging.MultiSinkInfoLogging;
-import querqy.infologging.Sink;
-import querqy.infologging.InfoLogging;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.lucene.rewrite.cache.CacheKey;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.lucene.rewrite.cache.TermQueryCacheValue;
+import querqy.lucene.rewrite.infologging.InfoLogging;
+import querqy.lucene.rewrite.infologging.MultiSinkInfoLogging;
+import querqy.lucene.rewrite.infologging.Sink;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.RewriterFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static querqy.solr.RewriteLoggingParameters.PARAM_REWRITE_LOGGING_REWRITERS;
 
 public abstract class QuerqyQParserPlugin extends QParserPlugin implements ResourceLoaderAware {
 
@@ -54,7 +52,7 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     protected SolrQuerqyParserFactory querqyParserFactory = null;
     protected String termQueryCacheName = null;
     protected boolean ignoreTermQueryCacheUpdates = true;
-    protected InfoLogging infoLogging;
+
     protected String rewriterRequestHandlerName = QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME;
     protected boolean skipUnknownRewriter = false;
 
@@ -97,7 +95,6 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
     public void inform(final ResourceLoader solrResourceLoader) throws IOException {
 
         final ResourceLoader loader = new GZIPAwareResourceLoader(solrResourceLoader);
-        infoLogging = loadInfoLogging(loader);
 
         termQueryCacheName = (String) initArgs.get(CONF_CACHE_NAME);
 
@@ -151,71 +148,6 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
         }
     }
 
-    private InfoLogging loadInfoLogging(final ResourceLoader loader) throws IOException {
-
-        final NamedList<?> loggingConfig = (NamedList<?>) initArgs.get("infoLogging");
-
-        if (loggingConfig != null) {
-
-            @SuppressWarnings("unchecked")
-            final List<NamedList<?>> sinkConfigs = (List<NamedList<?>>) loggingConfig.getAll("sink");
-            final Map<String, Sink> sinks = new HashMap<>();
-
-            if (sinkConfigs != null) {
-
-                for (NamedList<?> config : sinkConfigs) {
-
-                    final Sink sink = loader.newInstance((String) config.get("class"), Sink.class);
-
-                    final String id = (String) config.get("id");
-                    if (sinks.put(id, sink) != null) {
-                        throw new IllegalStateException("Sink id is not unique: " + id);
-                    }
-
-                }
-            }
-
-            @SuppressWarnings("unchecked")
-            final List<NamedList<?>> mappingConfigs = (List<NamedList<?>>) loggingConfig.getAll("mapping");
-            final Map<String, List<Sink>> mappings = new HashMap<>();
-
-            if (mappingConfigs != null) {
-
-
-                for (NamedList<?> config : mappingConfigs) {
-
-                    String rewriterId = (String) config.get("rewriter");
-                    if (rewriterId == null) {
-                        throw new IOException("Missing rewriter in infoLogging mapping");
-                    }
-
-                    rewriterId = rewriterId.trim();
-                    if (rewriterId.isEmpty()) {
-                        throw new IOException("Missing rewriter in infoLogging mapping");
-                    }
-
-                    final String sinkId = (String) config.get("sink");
-                    if (sinkId == null) {
-                        throw new IOException("Missing sink in infoLogging mapping");
-                    }
-
-                    final Sink sink = sinks.get(sinkId);
-                    if (sink == null) {
-                        throw new IOException("infoLogging mapping references non-existent sink " + sinkId);
-                    }
-
-                    mappings.computeIfAbsent(rewriterId, id -> new ArrayList<>()).add(sink);
-
-                }
-            }
-
-            return new MultiSinkInfoLogging(mappings);
-
-        } else {
-            return null;
-        }
-
-    }
 
     protected QuerqyParser createQuerqyParser(final String qstr, final SolrParams localParams, final SolrParams params,
                                               final SolrQueryRequest req) {
@@ -234,19 +166,37 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
             rewritersParam = params.get(PARAM_REWRITERS);
         }
 
+        final String loggingRewritersParam = params.get(PARAM_REWRITE_LOGGING_REWRITERS);
+        final boolean hasFullRewriteLogging = "*".equals(loggingRewritersParam);
+        final Set<String> loggingRewriters = new HashSet<>();
+        if (!hasFullRewriteLogging && loggingRewritersParam != null) {
+            Collections.addAll(loggingRewriters, loggingRewritersParam.split(","));
+        }
+
         final RewriteChain rewriteChain;
+        final InfoLogging infoLogging;
         if (rewritersParam != null) {
 
             final QuerqyRewriterRequestHandler rewriterRequestHandler = getQuerqyRequestHandler(req.getCore());
             final String[] rewriterIds = rewritersParam.split(",");
             final List<RewriterFactory> factories = new ArrayList<>(rewriterIds.length);
+            final Map<String, List<Sink>> sinkMappings = new HashMap<>(rewriterIds.length);
+
             for (final String rewriterId: rewriterIds) {
 
-                final Optional<RewriterFactory> factoryOpt = rewriterRequestHandler
+                final Optional<RewriterFactoryContext> factoryOpt = rewriterRequestHandler
                         .getRewriterFactory(rewriterId.trim());
 
                 if (factoryOpt.isPresent()) {
-                    factories.add(factoryOpt.get());
+                    final RewriterFactoryContext context = factoryOpt.get();
+                    factories.add(context.getRewriterFactory());
+
+                    if (hasFullRewriteLogging || loggingRewriters.contains(rewriterId)) {
+                        final List<Sink> sinks = context.getSinks();
+                        if (sinks != null && (!sinks.isEmpty())) {
+                            sinkMappings.put(rewriterId, sinks);
+                        }
+                    }
                 } else if (skipUnknownRewriter){
                     logger.warn("Skipping unknown rewriter: {}", rewriterId);
                 } else {
@@ -255,10 +205,13 @@ public abstract class QuerqyQParserPlugin extends QParserPlugin implements Resou
 
             }
             rewriteChain = new RewriteChain(factories);
+            infoLogging = new MultiSinkInfoLogging(sinkMappings);
 
         } else {
             rewriteChain = new RewriteChain();
+            infoLogging = new MultiSinkInfoLogging(Collections.emptyMap()); // TODO: just use null?
         }
+
 
         if (termQueryCacheName == null) {
             return createParser(qstr, localParams, params, req, rewriteChain, infoLogging, null);
