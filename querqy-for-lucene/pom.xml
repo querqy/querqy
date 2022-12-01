@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-for-lucene</artifactId>
-    <version>5.6.lucene811.0-SNAPSHOT</version>
+    <version>5.5.lucene811.0</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -66,7 +66,8 @@
         <url>git@github.com:querqy/querqy.git</url>
         <connection>scm:git:git@github.com:querqy/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:querqy/querqy.git</developerConnection>
-    </scm>
+      <tag>querqy-for-lucene-5.5.lucene811.0</tag>
+  </scm>
 
     <prerequisites>
         <maven>3.3.0</maven>
