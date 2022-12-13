@@ -200,7 +200,7 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         assertQ("Logging multiple logs for same input false",
                 req,
                 "count(" + REWRITE_CHAIN_PATH + ") = 1",
-                "count(//lst[@name = 'debug']//lst[@name = 'querqy.rewrite']/arr//str[@name = 'rewriterId']) = 2"
+                "count(//lst[@name = 'debug']//lst[@name = 'querqy']/lst[@name = 'rewrite']/arr//str[@name = 'rewriterId']) = 2"
 
         );
 
