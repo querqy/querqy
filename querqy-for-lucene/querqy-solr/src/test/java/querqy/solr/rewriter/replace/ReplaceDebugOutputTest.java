@@ -34,8 +34,8 @@ public class ReplaceDebugOutputTest extends SolrTestCaseJ4 {
 
         assertQ(
                 req,
-                "//lst[@name='debug']/str[@name='querqy.parser' and text()='querqy.parser.WhiteSpaceQuerqyParser']",
-                "//lst[@name='debug']/lst[@name='querqy.rewrite']/arr[@name='rewriteChain']"
+                "//lst[@name='debug']/lst[@name='querqy']/str[@name='parser' and text()='querqy.parser.WhiteSpaceQuerqyParser']",
+                "//lst[@name='debug']/lst[@name='querqy']/lst[@name='rewrite']/arr[@name='rewriteChain']"
         );
 
         req.close();

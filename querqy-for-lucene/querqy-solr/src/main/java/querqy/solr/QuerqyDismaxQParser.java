@@ -164,8 +164,8 @@ public class QuerqyDismaxQParser extends QParser {
 
         super.addDebugInfo(debugInfo);
         final Map<String, Object> info = controller.getDebugInfo();
-        for (final Map.Entry<String, Object> entry : info.entrySet()) {
-            debugInfo.add(entry.getKey(), entry.getValue());
+        if (!info.isEmpty()) {
+            debugInfo.add("querqy", info);
         }
 
     }

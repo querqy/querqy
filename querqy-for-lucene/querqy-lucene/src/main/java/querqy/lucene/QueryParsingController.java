@@ -522,12 +522,12 @@ public class QueryParsingController {
             Map<String, Object> info = new TreeMap<>();
 
             if (parserDebugInfo != null) {
-                info.put("querqy.parser", parserDebugInfo);
+                info.put("parser", parserDebugInfo);
             }
 
             if (rewriteChainLogging != null && !rewriteChainLogging.getRewriteChain().isEmpty()) {
                 info.put(
-                        "querqy.rewrite",
+                        "rewrite",
                         REWRITE_LOGGING_OBJECT_MAPPER.convertValue(rewriteChainLogging, new TypeReference<>() {})
                 );
             }
