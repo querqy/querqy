@@ -12,7 +12,7 @@ import java.util.Map;
 public class ResponseSink implements Sink {
 
     private static final String CONTEXT_KEY = ResponseSink.class.getName() + ".MESSAGES";
-    public static final String QUERQY_INFO_LOG = "querqy.rewriteLogging";
+    public static final String QUERQY_INFO_LOG = "querqy_rewriteLogging";
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})

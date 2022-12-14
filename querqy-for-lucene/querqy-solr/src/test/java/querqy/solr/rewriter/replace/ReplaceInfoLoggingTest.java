@@ -15,7 +15,7 @@ import static querqy.solr.StandaloneSolrTestSupport.withReplaceRewriter;
 public class ReplaceInfoLoggingTest extends SolrTestCaseJ4 {
 
     private final static String REWRITERS = "replace1,replace2";
-    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy.rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
+    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy_rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
     private static final String ACTIONS_PATH = REWRITE_CHAIN_PATH + "/arr[@name='actions']/lst";
 
     @BeforeClass
