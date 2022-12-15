@@ -22,7 +22,6 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.RankQuery;
 import querqy.lucene.LuceneSearchEngineRequestAdapter;
 import querqy.lucene.rewrite.infologging.InfoLoggingContext;
-import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 
 import static querqy.solr.ResponseSink.QUERQY_INFO_LOG;
