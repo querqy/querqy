@@ -19,7 +19,7 @@ import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 @SolrTestCaseJ4.SuppressSSL
 public class CustomInfoLoggingSinkTest extends SolrTestCaseJ4 {
 
-    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy_rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
+    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqyRewriteLogging']/arr[@name='rewriteChainLogging']/lst";
 
 
     @BeforeClass
