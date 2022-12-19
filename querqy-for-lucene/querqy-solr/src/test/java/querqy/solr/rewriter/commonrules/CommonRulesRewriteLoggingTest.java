@@ -16,7 +16,7 @@ import querqy.solr.RewriteLoggingParameters;
 public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
 
     private final static String REWRITERS = "common1,common2";
-    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqy.rewriteLogging']/arr[@name='rewriteChainLogging']/lst";
+    private static final String REWRITE_CHAIN_PATH = "//lst[@name='querqyRewriteLogging']/arr[@name='rewriteChainLogging']/lst";
     private static final String ACTIONS_PATH = REWRITE_CHAIN_PATH + "/arr[@name='actions']/lst";
 
 
@@ -200,7 +200,7 @@ public class CommonRulesRewriteLoggingTest extends SolrTestCaseJ4 {
         assertQ("Logging multiple logs for same input false",
                 req,
                 "count(" + REWRITE_CHAIN_PATH + ") = 1",
-                "count(//lst[@name = 'debug']//lst[@name = 'querqy.rewrite']/arr//str[@name = 'rewriterId']) = 2"
+                "count(//lst[@name = 'debug']//lst[@name = 'querqy']/lst[@name = 'rewrite']/arr//str[@name = 'rewriterId']) = 2"
 
         );
 

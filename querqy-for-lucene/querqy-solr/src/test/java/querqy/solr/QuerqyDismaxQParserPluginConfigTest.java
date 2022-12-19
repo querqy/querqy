@@ -30,7 +30,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
         assertQ("Config for querqy1 fails",
                 req,
-                "//str[@name='querqy.parser'][text() = '" + DummyQuerqyParser.class.getName() + "']"
+                "//lst[@name='querqy']/str[@name='parser'][text() = '" + DummyQuerqyParser.class.getName() + "']"
         );
 
         req.close();
@@ -48,7 +48,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
         assertQ("Config for querqy2 fails",
                 req,
-                "//str[@name='querqy.parser'][text() = '" + DummyQuerqyParser.class.getName() + "']"
+                "//lst[@name='querqy']/str[@name='parser'][text() = '" + DummyQuerqyParser.class.getName() + "']"
         );
 
         req.close();
@@ -66,7 +66,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
         assertQ("Config for querqy3 fails",
                 req,
-                "//str[@name='querqy.parser'][text() = '" + DummyQuerqyParser.class.getName() + "']"
+                "//lst[@name='querqy']/str[@name='parser'][text() = '" + DummyQuerqyParser.class.getName() + "']"
         );
 
         req.close();
@@ -84,7 +84,7 @@ public class QuerqyDismaxQParserPluginConfigTest extends SolrTestCaseJ4 {
 
         assertQ("Config for querqy4 fails",
                 req,
-                "//str[@name='querqy.parser'][text() = '" + WhiteSpaceQuerqyParser.class.getName() + "']"
+                "//lst[@name='querqy']/str[@name='parser'][text() = '" + WhiteSpaceQuerqyParser.class.getName() + "']"
         );
 
         req.close();
