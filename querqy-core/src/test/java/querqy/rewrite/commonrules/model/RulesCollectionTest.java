@@ -383,8 +383,7 @@ public class RulesCollectionTest {
       }
 
       @Override
-      public void apply(PositionSequence<Term> sequence, TermMatches termsMatches, int startPosition, int endPosition,
-                        ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+      public void apply(TermMatches termsMatches, ExpandedQuery expandedQuery, SearchEngineRequestAdapter searchEngineRequestAdapter) {
       }
 
     @Override
