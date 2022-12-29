@@ -72,8 +72,7 @@ public class BoostInstruction implements Instruction {
      *                           java.util.Map)
      */
     @Override
-    public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
-                      final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+    public void apply(final TermMatches termMatches, final ExpandedQuery expandedQuery,
                       final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         if (boost == 0) {

@@ -59,8 +59,7 @@ public class SynonymInstruction implements Instruction {
      * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
      */
     @Override
-    public void apply(final PositionSequence<Term> sequence, final TermMatches termMatches,
-                      final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+    public void apply(final TermMatches termMatches, final ExpandedQuery expandedQuery,
                       final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         
         switch (termMatches.size()) {
