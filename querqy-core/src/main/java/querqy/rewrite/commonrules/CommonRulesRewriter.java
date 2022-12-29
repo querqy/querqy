@@ -108,9 +108,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
             final Instructions instructions = action.getInstructions();
             instructions.forEach(instruction ->
-                    instruction.apply(sequence, action.getTermMatches(),
-                            action.getStartPosition(),
-                            action.getEndPosition(), expandedQuery, searchEngineRequestAdapter)
+                    instruction.apply(action.getTermMatches(), expandedQuery, searchEngineRequestAdapter)
             );
 
             rewriterLogBuilder.hasAppliedRewriting(true);

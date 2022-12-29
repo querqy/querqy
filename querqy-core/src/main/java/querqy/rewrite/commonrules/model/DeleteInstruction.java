@@ -53,21 +53,15 @@ public class DeleteInstruction implements Instruction {
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
     */
    @Override
-   public void apply(final PositionSequence<querqy.model.Term> sequence, final TermMatches termMatches,
-                     final int startPosition, final int endPosition, final ExpandedQuery expandedQuery,
+   public void apply(final TermMatches termMatches, final ExpandedQuery expandedQuery,
                      final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
-      int pos = 0;
-
-      for (final List<querqy.model.Term> position : sequence) {
-          
-         for (final querqy.model.Term term : position) {
-             if (pos >= startPosition && pos < endPosition && isToBeDeleted(term)) {
-                 term.delete();
-             }
-         }
-         pos++;
-      }
+       for (final TermMatch termMatch : termMatches) {
+           final querqy.model.Term term = termMatch.getQueryTerm();
+           if (isToBeDeleted(term)) {
+               term.delete();
+           }
+       }
    }
 
    public boolean isToBeDeleted(final querqy.model.Term term) {
