@@ -1,7 +1,0 @@
-input =>
-  SYNONYM: term
-  UP: term
-  DOWN: term
-  FILTER: term
-  DECORATE: term
-  DELETE: input
