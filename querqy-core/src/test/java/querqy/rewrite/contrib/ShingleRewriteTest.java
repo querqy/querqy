@@ -251,13 +251,14 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
     
     @Test
     public void testChainingWithWildCard() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(Arrays.asList(mkTerm( "p1"), mkTerm("$1")));
-        builder.addRule((Input.SimpleInput) LineParser.parseInput("p1*"),
-                instructions(1, Collections.singletonList(synInstruction)));
-        
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter commonRulesRewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+
+        final CommonRulesRewriter commonRulesRewriter = rewriter(
+                rule(
+                        input("p1*"),
+                        synonym("p1", "$1")
+                )
+        );
+
         ShingleRewriter shingleRewriter = new ShingleRewriter(false);
 
         ExpandedQuery query = makeQuery("p1xyz t2");

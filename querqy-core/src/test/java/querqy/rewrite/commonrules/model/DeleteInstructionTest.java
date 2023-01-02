@@ -20,33 +20,28 @@ import querqy.rewrite.commonrules.LineParser;
 
 public class DeleteInstructionTest extends AbstractCommonRulesTest {
 
-
     @Test
     public void testThatLastTermIsDeleted() {
-
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
-                new Instructions(1, "1", Collections.singletonList(delete)));
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a"),
+                        delete("a")
+                )
+        );
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
-
         assertTrue(rewritten.getClauses().isEmpty());
-
     }
 
     @Test
     public void testThatTermIsRemovedIfThereIsAnotherTermInTheSameDMQ() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
-                new Instructions(1, "1", Collections.singletonList(delete)));
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
-
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a"),
+                        delete("a")
+                )
+        );
 
         ExpandedQuery expandedQuery = makeQuery("a");
         Query query = (Query) expandedQuery.getUserQuery();
@@ -58,105 +53,77 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
         Query rewritten = (Query) rewriter.rewrite(expandedQuery, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
 
         assertThat(rewritten,
-            bq(
-                    dmq(
-                            term("b")
-                       )
-            ));
-   }
+                bq(
+                        dmq(
+                                term("b")
+                        )
+                ));
+    }
 
-   @Test
-   public void testThatTermIsRemovedIfThereASecondDMQWithoutTheTerm() {
-      RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-      DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-      builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
-              new Instructions(1, "1", Collections.singletonList(delete)));
-      RulesCollection rules = builder.build();
-       CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+    @Test
+    public void testThatTermIsRemovedIfThereASecondDMQWithoutTheTerm() {
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a"),
+                        delete("a")
+                )
+        );
 
+        Query rewritten = (Query) rewriter.rewrite(makeQuery("a b"), new EmptySearchEngineRequestAdapter())
+                .getExpandedQuery().getUserQuery();
 
-       Query rewritten = (Query) rewriter.rewrite(makeQuery("a b"), new EmptySearchEngineRequestAdapter())
-               .getExpandedQuery().getUserQuery();
+        assertThat(rewritten,
+                bq(
+                        dmq(
+                                term("b")
+                        )
+                ));
+    }
 
-      assertThat(rewritten,
-            bq(
-            dmq(
-            term("b")
-            )
-            ));
-   }
+    @Test
+    public void testThatAllTermsAreRemovedEvenIfASecondDMQWithTheSameTermAndNoOtherTermExists() {
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a"),
+                        delete("a")
+                )
+        );
 
-   @Test
-   public void testThatAllTermsAreRemovedEvenIfASecondDMQWithTheSameTermAndNoOtherTermExists() {
-      RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-      DeleteInstruction delete = new DeleteInstruction(Collections.singletonList(mkTerm("a")));
-      builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
-              new Instructions(1, "1", Collections.singletonList(delete)));
-      RulesCollection rules = builder.build();
-       CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        Query rewritten = (Query) rewriter.rewrite(makeQuery("a a"), new EmptySearchEngineRequestAdapter())
+                .getExpandedQuery().getUserQuery();
 
-
-       Query rewritten = (Query) rewriter.rewrite(makeQuery("a a"), new EmptySearchEngineRequestAdapter())
-               .getExpandedQuery().getUserQuery();
-
-      assertThat(rewritten,
-            bq(
-            ));
-   }
-
-   @Test
-   public void testThatDeleteIsAppliedToWildcardInput() {
-
-       RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
+        assertThat(rewritten, bq());
+    }
 
 
-       Input.SimpleInput input = (Input.SimpleInput) LineParser.parseInput("k*");
+    @Test
+    public void testThatDeleteIsAppliedToWildcardInput() {
 
-       DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
+        final Input.SimpleInput input = input("k*");
+        final CommonRulesRewriter rewriter = rewriter(rule(input,
+                delete(input.getInputTerms())));
 
-       builder.addRule(input, new Instructions(1, "1", Collections.singletonList(deleteInstruction)));
-
-       RulesCollection rules = builder.build();
-       CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
-
-
-
-       ExpandedQuery query = makeQuery("x klm");
-
-
-       Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
-
-
-       assertThat(rewritten,
-               bq(
-                       dmq(
-                               term("x")
-                       )
-               ));
-
-
-   }
+        ExpandedQuery query = makeQuery("x klm");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+        assertThat(rewritten,
+                bq(
+                        dmq(
+                                term("x")
+                        )
+                )
+        );
+    }
 
     @Test
     public void testThatDeleteIsAppliedToMultiTermWildcardInput() {
 
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-
-        Input.SimpleInput input = (Input.SimpleInput) LineParser.parseInput("ab k*");
-
-        DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
-
-        builder.addRule(input, new Instructions(1, "1", Collections.singletonList(deleteInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final Input.SimpleInput input = input("ab k*");
+        final CommonRulesRewriter rewriter = rewriter(rule(input,
+                delete(input.getInputTerms())));
 
         ExpandedQuery query = makeQuery("x ab klm");
 
-
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
-
 
         assertThat(rewritten,
                 bq(
@@ -164,36 +131,20 @@ public class DeleteInstructionTest extends AbstractCommonRulesTest {
                                 term("x")
                         )
                 ));
-
-
     }
 
     @Test
     public void testThatWilcardTermIsDeletedEvenIfItIsTheOnlyQueryTerm() {
 
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        Input.SimpleInput input = (Input.SimpleInput) LineParser.parseInput("k*");
-
-        DeleteInstruction deleteInstruction = new DeleteInstruction(input.getInputTerms());
-
-        builder.addRule(input, new Instructions(1, "1", Collections.singletonList(deleteInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
-
-
+        final Input.SimpleInput input = input("k*");
+        final CommonRulesRewriter rewriter = rewriter(rule(input,
+                delete(input.getInputTerms())));
 
         ExpandedQuery query = makeQuery("klm");
-
-
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
-
 
         assertThat(rewritten,
                 bq());
-
-
     }
 
     @Test

@@ -88,8 +88,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
         final SimpleCommonRulesRewriterFactory factory = new SimpleCommonRulesRewriterFactory("someId",
                 new StringReader("input =>\n DECORATE: deco1"), true, BoostMethod.ADDITIVE, querqyParserFactory, true, namedStrategyFactories,
                 defaultSelectionStrategyFactory, true);
-        final RulesCollection rules = factory.getRules();
-        assertEquals(1, rules.getInstructions().size());
+        assertEquals(1, factory.getInstructions().size());
     }
 
     @Test
@@ -107,8 +106,6 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final CommonRulesRewriter commonRulesRewriter = (CommonRulesRewriter) rewriter;
         assertSame(defaultSelectionStrategy, commonRulesRewriter.selectionStrategy);
-        assertSame(factory.getRules(), commonRulesRewriter.rules);
-
     }
 
     @Test
@@ -124,7 +121,6 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final CommonRulesRewriter commonRulesRewriter = (CommonRulesRewriter) rewriter;
         assertSame(namedSelectionStrategy, commonRulesRewriter.selectionStrategy);
-        assertSame(factory.getRules(), commonRulesRewriter.rules);
         verify(defaultSelectionStrategyFactory, never()).createSelectionStrategy(any(), any());
 
     }

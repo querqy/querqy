@@ -3,10 +3,11 @@ package querqy.rewrite.rules;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.InstructionsSupplier;
 import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
 import querqy.rewrite.rules.rule.RuleParser;
 import querqy.rewrite.rules.rule.skeleton.RuleSkeleton;
+import querqy.trie.TrieMap;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,11 +28,11 @@ public class RulesParser {
         return RulesParser.of(ruleSkeletonParser, ruleParser, rulesCollectionBuilder);
     }
 
-    public RulesCollection parse() throws IOException {
+    public TrieMap<InstructionsSupplier> parse() throws IOException {
         final List<RuleSkeleton> skeletons = ruleSkeletonParser.parse();
         parseRules(skeletons);
 
-        return createRulesCollection();
+        return createTrieMap();
     }
 
     private void parseRules(final List<RuleSkeleton> skeletons) {
@@ -40,8 +41,8 @@ public class RulesParser {
         }
     }
 
-    private RulesCollection createRulesCollection() {
+    private TrieMap<InstructionsSupplier> createTrieMap() {
         ruleParser.finish().forEach(rulesCollectionBuilder::addRule);
-        return rulesCollectionBuilder.build();
+        return rulesCollectionBuilder.getTrieMap();
     }
 }

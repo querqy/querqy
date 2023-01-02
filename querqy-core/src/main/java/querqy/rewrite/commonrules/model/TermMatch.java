@@ -19,7 +19,11 @@ public class TermMatch {
     public TermMatch(querqy.model.Term queryTerm) {
         this(queryTerm, false, null);
     }
-    
+
+    public TermMatch(querqy.model.Term queryTerm, boolean isPrefix, int matchIndex) {
+        this(queryTerm, isPrefix, queryTerm.subSequence(matchIndex + 1, queryTerm.length()));
+    }
+
     public TermMatch(querqy.model.Term queryTerm, boolean isPrefix, ComparableCharSequence wildcardMatch) {
         if (isPrefix) {
             if ((wildcardMatch == null) || (wildcardMatch.length() == 0)) {
@@ -41,6 +45,10 @@ public class TermMatch {
 
     public ComparableCharSequence getWildcardMatch() {
         return wildcardMatch;
+    }
+
+    public boolean isExpandable() {
+        return queryTerm.getParent() != null;
     }
 
     @Override

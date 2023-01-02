@@ -5,11 +5,9 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
-import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,8 +21,6 @@ import querqy.model.ExpandedQuery;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
-import querqy.model.Input;
-import querqy.rewrite.commonrules.LineParser;
 
 public class DecorateInstructionTest extends AbstractCommonRulesTest {
 
@@ -89,82 +85,68 @@ public class DecorateInstructionTest extends AbstractCommonRulesTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testThatSingleDecorationIsEmitted() {
-
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        DecorateInstruction deco = new DecorateInstruction("deco1");
-
-        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, "1", Collections.singletonList(deco)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("x"),
+                        decorate("deco1")
+                )
+        );
 
         ExpandedQuery query = makeQuery("a x");
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
-
-
         assertThat((Set<Object>)searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
               contains(
                       equalTo("deco1")
               ));
-
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testDecorationForEmptyInput() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        DecorateInstruction deco = new DecorateInstruction("deco1");
-        builder.addRule((Input.SimpleInput) LineParser.parseInput(LineParser.BOUNDARY + "" + LineParser.BOUNDARY),
-                    new Instructions(1, "1", Collections.singletonList( deco)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("\"\""),
+                        decorate("deco1")
+                )
+        );
 
         ExpandedQuery query = makeQuery("");
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
-
-
         assertThat((Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
               contains(
                       equalTo("deco1")
               ));
-
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testThatMultipleDecorationsAreEmitted() {
 
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        DecorateInstruction deco1 = new DecorateInstruction("deco1");
-        DecorateInstruction deco2 = new DecorateInstruction("deco2");
-        DecorateInstruction deco3 = new DecorateInstruction("deco3");
-
-        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, "1", Arrays.asList(deco1, deco2)));
-        builder.addRule(new Input.SimpleInput(Collections.singletonList(mkTerm("a")), false, false, "a"),
-                new Instructions(2, "2", Collections.singletonList(deco3)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("x"),
+                        decorate("deco1"),
+                        decorate("deco2")
+                ),
+                rule(
+                        input("a"),
+                        decorate("deco3")
+                )
+        );
 
         ExpandedQuery query = makeQuery("a x");
         SearchEngineRequestAdapter searchEngineRequestAdapter = new EmptySearchEngineRequestAdapter();
         rewriter.rewrite(query, searchEngineRequestAdapter);
 
-        
-        
         assertThat(
                 (Set<Object>) searchEngineRequestAdapter.getContext().get(DecorateInstruction.DECORATION_CONTEXT_KEY),
                 containsInAnyOrder("deco1", "deco2", "deco3")
                               
               );
-
     }
 
     @Test

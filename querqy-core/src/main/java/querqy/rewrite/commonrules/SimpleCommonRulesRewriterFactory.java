@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -18,11 +19,15 @@ import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.TemplateParseException;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
-import querqy.rewrite.commonrules.model.RulesCollection;
+import querqy.rewrite.commonrules.model.Instruction;
+import querqy.rewrite.commonrules.model.Instructions;
+import querqy.rewrite.commonrules.model.InstructionsSupplier;
 import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.lookup.LookupConfig;
+import querqy.rewrite.lookup.TrieMapLookup;
 import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.RulesParser;
 import querqy.rewrite.rules.factory.RulesParserFactory;
@@ -30,6 +35,7 @@ import querqy.rewrite.rules.factory.config.RuleParserConfig;
 import querqy.rewrite.rules.factory.config.RulesParserConfig;
 import querqy.rewrite.rules.factory.config.TextParserConfig;
 import querqy.rewrite.rules.instruction.InstructionType;
+import querqy.trie.TrieMap;
 
 import static querqy.rewrite.rules.instruction.InstructionType.DECORATE;
 import static querqy.rewrite.rules.instruction.InstructionType.DELETE;
@@ -47,11 +53,13 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
             SYNONYM, UP, DOWN, FILTER, DELETE, DECORATE
     ).collect(Collectors.toSet());
 
-    private final RulesCollection rules;
+//    private final RulesCollection rules;
     private final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
     private final String strategyParam;
     private final SelectionStrategyFactory defaultSelectionStrategyFactory;
     private final boolean buildTermCache;
+
+    private final TrieMapLookup<InstructionsSupplier> trieMapLookup;
 
 
     /**
@@ -112,7 +120,15 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                     .build();
 
             final RulesParser rulesParser = RulesParserFactory.textParser(config);
-            rules = rulesParser.parse();
+            final TrieMap<InstructionsSupplier> trieMap = rulesParser.parse();
+
+            trieMapLookup = TrieMapLookup.of(
+                    trieMap,
+                    LookupConfig.builder()
+                            .ignoreCase(ignoreCase)
+                            .hasBoundaries(true)
+                            .build()
+            );
 
             // should be closed already in RulesParser - passing Readers as arguments should be avoided
             // and refactored as suggested above
@@ -144,20 +160,31 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                 }).orElse(defaultSelectionStrategyFactory) // strategy not specified in params
                 .createSelectionStrategy(getRewriterId(), searchEngineRequestAdapter);
 
-        return new CommonRulesRewriter(rules, selectionStrategy);
+        return new CommonRulesRewriter(trieMapLookup, selectionStrategy);
     }
 
     @Override
     public Set<Term> getCacheableGenerableTerms() {
         if (buildTermCache) {
-            return rules.getGenerableTerms();
+            return getInstructions().stream()
+                    .flatMap(instruction -> instruction.getGenerableTerms().stream())
+                    .collect(Collectors.toSet());
         }
 
         return Collections.emptySet();
     }
 
-    RulesCollection getRules() {
-        return rules;
+    public Set<Instruction> getInstructions() {
+
+        final Set<Instruction> result = new HashSet<>();
+
+        for (final InstructionsSupplier instructionsSupplier : trieMapLookup.getTrieMap()) {
+            for (final Instructions instructions : instructionsSupplier.getInstructionsList()) {
+                result.addAll(instructions);
+            }
+        }
+
+        return result;
     }
 
 }
