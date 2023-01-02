@@ -16,11 +16,13 @@ import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Input;
 import querqy.model.InputSequenceElement;
+import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
+import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.model.DeleteInstruction;
 import querqy.rewrite.commonrules.model.FilterInstruction;
@@ -37,6 +39,8 @@ import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInput;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewrite.lookup.TrieMapLookup;
+import querqy.rewrite.rules.input.InputParserAdapter;
 
 public abstract class AbstractCommonRulesTest {
 
@@ -44,6 +48,10 @@ public abstract class AbstractCommonRulesTest {
 
     protected ExpandedQuery makeQuery(String input) {
         return new ExpandedQuery(new WhiteSpaceQuerqyParser().parse(input));
+    }
+
+    protected QuerqyQuery<?> makeQuerqyQuery(String input) {
+        return new WhiteSpaceQuerqyParser().parse(input);
     }
 
     protected Term mkTerm(String s) {
@@ -81,7 +89,7 @@ public abstract class AbstractCommonRulesTest {
                 builder.addRule(rule.input, rule.literal);
             }
         });
-        return new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
+        return new CommonRulesRewriter(TrieMapLookup.of(builder.getTrieMap()), DEFAULT_SELECTION_STRATEGY);
     }
 
     public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter) {
@@ -112,6 +120,13 @@ public abstract class AbstractCommonRulesTest {
         return new Rule(input, literal);
     }
 
+    public Input.SimpleInput input(final String input) {
+        return (Input.SimpleInput) InputParserAdapter.builder().isAllowedToParseBooleanInput(true).build()
+                .with(input)
+                .parse()
+                .getInput();
+    }
+
     public Input.SimpleInput input(String... terms) {
         return new Input.SimpleInput(Arrays.stream(terms).map(this::mkTerm).collect(toList()), String.join(" ", terms));
     }
@@ -125,8 +140,16 @@ public abstract class AbstractCommonRulesTest {
         return new DeleteInstruction(Arrays.stream(terms).map(this::mkTerm).collect(toList()));
     }
 
+    public DeleteInstruction delete(List<Term> terms) {
+        return new DeleteInstruction(terms);
+    }
+
     public DecorateInstruction decorate(String key, String value) {
         return new DecorateInstruction(key, value);
+    }
+
+    public DecorateInstruction decorate(String value) {
+        return new DecorateInstruction(value);
     }
 
     public SynonymInstruction synonym(String... terms) {
@@ -139,6 +162,24 @@ public abstract class AbstractCommonRulesTest {
 
     public FilterInstruction filter(String... terms) {
         return new FilterInstruction(bq(terms).build());
+    }
+
+    public FilterInstruction filter(final String terms) {
+        return new FilterInstruction(makeQuerqyQuery(terms));
+    }
+
+    public BoostInstruction boostUp(final String terms, final float boost) {
+        return boostUp(terms, boost, BoostInstruction.BoostMethod.ADDITIVE);
+    }
+
+    public BoostInstruction boostUp(final String terms, final float boost, final BoostInstruction.BoostMethod boostMethod) {
+        return new BoostInstruction(
+                makeQuerqyQuery(terms), BoostInstruction.BoostDirection.UP, boostMethod, boost);
+    }
+
+    public BoostInstruction boostDown(final String terms, final float boost) {
+        return new BoostInstruction(
+                makeQuerqyQuery(terms), BoostInstruction.BoostDirection.DOWN, BoostInstruction.BoostMethod.ADDITIVE, boost);
     }
 
     public EmptySearchEngineRequestAdapter emptyAdapter() {

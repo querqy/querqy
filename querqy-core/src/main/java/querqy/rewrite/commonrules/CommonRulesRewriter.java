@@ -1,14 +1,11 @@
 package querqy.rewrite.commonrules;
 
-import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
-import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
-import querqy.model.InputSequenceElement;
 import querqy.model.MatchAllQuery;
-import querqy.model.Node;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
+import querqy.rewrite.commonrules.model.InstructionsSupplier;
 import querqy.rewrite.logging.RewriterLog;
 import querqy.rewrite.RewriterOutput;
 import querqy.model.Term;
@@ -18,19 +15,15 @@ import querqy.rewrite.logging.MatchLog;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.model.Action;
-import querqy.rewrite.commonrules.model.InputBoundary;
-import querqy.rewrite.commonrules.model.InputBoundary.Type;
 import querqy.rewrite.commonrules.model.Instruction;
 import querqy.rewrite.commonrules.model.InstructionDescription;
 import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.PositionSequence;
-import querqy.rewrite.commonrules.model.RulesCollection;
 import querqy.rewrite.commonrules.model.TermMatch;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
+import querqy.rewrite.lookup.TrieMapLookup;
+import querqy.rewrite.lookup.model.Match;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,13 +31,10 @@ import java.util.stream.Collectors;
  * @author rene
  *
  */
-public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
+public class CommonRulesRewriter implements QueryRewriter {
 
-    static final InputBoundary LEFT_BOUNDARY = new InputBoundary(Type.LEFT);
-    static final InputBoundary RIGHT_BOUNDARY = new InputBoundary(Type.RIGHT);
+    private final TrieMapLookup<InstructionsSupplier> trieMapLookup;
 
-    protected final RulesCollection rules;
-    protected final LinkedList<PositionSequence<Term>> sequencesStack;
     protected ExpandedQuery expandedQuery;
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
 
@@ -52,9 +42,9 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
 
     private final RewriterLog.RewriterLogBuilder rewriterLogBuilder = RewriterLog.builder();
 
-    public CommonRulesRewriter(final RulesCollection rules,  final SelectionStrategy selectionStrategy) {
-        this.rules = rules;
-        sequencesStack = new LinkedList<>();
+    public CommonRulesRewriter(
+            final TrieMapLookup<InstructionsSupplier> trieMapLookup, final SelectionStrategy selectionStrategy) {
+        this.trieMapLookup = trieMapLookup;
         this.selectionStrategy = selectionStrategy;
     }
 
@@ -68,11 +58,7 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
             this.expandedQuery = query;
             this.searchEngineRequestAdapter = searchEngineRequestAdapter;
 
-            sequencesStack.add(new PositionSequence<>());
-
-            super.visit((BooleanQuery) query.getUserQuery());
-
-            applySequence(sequencesStack.removeLast(), true);
+            rewriteBooleanQuery((BooleanQuery) query.getUserQuery());
 
             if (((Query) userQuery).isEmpty()
                     && (query.getBoostUpQueries() != null || query.getFilterQueries() != null)) {
@@ -86,26 +72,18 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
                 .build();
     }
 
-    @Override
-    public Node visit(final BooleanQuery booleanQuery) {
-        sequencesStack.add(new PositionSequence<>());
-        super.visit(booleanQuery);
-        applySequence(sequencesStack.removeLast(), false);
-        return null;
-    }
-
-    protected void applySequence(final PositionSequence<Term> sequence, final boolean addBoundaries) {
-
-        final PositionSequence<InputSequenceElement> sequenceForLookUp = addBoundaries
-               ? addBoundaries(sequence) : termSequenceToInputSequence(sequence);
+    protected void rewriteBooleanQuery(final BooleanQuery booleanQuery) {
 
         final TopRewritingActionCollector collector = selectionStrategy.createTopRewritingActionCollector();
-        rules.collectRewriteActions(sequenceForLookUp, collector);
+        final List<Match<InstructionsSupplier>> matches = trieMapLookup.lookupMatches(booleanQuery);
+
+        for (final Match<InstructionsSupplier> match : matches) {
+            collector.collect(match.getValue(), instructions -> new Action(instructions, match.getTermMatches()));
+        }
 
         final List<Action> actions = collector.evaluateBooleanInput().createActions();
 
         for (final Action action : actions) {
-
             final Instructions instructions = action.getInstructions();
             instructions.forEach(instruction ->
                     instruction.apply(action.getTermMatches(), expandedQuery, searchEngineRequestAdapter)
@@ -118,45 +96,9 @@ public class CommonRulesRewriter extends AbstractNodeVisitor<Node> implements Qu
         }
     }
 
-
-    protected PositionSequence<InputSequenceElement> termSequenceToInputSequence(
-            final PositionSequence<Term> sequence) {
-
-        final PositionSequence<InputSequenceElement> result = new PositionSequence<>();
-        sequence.forEach(termList -> result.add(Collections.unmodifiableList(termList)));
-        return result;
-    }
-
-    protected PositionSequence<InputSequenceElement> addBoundaries(final PositionSequence<Term> sequence) {
-
-        PositionSequence<InputSequenceElement> result = new PositionSequence<>();
-        result.nextPosition();
-        result.addElement(LEFT_BOUNDARY);
-
-        for (List<Term> termList : sequence) {
-            result.add(Collections.unmodifiableList(termList));
-        }
-
-        result.nextPosition();
-        result.addElement(RIGHT_BOUNDARY);
-        return result;
-    }
-
     private void appendActionLogs(final Action action) {
         final ActionLog actionLog = new ActionLogConverter(action).convert();
         rewriterLogBuilder.addActionLogs(actionLog);
-    }
-
-    @Override
-    public Node visit(final DisjunctionMaxQuery disjunctionMaxQuery) {
-        sequencesStack.getLast().nextPosition();
-        return super.visit(disjunctionMaxQuery);
-    }
-
-    @Override
-    public Node visit(final Term term) {
-        sequencesStack.getLast().addElement(term);
-        return super.visit(term);
     }
 
     private static class ActionLogConverter {

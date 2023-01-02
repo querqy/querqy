@@ -3,6 +3,7 @@ package querqy.rewrite.commonrules.model;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.rules.rule.Rule;
+import querqy.trie.TrieMap;
 
 public interface RulesCollectionBuilder {
 
@@ -13,5 +14,7 @@ public interface RulesCollectionBuilder {
     void addRule(final Rule rule);
 
     RulesCollection build();
+
+    TrieMap<InstructionsSupplier> getTrieMap();
 
 }

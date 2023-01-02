@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import querqy.model.InputSequenceElement;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
 
+@Deprecated
 public interface RulesCollection {
 
     /** 

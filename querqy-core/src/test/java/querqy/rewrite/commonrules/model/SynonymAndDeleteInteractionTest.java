@@ -18,20 +18,16 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testOverlappingDeleteInstructions() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        addRule(builder,
-                input("a", "b"),
-                delete("a")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b"),
+                        delete("a")
+                ),
+                rule(
+                        input("a", "b"),
+                        delete("a", "b")
+                )
         );
-
-        addRule(builder,
-                input("a", "b"),
-                delete("a", "b")
-        );
-
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b c");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -46,20 +42,16 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testSynonymBeforeDelete() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        addRule(builder,
-                input("a"),
-                synonym("c")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a"),
+                        synonym("c")
+                ),
+                rule(
+                        input("a", "b"),
+                        delete("a")
+                )
         );
-
-        addRule(builder,
-                input("a", "b"),
-                delete("a")
-        );
-
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -78,20 +70,16 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testSynonymAfterDelete() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        addRule(builder,
-                input("a", "b"),
-                delete("a")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b"),
+                        delete("a")
+                ),
+                rule(
+                        input("a"),
+                        synonym("c")
+                )
         );
-
-        addRule(builder,
-                input("a"),
-                synonym("c")
-        );
-
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -102,20 +90,18 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
                                 term("b", false)
                         )
                 ));
-
     }
 
     @Test
     public void testExpandBySynonymAndDeleteBothInputTermsBySeparateInstructions() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        addRule(builder,
-                input("a", "b"),
-                delete("a"),
-                delete("b"),
-                synonym("s1")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b"),
+                        delete("a"),
+                        delete("b"),
+                        synonym("s1")
+                )
         );
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -135,14 +121,13 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testExpandBySynonymAndDeleteBothInputTermsBySingleInstruction() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        addRule(builder,
-                input("a", "b"),
-                synonym("s1"),
-                delete("a", "b")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b"),
+                        synonym("s1"),
+                        delete("a", "b")
+                )
         );
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -162,14 +147,13 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testExpandBySynonymAndDeleteTwoOfThreeInputTermsBySingleInstruction() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        addRule(builder,
-                input("a", "b", "c"),
-                synonym("s1"),
-                delete("a", "b")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b", "c"),
+                        synonym("s1"),
+                        delete("a", "b")
+                )
         );
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b c");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -193,25 +177,22 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testSynonymsForTermsToBeDeleted() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        addRule(builder,
-                input("a", "b"),
-                synonym("s1"),
-                delete("a"),
-                delete("b")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b"),
+                        synonym("s1"),
+                        delete("a"),
+                        delete("b")
+                ),
+                rule(
+                        input("a"),
+                        synonym("s2")
+                ),
+                rule(
+                        input("b"),
+                        synonym("s3")
+                )
         );
-
-        addRule(builder,
-                input("a"),
-                synonym("s2")
-        );
-
-        addRule(builder,
-                input("b"),
-                synonym("s3")
-        );
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -232,15 +213,14 @@ public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 
     @Test
     public void testExpandQueryByTwoSynonymTermsAndDeleteBothInputTerms() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        addRule(builder,
-                input("a", "b"),
-                synonym("s1_1", "s1_2"),
-                delete("a"),
-                delete("b")
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a", "b"),
+                        synonym("s1_1", "s1_2"),
+                        delete("a"),
+                        delete("b")
+                )
         );
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(builder.build(), DEFAULT_SELECTION_STRATEGY);
 
         ExpandedQuery query = makeQuery("a b");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();

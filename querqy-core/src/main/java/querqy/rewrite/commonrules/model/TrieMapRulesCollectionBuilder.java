@@ -181,4 +181,9 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         return new TrieMapRulesCollection(map, ignoreCase);
     }
 
+    @Override
+    public TrieMap<InstructionsSupplier> getTrieMap() {
+        return map;
+    }
+
 }
