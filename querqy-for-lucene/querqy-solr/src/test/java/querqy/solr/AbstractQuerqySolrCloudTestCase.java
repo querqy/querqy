@@ -36,10 +36,10 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
     }
 
     protected QueryResponse waitForRewriterAndQuery(final QueryRequest req, final SolrClient client) throws Exception {
-        // It will take a bit to propagate a rewriter config to the nodes. We try to apply the rewriter max. 3 times and
-        // wait for a bit between the attempts
+        // It will take a bit to propagate a rewriter config to the nodes. We try to apply the rewriter max. 'attempts'
+        // times and wait for a bit between the attempts
 
-        int attempts = 20;
+        int attempts = 50;
         do {
             synchronized (this) {
                 wait(100L);
