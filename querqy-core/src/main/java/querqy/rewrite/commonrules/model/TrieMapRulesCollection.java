@@ -20,6 +20,7 @@ import querqy.trie.TrieMap;
  * @author René Kriegler, @renekrie
  *
  */
+@Deprecated
 public class TrieMapRulesCollection implements RulesCollection {
     
     public static final String BOUNDARY_WORD = "\u0002";

@@ -26,16 +26,12 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
 
     @Test
     public void testThatBoostQueriesWithMustClauseUseMM100ByDefault() {
-
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a b").getUserQuery());
-
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, "1", singletonList(filterInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("x"),
+                        filter("a b")
+                )
+        );
 
         ExpandedQuery query = makeQuery("x");
         Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
@@ -58,16 +54,12 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
     @Test
     public void testPurelyNegativeFilterQuery() {
 
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(true);
-
-        FilterInstruction filterInstruction = new FilterInstruction(makeQuery("-ab").getUserQuery());
-
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, "1", singletonList(filterInstruction)));
-
-        RulesCollection rules = builder.build();
-
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("x"),
+                        filter("-ab")
+                )
+        );
 
         ExpandedQuery query = makeQuery("x");
 
@@ -95,15 +87,12 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
     @Test
     public void testThatFilterQueriesAreMarkedAsGenerated() {
 
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
-
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, "1", singletonList(filterInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("x"),
+                        filter("a")
+                )
+        );
 
         ExpandedQuery query = makeQuery("x");
         Collection<QuerqyQuery<?>> filterQueries = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter())
@@ -124,15 +113,12 @@ public class FilterInstructionTest  extends AbstractCommonRulesTest {
     @Test
     public void testThatMainQueryIsNotMarkedAsGenerated() {
 
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-
-        FilterInstruction filterInstruction = new FilterInstruction(makeQuery("a").getUserQuery());
-
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("x")), false, false, "x"),
-                new Instructions(1, "1", singletonList(filterInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("x"),
+                        filter("a")
+                )
+        );
 
         ExpandedQuery query = makeQuery("x");
         QuerqyQuery<?> mainQuery = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();

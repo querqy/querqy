@@ -30,13 +30,12 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 
     @Test
     public void testInputBoundaryOnBothSides() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(singletonList(mkTerm("s1")));
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), true, true, "\"a\""),
-                new Instructions(1, "1", singletonList(synInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("\"a\""),
+                        synonym("s1")
+                )
+        );
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -108,13 +107,12 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     
     @Test
     public void testInputBoundaryOnLeftHandSide() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(singletonList(mkTerm("s1")));
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), true, false, "\"a"),
-                new Instructions(1, "1", singletonList(synInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("\"a"),
+                        synonym("s1")
+                )
+        );
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
@@ -184,13 +182,12 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
     
     @Test
     public void testInputBoundaryOnRightHandSide() {
-        RulesCollectionBuilder builder = new TrieMapRulesCollectionBuilder(false);
-        SynonymInstruction synInstruction = new SynonymInstruction(singletonList(mkTerm("s1")));
-        builder.addRule(new Input.SimpleInput(singletonList(mkTerm("a")), false, true, "a\""),
-                new Instructions(1, "1", singletonList(synInstruction)));
-
-        RulesCollection rules = builder.build();
-        CommonRulesRewriter rewriter = new CommonRulesRewriter(rules, DEFAULT_SELECTION_STRATEGY);
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a\""),
+                        synonym("s1")
+                )
+        );
 
         ExpandedQuery query = makeQuery("a");
         Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
