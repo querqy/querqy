@@ -20,7 +20,7 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
 
     private final BooleanQuery booleanQuery;
     private final StateExchangingCollector<T, ?> stateExchangingCollector;
-    private final boolean hasBoundaries;
+    private final LookupConfig lookupConfig;
 
     private List<Sequence<T>> previousSequences = List.of();
     private List<Sequence<T>> sequences = new ArrayList<>();
@@ -32,7 +32,7 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
     }
 
     private void potentiallyEvaluateBoundaryTerm() {
-        if (hasBoundaries) {
+        if (lookupConfig.hasBoundaries()) {
             visit(BOUNDARY_TERM);
             refreshSequenceLists();
         }
@@ -62,7 +62,7 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
         final StateExchangingSequenceExtractor<T> extractor = StateExchangingSequenceExtractor.<T>builder()
                 .booleanQuery(booleanQuery)
                 .stateExchangingCollector(stateExchangingCollector)
-                .hasBoundaries(false)
+                .lookupConfig(lookupConfig)
                 .build();
 
         extractor.extractSequences();
@@ -102,7 +102,7 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
 
         private BooleanQuery booleanQuery;
         private StateExchangingCollector<T, ?> stateExchangingCollector;
-        private boolean hasBoundaries;
+        private LookupConfig lookupConfig;
 
         public StateExchangingSequenceExtractorBuilder<T> booleanQuery(final BooleanQuery booleanQuery) {
             this.booleanQuery = booleanQuery;
@@ -114,13 +114,13 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
             return this;
         }
 
-        public StateExchangingSequenceExtractorBuilder<T> hasBoundaries(final boolean hasBoundaries) {
-            this.hasBoundaries = hasBoundaries;
+        public StateExchangingSequenceExtractorBuilder<T> lookupConfig(final LookupConfig lookupConfig) {
+            this.lookupConfig = lookupConfig;
             return this;
         }
 
         public StateExchangingSequenceExtractor<T> build() {
-            return new StateExchangingSequenceExtractor<>(booleanQuery, stateExchangingCollector, hasBoundaries);
+            return new StateExchangingSequenceExtractor<>(booleanQuery, stateExchangingCollector, lookupConfig);
         }
     }
 }

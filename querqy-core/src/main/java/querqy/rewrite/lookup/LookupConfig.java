@@ -10,7 +10,7 @@ public class LookupConfig {
     private final boolean ignoreCase;
     private final boolean hasBoundaries;
 
-    private LookupConfig(boolean ignoreCase, boolean hasBoundaries) {
+    private LookupConfig(final boolean ignoreCase, final boolean hasBoundaries) {
         this.ignoreCase = ignoreCase;
         this.hasBoundaries = hasBoundaries;
     }
