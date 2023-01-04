@@ -147,7 +147,7 @@ public class StateExchangingSequenceExtractorTest {
         return StateExchangingSequenceExtractor.<String>builder()
                 .booleanQuery(booleanQuery)
                 .stateExchangingCollector(collector)
-                .hasBoundaries(hasBoundaries)
+                .lookupConfig(LookupConfig.builder().hasBoundaries(hasBoundaries).build())
                 .build();
     }
 
