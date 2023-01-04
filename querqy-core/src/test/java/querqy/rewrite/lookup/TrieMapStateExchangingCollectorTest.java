@@ -28,7 +28,7 @@ public class TrieMapStateExchangingCollectorTest {
         trieMap = new TrieMap<>();
         collector = TrieMapStateExchangingCollector.<String>builder()
                 .trieMap(trieMap)
-                .ignoreCase(true)
+                .lookupConfig(LookupConfig.builder().ignoreCase(true).build())
                 .build();
     }
 

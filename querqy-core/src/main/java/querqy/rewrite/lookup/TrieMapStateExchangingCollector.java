@@ -21,19 +21,19 @@ import java.util.stream.Stream;
 public class TrieMapStateExchangingCollector<T> implements StateExchangingCollector<State<T>, T> {
 
     private final TrieMap<T> trieMap;
-    private final boolean ignoreCase;
+    private final LookupConfig lookupConfig;
 
     private final List<Match<T>> matches = new ArrayList<>();
 
-    private TrieMapStateExchangingCollector(final TrieMap<T> trieMap, final boolean ignoreCase) {
+    private TrieMapStateExchangingCollector(final TrieMap<T> trieMap, final LookupConfig lookupConfig) {
         this.trieMap = trieMap;
-        this.ignoreCase = ignoreCase;
+        this.lookupConfig = lookupConfig;
     }
 
     @Override
     public Optional<State<T>> evaluateTerm(final Term term) {
         // TODO: why with field?
-        final CharSequence lookupCharSequence = term.toCharSequenceWithField(ignoreCase);
+        final CharSequence lookupCharSequence = term.toCharSequenceWithField(lookupConfig.ignoreCase());
         final States<T> states = trieMap.get(lookupCharSequence);
 
         if (hasMatch(states)) {
@@ -48,7 +48,7 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
     @Override
     public Optional<State<T>> evaluateNextTerm(final Sequence<State<T>> sequence, final Term term) {
         final CharSequence lookupCharSequence = new CompoundCharSequence(
-                null, " ", term.toCharSequenceWithField(ignoreCase));
+                null, " ", term.toCharSequenceWithField(lookupConfig.ignoreCase()));
 
         final States<T> states = trieMap.get(lookupCharSequence, sequence.getState());
 
@@ -75,11 +75,6 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
         return stateExactMatch.isKnown() ? Optional.of(stateExactMatch) : Optional.empty();
     }
 
-
-    public static <T> TrieMapStateExchangingCollector<T> of(final TrieMap<T> trieMap, final boolean ignoreCase) {
-        return new TrieMapStateExchangingCollector<>(trieMap, ignoreCase);
-    }
-
     public static <T> TrieMapStateExchangingCollectorBuilder<T> builder() {
         return new TrieMapStateExchangingCollectorBuilder<>();
     }
@@ -87,20 +82,20 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
     public static class TrieMapStateExchangingCollectorBuilder<T> {
 
         private TrieMap<T> trieMap;
-        private boolean ignoreCase;
+        private LookupConfig lookupConfig;
 
         public TrieMapStateExchangingCollectorBuilder<T> trieMap(final TrieMap<T> trieMap) {
             this.trieMap = trieMap;
             return this;
         }
 
-        public TrieMapStateExchangingCollectorBuilder<T> ignoreCase(final boolean ignoreCase) {
-            this.ignoreCase = ignoreCase;
+        public TrieMapStateExchangingCollectorBuilder<T> lookupConfig(final LookupConfig lookupConfig) {
+            this.lookupConfig = lookupConfig;
             return this;
         }
 
         public TrieMapStateExchangingCollector<T> build() {
-            return new TrieMapStateExchangingCollector<>(trieMap, ignoreCase);
+            return new TrieMapStateExchangingCollector<>(trieMap, lookupConfig);
         }
     }
 

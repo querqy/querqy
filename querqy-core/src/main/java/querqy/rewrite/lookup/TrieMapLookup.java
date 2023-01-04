@@ -23,13 +23,15 @@ public class TrieMapLookup<ValueT> {
 
     public List<Match<ValueT>> lookupMatches(final BooleanQuery booleanQuery) {
 
-        final StateExchangingCollector<State<ValueT>, ValueT> collector = TrieMapStateExchangingCollector.of(
-                trieMap, lookupConfig.ignoreCase());
+        final StateExchangingCollector<State<ValueT>, ValueT> collector = TrieMapStateExchangingCollector.<ValueT>builder()
+                .trieMap(trieMap)
+                .lookupConfig(lookupConfig)
+                .build();
 
         final StateExchangingSequenceExtractor<State<ValueT>> sequenceExtractor = StateExchangingSequenceExtractor.<State<ValueT>>builder()
                 .booleanQuery(booleanQuery)
                 .stateExchangingCollector(collector)
-                .hasBoundaries(lookupConfig.hasBoundaries())
+                .lookupConfig(lookupConfig)
                 .build();
 
         sequenceExtractor.extractSequences();
