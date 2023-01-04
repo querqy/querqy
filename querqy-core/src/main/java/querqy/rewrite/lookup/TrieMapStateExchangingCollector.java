@@ -33,7 +33,7 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
     @Override
     public Optional<State<T>> evaluateTerm(final Term term) {
         // TODO: why with field?
-        final CharSequence lookupCharSequence = term.toCharSequenceWithField(lookupConfig.ignoreCase());
+        final CharSequence lookupCharSequence = createLookupCharSequence(term);
         final States<T> states = trieMap.get(lookupCharSequence);
 
         if (hasMatch(states)) {
@@ -48,7 +48,7 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
     @Override
     public Optional<State<T>> evaluateNextTerm(final Sequence<State<T>> sequence, final Term term) {
         final CharSequence lookupCharSequence = new CompoundCharSequence(
-                null, " ", term.toCharSequenceWithField(lookupConfig.ignoreCase()));
+                null, " ", createLookupCharSequence(term));
 
         final States<T> states = trieMap.get(lookupCharSequence, sequence.getState());
 
@@ -64,6 +64,12 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
     @Override
     public List<Match<T>> getMatches() {
         return Collections.unmodifiableList(matches);
+    }
+
+    // TODO: toCharSequenceWithField is a problem here as field names might be changed
+    private CharSequence createLookupCharSequence(final Term term) {
+        return lookupConfig.getPreprocessor()
+                .process(term.toCharSequenceWithField(lookupConfig.ignoreCase()));
     }
 
     private boolean hasMatch(final States<T> states) {

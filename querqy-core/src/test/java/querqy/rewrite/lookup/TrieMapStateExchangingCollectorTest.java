@@ -2,12 +2,15 @@ package querqy.rewrite.lookup;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Term;
 import querqy.rewrite.commonrules.model.TermMatch;
 import querqy.rewrite.commonrules.model.TermMatches;
 import querqy.rewrite.lookup.model.Match;
 import querqy.rewrite.lookup.model.Sequence;
+import querqy.rewrite.lookup.preprocessing.Preprocessor;
 import querqy.trie.State;
 import querqy.trie.TrieMap;
 
@@ -17,8 +20,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+@RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class TrieMapStateExchangingCollectorTest {
+
+    @Mock Preprocessor preprocessor;
 
     TrieMap<String> trieMap;
     TrieMapStateExchangingCollector<String> collector;
@@ -28,7 +36,11 @@ public class TrieMapStateExchangingCollectorTest {
         trieMap = new TrieMap<>();
         collector = TrieMapStateExchangingCollector.<String>builder()
                 .trieMap(trieMap)
-                .lookupConfig(LookupConfig.builder().ignoreCase(true).build())
+                .lookupConfig(
+                        LookupConfig.builder()
+                                .ignoreCase(true)
+                                .build()
+                )
                 .build();
     }
 
@@ -92,6 +104,26 @@ public class TrieMapStateExchangingCollectorTest {
                         match("val a")
                 )
         );
+    }
+
+    @Test
+    public void testThat_termIsPreprocessed_BeforePassingToTrieMap() {
+        when(preprocessor.process(any())).thenReturn("b");
+
+        put("b", "val b");
+
+        collector = TrieMapStateExchangingCollector.<String>builder()
+                .trieMap(trieMap)
+                .lookupConfig(
+                        LookupConfig.builder()
+                                .ignoreCase(true)
+                                .preprocessor(preprocessor)
+                                .build()
+                )
+                .build();
+
+        collector.evaluateTerm(expandableTerm("a"));
+        assertThat(collector.getMatches()).isNotEmpty();
     }
 
     @Test
