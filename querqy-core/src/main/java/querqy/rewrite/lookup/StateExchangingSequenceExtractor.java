@@ -1,6 +1,5 @@
 package querqy.rewrite.lookup;
 
-import lombok.RequiredArgsConstructor;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
@@ -13,7 +12,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-@RequiredArgsConstructor(staticName = "of")
+/**
+ * This class extracts sequences from a boolean query. Boolean clauses are taken as parts of a sequence while dmq
+ * clauses are taken as alternatives. For the query bq(dmq(A), dmq(B, C)) the subsequences A, B, C, A B, and A C
+ * are extracted.
+ *
+ * The class furthermore administers states per subsequence returned by a collector. If a collector returns a state
+ * for a certain subsequence, the state is passed back to the collector for subsequent lookups. Given the collector
+ * returns a state for subsequence A, this state will be passed for subsequent lookups for the sequences A B and A C.
+ * @see StateExchangingCollector
+ *
+ */
 public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Void> {
 
     protected static final Term BOUNDARY_TERM = new Term(null, "\u0002");
@@ -24,6 +33,16 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
 
     private List<Sequence<T>> previousSequences = List.of();
     private List<Sequence<T>> sequences = new ArrayList<>();
+
+    private StateExchangingSequenceExtractor(
+            final BooleanQuery booleanQuery,
+            final StateExchangingCollector<T, ?> stateExchangingCollector,
+            final LookupConfig lookupConfig
+    ) {
+        this.booleanQuery = booleanQuery;
+        this.stateExchangingCollector = stateExchangingCollector;
+        this.lookupConfig = lookupConfig;
+    }
 
     public void extractSequences() {
         potentiallyEvaluateBoundaryTerm();
