@@ -7,7 +7,7 @@ import querqy.rewrite.lookup.model.Sequence;
 import java.util.List;
 import java.util.Optional;
 
-public interface StateExchangingCollector<StateT, ValueT> {
+public interface AutomatonWrapper<StateT, ValueT> {
 
     Optional<StateT> evaluateTerm(final Term term);
     Optional<StateT> evaluateNextTerm(final Sequence<StateT> sequence, final Term term);

@@ -23,12 +23,12 @@ public class TrieMapLookup<ValueT> {
 
     public List<Match<ValueT>> lookupMatches(final BooleanQuery booleanQuery) {
 
-        final StateExchangingCollector<State<ValueT>, ValueT> collector = TrieMapStateExchangingCollector.<ValueT>builder()
+        final AutomatonWrapper<State<ValueT>, ValueT> collector = TrieMapAutomatonWrapper.<ValueT>builder()
                 .trieMap(trieMap)
                 .lookupConfig(lookupConfig)
                 .build();
 
-        final StateExchangingSequenceExtractor<State<ValueT>> sequenceExtractor = StateExchangingSequenceExtractor.<State<ValueT>>builder()
+        final AutomatonSequenceExtractor<State<ValueT>> sequenceExtractor = AutomatonSequenceExtractor.<State<ValueT>>builder()
                 .booleanQuery(booleanQuery)
                 .stateExchangingCollector(collector)
                 .lookupConfig(lookupConfig)

@@ -20,27 +20,27 @@ import java.util.stream.Stream;
  * The class furthermore administers states per subsequence returned by a collector. If a collector returns a state
  * for a certain subsequence, the state is passed back to the collector for subsequent lookups. Given the collector
  * returns a state for subsequence A, this state will be passed for subsequent lookups for the sequences A B and A C.
- * @see StateExchangingCollector
+ * @see AutomatonWrapper
  *
  */
-public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Void> {
+public class AutomatonSequenceExtractor<T> extends AbstractNodeVisitor<Void> {
 
     protected static final Term BOUNDARY_TERM = new Term(null, "\u0002");
 
     private final BooleanQuery booleanQuery;
-    private final StateExchangingCollector<T, ?> stateExchangingCollector;
+    private final AutomatonWrapper<T, ?> automatonWrapper;
     private final LookupConfig lookupConfig;
 
     private List<Sequence<T>> previousSequences = List.of();
     private List<Sequence<T>> sequences = new ArrayList<>();
 
-    private StateExchangingSequenceExtractor(
+    private AutomatonSequenceExtractor(
             final BooleanQuery booleanQuery,
-            final StateExchangingCollector<T, ?> stateExchangingCollector,
+            final AutomatonWrapper<T, ?> automatonWrapper,
             final LookupConfig lookupConfig
     ) {
         this.booleanQuery = booleanQuery;
-        this.stateExchangingCollector = stateExchangingCollector;
+        this.automatonWrapper = automatonWrapper;
         this.lookupConfig = lookupConfig;
     }
 
@@ -78,9 +78,9 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
     public Void visit(final BooleanQuery booleanQuery) {
         // TODO: return all full sequences from bq to enable cross-hierarchy lookups
 
-        final StateExchangingSequenceExtractor<T> extractor = StateExchangingSequenceExtractor.<T>builder()
+        final AutomatonSequenceExtractor<T> extractor = AutomatonSequenceExtractor.<T>builder()
                 .booleanQuery(booleanQuery)
-                .stateExchangingCollector(stateExchangingCollector)
+                .stateExchangingCollector(automatonWrapper)
                 .lookupConfig(lookupConfig)
                 .build();
 
@@ -91,12 +91,12 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
 
     @Override
     public Void visit(final Term term) {
-        stateExchangingCollector.evaluateTerm(term).ifPresent(
+        automatonWrapper.evaluateTerm(term).ifPresent(
                 state -> sequences.add(Sequence.of(state, List.of(term)))
         );
 
         for (final Sequence<T> previousSequence : previousSequences) {
-            stateExchangingCollector.evaluateNextTerm(previousSequence, term).ifPresent(
+            automatonWrapper.evaluateNextTerm(previousSequence, term).ifPresent(
                     state -> sequences.add(
                             Sequence.of(state, concat(previousSequence.getTerms(), term))
                     )
@@ -120,7 +120,7 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
     public static class StateExchangingSequenceExtractorBuilder<T> {
 
         private BooleanQuery booleanQuery;
-        private StateExchangingCollector<T, ?> stateExchangingCollector;
+        private AutomatonWrapper<T, ?> automatonWrapper;
         private LookupConfig lookupConfig;
 
         public StateExchangingSequenceExtractorBuilder<T> booleanQuery(final BooleanQuery booleanQuery) {
@@ -128,8 +128,8 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
             return this;
         }
 
-        public StateExchangingSequenceExtractorBuilder<T> stateExchangingCollector(final StateExchangingCollector<T, ?> stateExchangingCollector) {
-            this.stateExchangingCollector = stateExchangingCollector;
+        public StateExchangingSequenceExtractorBuilder<T> stateExchangingCollector(final AutomatonWrapper<T, ?> automatonWrapper) {
+            this.automatonWrapper = automatonWrapper;
             return this;
         }
 
@@ -138,8 +138,8 @@ public class StateExchangingSequenceExtractor<T> extends AbstractNodeVisitor<Voi
             return this;
         }
 
-        public StateExchangingSequenceExtractor<T> build() {
-            return new StateExchangingSequenceExtractor<>(booleanQuery, stateExchangingCollector, lookupConfig);
+        public AutomatonSequenceExtractor<T> build() {
+            return new AutomatonSequenceExtractor<>(booleanQuery, automatonWrapper, lookupConfig);
         }
     }
 }
