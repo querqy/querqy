@@ -24,17 +24,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
-public class TrieMapStateExchangingCollectorTest {
+public class TrieMapAutomatonWrapperTest {
 
     @Mock Preprocessor preprocessor;
 
     TrieMap<String> trieMap;
-    TrieMapStateExchangingCollector<String> collector;
+    TrieMapAutomatonWrapper<String> collector;
 
     @Before
     public void prepare() {
         trieMap = new TrieMap<>();
-        collector = TrieMapStateExchangingCollector.<String>builder()
+        collector = TrieMapAutomatonWrapper.<String>builder()
                 .trieMap(trieMap)
                 .lookupConfig(
                         LookupConfig.builder()
@@ -112,7 +112,7 @@ public class TrieMapStateExchangingCollectorTest {
 
         put("b", "val b");
 
-        collector = TrieMapStateExchangingCollector.<String>builder()
+        collector = TrieMapAutomatonWrapper.<String>builder()
                 .trieMap(trieMap)
                 .lookupConfig(
                         LookupConfig.builder()

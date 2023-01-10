@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class TrieMapStateExchangingCollector<T> implements StateExchangingCollector<State<T>, T> {
+public class TrieMapAutomatonWrapper<T> implements AutomatonWrapper<State<T>, T> {
 
     private final TrieMap<T> trieMap;
     private final LookupConfig lookupConfig;
 
     private final List<Match<T>> matches = new ArrayList<>();
 
-    private TrieMapStateExchangingCollector(final TrieMap<T> trieMap, final LookupConfig lookupConfig) {
+    private TrieMapAutomatonWrapper(final TrieMap<T> trieMap, final LookupConfig lookupConfig) {
         this.trieMap = trieMap;
         this.lookupConfig = lookupConfig;
     }
@@ -100,8 +100,8 @@ public class TrieMapStateExchangingCollector<T> implements StateExchangingCollec
             return this;
         }
 
-        public TrieMapStateExchangingCollector<T> build() {
-            return new TrieMapStateExchangingCollector<>(trieMap, lookupConfig);
+        public TrieMapAutomatonWrapper<T> build() {
+            return new TrieMapAutomatonWrapper<>(trieMap, lookupConfig);
         }
     }
 

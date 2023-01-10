@@ -25,12 +25,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
-import static querqy.rewrite.lookup.StateExchangingSequenceExtractor.BOUNDARY_TERM;
+import static querqy.rewrite.lookup.AutomatonSequenceExtractor.BOUNDARY_TERM;
 
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
-public class StateExchangingSequenceExtractorTest {
+public class AutomatonSequenceExtractorTest {
 
-    @Mock StateExchangingCollector<String, String> collector;
+    @Mock
+    AutomatonWrapper<String, String> collector;
     @Captor ArgumentCaptor<Term> termCaptor;
     @Captor ArgumentCaptor<Sequence<String>> sequenceCaptor;
 
@@ -106,7 +107,7 @@ public class StateExchangingSequenceExtractorTest {
     public void testThat_collectorIsCalledWithAllVariations_forTermsInDmq() {
         final BooleanQuery bq = bq(dmq("a", "b"), dmq("c", "d")).build();
 
-        final TestStateExchangingCollector collector = testCollector();
+        final TestAutomatonWrapper collector = testCollector();
         createExtractor(bq, collector).extractSequences();
 
         assertThat(collector.getCalls()).containsExactlyInAnyOrderElementsOf(
@@ -121,7 +122,7 @@ public class StateExchangingSequenceExtractorTest {
     public void testThat_collectorIsCalledSeparately_forNestedBq() {
         final BooleanQuery bq = bq(dmq("a"), dmq(TermBuilder.term("b"), bq("c", "d"))).build();
 
-        final TestStateExchangingCollector collector = testCollector();
+        final TestAutomatonWrapper collector = testCollector();
         createExtractor(bq, collector).extractSequences();
 
         assertThat(collector.getCalls()).containsExactlyInAnyOrderElementsOf(
@@ -132,30 +133,30 @@ public class StateExchangingSequenceExtractorTest {
         );
     }
 
-    private StateExchangingSequenceExtractor<String> createExtractor(
+    private AutomatonSequenceExtractor<String> createExtractor(
             final BooleanQuery booleanQuery,
-            final StateExchangingCollector<String, String> collector
+            final AutomatonWrapper<String, String> collector
     ) {
         return createExtractor(booleanQuery, collector, false);
     }
 
-    private StateExchangingSequenceExtractor<String> createExtractor(
+    private AutomatonSequenceExtractor<String> createExtractor(
             final BooleanQuery booleanQuery,
-            final StateExchangingCollector<String, String> collector,
+            final AutomatonWrapper<String, String> collector,
             final boolean hasBoundaries
     ) {
-        return StateExchangingSequenceExtractor.<String>builder()
+        return AutomatonSequenceExtractor.<String>builder()
                 .booleanQuery(booleanQuery)
                 .stateExchangingCollector(collector)
                 .lookupConfig(LookupConfig.builder().hasBoundaries(hasBoundaries).build())
                 .build();
     }
 
-    private static TestStateExchangingCollector testCollector() {
-        return new TestStateExchangingCollector();
+    private static TestAutomatonWrapper testCollector() {
+        return new TestAutomatonWrapper();
     }
 
-    private static class TestStateExchangingCollector implements StateExchangingCollector<String, String> {
+    private static class TestAutomatonWrapper implements AutomatonWrapper<String, String> {
         private final List<String> calls = new ArrayList<>();
 
         @Override
