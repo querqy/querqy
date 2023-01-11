@@ -19,23 +19,23 @@ public class Node<T> {
     Node<T> next;
     boolean hasPrefix = false;
     
-    public Node(char character, T value) {
+    public Node(final char character, final T value) {
         this.character = character;
         this.value = value;
     }
-    public Node(char character) {
+    public Node(final char character) {
         this(character, null);
     }
     
-    public void putPrefix(CharSequence seq, int index, T value) {
+    public void putPrefix(final CharSequence seq, final int index, final T value) {
         put(seq, index, value, true);
     }
     
-    public void put(CharSequence seq, int index, T value) {
+    public void put(final CharSequence seq, final int index, final T value) {
         put(seq, index, value, false);
     }
     
-    public void put(CharSequence seq, int index, T value, boolean isPrefix) {
+    public void put(final CharSequence seq, final int index, T value, final boolean isPrefix) {
         
         if (seq.charAt(index) == character) {
             
@@ -72,7 +72,7 @@ public class Node<T> {
         }
     }
     
-    public States<T> get(CharSequence seq, int index) {
+    public States<T> get(final CharSequence seq, final int index) {
         if (seq.charAt(index) == character) {
             if (index == seq.length() - 1) {
                 return new States<>(new State<T>(true, value, this, index));
@@ -97,8 +97,21 @@ public class Node<T> {
             return (next != null) ? next.get(seq, index) : new States<>(new State<T>(false, null, null));
         }
     }
-    
-    public States<T> getNext(CharSequence seq, int index) {
+
+    public States<T> get(final char ch) {
+        if (ch == character) {
+            return new States<>(new State<T>(true, value, this, 0));
+                // do not add prefix match here, as we should have at least one char matching the wildcard
+        } else {
+            return (next != null) ? next.get(ch) : new States<>(new State<T>(false, null, null));
+        }
+    }
+
+    public States<T> getNext(final char ch) {
+        return (firstChild != null) ? firstChild.get(ch) : new States<>(new State<T>(false, null, null));
+    }
+
+    public States<T> getNext(final CharSequence seq, final int index) {
         return (firstChild != null) ? firstChild.get(seq, index) : new States<>(new State<T>(false, null, null));
     }
     
