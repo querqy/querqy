@@ -1,4 +1,4 @@
-package querqy.rewrite.lookup.normalize;
+package querqy.rewrite.lookup.preprocessing;
 
 import querqy.CharSequenceUtil;
 
