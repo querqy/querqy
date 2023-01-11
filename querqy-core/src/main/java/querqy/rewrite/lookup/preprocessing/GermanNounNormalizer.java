@@ -1,6 +1,5 @@
-package querqy.rewrite.lookup.normalize;
+package querqy.rewrite.lookup.preprocessing;
 
-import querqy.CharSequenceUtil;
 import querqy.CompoundCharSequence;
 import querqy.trie.State;
 import querqy.trie.TrieMap;
@@ -15,7 +14,7 @@ import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class GermanNounNormalizer {
+public class GermanNounNormalizer implements Preprocessor {
 
     public static final int MIN_INPUT_LENGTH = 4;
     static final int MIN_INPUT_LENGTH_TO_STRIP_OFF_S = 5;
@@ -108,7 +107,8 @@ public class GermanNounNormalizer {
      * @param input The input word
      * @return The normalized form.
      */
-    public CharSequence normalize(final CharSequence input) {
+    @Override
+    public CharSequence process(final CharSequence input) {
 
         if (!isToBeNormalized(input)) {
             return input;
