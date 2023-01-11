@@ -15,8 +15,8 @@ public class TrieMap<T> implements Iterable<T> {
     
     Node<T> root;
     
-    public void put(CharSequence seq, T value) {
-        int length = seq.length();
+    public void put(final CharSequence seq, final T value) {
+        final int length = seq.length();
         if (length == 0) {
             throw new IllegalArgumentException("Must not put empty sequence into trie");
         }
@@ -55,8 +55,8 @@ public class TrieMap<T> implements Iterable<T> {
         }
     }
     
-    public void putPrefix(CharSequence seq, T value) {
-        int length = seq.length();
+    public void putPrefix(final CharSequence seq, final T value) {
+        final int length = seq.length();
         if (length == 0) {
             throw new IllegalArgumentException("Must not put empty sequence into trie");
         }
@@ -71,7 +71,7 @@ public class TrieMap<T> implements Iterable<T> {
         root.putPrefix(seq, 0, value);
     }
     
-    public States<T> get(CharSequence seq) {
+    public States<T> get(final CharSequence seq) {
         if (seq.length() == 0) {
             return new States<>(new State<T>(false, null, null));
         }
@@ -79,7 +79,7 @@ public class TrieMap<T> implements Iterable<T> {
     }
     
 
-    public States<T> get(CharSequence seq, State<T> stateInfo) {
+    public States<T> get(final CharSequence seq, final State<T> stateInfo) {
         if (!stateInfo.isKnown()) {
             throw new IllegalArgumentException("Known state expected");
         }

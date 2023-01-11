@@ -17,11 +17,11 @@ public class State<T> {
      */
     public final int index;
     
-    public State(boolean isKnown, T value, Node<T> node) {
+    public State(final boolean isKnown, final T value, Node<T> node) {
         this(isKnown, value, node, -1);
     }
     
-    public State(boolean isKnown, T value, Node<T> node, int index) {
+    public State(final boolean isKnown, final T value, final Node<T> node, final int index) {
         this.isKnown = isKnown;
         this.value = value;
         this.node = node;

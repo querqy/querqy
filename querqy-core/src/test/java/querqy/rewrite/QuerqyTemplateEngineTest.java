@@ -15,6 +15,8 @@ import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static querqy.TestUtil.list;
+import static querqy.TestUtil.resource;
 
 public class QuerqyTemplateEngineTest {
 
@@ -92,22 +94,6 @@ public class QuerqyTemplateEngineTest {
         assertThat(numberedLinesOfOutput.get(19)).isEqualTo(numberedLinesOfInput.get(lineNumberMapping.get(19)));
     }
 
-    private Reader resource(String resourceName) {
-        return new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourceName), UTF_8);
-    }
-
-    private List<String> list(Reader reader) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(reader);
-
-        List<String> lines = new ArrayList<>();
-
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            lines.add(line);
-        }
-
-        return lines;
-    }
 
     private Map<Integer, String> numberedLines(List<String> lines) {
         Map<Integer, String> numberedLines = new HashMap<>();
