@@ -15,11 +15,11 @@ public class States<T> {
     private List<State<T>> prefixes = null;
     private final State<T> completeSequence;
     
-    public States(State<T> completeSequence) {
+    public States(final State<T> completeSequence) {
         this.completeSequence = completeSequence;
     }
     
-    public void addPrefix(State<T> prefix) {
+    public void addPrefix(final State<T> prefix) {
         if (prefixes == null) {
             prefixes = new LinkedList<>();
         }
