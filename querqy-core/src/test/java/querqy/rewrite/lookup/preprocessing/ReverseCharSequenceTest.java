@@ -1,6 +1,7 @@
-package querqy.rewrite.lookup.normalize;
+package querqy.rewrite.lookup.preprocessing;
 
 import org.junit.Test;
+import querqy.rewrite.lookup.preprocessing.ReverseCharSequence;
 
 import static org.junit.Assert.*;
 

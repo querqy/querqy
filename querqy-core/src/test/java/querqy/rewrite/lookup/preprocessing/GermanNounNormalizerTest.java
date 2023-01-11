@@ -1,4 +1,4 @@
-package querqy.rewrite.lookup.normalize;
+package querqy.rewrite.lookup.preprocessing;
 
 
 import org.junit.Test;
@@ -132,12 +132,12 @@ public class GermanNounNormalizerTest {
 
 
     private boolean isMatch(final String token1, final String token2) {
-        return new GermanNounNormalizer().normalize(token1)
-                .equals(new GermanNounNormalizer().normalize(token2));
+        return new GermanNounNormalizer().process(token1)
+                .equals(new GermanNounNormalizer().process(token2));
     }
 
     private boolean isUnchanged(final String token) {
-        return new GermanNounNormalizer().normalize(token).equals(token);
+        return new GermanNounNormalizer().process(token).equals(token);
     }
 
 }

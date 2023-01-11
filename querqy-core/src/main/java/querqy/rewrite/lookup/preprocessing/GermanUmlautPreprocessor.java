@@ -1,12 +1,6 @@
 package querqy.rewrite.lookup.preprocessing;
 
-import querqy.CompoundCharSequence;
-import querqy.SimpleComparableCharSequence;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class GermanNormalizationPreprocessor implements Preprocessor {
+public class GermanUmlautPreprocessor implements Preprocessor {
 
     private static final char A = 'a';
     private static final char O = 'o';
@@ -18,21 +12,14 @@ public class GermanNormalizationPreprocessor implements Preprocessor {
     private static final CharSequence OE = "ö";
     private static final CharSequence UE = "ü";
 
-    private static final char SHARP_S = 'ß';
-    private static final CharSequence SS = "ss";
-
-
-    // private constructor
-
-
     @Override
     public CharSequence process(final CharSequence charSequence) {
         final CharSequenceNormalizer charSequenceNormalizer = new CharSequenceNormalizer(charSequence);
         return charSequenceNormalizer.normalize();
     }
 
-    public static GermanNormalizationPreprocessor create() {
-        return new GermanNormalizationPreprocessor();
+    public static GermanUmlautPreprocessor create() {
+        return new GermanUmlautPreprocessor();
     }
 
     private static class CharSequenceNormalizer {
@@ -56,8 +43,6 @@ public class GermanNormalizationPreprocessor implements Preprocessor {
                 if (c == E && offset > 0) {
                     normalizeUmlauts();
 
-                } else if (c == SHARP_S) {
-                    normalizeSharpS();
                 }
 
                 offset++;
@@ -89,12 +74,6 @@ public class GermanNormalizationPreprocessor implements Preprocessor {
         private void normalizeUmlaut(final CharSequence umlaut) {
             append(charSequence.subSequence(start, offset - 1));
             append(umlaut);
-            start = offset + 1;
-        }
-
-        private void normalizeSharpS() {
-            append(charSequence.subSequence(start, offset));
-            append(SS);
             start = offset + 1;
         }
 
