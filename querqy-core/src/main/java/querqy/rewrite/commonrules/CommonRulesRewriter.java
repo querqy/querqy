@@ -21,7 +21,8 @@ import querqy.rewrite.commonrules.model.Instructions;
 import querqy.rewrite.commonrules.model.TermMatch;
 import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
-import querqy.rewrite.lookup.TrieMapLookup;
+import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitor;
+import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
 import querqy.rewrite.lookup.model.Match;
 
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  */
 public class CommonRulesRewriter implements QueryRewriter {
 
-    private final TrieMapLookup<InstructionsSupplier> trieMapLookup;
+    private final TrieMapLookupQueryVisitorFactory<InstructionsSupplier> trieMapLookupQueryVisitorFactory;
 
     protected ExpandedQuery expandedQuery;
     protected SearchEngineRequestAdapter searchEngineRequestAdapter;
@@ -43,8 +44,8 @@ public class CommonRulesRewriter implements QueryRewriter {
     private final RewriterLog.RewriterLogBuilder rewriterLogBuilder = RewriterLog.builder();
 
     public CommonRulesRewriter(
-            final TrieMapLookup<InstructionsSupplier> trieMapLookup, final SelectionStrategy selectionStrategy) {
-        this.trieMapLookup = trieMapLookup;
+            final TrieMapLookupQueryVisitorFactory<InstructionsSupplier> trieMapLookupQueryVisitorFactory, final SelectionStrategy selectionStrategy) {
+        this.trieMapLookupQueryVisitorFactory = trieMapLookupQueryVisitorFactory;
         this.selectionStrategy = selectionStrategy;
     }
 
@@ -75,7 +76,10 @@ public class CommonRulesRewriter implements QueryRewriter {
     protected void rewriteBooleanQuery(final BooleanQuery booleanQuery) {
 
         final TopRewritingActionCollector collector = selectionStrategy.createTopRewritingActionCollector();
-        final List<Match<InstructionsSupplier>> matches = trieMapLookup.lookupMatches(booleanQuery);
+
+        final TrieMapLookupQueryVisitor<InstructionsSupplier> trieMapLookupQueryVisitor = trieMapLookupQueryVisitorFactory.createTrieMapLookup(booleanQuery);
+
+        final List<Match<InstructionsSupplier>> matches = trieMapLookupQueryVisitor.lookupAndCollect();
 
         for (final Match<InstructionsSupplier> match : matches) {
             collector.collect(match.getValue(), instructions -> new Action(instructions, match.getTermMatches()));

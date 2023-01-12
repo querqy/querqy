@@ -27,7 +27,7 @@ import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.lookup.LookupConfig;
-import querqy.rewrite.lookup.TrieMapLookup;
+import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
 import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.RulesParser;
 import querqy.rewrite.rules.factory.RulesParserFactory;
@@ -59,7 +59,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     private final SelectionStrategyFactory defaultSelectionStrategyFactory;
     private final boolean buildTermCache;
 
-    private final TrieMapLookup<InstructionsSupplier> trieMapLookup;
+    private final TrieMapLookupQueryVisitorFactory<InstructionsSupplier> trieMapLookupQueryVisitorFactory;
 
 
     /**
@@ -122,7 +122,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
             final RulesParser rulesParser = RulesParserFactory.textParser(config);
             final TrieMap<InstructionsSupplier> trieMap = rulesParser.parse();
 
-            trieMapLookup = TrieMapLookup.of(
+            trieMapLookupQueryVisitorFactory = TrieMapLookupQueryVisitorFactory.of(
                     trieMap,
                     LookupConfig.builder()
                             .ignoreCase(ignoreCase)
@@ -160,7 +160,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                 }).orElse(defaultSelectionStrategyFactory) // strategy not specified in params
                 .createSelectionStrategy(getRewriterId(), searchEngineRequestAdapter);
 
-        return new CommonRulesRewriter(trieMapLookup, selectionStrategy);
+        return new CommonRulesRewriter(trieMapLookupQueryVisitorFactory, selectionStrategy);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
         final Set<Instruction> result = new HashSet<>();
 
-        for (final InstructionsSupplier instructionsSupplier : trieMapLookup.getTrieMap()) {
+        for (final InstructionsSupplier instructionsSupplier : trieMapLookupQueryVisitorFactory.getTrieMap()) {
             for (final Instructions instructions : instructionsSupplier.getInstructionsList()) {
                 result.addAll(instructions);
             }
