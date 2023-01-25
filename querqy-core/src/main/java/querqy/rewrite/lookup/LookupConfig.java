@@ -1,12 +1,12 @@
 package querqy.rewrite.lookup;
 
-import querqy.rewrite.lookup.preprocessing.Preprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 
 import java.util.Objects;
 
 public class LookupConfig {
 
-    private static final Preprocessor IDENTITY_PREPROCESSOR = charSequence -> charSequence;
+    private static final LookupPreprocessor IDENTITY_PREPROCESSOR = charSequence -> charSequence;
 
     private static final LookupConfig DEFAULT_CONFIG = LookupConfig.builder()
             .ignoreCase(true)
@@ -17,9 +17,9 @@ public class LookupConfig {
     private final boolean ignoreCase;
     private final boolean hasBoundaries;
 
-    private final Preprocessor preprocessor;
+    private final LookupPreprocessor preprocessor;
 
-    private LookupConfig(final boolean ignoreCase, final boolean hasBoundaries, final Preprocessor preprocessor) {
+    private LookupConfig(final boolean ignoreCase, final boolean hasBoundaries, final LookupPreprocessor preprocessor) {
         this.ignoreCase = ignoreCase;
         this.hasBoundaries = hasBoundaries;
         this.preprocessor = Objects.requireNonNullElse(preprocessor, IDENTITY_PREPROCESSOR);
@@ -33,7 +33,7 @@ public class LookupConfig {
         return hasBoundaries;
     }
 
-    public Preprocessor getPreprocessor() {
+    public LookupPreprocessor getPreprocessor() {
         return preprocessor;
     }
 
@@ -49,7 +49,7 @@ public class LookupConfig {
 
         private boolean ignoreCase;
         private boolean hasBoundaries;
-        private Preprocessor preprocessor;
+        private LookupPreprocessor preprocessor;
 
         public LookupConfigBuilder ignoreCase(final boolean ignoreCase) {
             this.ignoreCase = ignoreCase;
@@ -61,7 +61,7 @@ public class LookupConfig {
             return this;
         }
 
-        public LookupConfigBuilder preprocessor(final Preprocessor preprocessor) {
+        public LookupConfigBuilder preprocessor(final LookupPreprocessor preprocessor) {
             this.preprocessor = preprocessor;
             return this;
         }

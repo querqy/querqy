@@ -2,7 +2,7 @@ package querqy.rewrite.lookup.preprocessing;
 
 import querqy.LowerCaseCharSequence;
 
-public class LowerCasePreprocessor implements Preprocessor {
+public class LowerCasePreprocessor implements LookupPreprocessor {
 
     private LowerCasePreprocessor() {}
 

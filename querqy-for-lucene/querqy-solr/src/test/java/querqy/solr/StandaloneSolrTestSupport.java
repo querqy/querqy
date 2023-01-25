@@ -11,6 +11,7 @@ import org.apache.solr.request.SolrRequestInfo;
 import org.apache.solr.response.SolrQueryResponse;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
 import querqy.solr.utils.JsonUtil;
@@ -32,6 +33,12 @@ public interface StandaloneSolrTestSupport {
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                        final LookupPreprocessorType lookupPreprocessorType
+                                        ) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), null, lookupPreprocessorType);
+    }
+
+    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
                                         final BoostInstruction.BoostMethod boostMethod,
                                         final String ... sinks) {
         withCommonRulesRewriter(core, rewriterId, rulesName, Collections.emptyMap(), boostMethod, sinks);
@@ -47,13 +54,26 @@ public interface StandaloneSolrTestSupport {
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
                                         final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
                                                 ruleSelectionStrategies,
-                                        final BoostInstruction.BoostMethod boostMethod, final String ... sinks) {
+                                        final BoostInstruction.BoostMethod boostMethod, final String ... sinks
+                                        ) {
+        withCommonRulesRewriter(core, rewriterId, rulesName, ruleSelectionStrategies, boostMethod, LookupPreprocessorType.NONE, sinks);
+    }
+
+    static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
+                                        final Map<String, Class<? extends FactoryAdapter<SelectionStrategyFactory>>>
+                                                ruleSelectionStrategies,
+                                        final BoostInstruction.BoostMethod boostMethod,
+                                        final LookupPreprocessorType lookupPreprocessorType,
+                                        final String ... sinks
+                                        ) {
 
         try {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                     .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName))
                     .loggingToSinks(sinks);
             ruleSelectionStrategies.forEach(builder::ruleSelectionStrategy);
+            builder.lookupPreprocessorType(lookupPreprocessorType);
+
             if (boostMethod != null) {
                 builder.boostMethod(boostMethod);
             }

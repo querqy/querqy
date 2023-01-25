@@ -1,6 +1,6 @@
 package querqy.rewrite.lookup.preprocessing;
 
-public class GermanUmlautPreprocessor implements Preprocessor {
+public class GermanUmlautPreprocessor implements LookupPreprocessor {
 
     private static final char A = 'a';
     private static final char O = 'o';

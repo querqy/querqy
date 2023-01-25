@@ -8,7 +8,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import querqy.model.Term;
 import querqy.rewrite.lookup.LookupConfig;
-import querqy.rewrite.lookup.preprocessing.Preprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.trie.TrieMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +20,8 @@ import static org.mockito.Mockito.when;
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class TrieMapSequenceLookupTest {
 
-    @Mock Preprocessor preprocessor;
+    @Mock
+    LookupPreprocessor preprocessor;
     @Mock TrieMap<String> trieMap;
 
     @Captor ArgumentCaptor<CharSequence> charSequenceCaptor;

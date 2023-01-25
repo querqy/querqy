@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class GermanNounNormalizer implements Preprocessor {
+public class GermanNounNormalizer implements LookupPreprocessor {
 
     public static final int MIN_INPUT_LENGTH = 4;
     static final int MIN_INPUT_LENGTH_TO_STRIP_OFF_S = 5;
@@ -253,6 +253,10 @@ public class GermanNounNormalizer implements Preprocessor {
         }
 
         return true;
+    }
+
+    public static GermanNounNormalizer create() {
+        return new GermanNounNormalizer();
     }
 
 

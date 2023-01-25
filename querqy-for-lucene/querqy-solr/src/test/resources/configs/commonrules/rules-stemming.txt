@@ -1,0 +1,5 @@
+handy =>
+    SYNONYM: smartphone
+
+spülmaschine =>
+    SYNONYM: geschirrreiniger
