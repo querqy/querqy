@@ -10,15 +10,17 @@ import static org.mockito.Mockito.when;
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class PipelinePreprocessorTest {
 
-    @Mock Preprocessor preprocessor1;
-    @Mock Preprocessor preprocessor2;
+    @Mock
+    LookupPreprocessor preprocessor1;
+    @Mock
+    LookupPreprocessor preprocessor2;
 
     @Test
     public void testThat_preprocessorsAreAppliedInOrder_forTwoGivenPreprocessors() {
         when(preprocessor1.process("a")).thenReturn("b");
         when(preprocessor2.process("b")).thenReturn("c");
 
-        final Preprocessor pipeline = PipelinePreprocessor.of(preprocessor1, preprocessor2);
+        final LookupPreprocessor pipeline = PipelinePreprocessor.of(preprocessor1, preprocessor2);
         assertThat(pipeline.process("a")).isEqualTo("c");
     }
 }

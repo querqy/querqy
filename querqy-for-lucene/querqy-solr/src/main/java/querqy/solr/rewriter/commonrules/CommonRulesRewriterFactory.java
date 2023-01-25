@@ -10,6 +10,7 @@ import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.SolrRewriterFactoryAdapter;
 import querqy.solr.rewriter.ClassicConfigurationParser;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
@@ -35,6 +37,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     public static final String CONF_RHS_QUERY_PARSER = "querqyParser";
     public static final String CONF_RULES = "rules";
     public static final String CONF_RULE_SELECTION_STRATEGIES = "ruleSelectionStrategies";
+    public static final String CONF_LOOKUP_PREPROCESSOR = "lookupPreprocessor";
 
     static final QuerqyParserFactory DEFAULT_RHS_QUERY_PARSER = new WhiteSpaceQuerqyParserFactory();
     static final SelectionStrategyFactory DEFAULT_SELECTION_STRATEGY_FACTORY =
@@ -64,10 +67,23 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final Map<String, SelectionStrategyFactory> selectionStrategyFactories = loadSelectionStrategyFactories(config);
 
+        final Optional<String> lookupPreprocessorTypeName = ConfigUtils.getStringArg(config, CONF_LOOKUP_PREPROCESSOR);
+        final LookupPreprocessorType lookupPreprocessorType = lookupPreprocessorTypeName
+                .map(LookupPreprocessorType::fromString)
+                .orElse(LookupPreprocessorType.NONE);
+
         try {
-            delegate = new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
-                    new StringReader(rules), allowBooleanInput, boostMethod, querqyParser, ignoreCase,
-                    selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
+            delegate = new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
+                    rewriterId,
+                    new StringReader(rules),
+                    allowBooleanInput,
+                    boostMethod,
+                    querqyParser,
+                    ignoreCase,
+                    selectionStrategyFactories,
+                    DEFAULT_SELECTION_STRATEGY_FACTORY,
+                    buildTermCache,
+                    lookupPreprocessorType);
         } catch (final IOException e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
                     "Could not create delegate factory ", e);
@@ -105,10 +121,24 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
 
         final Boolean buildTermCache = ConfigUtils.getArg(config, CONF_BUILD_TERM_CACHE, true);
 
+        final Optional<String> lookupPreprocessorTypeName = ConfigUtils.getStringArg(config, CONF_LOOKUP_PREPROCESSOR);
+        final LookupPreprocessorType lookupPreprocessorType = lookupPreprocessorTypeName
+                .map(LookupPreprocessorType::fromString)
+                .orElse(LookupPreprocessorType.NONE);
+
         try {
-            new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(rewriterId,
-                    new StringReader(rules), allowBooleanInput, boostMethod, querqyParser, ignoreCase,
-                    selectionStrategyFactories, DEFAULT_SELECTION_STRATEGY_FACTORY, buildTermCache);
+            new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
+                    rewriterId,
+                    new StringReader(rules),
+                    allowBooleanInput,
+                    boostMethod,
+                    querqyParser,
+                    ignoreCase,
+                    selectionStrategyFactories,
+                    DEFAULT_SELECTION_STRATEGY_FACTORY,
+                    buildTermCache,
+                    lookupPreprocessorType
+            );
         } catch (final IOException e) {
             return Collections.singletonList("Cannot create rewriter: " + e.getMessage());
         }

@@ -5,6 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.RewriterConfigRequestBuilder;
 
@@ -23,6 +24,7 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
     private BoostInstruction.BoostMethod boostMethod = null;
     private Class<? extends QuerqyParserFactory> rhsParser = null;
     private String rules = null;
+    private LookupPreprocessorType lookupPreprocessorType = null;
     private final Map<String, Map<String, Object>> ruleSelectionStrategies = new HashMap<>();
 
     public CommonRulesConfigRequestBuilder() {
@@ -36,6 +38,11 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
 
     public CommonRulesConfigRequestBuilder allowBooleanInput(final boolean allowBooleanInput) {
         this.allowBooleanInput = allowBooleanInput;
+        return this;
+    }
+
+    public CommonRulesConfigRequestBuilder lookupPreprocessorType(final LookupPreprocessorType lookupPreprocessorType) {
+        this.lookupPreprocessorType = lookupPreprocessorType;
         return this;
     }
 
@@ -84,6 +91,10 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
         }
         if (rhsParser != null) {
             config.put(CommonRulesRewriterFactory.CONF_RHS_QUERY_PARSER, rhsParser.getName());
+        }
+
+        if (lookupPreprocessorType != null) {
+            config.put(CommonRulesRewriterFactory.CONF_LOOKUP_PREPROCESSOR, lookupPreprocessorType.getName());
         }
 
         if (allowBooleanInput != null) {

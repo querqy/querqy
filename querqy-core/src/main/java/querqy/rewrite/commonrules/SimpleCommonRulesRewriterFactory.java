@@ -27,6 +27,8 @@ import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.lookup.LookupConfig;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
 import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.RulesParser;
@@ -85,8 +87,9 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                             final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
                                             final SelectionStrategyFactory defaultSelectionStrategyFactory,
-                                            final boolean buildTermCache)
-            throws IOException {
+                                            final boolean buildTermCache,
+                                            final LookupPreprocessorType lookupPreprocessorType
+    ) throws IOException {
 
         super(rewriterId);
 
@@ -127,6 +130,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                     LookupConfig.builder()
                             .ignoreCase(ignoreCase)
                             .hasBoundaries(true)
+                            .preprocessor(LookupPreprocessorFactory.fromType(lookupPreprocessorType))
                             .build()
             );
 

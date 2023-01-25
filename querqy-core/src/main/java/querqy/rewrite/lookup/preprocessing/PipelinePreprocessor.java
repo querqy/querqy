@@ -3,11 +3,11 @@ package querqy.rewrite.lookup.preprocessing;
 import java.util.Arrays;
 import java.util.List;
 
-public class PipelinePreprocessor implements Preprocessor {
+public class PipelinePreprocessor implements LookupPreprocessor {
 
-    private final List<Preprocessor> preprocessors;
+    private final List<LookupPreprocessor> preprocessors;
 
-    private PipelinePreprocessor(final List<Preprocessor> preprocessors) {
+    private PipelinePreprocessor(final List<LookupPreprocessor> preprocessors) {
         this.preprocessors = preprocessors;
     }
 
@@ -15,18 +15,18 @@ public class PipelinePreprocessor implements Preprocessor {
     public CharSequence process(final CharSequence charSequence) {
 
         CharSequence processedCharSequence = charSequence;
-        for (final Preprocessor preprocessor : preprocessors) {
+        for (final LookupPreprocessor preprocessor : preprocessors) {
             processedCharSequence = preprocessor.process(processedCharSequence);
         }
 
         return processedCharSequence;
     }
 
-    public static PipelinePreprocessor of(final List<Preprocessor> preprocessors) {
+    public static PipelinePreprocessor of(final List<LookupPreprocessor> preprocessors) {
         return new PipelinePreprocessor(preprocessors);
     }
 
-    public static PipelinePreprocessor of(final Preprocessor... preprocessors) {
+    public static PipelinePreprocessor of(final LookupPreprocessor... preprocessors) {
         return of(Arrays.asList(preprocessors));
     }
 

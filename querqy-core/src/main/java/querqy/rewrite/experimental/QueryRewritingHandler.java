@@ -16,6 +16,7 @@ import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.contrib.ReplaceRewriterFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -98,7 +99,7 @@ public class QueryRewritingHandler {
                     new WhiteSpaceQuerqyParserFactory(),
                     true,
                     Collections.emptyMap(),
-                    new ExpressionCriteriaSelectionStrategyFactory(), false));
+                    new ExpressionCriteriaSelectionStrategyFactory(), false, LookupPreprocessorType.NONE));
 
             return this;
         }
