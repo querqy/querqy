@@ -19,7 +19,7 @@ public class GermanNounNormalizerTest {
     @Test
     public void testThatMinInputLengthIsApplied() {
         unchanged("xs");
-        unchanged("los"); // TODO: add test for 4 chars that gets changed
+        unchanged("los");
         match("ass", "asse");
     }
 
