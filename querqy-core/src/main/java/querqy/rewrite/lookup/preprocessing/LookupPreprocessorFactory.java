@@ -10,6 +10,10 @@ public class LookupPreprocessorFactory {
             GermanNounNormalizer.create()
     );
 
+    public static LookupPreprocessor identity() {
+        return IDENTITY_PREPROCESSOR;
+    }
+
     public static LookupPreprocessor fromType(final LookupPreprocessorType type) {
 
         switch (type) {

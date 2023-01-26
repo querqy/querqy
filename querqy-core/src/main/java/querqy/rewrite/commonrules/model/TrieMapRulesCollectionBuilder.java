@@ -5,10 +5,13 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
+import lombok.Builder;
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.rewrite.rules.rule.Rule;
 import querqy.trie.State;
 import querqy.trie.States;
@@ -23,9 +26,15 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     final TrieMap<InstructionsSupplier> map = new TrieMap<>();
 
     final boolean ignoreCase;
+    private final LookupPreprocessor lookupPreprocessor;
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
+        this(ignoreCase, LookupPreprocessorFactory.identity());
+    }
+
+    public TrieMapRulesCollectionBuilder(boolean ignoreCase, final LookupPreprocessor lookupPreprocessor) {
         this.ignoreCase = ignoreCase;
+        this.lookupPreprocessor = lookupPreprocessor;
     }
 
     @Override
