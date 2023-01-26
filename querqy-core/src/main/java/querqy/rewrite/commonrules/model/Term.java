@@ -11,7 +11,7 @@ import querqy.SimpleComparableCharSequence;
 
 public class Term implements ComparableCharSequence {
 
-    public final String FIELD_CHAR = ":";
+    public static final String FIELD_CHAR = ":";
     protected final char[] value;
     protected final int start;
     protected final int length;
@@ -250,6 +250,10 @@ public class Term implements ComparableCharSequence {
 
     public List<String> getFieldNames() {
         return fieldNames;
+    }
+
+    public boolean hasFieldNames() {
+        return fieldNames != null;
     }
 
     public LinkedList<PlaceHolder> getPlaceHolders() {

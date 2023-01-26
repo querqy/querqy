@@ -10,8 +10,14 @@ public class LookupPreprocessorFactory {
             GermanNounNormalizer.create()
     );
 
+    private static final LookupPreprocessor LOWERCASE_PREPROCESSOR = LowerCasePreprocessor.create();
+
     public static LookupPreprocessor identity() {
         return IDENTITY_PREPROCESSOR;
+    }
+
+    public static LookupPreprocessor lowercase() {
+        return LOWERCASE_PREPROCESSOR;
     }
 
     public static LookupPreprocessor fromType(final LookupPreprocessorType type) {
@@ -22,6 +28,9 @@ public class LookupPreprocessorFactory {
 
             case GERMAN:
                 return GERMAN_PREPROCESSOR;
+
+            case LOWERCASE:
+                return LOWERCASE_PREPROCESSOR;
 
             default:
                 throw new IllegalArgumentException("Preprocessor of type " + " is currently not supported");

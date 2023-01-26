@@ -5,7 +5,6 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
-import lombok.Builder;
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
 import querqy.model.Input;
@@ -27,6 +26,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
 
     final boolean ignoreCase;
     private final LookupPreprocessor lookupPreprocessor;
+    private final InputNormalizer inputNormalizer;
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
         this(ignoreCase, LookupPreprocessorFactory.identity());
@@ -35,6 +35,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     public TrieMapRulesCollectionBuilder(boolean ignoreCase, final LookupPreprocessor lookupPreprocessor) {
         this.ignoreCase = ignoreCase;
         this.lookupPreprocessor = lookupPreprocessor;
+        inputNormalizer = new InputNormalizer(lookupPreprocessor);
     }
 
     @Override
@@ -52,117 +53,108 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         addOrMergeInstructionsSupplier(rule.getInput(), rule.getInstructionsSupplier());
     }
 
+    protected void addOrMergeEmptyToken(final Input.SimpleInput input,
+                                        final InstructionsSupplier instructionsSupplier) {
+        if (!(input.isRequiresLeftBoundary() && input.isRequiresRightBoundary())) {
+            throw new IllegalArgumentException("Empty input!");
+        }
+
+        final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD,
+                TrieMapRulesCollection.BOUNDARY_WORD);
+        final States<InstructionsSupplier> states = map.get(seq);
+        final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
+        if (state.value != null) {
+            state.value.merge(instructionsSupplier);
+        } else {
+            map.put(seq, instructionsSupplier);
+        }
+
+    }
+
+    protected void addOrMergeSingleToken(final Term term, final boolean isLeftBoundaryRequired,
+                                         final boolean isRightBoundaryRequired,
+                                         final InstructionsSupplier instructionsSupplier) {
+
+        boolean isPrefix = term instanceof PrefixTerm;
+
+        for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
+
+            seq = applyBoundaries(seq, isLeftBoundaryRequired, isRightBoundaryRequired);
+
+            final States<InstructionsSupplier> states = map.get(seq);
+
+            if (isPrefix) {
+                boolean added = false;
+
+                final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
+
+                if (prefixes != null) {
+                    for (final State<InstructionsSupplier> state : prefixes) {
+                        if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
+                            state.value.merge(instructionsSupplier);
+                            added = true;
+                            break;
+                        }
+
+                    }
+                }
+
+                if (!added) {
+                    map.putPrefix(seq, instructionsSupplier);
+                }
+
+            } else {
+                final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
+                if (state.value != null) {
+                    state.value.merge(instructionsSupplier);
+                } else {
+                    map.put(seq, instructionsSupplier);
+                }
+
+            }
+        }
+    }
     public void addOrMergeInstructionsSupplier(final Input.SimpleInput input,
                                                final InstructionsSupplier instructionsSupplier) {
+
+        final List<CharSequence> seqs = inputNormalizer.getNormalizedInputSequences(input);
         final List<Term> inputTerms = input.getInputTerms();
-        
-        switch (inputTerms.size()) {
-        
-        case 0: {
-            if (!(input.isRequiresLeftBoundary() && input.isRequiresRightBoundary())) {
-                throw new IllegalArgumentException("Empty input!");
-            }
 
-            final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD,
-                    TrieMapRulesCollection.BOUNDARY_WORD);
+        final boolean isPrefix = (!inputTerms.isEmpty()) &&  inputTerms.get(inputTerms.size() -1) instanceof PrefixTerm;
+        for (final CharSequence seq : seqs) {
+                
             final States<InstructionsSupplier> states = map.get(seq);
-            final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-            if (state.value != null) {
-                state.value.merge(instructionsSupplier);
+                
+            if (isPrefix) {
+                    
+                boolean added = false;
+
+                final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
+                    
+                if (prefixes != null) {
+                    for (final State<InstructionsSupplier> state: prefixes) {
+                        if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
+                            state.value.merge(instructionsSupplier);
+                            added = true;
+                            break;
+                        }
+                            
+                    }
+                }
+                    
+                if (!added) {
+                    map.putPrefix(seq, instructionsSupplier);
+                }
             } else {
-                map.put(seq, instructionsSupplier);
-            }
-            
-        }
-        break;
-        
-        case 1: {
-
-            final Term term = inputTerms.get(0);
-            
-            boolean isPrefix = term instanceof PrefixTerm;
-            
-            for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
-                
-                seq = applyBoundaries(seq, input.isRequiresLeftBoundary(), input.isRequiresRightBoundary());
-
-                final States<InstructionsSupplier> states = map.get(seq);
-                
-                if (isPrefix) {
-                    boolean added = false;
-
-                    final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
-                    
-                    if (prefixes != null) {
-                        for (final State<InstructionsSupplier> state : prefixes) {
-                            if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.merge(instructionsSupplier);
-                                added = true;
-                                break;
-                            }
-                            
-                        }
-                    }
-                    
-                    if (!added) {
-                        map.putPrefix(seq, instructionsSupplier);
-                    }
-                
+                final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
+                if (state.value != null) {
+                    state.value.merge(instructionsSupplier);
                 } else {
-                    final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-                    if (state.value != null) {
-                        state.value.merge(instructionsSupplier);
-                    } else {
-                        map.put(seq, instructionsSupplier);
-                    }
-                    
+                    map.put(seq, instructionsSupplier);
                 }
             }
+                
         }
-        break;
-        
-        default:
-
-            final Term lastTerm = inputTerms.get(inputTerms.size() -1);
-            final boolean isPrefix = lastTerm instanceof PrefixTerm;
-            for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
-                
-                seq = applyBoundaries(seq, input.isRequiresLeftBoundary(), input.isRequiresRightBoundary());
-
-                final States<InstructionsSupplier> states = map.get(seq);
-                
-                if (isPrefix) { 
-                    
-                    boolean added = false;
-
-                    final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
-                    
-                    if (prefixes != null) {
-                        for (final State<InstructionsSupplier> state: prefixes) {
-                            if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.merge(instructionsSupplier);
-                                added = true;
-                                break;
-                            }
-                            
-                        }
-                    }
-                    
-                    if (!added) {
-                        map.putPrefix(seq, instructionsSupplier);
-                    }
-                } else {
-                    final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-                    if (state.value != null) {
-                        state.value.merge(instructionsSupplier);
-                    } else {
-                        map.put(seq, instructionsSupplier);
-                    }
-                }
-                
-            } 
-        }
-
 
     }
     

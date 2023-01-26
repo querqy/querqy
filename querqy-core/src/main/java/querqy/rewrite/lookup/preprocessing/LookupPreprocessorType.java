@@ -2,7 +2,8 @@ package querqy.rewrite.lookup.preprocessing;
 
 public enum LookupPreprocessorType {
     NONE("none"),
-    GERMAN("german");
+    GERMAN("german"),
+    LOWERCASE("lowercase");
 
     private final String name;
 
