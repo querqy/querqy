@@ -27,6 +27,7 @@ import querqy.rewrite.commonrules.select.SelectionStrategy;
 import querqy.rewrite.commonrules.select.RuleSelectionParams;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.lookup.LookupConfig;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
@@ -107,6 +108,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
         try {
             final QuerqyTemplateEngine querqyTemplateEngine = new QuerqyTemplateEngine(reader);
 
+            final LookupPreprocessor lookupPreprocessor = LookupPreprocessorFactory.fromType(lookupPreprocessorType);
+
             final RulesParserConfig config = RulesParserConfig.builder()
                     .textParserConfig(TextParserConfig.builder()
                             .rulesContentReader(querqyTemplateEngine.renderedRules.reader)
@@ -119,7 +122,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .querqyParserFactory(querqyParserFactory)
                             .allowedInstructionTypes(ALLOWED_TYPES)
                             .build())
-                    .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase))
+                    .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase, lookupPreprocessor))
                     .build();
 
             final RulesParser rulesParser = RulesParserFactory.textParser(config);
@@ -130,7 +133,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                     LookupConfig.builder()
                             .ignoreCase(ignoreCase)
                             .hasBoundaries(true)
-                            .preprocessor(LookupPreprocessorFactory.fromType(lookupPreprocessorType))
+                            .preprocessor(lookupPreprocessor)
                             .build()
             );
 
