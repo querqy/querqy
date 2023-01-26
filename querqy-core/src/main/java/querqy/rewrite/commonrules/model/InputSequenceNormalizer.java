@@ -1,9 +1,6 @@
 package querqy.rewrite.commonrules.model;
 
-import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
-import querqy.LowerCaseCharSequence;
-import querqy.SimpleComparableCharSequence;
 import querqy.model.Input;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
@@ -15,7 +12,7 @@ import java.util.stream.Collectors;
 
 import static querqy.rewrite.commonrules.model.TrieMapRulesCollection.*;
 
-public class InputNormalizer {
+public class InputSequenceNormalizer {
 
     private static final List<CharSequence> SPACE = Collections.singletonList(
             new CompoundCharSequence(" ", BOUNDARY_WORD, BOUNDARY_WORD));
@@ -25,7 +22,7 @@ public class InputNormalizer {
     private final LookupPreprocessor lookupPreprocessor;
     private final boolean isIdentityPreprocessor;
 
-    public InputNormalizer(final LookupPreprocessor lookupPreprocessor) {
+    public InputSequenceNormalizer(final LookupPreprocessor lookupPreprocessor) {
         this.lookupPreprocessor = lookupPreprocessor;
         isIdentityPreprocessor = lookupPreprocessor == LookupPreprocessorFactory.identity();
     }

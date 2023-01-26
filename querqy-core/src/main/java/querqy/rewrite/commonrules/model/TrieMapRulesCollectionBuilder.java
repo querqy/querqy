@@ -5,8 +5,6 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
-import querqy.ComparableCharSequence;
-import querqy.CompoundCharSequence;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
@@ -26,7 +24,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
 
     final boolean ignoreCase;
     private final LookupPreprocessor lookupPreprocessor;
-    private final InputNormalizer inputNormalizer;
+    private final InputSequenceNormalizer inputSequenceNormalizer;
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
         this(ignoreCase, LookupPreprocessorFactory.identity());
@@ -35,7 +33,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     public TrieMapRulesCollectionBuilder(boolean ignoreCase, final LookupPreprocessor lookupPreprocessor) {
         this.ignoreCase = ignoreCase;
         this.lookupPreprocessor = lookupPreprocessor;
-        inputNormalizer = new InputNormalizer(lookupPreprocessor);
+        inputSequenceNormalizer = new InputSequenceNormalizer(lookupPreprocessor);
     }
 
     @Override
@@ -53,71 +51,10 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         addOrMergeInstructionsSupplier(rule.getInput(), rule.getInstructionsSupplier());
     }
 
-    protected void addOrMergeEmptyToken(final Input.SimpleInput input,
-                                        final InstructionsSupplier instructionsSupplier) {
-        if (!(input.isRequiresLeftBoundary() && input.isRequiresRightBoundary())) {
-            throw new IllegalArgumentException("Empty input!");
-        }
-
-        final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD,
-                TrieMapRulesCollection.BOUNDARY_WORD);
-        final States<InstructionsSupplier> states = map.get(seq);
-        final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-        if (state.value != null) {
-            state.value.merge(instructionsSupplier);
-        } else {
-            map.put(seq, instructionsSupplier);
-        }
-
-    }
-
-    protected void addOrMergeSingleToken(final Term term, final boolean isLeftBoundaryRequired,
-                                         final boolean isRightBoundaryRequired,
-                                         final InstructionsSupplier instructionsSupplier) {
-
-        boolean isPrefix = term instanceof PrefixTerm;
-
-        for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
-
-            seq = applyBoundaries(seq, isLeftBoundaryRequired, isRightBoundaryRequired);
-
-            final States<InstructionsSupplier> states = map.get(seq);
-
-            if (isPrefix) {
-                boolean added = false;
-
-                final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
-
-                if (prefixes != null) {
-                    for (final State<InstructionsSupplier> state : prefixes) {
-                        if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                            state.value.merge(instructionsSupplier);
-                            added = true;
-                            break;
-                        }
-
-                    }
-                }
-
-                if (!added) {
-                    map.putPrefix(seq, instructionsSupplier);
-                }
-
-            } else {
-                final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-                if (state.value != null) {
-                    state.value.merge(instructionsSupplier);
-                } else {
-                    map.put(seq, instructionsSupplier);
-                }
-
-            }
-        }
-    }
     public void addOrMergeInstructionsSupplier(final Input.SimpleInput input,
                                                final InstructionsSupplier instructionsSupplier) {
 
-        final List<CharSequence> seqs = inputNormalizer.getNormalizedInputSequences(input);
+        final List<CharSequence> seqs = inputSequenceNormalizer.getNormalizedInputSequences(input);
         final List<Term> inputTerms = input.getInputTerms();
 
         final boolean isPrefix = (!inputTerms.isEmpty()) &&  inputTerms.get(inputTerms.size() -1) instanceof PrefixTerm;
@@ -157,22 +94,6 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
         }
 
     }
-    
-    ComparableCharSequence applyBoundaries(final ComparableCharSequence seq, final boolean requiresLeftBoundary,
-                                           final boolean requiresRightBoundary) {
-        if (requiresLeftBoundary == requiresRightBoundary) {
-            if (requiresLeftBoundary) {
-                return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq, TrieMapRulesCollection.BOUNDARY_WORD);
-            } else {
-                return seq;
-            }
-        } else if (requiresLeftBoundary) {
-            return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq);
-        } else {
-            return new CompoundCharSequence(" ", seq, TrieMapRulesCollection.BOUNDARY_WORD);
-        }
-    }
-    
 
     /* (non-Javadoc)
      * @see querqy.rewrite.commonrules.model.RulesCollectionBuilder#build()

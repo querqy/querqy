@@ -8,12 +8,16 @@ import java.util.*;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 
 /**
  * @author René Kriegler, @renekrie
  *
  */
 public class DeleteInstruction implements Instruction {
+
+    private static final InputSequenceNormalizer LOWERCASE = new InputSequenceNormalizer(LookupPreprocessorFactory
+            .lowercase());
     
     protected final List<? extends Term> termsToDelete;
     protected final Set<CharSequence> charSequencesToDelete;
@@ -37,17 +41,12 @@ public class DeleteInstruction implements Instruction {
             if (term instanceof PrefixTerm) {
                 prefixes.add((PrefixTerm) term);
             } else {
-                charSequencesToDelete.addAll(term.getCharSequences(true));
+                charSequencesToDelete.addAll(LOWERCASE.getTermCharSequences(term));
             }
         }
         prefixesToDeleted = prefixes.isEmpty() ? null : prefixes;
         this.instructionDescription = instructionDescription;
     }
-
-    public List<? extends Term> getTermsToDelete() {
-        return termsToDelete;
-    }
-
 
    /* (non-Javadoc)
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
