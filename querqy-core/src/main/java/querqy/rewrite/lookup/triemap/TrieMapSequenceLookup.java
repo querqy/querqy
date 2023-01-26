@@ -31,7 +31,6 @@ public class TrieMapSequenceLookup<ValueT> {
         return trieMap.get(lookupCharSequence, sequence.getStates().getStateForCompleteSequence());
     }
 
-    // TODO: toCharSequenceWithField is a problem here as field names might be changed
     private CharSequence createLookupCharSequence(final Term term) {
         final CharSequence value = lookupConfig.getPreprocessor().process(term);
         final String field = term.getField();
