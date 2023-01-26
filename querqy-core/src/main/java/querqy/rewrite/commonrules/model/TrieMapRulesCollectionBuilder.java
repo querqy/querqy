@@ -22,18 +22,18 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     final TrieMap<InstructionsSupplier> map = new TrieMap<>();
 
-    final boolean ignoreCase;
+    // we keep this just for the deprecated build() method
+    @Deprecated
     private final LookupPreprocessor lookupPreprocessor;
     private final InputSequenceNormalizer inputSequenceNormalizer;
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
-        this(ignoreCase, LookupPreprocessorFactory.identity());
+        this(ignoreCase ? LookupPreprocessorFactory.lowercase() : LookupPreprocessorFactory.identity());
     }
 
-    public TrieMapRulesCollectionBuilder(boolean ignoreCase, final LookupPreprocessor lookupPreprocessor) {
-        this.ignoreCase = ignoreCase;
-        this.lookupPreprocessor = lookupPreprocessor;
+    public TrieMapRulesCollectionBuilder(final LookupPreprocessor lookupPreprocessor) {
         inputSequenceNormalizer = new InputSequenceNormalizer(lookupPreprocessor);
+        this.lookupPreprocessor = lookupPreprocessor;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
      */
     @Override
     public RulesCollection build() {
-        return new TrieMapRulesCollection(map, ignoreCase);
+        return new TrieMapRulesCollection(map, lookupPreprocessor);
     }
 
     @Override

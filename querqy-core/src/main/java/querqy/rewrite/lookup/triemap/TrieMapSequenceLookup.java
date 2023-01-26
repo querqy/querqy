@@ -33,8 +33,9 @@ public class TrieMapSequenceLookup<ValueT> {
 
     // TODO: toCharSequenceWithField is a problem here as field names might be changed
     private CharSequence createLookupCharSequence(final Term term) {
-        return lookupConfig.getPreprocessor()
-                .process(term.toCharSequenceWithField(lookupConfig.ignoreCase()));
+        final CharSequence value = lookupConfig.getPreprocessor().process(term);
+        final String field = term.getField();
+        return (field == null) ? value : new CompoundCharSequence(":", field, value);
     }
 
 }

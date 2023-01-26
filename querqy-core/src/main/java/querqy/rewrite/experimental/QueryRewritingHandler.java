@@ -97,7 +97,6 @@ public class QueryRewritingHandler {
                     true,
                     BoostMethod.ADDITIVE,
                     new WhiteSpaceQuerqyParserFactory(),
-                    true,
                     Collections.emptyMap(),
                     new ExpressionCriteriaSelectionStrategyFactory(), false, LookupPreprocessorType.NONE));
 

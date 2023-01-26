@@ -24,6 +24,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.RewriterConfigRequestBuilder.GetRewriterConfigSolrResponse;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
@@ -276,7 +277,8 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             final SolrClient client = getRandClient();
             final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
 
-            assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
+            assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b")
+                    .lookupPreprocessorType(LookupPreprocessorType.NONE).buildSaveRequest(rewriterName)
                     .process(client).getStatus());
 
             final GetRewriterConfigSolrResponse response = buildGetRequest(rewriterName).process(client);
@@ -305,7 +307,8 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             final SolrClient client = getRandClient();
             final CommonRulesConfigRequestBuilder commonRulesConfigBuilder = new CommonRulesConfigRequestBuilder();
 
-            assertEquals(0, commonRulesConfigBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName1)
+            assertEquals(0, commonRulesConfigBuilder.rules("a =>\n SYNONYM: b")
+                    .lookupPreprocessorType(LookupPreprocessorType.NONE).buildSaveRequest(rewriterName1)
                     .process(client).getStatus());
 
             final ReplaceConfigRequestBuilder replaceConfigBuilder = new ReplaceConfigRequestBuilder();
@@ -401,10 +404,9 @@ public class QuerqyRewriterRequestHandlerSolrCloudTest extends AbstractQuerqySol
             final SolrClient client = getRandClient();
             final CommonRulesConfigRequestBuilder configBuilder = new CommonRulesConfigRequestBuilder();
 
-            assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b").ignoreCase(false).buildSaveRequest(rewriterName)
-                    .process(client).getStatus());
-
-            //final ListRewriterConfigsSolrResponse response = .process(client);
+            assertEquals(0, configBuilder.rules("a =>\n SYNONYM: b")
+                    .lookupPreprocessorType(LookupPreprocessorType.NONE).buildSaveRequest(rewriterName).process(client)
+                    .getStatus());
 
             Map<String, Object> expectedResult = new HashMap<>();
             expectedResult.put("id", rewriterName);

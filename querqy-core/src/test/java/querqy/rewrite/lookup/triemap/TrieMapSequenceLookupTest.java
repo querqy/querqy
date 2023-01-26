@@ -33,7 +33,6 @@ public class TrieMapSequenceLookupTest {
         trieMapSequenceLookup = new TrieMapSequenceLookup<>(
                 trieMap,
                 LookupConfig.builder()
-                        .ignoreCase(true)
                         .preprocessor(preprocessor)
                         .build()
         );

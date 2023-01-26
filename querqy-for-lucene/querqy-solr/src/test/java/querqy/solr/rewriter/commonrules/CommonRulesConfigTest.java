@@ -8,6 +8,7 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.BoostMethodTest;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class CommonRulesConfigTest extends SolrTestCaseJ4 {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                     .rules(BoostMethodTest.class.getClassLoader()
                             .getResourceAsStream("configs/commonrules/rules.txt"));
-            builder.ignoreCase(true);
+            builder.lookupPreprocessorType(LookupPreprocessorType.LOWERCASE);
             withCommonRulesRewriter(h.getCore(), "common_rules2", builder);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -39,7 +40,7 @@ public class CommonRulesConfigTest extends SolrTestCaseJ4 {
             final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                     .rules(BoostMethodTest.class.getClassLoader()
                             .getResourceAsStream("configs/commonrules/rules.txt"));
-            builder.ignoreCase(false);
+            builder.lookupPreprocessorType(LookupPreprocessorType.NONE);
             withCommonRulesRewriter(h.getCore(), "common_rules3", builder);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -31,11 +31,6 @@ public class CommonRulesConfigRequestBuilder extends RewriterConfigRequestBuilde
         super(CommonRulesRewriterFactory.class);
     }
 
-    public CommonRulesConfigRequestBuilder ignoreCase(final boolean ignoreCase) {
-        this.ignoreCase = ignoreCase;
-        return this;
-    }
-
     public CommonRulesConfigRequestBuilder allowBooleanInput(final boolean allowBooleanInput) {
         this.allowBooleanInput = allowBooleanInput;
         return this;

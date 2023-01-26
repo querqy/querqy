@@ -83,11 +83,6 @@ public class Term extends AbstractNode<DisjunctionMaxQuery> implements Disjuncti
         return value.subSequence(start, end);
     }
 
-    public ComparableCharSequence toCharSequenceWithField(final boolean lowerCaseValue) {
-        final ComparableCharSequence valueToUse = lowerCaseValue ? new LowerCaseCharSequence(this) : value;
-        return (field == null) ? valueToUse : new CompoundCharSequence(":", field, valueToUse);
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;

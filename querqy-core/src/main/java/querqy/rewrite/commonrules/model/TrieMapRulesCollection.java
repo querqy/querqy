@@ -12,6 +12,8 @@ import querqy.CompoundCharSequence;
 import querqy.model.InputSequenceElement;
 import querqy.model.Term;
 import querqy.rewrite.commonrules.select.TopRewritingActionCollector;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -26,14 +28,15 @@ public class TrieMapRulesCollection implements RulesCollection {
     public static final String BOUNDARY_WORD = "\u0002";
     
     final TrieMap<InstructionsSupplier> trieMap;
-    final boolean ignoreCase;
+    private final LookupPreprocessor lookupPreprocessor;
     
-    public TrieMapRulesCollection(final TrieMap<InstructionsSupplier> trieMap, final boolean ignoreCase) {
+    public TrieMapRulesCollection(final TrieMap<InstructionsSupplier> trieMap,
+                                  final LookupPreprocessor lookupPreprocessor) {
         if (trieMap == null) {
             throw new IllegalArgumentException("trieMap must not be null");
         }
         this.trieMap = trieMap;
-        this.ignoreCase = ignoreCase;
+        this.lookupPreprocessor = lookupPreprocessor;
     }
 
     /* (non-Javadoc)
@@ -57,7 +60,7 @@ public class TrieMapRulesCollection implements RulesCollection {
                     .filter(Term.class::isInstance)
                     .map(Term.class::cast).forEach(term -> {
 
-                final States<InstructionsSupplier> states = trieMap.get(term.toCharSequenceWithField(ignoreCase));
+                final States<InstructionsSupplier> states = trieMap.get(createLookupCharSequence(term));
 
                 final State<InstructionsSupplier> stateExactMatch = states.getStateForCompleteSequence();
                 if (stateExactMatch.isFinal() && stateExactMatch.value != null) {
@@ -101,7 +104,7 @@ public class TrieMapRulesCollection implements RulesCollection {
 
                     final CharSequence charSequenceForLookup;
                     if (isTerm) {
-                        charSequenceForLookup = ((Term) element).toCharSequenceWithField(ignoreCase);
+                        charSequenceForLookup = createLookupCharSequence((Term) element);
                     } else if (element instanceof InputBoundary) {
                         charSequenceForLookup = BOUNDARY_WORD;
                     } else {
@@ -243,6 +246,12 @@ public class TrieMapRulesCollection implements RulesCollection {
         }
         
         return result;
+    }
+
+    private CharSequence createLookupCharSequence(final Term term) {
+        final CharSequence value = lookupPreprocessor.process(term);
+        final String field = term.getField();
+        return (field == null) ? value : new CompoundCharSequence(":", field, value);
     }
 
     public static class Prefix<T> {

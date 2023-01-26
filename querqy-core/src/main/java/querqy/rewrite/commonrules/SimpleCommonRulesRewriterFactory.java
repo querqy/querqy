@@ -73,7 +73,6 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      * @param boostMethod The {@link querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod} to use when creating
      *                    {@link querqy.rewrite.commonrules.model.BoostInstruction}s
      * @param querqyParserFactory A parser for the right-hand side of rules
-     * @param ignoreCase Iff true, rule input matching is case insensitive.
      * @param selectionStrategyFactories A mapping between names of rule selection strategies and their factories.
      * @param defaultSelectionStrategyFactory The default {@link SelectionStrategyFactory} to be used if no strategy is
      *                                       specified as a request parameter
@@ -85,7 +84,6 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                             final boolean allowBooleanInput,
                                             final BoostMethod boostMethod,
                                             final QuerqyParserFactory querqyParserFactory,
-                                            final boolean ignoreCase,
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
                                             final SelectionStrategyFactory defaultSelectionStrategyFactory,
                                             final boolean buildTermCache,
@@ -122,7 +120,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .querqyParserFactory(querqyParserFactory)
                             .allowedInstructionTypes(ALLOWED_TYPES)
                             .build())
-                    .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase, lookupPreprocessor))
+                    .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(lookupPreprocessor))
                     .build();
 
             final RulesParser rulesParser = RulesParserFactory.textParser(config);
@@ -131,7 +129,6 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
             trieMapLookupQueryVisitorFactory = TrieMapLookupQueryVisitorFactory.of(
                     trieMap,
                     LookupConfig.builder()
-                            .ignoreCase(ignoreCase)
                             .hasBoundaries(true)
                             .preprocessor(lookupPreprocessor)
                             .build()

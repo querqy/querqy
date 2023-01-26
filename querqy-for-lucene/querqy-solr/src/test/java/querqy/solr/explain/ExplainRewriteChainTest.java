@@ -7,6 +7,7 @@ import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 
 @SolrTestCaseJ4.SuppressSSL
@@ -21,7 +22,8 @@ public class ExplainRewriteChainTest  extends SolrTestCaseJ4 {
     public void testExplainChain() {
         final String rewriterName = "conf_common_rules";
         final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b\nSYNONYM(2.5): f1:c\nFILTER: x\nUP(100): pears").ignoreCase(true);
+                .rules("a =>\n SYNONYM: b\nSYNONYM(2.5): f1:c\nFILTER: x\nUP(100): pears")
+                .lookupPreprocessorType(LookupPreprocessorType.LOWERCASE);
         withCommonRulesRewriter(h.getCore(), rewriterName, builder);
 
 

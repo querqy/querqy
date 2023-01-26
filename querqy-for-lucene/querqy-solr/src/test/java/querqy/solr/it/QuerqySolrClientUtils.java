@@ -16,6 +16,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.testcontainers.containers.SolrClientUtils;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.RewriterConfigRequestBuilder;
 import querqy.solr.RewriterConfigRequestBuilder.SaveRewriterConfigSolrResponse;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
@@ -65,7 +66,7 @@ public class QuerqySolrClientUtils extends SolrClientUtils {
             if (new CommonRulesConfigRequestBuilder()
                     .rules(QuerqySolrClientUtils.class.getClassLoader()
                             .getResourceAsStream("integration-test/rewriter/rules.txt"))
-                    .ignoreCase(true)
+                    .lookupPreprocessorType(LookupPreprocessorType.LOWERCASE)
                     .rhsParser(WhiteSpaceQuerqyParserFactory.class)
                     .buildSaveRequest("common_rules")
                     .process(solrClient, collectionName).getStatus() != 0) {

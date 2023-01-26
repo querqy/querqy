@@ -159,7 +159,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                 new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                         getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
                         StandardCharsets.UTF_8)), true, BoostMethod.ADDITIVE,
-                new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
+                new WhiteSpaceQuerqyParserFactory(), Collections.emptyMap(),
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                 true, LookupPreprocessorType.NONE);
 
@@ -817,7 +817,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                        getClass().getClassLoader().getResourceAsStream("rules-synonyms.txt")),
                        StandardCharsets.UTF_8)), true, BoostMethod.ADDITIVE,
-               new WhiteSpaceQuerqyParserFactory(), true, Collections.emptyMap(),
+               new WhiteSpaceQuerqyParserFactory(), Collections.emptyMap(),
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                true, LookupPreprocessorType.NONE);
 
