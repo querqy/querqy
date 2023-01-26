@@ -24,7 +24,7 @@ public class LookupPreprocessorFactory {
                 return GERMAN_PREPROCESSOR;
 
             default:
-                throw new IllegalStateException("Preprocessor of type " + " is currently not supported");
+                throw new IllegalArgumentException("Preprocessor of type " + " is currently not supported");
         }
 
     }
