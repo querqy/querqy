@@ -9,24 +9,17 @@ public class LookupConfig {
     private static final LookupPreprocessor IDENTITY_PREPROCESSOR = charSequence -> charSequence;
 
     private static final LookupConfig DEFAULT_CONFIG = LookupConfig.builder()
-            .ignoreCase(true)
             .hasBoundaries(true)
             .build();
 
 
-    private final boolean ignoreCase;
     private final boolean hasBoundaries;
 
     private final LookupPreprocessor preprocessor;
 
-    private LookupConfig(final boolean ignoreCase, final boolean hasBoundaries, final LookupPreprocessor preprocessor) {
-        this.ignoreCase = ignoreCase;
+    private LookupConfig(final boolean hasBoundaries, final LookupPreprocessor preprocessor) {
         this.hasBoundaries = hasBoundaries;
         this.preprocessor = Objects.requireNonNullElse(preprocessor, IDENTITY_PREPROCESSOR);
-    }
-
-    public boolean ignoreCase() {
-        return ignoreCase;
     }
 
     public boolean hasBoundaries() {
@@ -47,14 +40,8 @@ public class LookupConfig {
 
     public static class LookupConfigBuilder {
 
-        private boolean ignoreCase;
         private boolean hasBoundaries;
         private LookupPreprocessor preprocessor;
-
-        public LookupConfigBuilder ignoreCase(final boolean ignoreCase) {
-            this.ignoreCase = ignoreCase;
-            return this;
-        }
 
         public LookupConfigBuilder hasBoundaries(final boolean hasBoundaries) {
             this.hasBoundaries = hasBoundaries;
@@ -67,7 +54,7 @@ public class LookupConfig {
         }
 
         public LookupConfig build() {
-            return new LookupConfig(ignoreCase, hasBoundaries, preprocessor);
+            return new LookupConfig(hasBoundaries, preprocessor);
         }
     }
 

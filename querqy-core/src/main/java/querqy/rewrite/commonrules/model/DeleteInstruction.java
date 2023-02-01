@@ -5,15 +5,22 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.*;
 
+import querqy.CompoundCharSequence;
 import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 
 /**
  * @author René Kriegler, @renekrie
  *
  */
 public class DeleteInstruction implements Instruction {
+
+    private static final LookupPreprocessor LOWERCASE_PREPROCESSOR = LookupPreprocessorFactory.lowercase();
+    private static final InputSequenceNormalizer LOWERCASE_INPUT_NORMALIZER = new InputSequenceNormalizer(
+            LOWERCASE_PREPROCESSOR);
     
     protected final List<? extends Term> termsToDelete;
     protected final Set<CharSequence> charSequencesToDelete;
@@ -29,25 +36,21 @@ public class DeleteInstruction implements Instruction {
         this(termsToDelete, InstructionDescription.empty());
     }
 
-    public DeleteInstruction(final List<? extends Term> termsToDelete, final InstructionDescription instructionDescription) {
+    public DeleteInstruction(final List<? extends Term> termsToDelete,
+                             final InstructionDescription instructionDescription) {
         this.termsToDelete = termsToDelete;
         charSequencesToDelete = new HashSet<>();
         final List<PrefixTerm> prefixes = new ArrayList<>();
-        for (Term term : termsToDelete) {
+        for (final Term term : termsToDelete) {
             if (term instanceof PrefixTerm) {
                 prefixes.add((PrefixTerm) term);
             } else {
-                charSequencesToDelete.addAll(term.getCharSequences(true));
+                charSequencesToDelete.addAll(LOWERCASE_INPUT_NORMALIZER.getTermCharSequences(term));
             }
         }
         prefixesToDeleted = prefixes.isEmpty() ? null : prefixes;
         this.instructionDescription = instructionDescription;
     }
-
-    public List<? extends Term> getTermsToDelete() {
-        return termsToDelete;
-    }
-
 
    /* (non-Javadoc)
     * @see querqy.rewrite.commonrules.model.Instruction#apply(querqy.rewrite.commonrules.model.PositionSequence, querqy.rewrite.commonrules.model.TermMatches, int, int, querqy.model.ExpandedQuery, java.util.Map)
@@ -72,7 +75,12 @@ public class DeleteInstruction implements Instruction {
                }
            }
        }
-       return charSequencesToDelete.contains(term.toCharSequenceWithField(true));
+       return charSequencesToDelete.contains(getLookupCharSequence(term));
+   }
+
+   private CharSequence getLookupCharSequence(final querqy.model.Term term) {
+       final CharSequence value = LOWERCASE_PREPROCESSOR.process(term);
+       return term.getField() == null ? value : new CompoundCharSequence(":", term.getField(), value);
    }
 
    @Override

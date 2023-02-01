@@ -56,7 +56,7 @@ public interface StandaloneSolrTestSupport {
                                                 ruleSelectionStrategies,
                                         final BoostInstruction.BoostMethod boostMethod, final String ... sinks
                                         ) {
-        withCommonRulesRewriter(core, rewriterId, rulesName, ruleSelectionStrategies, boostMethod, LookupPreprocessorType.NONE, sinks);
+        withCommonRulesRewriter(core, rewriterId, rulesName, ruleSelectionStrategies, boostMethod, null, sinks);
     }
 
     static void withCommonRulesRewriter(final SolrCore core, final String rewriterId, final String rulesName,
@@ -72,7 +72,9 @@ public interface StandaloneSolrTestSupport {
                     .rules(StandaloneSolrTestSupport.class.getClassLoader().getResourceAsStream(rulesName))
                     .loggingToSinks(sinks);
             ruleSelectionStrategies.forEach(builder::ruleSelectionStrategy);
-            builder.lookupPreprocessorType(lookupPreprocessorType);
+            if (lookupPreprocessorType != null) {
+                builder.lookupPreprocessorType(lookupPreprocessorType);
+            }
 
             if (boostMethod != null) {
                 builder.boostMethod(boostMethod);

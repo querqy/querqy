@@ -12,6 +12,7 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 
 @SolrTestCaseJ4.SuppressSSL
@@ -73,7 +74,7 @@ public class QuerqyRewriterRequestHandlerStandaloneTest extends SolrTestCaseJ4 {
 
         final String rewriterName = "conf_common_rules";
         final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b").ignoreCase(false);
+                .rules("a =>\n SYNONYM: b").lookupPreprocessorType(LookupPreprocessorType.GERMAN);
         withCommonRulesRewriter(h.getCore(), rewriterName, builder);
 
 
@@ -86,8 +87,8 @@ public class QuerqyRewriterRequestHandlerStandaloneTest extends SolrTestCaseJ4 {
                     "//lst[@name='rewriter']/str[@name='path'][text()='/querqy/rewriter/" + rewriterName + "']",
                     "//lst[@name='rewriter']/lst[@name='definition']/str[@name='class']" +
                             "[text()='querqy.solr.rewriter.commonrules.CommonRulesRewriterFactory']",
-                    "//lst[@name='rewriter']/lst[@name='definition']/lst[@name='config']/bool[@name='ignoreCase']" +
-                            "[text()='false']",
+                    "//lst[@name='rewriter']/lst[@name='definition']/lst[@name='config']/str[@name='lookupPreprocessor']" +
+                            "[text()='german']",
                     "//lst[@name='rewriter']/lst[@name='definition']/lst[@name='config']/str[@name='rules']" +
                             "[contains(.,'SYNONYM: b')]"
             );
@@ -101,12 +102,12 @@ public class QuerqyRewriterRequestHandlerStandaloneTest extends SolrTestCaseJ4 {
 
         final String rewriterName1 = "rewriter1";
         final CommonRulesConfigRequestBuilder builder1 = new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b").ignoreCase(false);
+                .rules("a =>\n SYNONYM: b").lookupPreprocessorType(LookupPreprocessorType.NONE);
         withCommonRulesRewriter(h.getCore(), rewriterName1, builder1);
 
         final String rewriterName2 = "rewriter2";
         final CommonRulesConfigRequestBuilder builder2 = new CommonRulesConfigRequestBuilder()
-                .rules("a =>\n SYNONYM: b").ignoreCase(false);
+                .rules("a =>\n SYNONYM: b").lookupPreprocessorType(LookupPreprocessorType.NONE);
         withCommonRulesRewriter(h.getCore(), rewriterName2, builder2);
 
 

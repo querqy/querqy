@@ -107,42 +107,7 @@ public abstract class Input {
             builder.addRule(this, instructions);
         }
 
-        public List<ComparableCharSequence> getInputSequences(final boolean lowerCaseValues) {
 
-            if (inputTerms.size() == 1) {
-                return inputTerms.get(0).getCharSequences(lowerCaseValues);
-            }
-
-            LinkedList<List<ComparableCharSequence>> slots = new LinkedList<>();
-
-            for (final Term inputTerm : inputTerms) {
-                slots.add(inputTerm.getCharSequences(lowerCaseValues));
-            }
-
-            final List<ComparableCharSequence> seqs = new LinkedList<>();
-            collectTails(new LinkedList<>(), slots, seqs);
-            return seqs;
-
-        }
-
-        void collectTails(final List<ComparableCharSequence> prefix, List<List<ComparableCharSequence>> tailSlots,
-                          final List<ComparableCharSequence> result) {
-            if (tailSlots.size() == 1) {
-                for (final ComparableCharSequence sequence : tailSlots.get(0)) {
-                    final List<ComparableCharSequence> combined = new LinkedList<>(prefix);
-                    combined.add(sequence);
-                    result.add(new CompoundCharSequence(" ", combined));
-                }
-            } else {
-
-                final List<List<ComparableCharSequence>> newTail = tailSlots.subList(1, tailSlots.size());
-                for (final ComparableCharSequence sequence : tailSlots.get(0)) {
-                    final List<ComparableCharSequence> newPrefix = new LinkedList<>(prefix);
-                    newPrefix.add(sequence);
-                    collectTails(newPrefix, newTail, result);
-                }
-            }
-        }
 
     }
 

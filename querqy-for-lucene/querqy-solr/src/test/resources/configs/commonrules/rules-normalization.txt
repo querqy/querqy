@@ -3,3 +3,7 @@ handy =>
 
 spülmaschine =>
     SYNONYM: geschirrreiniger
+
+massnahmen =>
+    SYNONYM: initiative
+

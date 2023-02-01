@@ -10,6 +10,8 @@ import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
 import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.FactoryAdapter;
 import querqy.solr.SolrRewriterFactoryAdapter;
@@ -42,6 +44,8 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     static final QuerqyParserFactory DEFAULT_RHS_QUERY_PARSER = new WhiteSpaceQuerqyParserFactory();
     static final SelectionStrategyFactory DEFAULT_SELECTION_STRATEGY_FACTORY =
             new ExpressionCriteriaSelectionStrategyFactory();
+
+    static final LookupPreprocessorType DEFAULT_LOOKUP_PREPROCESSOR_TYPE = LookupPreprocessorType.LOWERCASE;
     public static final String CONF_BUILD_TERM_CACHE = "buildTermCache";
 
     private RewriterFactory delegate = null;
@@ -54,7 +58,6 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
     @Override
     public void configure(final Map<String, Object> config) {
 
-        final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
         final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
         final BoostMethod boostMethod = readBoostMethod(config);
 
@@ -70,7 +73,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
         final Optional<String> lookupPreprocessorTypeName = ConfigUtils.getStringArg(config, CONF_LOOKUP_PREPROCESSOR);
         final LookupPreprocessorType lookupPreprocessorType = lookupPreprocessorTypeName
                 .map(LookupPreprocessorType::fromString)
-                .orElse(LookupPreprocessorType.NONE);
+                .orElse(DEFAULT_LOOKUP_PREPROCESSOR_TYPE);
 
         try {
             delegate = new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
@@ -79,7 +82,6 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
                     allowBooleanInput,
                     boostMethod,
                     querqyParser,
-                    ignoreCase,
                     selectionStrategyFactories,
                     DEFAULT_SELECTION_STRATEGY_FACTORY,
                     buildTermCache,
@@ -114,8 +116,12 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
             return Collections.singletonList(e.getMessage());
         }
 
+        final Boolean confIgnoreCase = (Boolean) config.get(CONF_IGNORE_CASE);
+        if (confIgnoreCase != null) {
+            return Collections.singletonList(CONF_IGNORE_CASE + " is no longer supported, please use " +
+                    CONF_LOOKUP_PREPROCESSOR + " instead.");
+        }
 
-        final boolean ignoreCase = ConfigUtils.getArg(config, CONF_IGNORE_CASE, true);
         final boolean allowBooleanInput = ConfigUtils.getArg(config, CONF_ALLOW_BOOLEAN_INPUT, false);
         final BoostMethod boostMethod = readBoostMethod(config);
 
@@ -124,7 +130,9 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
         final Optional<String> lookupPreprocessorTypeName = ConfigUtils.getStringArg(config, CONF_LOOKUP_PREPROCESSOR);
         final LookupPreprocessorType lookupPreprocessorType = lookupPreprocessorTypeName
                 .map(LookupPreprocessorType::fromString)
-                .orElse(LookupPreprocessorType.NONE);
+                .orElse(DEFAULT_LOOKUP_PREPROCESSOR_TYPE);
+
+
 
         try {
             new querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory(
@@ -133,7 +141,6 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
                     allowBooleanInput,
                     boostMethod,
                     querqyParser,
-                    ignoreCase,
                     selectionStrategyFactories,
                     DEFAULT_SELECTION_STRATEGY_FACTORY,
                     buildTermCache,
@@ -201,7 +208,7 @@ public class CommonRulesRewriterFactory extends SolrRewriterFactoryAdapter imple
             }
         });
 
-        ifNotNull(configuration.get(CONF_IGNORE_CASE), v -> conf.put(CONF_IGNORE_CASE, v));
+        ifNotNull(configuration.get(CONF_LOOKUP_PREPROCESSOR), v -> conf.put(CONF_LOOKUP_PREPROCESSOR, v));
         ifNotNull(configuration.get(CONF_RHS_QUERY_PARSER), v -> conf.put(CONF_RHS_QUERY_PARSER, v));
         ifNotNull(configuration.get(CONF_RULE_SELECTION_STRATEGIES), v -> conf.put(CONF_RULE_SELECTION_STRATEGIES, v));
         ifNotNull(configuration.get(CONF_ALLOW_BOOLEAN_INPUT), v -> conf.put(CONF_ALLOW_BOOLEAN_INPUT, v));

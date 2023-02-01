@@ -5,9 +5,6 @@ package querqy.rewrite.commonrules.model;
 
 import java.util.List;
 
-import lombok.Builder;
-import querqy.ComparableCharSequence;
-import querqy.CompoundCharSequence;
 import querqy.model.Input;
 import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
@@ -25,15 +22,17 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     final TrieMap<InstructionsSupplier> map = new TrieMap<>();
 
-    final boolean ignoreCase;
+    // we keep this just for the deprecated build() method
+    @Deprecated
     private final LookupPreprocessor lookupPreprocessor;
+    private final InputSequenceNormalizer inputSequenceNormalizer;
     
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
-        this(ignoreCase, LookupPreprocessorFactory.identity());
+        this(ignoreCase ? LookupPreprocessorFactory.lowercase() : LookupPreprocessorFactory.identity());
     }
 
-    public TrieMapRulesCollectionBuilder(boolean ignoreCase, final LookupPreprocessor lookupPreprocessor) {
-        this.ignoreCase = ignoreCase;
+    public TrieMapRulesCollectionBuilder(final LookupPreprocessor lookupPreprocessor) {
+        inputSequenceNormalizer = new InputSequenceNormalizer(lookupPreprocessor);
         this.lookupPreprocessor = lookupPreprocessor;
     }
 
@@ -54,140 +53,54 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
 
     public void addOrMergeInstructionsSupplier(final Input.SimpleInput input,
                                                final InstructionsSupplier instructionsSupplier) {
+
+        final List<CharSequence> seqs = inputSequenceNormalizer.getNormalizedInputSequences(input);
         final List<Term> inputTerms = input.getInputTerms();
-        
-        switch (inputTerms.size()) {
-        
-        case 0: {
-            if (!(input.isRequiresLeftBoundary() && input.isRequiresRightBoundary())) {
-                throw new IllegalArgumentException("Empty input!");
-            }
 
-            final ComparableCharSequence seq = new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD,
-                    TrieMapRulesCollection.BOUNDARY_WORD);
+        final boolean isPrefix = (!inputTerms.isEmpty()) &&  inputTerms.get(inputTerms.size() -1) instanceof PrefixTerm;
+        for (final CharSequence seq : seqs) {
+                
             final States<InstructionsSupplier> states = map.get(seq);
-            final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-            if (state.value != null) {
-                state.value.merge(instructionsSupplier);
-            } else {
-                map.put(seq, instructionsSupplier);
-            }
-            
-        }
-        break;
-        
-        case 1: {
-
-            final Term term = inputTerms.get(0);
-            
-            boolean isPrefix = term instanceof PrefixTerm;
-            
-            for (ComparableCharSequence seq: term.getCharSequences(ignoreCase)) {
                 
-                seq = applyBoundaries(seq, input.isRequiresLeftBoundary(), input.isRequiresRightBoundary());
-
-                final States<InstructionsSupplier> states = map.get(seq);
-                
-                if (isPrefix) {
-                    boolean added = false;
-
-                    final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
+            if (isPrefix) {
                     
-                    if (prefixes != null) {
-                        for (final State<InstructionsSupplier> state : prefixes) {
-                            if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.merge(instructionsSupplier);
-                                added = true;
-                                break;
-                            }
-                            
+                boolean added = false;
+
+                final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
+                    
+                if (prefixes != null) {
+                    for (final State<InstructionsSupplier> state: prefixes) {
+                        if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
+                            state.value.merge(instructionsSupplier);
+                            added = true;
+                            break;
                         }
-                    }
-                    
-                    if (!added) {
-                        map.putPrefix(seq, instructionsSupplier);
-                    }
-                
-                } else {
-                    final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-                    if (state.value != null) {
-                        state.value.merge(instructionsSupplier);
-                    } else {
-                        map.put(seq, instructionsSupplier);
-                    }
-                    
-                }
-            }
-        }
-        break;
-        
-        default:
-
-            final Term lastTerm = inputTerms.get(inputTerms.size() -1);
-            final boolean isPrefix = lastTerm instanceof PrefixTerm;
-            for (ComparableCharSequence seq : input.getInputSequences(ignoreCase)) {
-                
-                seq = applyBoundaries(seq, input.isRequiresLeftBoundary(), input.isRequiresRightBoundary());
-
-                final States<InstructionsSupplier> states = map.get(seq);
-                
-                if (isPrefix) { 
-                    
-                    boolean added = false;
-
-                    final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
-                    
-                    if (prefixes != null) {
-                        for (final State<InstructionsSupplier> state: prefixes) {
-                            if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
-                                state.value.merge(instructionsSupplier);
-                                added = true;
-                                break;
-                            }
                             
-                        }
-                    }
-                    
-                    if (!added) {
-                        map.putPrefix(seq, instructionsSupplier);
-                    }
-                } else {
-                    final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
-                    if (state.value != null) {
-                        state.value.merge(instructionsSupplier);
-                    } else {
-                        map.put(seq, instructionsSupplier);
                     }
                 }
-                
-            } 
-        }
-
-
-    }
-    
-    ComparableCharSequence applyBoundaries(final ComparableCharSequence seq, final boolean requiresLeftBoundary,
-                                           final boolean requiresRightBoundary) {
-        if (requiresLeftBoundary == requiresRightBoundary) {
-            if (requiresLeftBoundary) {
-                return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq, TrieMapRulesCollection.BOUNDARY_WORD);
+                    
+                if (!added) {
+                    map.putPrefix(seq, instructionsSupplier);
+                }
             } else {
-                return seq;
+                final State<InstructionsSupplier> state = states.getStateForCompleteSequence();
+                if (state.value != null) {
+                    state.value.merge(instructionsSupplier);
+                } else {
+                    map.put(seq, instructionsSupplier);
+                }
             }
-        } else if (requiresLeftBoundary) {
-            return new CompoundCharSequence(" ", TrieMapRulesCollection.BOUNDARY_WORD, seq);
-        } else {
-            return new CompoundCharSequence(" ", seq, TrieMapRulesCollection.BOUNDARY_WORD);
+                
         }
+
     }
-    
 
     /* (non-Javadoc)
      * @see querqy.rewrite.commonrules.model.RulesCollectionBuilder#build()
      */
     @Override
     public RulesCollection build() {
-        return new TrieMapRulesCollection(map, ignoreCase);
+        return new TrieMapRulesCollection(map, lookupPreprocessor);
     }
 
     @Override

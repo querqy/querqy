@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 
 import java.util.List;
 import java.util.Map;
@@ -46,13 +47,13 @@ public class CommonRulesConfigRequestBuilderTest {
         final Map<String, Object> config = new CommonRulesConfigRequestBuilder()
                 .rules("trainers =>\n" +
                         "SYNONYM: sneakers")
-                .ignoreCase(false)
+                .lookupPreprocessorType(LookupPreprocessorType.GERMAN)
                 .rhsParser(WhiteSpaceQuerqyParserFactory.class)
                 .ruleSelectionStrategy("strategy1", ExpressionSelectionStrategyFactory.class)
                 .buildConfig();
         assertThat(config, hasEntry(CommonRulesRewriterFactory.CONF_RULES, "trainers =>\n" +
                 "SYNONYM: sneakers"));
-        assertThat(config, hasEntry(CommonRulesRewriterFactory.CONF_IGNORE_CASE, Boolean.FALSE));
+        assertThat(config, hasEntry(CommonRulesRewriterFactory.CONF_LOOKUP_PREPROCESSOR, "german"));
 
         final Map<String,Map<String,Object>> strategyConfig = (Map<String,Map<String,Object>>) config
                 .get(CommonRulesRewriterFactory.CONF_RULE_SELECTION_STRATEGIES);

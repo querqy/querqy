@@ -79,7 +79,6 @@ public class SimpleCommonRulesRewriterFactoryTest {
                 true,
                 BoostMethod.ADDITIVE,
                 querqyParserFactory,
-                true,
                 namedStrategyFactories,
                 selectionStrategyFactory,
                 buildTermCache,
