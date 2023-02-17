@@ -7,7 +7,9 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.model.StringRawQuery;
 import querqy.model.Term;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.contrib.replace.ReplaceInstruction;
 import querqy.rewrite.contrib.replace.TermsReplaceInstruction;
@@ -456,6 +458,21 @@ public class ReplaceRewriterTest {
                         dmq(term("c"))
                 )
         );
+    }
+
+    @Test
+    public void testThatRawQueryAsUserQueryIsJustPassedUnchanged() {
+
+        final SequenceLookup<ReplaceInstruction> sequenceLookup = new SequenceLookup<>();
+        sequenceLookup.put(tokenListFromString("a b"), getTermsReplaceInstruction(Collections.emptyList()));
+
+        final ReplaceRewriter rewriter = new ReplaceRewriter(sequenceLookup);
+
+        final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
+        final ExpandedQuery query = new ExpandedQuery(userQuery);
+        final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
+        assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
+
     }
 
     private ExpandedQuery getQuery(List<String> tokens) {

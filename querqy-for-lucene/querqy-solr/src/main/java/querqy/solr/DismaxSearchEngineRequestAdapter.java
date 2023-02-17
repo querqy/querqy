@@ -25,6 +25,7 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.RankQuery;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
+import querqy.lucene.LuceneRawQuery;
 import querqy.lucene.PhraseBoosting;
 import querqy.lucene.PhraseBoosting.PhraseBoostFieldParams;
 import querqy.lucene.QuerySimilarityScoring;
@@ -344,7 +345,7 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
     }
 
     @Override
-    public Query parseRawQuery(final RawQuery rawQuery) throws SyntaxException {
+    public Query rawQueryToQuery(final RawQuery rawQuery) throws SyntaxException {
         try {
             if (rawQuery instanceof StringRawQuery) {
                 return QParser.getParser(((StringRawQuery) rawQuery).getQueryString(),
@@ -366,6 +367,10 @@ public class DismaxSearchEngineRequestAdapter implements LuceneSearchEngineReque
 
                 return QParser.getParser(queryString,null, request).getQuery();
 
+
+            } else if (rawQuery instanceof LuceneRawQuery) {
+
+                return  ((LuceneRawQuery) rawQuery).getQuery();
 
             } else {
                 throw new UnsupportedOperationException("Implementation type of RawQuery is not supported for this adapter");

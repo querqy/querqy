@@ -12,8 +12,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.model.StringRawQuery;
+import querqy.rewrite.RewriterOutput;
+import querqy.rewrite.contrib.ShingleRewriter;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;
@@ -24,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -859,6 +864,26 @@ public class WordBreakCompoundRewriterTest {
                         )
                 )
         );
+    }
+
+    @Test
+    public void testThatRawQueryAsUserQueryIsJustPassedUnchanged() throws Exception {
+
+        final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
+        final ExpandedQuery query = new ExpandedQuery(userQuery);
+
+        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
+                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2")});
+
+        final WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
+                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
+                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
+                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS);
+
+        final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
+        assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
+
     }
 
     private WordBreakCompoundRewriter rewriter(TrieMap<Boolean> protectedTerms) {
