@@ -872,9 +872,6 @@ public class WordBreakCompoundRewriterTest {
         final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
         final ExpandedQuery query = new ExpandedQuery(userQuery);
 
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2")});
-
         final WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
                 new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
                 new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
