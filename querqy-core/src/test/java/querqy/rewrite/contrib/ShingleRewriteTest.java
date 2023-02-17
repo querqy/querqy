@@ -1,24 +1,16 @@
 package querqy.rewrite.contrib;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import querqy.model.*;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
-import querqy.model.Input;
-import querqy.rewrite.commonrules.LineParser;
-import querqy.rewrite.commonrules.model.RulesCollection;
-import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
-import querqy.rewrite.commonrules.model.SynonymInstruction;
-import querqy.rewrite.commonrules.model.TrieMapRulesCollectionBuilder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static querqy.QuerqyMatchers.*;
-import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
-import static querqy.rewrite.commonrules.model.InstructionsTestSupport.instructions;
 
 /**
  * Test for ShingleRewriter.
@@ -345,6 +337,18 @@ public class ShingleRewriteTest extends AbstractCommonRulesTest {
 
         ShingleRewriter rewriter = new ShingleRewriter(false);
         rewriter.visit(dmq);
+
+    }
+
+    @Test
+    public void testThatRawQueryAsUserQueryIsJustPassedUnchanged() {
+
+        final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
+        final ExpandedQuery query = new ExpandedQuery(userQuery);
+
+        final ShingleRewriter rewriter = new ShingleRewriter();
+        final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
+        assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
 
     }
 

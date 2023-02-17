@@ -1,19 +1,31 @@
 package querqy.solr;
 
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
+import org.apache.solr.search.QParserPlugin;
+import org.apache.solr.search.SyntaxError;
+import org.apache.solr.search.TermQParserPlugin;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import querqy.lucene.LuceneRawQuery;
 import querqy.lucene.rewrite.infologging.InfoLogging;
+import querqy.model.Clause;
+import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.RewriteChain;
 
@@ -27,6 +39,12 @@ public class DismaxSearchEngineRequestAdapterTest {
 
     @Mock
     SolrQueryRequest request;
+
+    @Mock
+    SolrCore solrCore;
+
+    @Mock
+    QParserPlugin qParserPlugin;
 
     @Mock
     QuerqyParser querqyParser;
@@ -47,10 +65,11 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         when(request.getSchema()).thenReturn(null);
 
+
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
                 "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
-        Assert.assertEquals(0.5, adapter.getDoubleRequestParam(name).get(), 0.001);
+        assertEquals(0.5, adapter.getDoubleRequestParam(name).get(), 0.001);
         Assert.assertFalse(adapter.getDoubleRequestParam("p2").isPresent());
 
     }
@@ -69,7 +88,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
                 "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
-        Assert.assertEquals(-0.03f, adapter.getFloatRequestParam(name).get(), 0.001f);
+        assertEquals(-0.03f, adapter.getFloatRequestParam(name).get(), 0.001f);
         Assert.assertFalse(adapter.getFloatRequestParam("p2").isPresent());
 
     }
@@ -88,7 +107,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
                 "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
-        Assert.assertEquals(value, adapter.getIntegerRequestParam(name).get().intValue());
+        assertEquals(value, adapter.getIntegerRequestParam(name).get().intValue());
         Assert.assertFalse(adapter.getIntegerRequestParam("p2").isPresent());
 
     }
@@ -128,7 +147,7 @@ public class DismaxSearchEngineRequestAdapterTest {
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
                 "some query", params, querqyParser, rewriteChain, infoLogging, null);
 
-        Assert.assertEquals(value, adapter.getRequestParam(name).get());
+        assertEquals(value, adapter.getRequestParam(name).get());
         Assert.assertFalse(adapter.getRequestParam("p2").isPresent());
 
     }
@@ -151,11 +170,11 @@ public class DismaxSearchEngineRequestAdapterTest {
 
         final String[] value = adapter.getRequestParams(name);
         Assert.assertNotNull(value);
-        Assert.assertEquals(2, value.length);
-        Assert.assertEquals(value1, value[0]);
-        Assert.assertEquals(value2, value[1]);
+        assertEquals(2, value.length);
+        assertEquals(value1, value[0]);
+        assertEquals(value2, value[1]);
 
-        Assert.assertEquals(0, adapter.getRequestParams("p2").length);
+        assertEquals(0, adapter.getRequestParams("p2").length);
 
     }
 
@@ -229,10 +248,50 @@ public class DismaxSearchEngineRequestAdapterTest {
         final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
                 "some query", params, querqyParser, rewriteChain, infoLogging, null);
         final Map<String, Float> fields = adapter.parseQueryFields(DisMaxParams.QF, 2f, true);
-        Assert.assertEquals(1, fields.size());
-        Assert.assertEquals(2f, fields.get("f1").floatValue(), 0.001f);
+        assertEquals(1, fields.size());
+        assertEquals(2f, fields.get("f1").floatValue(), 0.001f);
     }
 
 
+    @Test
+    public void testThatStringRawQueryCanBeParsed() throws Exception {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+
+        when(request.getCore()).thenReturn(solrCore);
+
+        final TermQuery expected = new TermQuery(new Term("id", "123"));
+
+        when(solrCore.getQueryPlugin("terms")).thenReturn(new QParserPlugin() {
+            @Override
+            public QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params, final SolrQueryRequest req) {
+                return new QParser(qstr, params,params, req) {
+                    @Override
+                    public Query parse() throws SyntaxError {
+                        return expected;
+                    }
+                };
+            }
+        });
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
+
+        assertEquals(expected, adapter.rawQueryToQuery(new StringRawQuery(null, "{!terms f=id}123",
+                Clause.Occur.MUST, true)));
+
+    }
+
+    @Test
+    public void testThatLucenewQueryCanBeParsed() throws Exception {
+        ModifiableSolrParams params = new ModifiableSolrParams();
+
+        final TermQuery expected = new TermQuery(new Term("id", "123"));
+
+        final DismaxSearchEngineRequestAdapter adapter = new DismaxSearchEngineRequestAdapter(qParser, request,
+                "some query", params, querqyParser, rewriteChain, infoLogging, null);
+
+        assertEquals(expected, adapter.rawQueryToQuery(new LuceneRawQuery(null, Clause.Occur.MUST, true,
+                expected)));
+
+    }
 
 }

@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
@@ -13,9 +14,12 @@ import static querqy.rewrite.commonrules.select.SelectionStrategyFactory.DEFAULT
 
 import org.junit.Test;
 
+import querqy.model.Clause;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.model.StringRawQuery;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewrite.commonrules.AbstractCommonRulesTest;
 import querqy.rewrite.commonrules.CommonRulesRewriter;
@@ -253,5 +257,20 @@ public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
                      ) 
                      
           ));    
+    }
+
+    @Test
+    public void testThatRawQueryAsUserQueryIsJustPassedUnchanged() {
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("a\""),
+                        synonym("s1")
+                )
+        );
+
+        final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
+        final ExpandedQuery query = new ExpandedQuery(userQuery);
+        final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
+        assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
     }
 }

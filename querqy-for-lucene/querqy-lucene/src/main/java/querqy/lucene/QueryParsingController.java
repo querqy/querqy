@@ -135,7 +135,13 @@ public class QueryParsingController {
             boostTermQueryBuilder = null;
             boostSearchFieldsAndBoostings = null;
             builder = new LuceneQueryBuilder(new LuceneTermQueryBuilder(), queryAnalyzer, searchFieldsAndBoosting, 1f,
-                    1f, requestAdapter.getTermQueryCache().orElse(null));
+                    1f, requestAdapter.getTermQueryCache().orElse(null), q -> {
+                try {
+                    return requestAdapter.rawQueryToQuery(q);
+                } catch (final SyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         } else {
             addQuerqyBoostQueriesToMainQuery = requestAdapter.addQuerqyBoostQueriesToMainQuery();
 
@@ -159,7 +165,12 @@ public class QueryParsingController {
             builder = new LuceneQueryBuilder(userTermQueryBuilder,
                     queryAnalyzer, searchFieldsAndBoosting, requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
                     requestAdapter.getMultiMatchTiebreaker().orElse(DEFAULT_MULTI_MATCH_TIEBREAKER),
-                    requestAdapter.getTermQueryCache().orElse(null));
+                    requestAdapter.getTermQueryCache().orElse(null), q -> {
+                try {
+                    return requestAdapter.rawQueryToQuery(q);
+                } catch (final SyntaxException e) {
+                    throw new RuntimeException(e);
+                }});
 
         }
     }
@@ -292,7 +303,7 @@ public class QueryParsingController {
 
                 if (qfq instanceof RawQuery) {
 
-                    fqs.add(requestAdapter.parseRawQuery((RawQuery) qfq));
+                    fqs.add(requestAdapter.rawQueryToQuery((RawQuery) qfq));
 
                 } else {
 
@@ -374,7 +385,7 @@ public class QueryParsingController {
 
                 if (boostQuery instanceof RawQuery) {
 
-                    luceneQuery = requestAdapter.parseRawQuery((RawQuery) boostQuery);
+                    luceneQuery = requestAdapter.rawQueryToQuery((RawQuery) boostQuery);
 
                 } else if (boostQuery instanceof querqy.model.Query) {
 
@@ -383,7 +394,12 @@ public class QueryParsingController {
                                     boostSearchFieldsAndBoostings,
                                     requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
                                     1f, // we don't have to apply multiMatchTie for boostings
-                                    requestAdapter.getTermQueryCache().orElse(null));
+                                    requestAdapter.getTermQueryCache().orElse(null), q -> {
+                                try {
+                                    return requestAdapter.rawQueryToQuery(q);
+                                } catch (final SyntaxException e) {
+                                    throw new RuntimeException(e);
+                                }});
 
                     luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
 
@@ -472,14 +488,19 @@ public class QueryParsingController {
 
                 // todo: this is copied from transformAdditiveBoostQueries, any way to combine or simplify?
                 if (query instanceof RawQuery) {
-                    luceneQuery = requestAdapter.parseRawQuery((RawQuery) query);
+                    luceneQuery = requestAdapter.rawQueryToQuery((RawQuery) query);
                 } else if (query instanceof querqy.model.Query) {
                     final LuceneQueryBuilder luceneQueryBuilder =
                             new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
                                     boostSearchFieldsAndBoostings,
                                     requestAdapter.getTiebreaker().orElse(DEFAULT_TIEBREAKER),
                                     1f, // we don't have to apply multiMatchTie for boostings
-                                    requestAdapter.getTermQueryCache().orElse(null));
+                                    requestAdapter.getTermQueryCache().orElse(null), q -> {
+                                try {
+                                    return requestAdapter.rawQueryToQuery(q);
+                                } catch (final SyntaxException e) {
+                                    throw new RuntimeException(e);
+                                }});
                     luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) query, true);
                 } else {
                     luceneQuery = null;

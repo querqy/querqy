@@ -5,6 +5,7 @@ package querqy.lucene.rewrite;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.function.Function;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -20,6 +21,7 @@ import querqy.model.BoostedTerm;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
 import querqy.model.QuerqyQuery;
+import querqy.model.RawQuery;
 import querqy.model.Term;
 
 /**
@@ -40,16 +42,20 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    final SearchFieldsAndBoosting searchFieldsAndBoosting;
    final TermSubQueryBuilder termSubQueryBuilder;
 
+   final Function<RawQuery, Query> rawQueryParser;
+
    LinkedList<BooleanQueryFactory> clauseStack = new LinkedList<>();
    LinkedList<DisjunctionMaxQueryFactory> dmqStack = new LinkedList<>();
    boolean useBooleanQueryForDMQ = false;
 
    private ParentType parentType = ParentType.BQ;
 
+
+
    public LuceneQueryBuilder(final TermQueryBuilder termQueryBuilder, final Analyzer analyzer,
-           final SearchFieldsAndBoosting searchFieldsAndBoosting,
-           final float dmqTieBreakerMultiplier, final float multiMatchTieBreakerMultiplier,
-                             final TermQueryCache termQueryCache) {
+                             final SearchFieldsAndBoosting searchFieldsAndBoosting,
+                             final float dmqTieBreakerMultiplier, final float multiMatchTieBreakerMultiplier,
+                             final TermQueryCache termQueryCache, final Function<RawQuery, Query> rawQueryParser) {
       this(   
               termQueryBuilder,
               analyzer,
@@ -57,7 +63,8 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
               dmqTieBreakerMultiplier,
               multiMatchTieBreakerMultiplier,
               true, 
-              termQueryCache);
+              termQueryCache,
+              rawQueryParser);
    }
 
    /**
@@ -82,7 +89,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                               final SearchFieldsAndBoosting searchFieldsAndBoosting,
                               final float dmqTieBreakerMultiplier, final float multiMatchTieBreakerMultiplier,
                               final boolean normalizeBooleanQueryBoost,
-                              final TermQueryCache termQueryCache) {
+                              final TermQueryCache termQueryCache, final Function<RawQuery, Query> rawQueryParser) {
         if (termQueryBuilder == null) {
             throw new IllegalArgumentException("TermQueryBuilder must not be null");
         }
@@ -104,6 +111,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         this.multiMatchTieBreakerMultiplier = multiMatchTieBreakerMultiplier;
         this.termQueryBuilder = termQueryBuilder;
         termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
+        this.rawQueryParser = rawQueryParser;
     }
 
     public void reset() {
@@ -143,8 +151,9 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
             return new MatchAllDocsQuery();
 
+        } else if (query instanceof RawQuery) {
+            return rawQueryParser.apply((RawQuery) query);
         } else {
-
             throw new IllegalArgumentException("Cannot handle query of type " + query.getClass().getName());
 
         }

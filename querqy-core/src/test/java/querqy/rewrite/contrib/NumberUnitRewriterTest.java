@@ -9,10 +9,13 @@ import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
+import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
+import querqy.model.StringRawQuery;
 import querqy.model.Term;
 import querqy.model.convert.builder.BooleanQueryBuilder;
+import querqy.rewrite.RewriterOutput;
 import querqy.rewrite.contrib.numberunit.NumberUnitQueryCreator;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitQueryInput;
 import querqy.rewrite.contrib.numberunit.model.PerUnitNumberUnitDefinition;
@@ -26,6 +29,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static querqy.model.convert.builder.BooleanQueryBuilder.bq;
 import static querqy.model.convert.builder.DisjunctionMaxQueryBuilder.dmq;
@@ -213,6 +217,18 @@ public class NumberUnitRewriterTest {
         numberUnitInput = numberUnitRewriter.parseNumberAndUnit(createSeq("12.367227585647839464786564378"));
         assertThat(numberUnitInput).isNotEmpty();
         assertThat(numberUnitInput.get()).isEqualTo((new NumberUnitQueryInput(new BigDecimal("12.367"))));
+
+    }
+
+    @Test
+    public void testThatRawQueryAsUserQueryIsJustPassedUnchanged() {
+
+        final NumberUnitRewriter rewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+
+        final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
+        final ExpandedQuery query = new ExpandedQuery(userQuery);
+        final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
+        assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
 
     }
 

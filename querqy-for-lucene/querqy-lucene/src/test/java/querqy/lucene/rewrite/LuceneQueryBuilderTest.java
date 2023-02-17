@@ -130,7 +130,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, 1f, null);
+                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, 1f, null, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -150,7 +150,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fields, fields, 0.8f);
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
+                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, multiMatchTie, null, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -184,7 +184,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
                 new DocumentFrequencyCorrection()), new StandardAnalyzer(new CharArraySet(stopWords, true)),
-                searchFieldsAndBoosting, tie, 1f, null);
+                searchFieldsAndBoosting, tie, 1f, null, null);
 
         FieldAwareWhiteSpaceQuerqyParser parser = new FieldAwareWhiteSpaceQuerqyParser();
         querqy.model.Query q = parser.parse(input);
@@ -655,7 +655,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
         final float tie = 0.8f;
 
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(
-                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, multiMatchTie, null);
+                new DocumentFrequencyCorrection()), analyzer, searchFieldsAndBoosting, tie, multiMatchTie, null, null);
 
         assertThat(builder.createQuery(bq0),
                 bq(
@@ -781,7 +781,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
 
 
         LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-                analyzer, searchFieldsAndBoosting, tie, 1f, null);
+                analyzer, searchFieldsAndBoosting, tie, 1f, null, null);
 
         Query q = builder.createQuery(new FieldAwareWhiteSpaceQuerqyParser().parse("-ab"));
 
@@ -808,7 +808,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
        SearchFieldsAndBoosting searchFieldsAndBoosting = new SearchFieldsAndBoosting(FieldBoostModel.FIXED, fieldsQuery, fieldsGenerated, 0.8f);
        
        LuceneQueryBuilder builder = new LuceneQueryBuilder(new DependentTermQueryBuilder(new DocumentFrequencyCorrection()),
-               analyzer, searchFieldsAndBoosting, 0.1f, 1f, null);
+               analyzer, searchFieldsAndBoosting, 0.1f, 1f, null, null);
 
        WhiteSpaceQuerqyParser parser = new WhiteSpaceQuerqyParser();
        querqy.model.Query q = parser.parse("a");
