@@ -281,7 +281,7 @@ public class DismaxSearchEngineRequestAdapterTest {
     }
 
     @Test
-    public void testThatLucenewQueryCanBeParsed() throws Exception {
+    public void testThatLuceneRawQueryCanBeParsed() throws Exception {
         ModifiableSolrParams params = new ModifiableSolrParams();
 
         final TermQuery expected = new TermQuery(new Term("id", "123"));
