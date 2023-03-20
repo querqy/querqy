@@ -14,7 +14,7 @@
     <description>Querqy library for query rewriting for Solr</description>
 
     <properties>
-        <minidev.json-smart.version>2.4.8</minidev.json-smart.version>
+        <minidev.json-smart.version>2.4.10</minidev.json-smart.version>
         <slf4j.version>1.7.36</slf4j.version>
         <testcontainers.version>1.17.6</testcontainers.version>
     </properties>
