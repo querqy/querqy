@@ -2,11 +2,10 @@ package querqy.lucene.rewrite;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.RandomIndexWriter;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.util.LuceneTestCase;
+import org.apache.lucene.tests.index.RandomIndexWriter;
+import org.apache.lucene.tests.util.LuceneTestCase;
 
 import java.io.IOException;
 import java.util.stream.Collectors;

@@ -19,7 +19,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.LuceneTestCase;
+import org.apache.lucene.tests.util.LuceneTestCase;
 import org.junit.Test;
 
 import org.mockito.ArgumentCaptor;
