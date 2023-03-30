@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.querqy</groupId>
         <artifactId>querqy-for-lucene</artifactId>
-        <version>5.7.lucene900.0-SNAPSHOT</version>
+        <version>5.7.lucene942.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -16,6 +16,7 @@
     <properties>
         <minidev.json-smart.version>2.4.8</minidev.json-smart.version>
         <slf4j.version>1.7.36</slf4j.version>
+        <solr.version>9.2.0</solr.version>
         <testcontainers.version>1.17.6</testcontainers.version>
     </properties>
 
@@ -27,7 +28,7 @@
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-test-framework</artifactId>
-            <version>${lucene.version}</version>
+            <version>${solr.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -75,7 +76,7 @@
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
-            <version>${lucene.version}</version>
+            <version>${solr.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -181,7 +182,7 @@
                         <project.build.directory>${project.build.directory}</project.build.directory>
                         <project.build.finalName>${project.build.finalName}</project.build.finalName>
                         <project.version>${project.version}</project.version>
-                        <solr.test.versions>solr:9.1,solr:9.0</solr.test.versions>
+                        <solr.test.versions>solr:9.2,solr:9.1,solr:9.0</solr.test.versions>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>

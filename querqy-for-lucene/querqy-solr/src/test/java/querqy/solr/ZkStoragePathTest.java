@@ -6,13 +6,13 @@ import static querqy.solr.ZkRewriterContainer.IO_PATH;
 
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.embedded.JettySolrRunner;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.embedded.JettySolrRunner;
 import org.apache.solr.search.QueryParsing;
 import org.junit.AfterClass;
 import org.junit.Before;
