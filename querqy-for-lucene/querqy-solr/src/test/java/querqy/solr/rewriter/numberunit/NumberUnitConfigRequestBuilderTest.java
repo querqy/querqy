@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import static querqy.solr.rewriter.numberunit.NumberUnitRewriterFactory.CONF_PROPERTY;
 
 import org.junit.Test;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 
 import java.util.Map;
 

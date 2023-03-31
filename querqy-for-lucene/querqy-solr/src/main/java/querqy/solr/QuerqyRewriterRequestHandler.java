@@ -2,7 +2,7 @@ package querqy.solr;
 
 import static java.util.stream.Collectors.toMap;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.*;
-import static querqy.solr.utils.JsonUtil.readJson;
+import static querqy.utils.JsonUtil.readJson;
 
 import org.apache.solr.cloud.ZkSolrResourceLoader;
 import org.apache.solr.common.SolrException;
@@ -20,7 +20,6 @@ import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import querqy.lucene.rewrite.infologging.Sink;
-import querqy.rewrite.RewriterFactory;
 import querqy.solr.explain.ExplainRewriteChainRequestHandler;
 
 import java.io.IOException;

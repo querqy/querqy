@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.utils.ConfigUtils;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 
 import java.util.HashSet;
 import java.util.List;

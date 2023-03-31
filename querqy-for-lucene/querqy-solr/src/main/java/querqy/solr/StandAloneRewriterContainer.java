@@ -1,7 +1,7 @@
 package querqy.solr;
 
-import static querqy.solr.utils.JsonUtil.readJson;
-import static querqy.solr.utils.JsonUtil.writeJson;
+import static querqy.utils.JsonUtil.readJson;
+import static querqy.utils.JsonUtil.writeJson;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
@@ -9,7 +9,6 @@ import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.rest.ManagedResourceStorage;
 import querqy.lucene.rewrite.infologging.Sink;
-import querqy.rewrite.RewriterFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
