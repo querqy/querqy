@@ -10,13 +10,19 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.cloud.AbstractDistribZkTestBase;
 import org.apache.solr.cloud.SolrCloudTestCase;
 import org.apache.solr.common.params.SolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
+
+    private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     /**
      * returns a random SolrClient
      */
@@ -41,14 +47,14 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
 
         int attempts = 50;
         do {
-            synchronized (this) {
-                wait(100L);
-            }
+            Thread.sleep(100);
+
+            log.info("Looking for propagated rewriter config (attempts remaining: {})", attempts);
             try {
                 return req.process(client);
 
             } catch (Exception e) {
-                if ((attempts <= 1) || (!e.getMessage().contains("No such rewriter"))) {
+                if (!e.getMessage().contains("No such rewriter")) {
                     throw e;
                 }
                 attempts--;
@@ -59,15 +65,12 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
 
     protected <T, R extends SolrResponse> T waitFor(final SolrRequest<R> req, final SolrClient client,
                                                     final Function<R,T> extractor) throws Exception {
-        // It will take a bit to propagate a rewriter config to the nodes. We try to apply the extractor max. 3 times
-        // and wait for a bit between the attempts
 
         int attempts = 20;
         do {
-            synchronized (this) {
-                wait(100L);
-            }
+            Thread.sleep(100);
 
+            log.info("Looking for non-empty value in response (attempts remaining: {})", attempts);
             try {
                 final T result = extractor.apply(req.process(client));
                 if (result != null) {
@@ -75,11 +78,11 @@ public class AbstractQuerqySolrCloudTestCase extends SolrCloudTestCase {
                 }
 
             } catch (final Exception e) {
-                if ((attempts <= 1)) {
+                if ((attempts == 1)) {
                     throw e;
                 }
-                attempts--;
             }
+            attempts--;
         } while (attempts > 0);
         throw new TimeoutException("Expected object couldn't be found");
     }
