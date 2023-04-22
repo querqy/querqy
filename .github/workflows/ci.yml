@@ -8,28 +8,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jdk: [ 11, 12, 13, 14, 15, 16, 17 ]
+        jdk: [ 11, 17, 18, 19, 20 ]
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - name: Cache maven deps
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2/repository
-        key: maven-${{ matrix.jdk }}-${{ hashFiles('**/pom.xml') }}
+      - name: Select JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: ${{ matrix.jdk }}
+          cache: 'maven'
 
-    - name: Select JDK
-      uses: actions/setup-java@v1
-      with:
-        java-version: ${{ matrix.jdk }}
-    
-    # Run all the way to the install goal to have artifacts
-    # in the local maven repo. we need them for later dependency
-    # analysis
-    - name: Build
-      run: mvn install --file pom.xml
-    - name: Dependecy Analysis
-      run: mvn dependency:tree --file pom.xml -Dverbose
+      # Run all the way to the install goal to have artifacts
+      # in the local maven repo. we need them for later dependency
+      # analysis
+      - name: Build
+        run: mvn --batch-mode install --file pom.xml
+
+      - name: Dependency Analysis
+        run: mvn --batch-mode dependency:tree --file pom.xml -Dverbose
