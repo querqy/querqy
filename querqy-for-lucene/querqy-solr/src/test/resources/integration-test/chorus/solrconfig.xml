@@ -8,7 +8,7 @@
                     class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
   <schemaFactory class="ClassicIndexSchemaFactory"/>
 
-  <luceneMatchVersion>8.1</luceneMatchVersion>
+  <luceneMatchVersion>9.0.0</luceneMatchVersion>
 
   <updateHandler class="solr.DirectUpdateHandler2" />
 

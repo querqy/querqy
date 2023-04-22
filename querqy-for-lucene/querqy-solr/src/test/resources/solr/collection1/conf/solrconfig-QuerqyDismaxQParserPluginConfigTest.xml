@@ -2,7 +2,7 @@
 
 <config>
 
-	<luceneMatchVersion>5.0.0</luceneMatchVersion>
+	<luceneMatchVersion>9.0.0</luceneMatchVersion>
 	<directoryFactory name="DirectoryFactory" class="solr.RAMDirectoryFactory" />
 
 	<dataDir>${solr.core0.data.dir:}</dataDir>
