@@ -12,7 +12,7 @@ import querqy.solr.SolrRewriterFactoryAdapter;
 import querqy.solr.rewriter.ClassicConfigurationParser;
 import querqy.solr.rewriter.numberunit.NumberUnitConfigObject.NumberUnitDefinitionObject;
 import querqy.solr.utils.ConfigUtils;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;

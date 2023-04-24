@@ -1,7 +1,7 @@
 package querqy.solr.rewriter.numberunit;
 
 import querqy.solr.RewriterConfigRequestBuilder;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 
 import java.util.HashMap;
 import java.util.Map;

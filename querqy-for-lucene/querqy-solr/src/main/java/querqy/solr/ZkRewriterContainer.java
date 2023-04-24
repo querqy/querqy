@@ -1,14 +1,13 @@
 package querqy.solr;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static querqy.solr.utils.JsonUtil.*;
+import static querqy.utils.JsonUtil.*;
 
 import org.apache.solr.cloud.ZkController;
 import org.apache.solr.cloud.ZkSolrResourceLoader;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.SolrZkClient;
-import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.zookeeper.CreateMode;
@@ -18,8 +17,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import querqy.lucene.GZIPAwareResourceLoader;
 import querqy.lucene.rewrite.infologging.Sink;
-import querqy.rewrite.RewriterFactory;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 import querqy.solr.utils.NamedListWrapper;
 
 import java.io.ByteArrayInputStream;

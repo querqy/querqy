@@ -1,4 +1,4 @@
-package querqy.solr.utils;
+package querqy.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -14,7 +14,7 @@ import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.solr.rewriter.commonrules.CommonRulesConfigRequestBuilder;
 import querqy.solr.rewriter.replace.ReplaceConfigRequestBuilder;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;

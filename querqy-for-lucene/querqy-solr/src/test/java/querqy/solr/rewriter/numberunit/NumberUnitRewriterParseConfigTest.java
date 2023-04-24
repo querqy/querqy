@@ -2,7 +2,7 @@ package querqy.solr.rewriter.numberunit;
 
 import org.junit.Test;
 import querqy.rewrite.contrib.numberunit.model.NumberUnitDefinition;
-import querqy.solr.utils.JsonUtil;
+import querqy.utils.JsonUtil;
 
 import java.io.IOException;
 import java.util.List;

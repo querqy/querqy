@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<schema name="embeddings rewriter test schema" version="1.6">
+
+    <fieldtype name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="text"   class="solr.TextField" positionIncrementGap="100">
+        <analyzer>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        </analyzer>
+    </fieldType>
+    <fieldType name="text_lc" class="solr.TextField" positionIncrementGap="100">
+        <analyzer>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
+    <field name="id" type="string" indexed="true" stored="true" multiValued="false" required="true"/>
+    <field name="f1" type="text" indexed="true" stored="true" multiValued="false"/>
+    <field name="f2" type="text" indexed="true" stored="true" multiValued="false"/>
+
+    <fieldType name="knn_vector" class="solr.DenseVectorField" vectorDimension="4" similarityFunction="cosine"
+               knnAlgorithm="hnsw"/>
+    <field name="vector" type="knn_vector" indexed="true" stored="true"/>
+
+    <uniqueKey>id</uniqueKey>
+
+</schema>
+
