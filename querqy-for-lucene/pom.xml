@@ -76,7 +76,7 @@
         <skipITs>true</skipITs>
 
         <querqy.core.version>3.17.0</querqy.core.version>
-        <lucene.version>9.4.2</lucene.version>
+        <lucene.version>9.6.0</lucene.version>
         <commons.io.version>2.11.0</commons.io.version>
 
     </properties>
