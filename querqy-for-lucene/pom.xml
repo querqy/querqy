@@ -58,12 +58,13 @@
 
     <properties>
 
-        <maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
+        <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
         <maven-release-plugin.version>3.0.0</maven-release-plugin.version>
-        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
+        <maven/querqy-for-lucene/org.apache.maven.plugins-maven-surefire-plugin-3.1.2
         <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M8</maven-failsafe-plugin.version>
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
@@ -72,7 +73,7 @@
         <java.version>11</java.version>
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <mockito.version>5.1.1</mockito.version>
+        <mockito.version>5.4.0</mockito.version>
         <skipITs>true</skipITs>
 
         <querqy.core.version>3.17.0</querqy.core.version>
@@ -213,7 +214,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
