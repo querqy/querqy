@@ -76,7 +76,7 @@
         <skipITs>true</skipITs>
 
         <querqy.core.version>3.17.0</querqy.core.version>
-        <lucene.version>9.4.2</lucene.version>
+        <lucene.version>9.8.0</lucene.version>
         <commons.io.version>2.11.0</commons.io.version>
 
     </properties>
@@ -128,7 +128,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene94</tests.codec>
+                        <tests.codec>Lucene95</tests.codec>
                         <java.security.egd>file:/dev/./urandom</java.security.egd>
                         <!-- Use narrow US-ASCII as default Java character set (via file.encoding system property)
                         to increase the chance of catching code that relies on the JDK default encoding -->

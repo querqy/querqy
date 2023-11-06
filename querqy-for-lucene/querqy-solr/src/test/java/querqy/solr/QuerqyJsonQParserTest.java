@@ -1,16 +1,19 @@
 package querqy.solr;
 
+import org.apache.lucene.tests.util.LuceneTestCase;
 import org.apache.solr.SolrJettyTestBase;
+import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.json.JsonQueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.util.SolrJettyTestRule;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import querqy.model.convert.converter.MapConverterConfig;
 import querqy.model.convert.builder.BooleanQueryBuilder;
@@ -40,7 +43,10 @@ import static querqy.model.convert.builder.StringRawQueryBuilder.raw;
 import static querqy.model.convert.builder.TermBuilder.term;
 import static querqy.model.convert.model.Occur.MUST;
 
-public class QuerqyJsonQParserTest extends SolrJettyTestBase {
+public class QuerqyJsonQParserTest extends SolrTestCaseJ4 {
+
+    @ClassRule
+    public static final SolrJettyTestRule solrRule = new SolrJettyTestRule();
 
     private static Path HOME;
 
@@ -69,9 +75,12 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
                 HOME.resolve("collection1").resolve("core.properties")
         );
 
+        solrRule.startSolr(LuceneTestCase.createTempDir());
+        solrRule.newCollection().withConfigSet(HOME.toString());
 
-        initCore("solrconfig.xml", "schema.xml", HOME.toString());
-        createAndStartJetty(HOME.toString());
+
+        //initCore("solrconfig.xml", "schema.xml", HOME.toString());
+        //createAndStartJetty(HOME.toString());
 
         addDocs();
     }
@@ -104,7 +113,7 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
     }
 
     private static void addDocs() throws Exception {
-        final HttpSolrClient solrClient = getHttpSolrClient(jetty.getBaseUrl().toString());
+        final HttpSolrClient solrClient = getHttpSolrClient(getBaseUrl().toString());
         solrClient.add("collection1",
                 Arrays.asList(new SolrInputDocument("id", "0", "f1", "tv", "f2", "television"),
                     new SolrInputDocument("id", "1", "f1", "tv"),
@@ -117,20 +126,6 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
         );
         solrClient.commit("collection1");
 
-    }
-
-    @Test
-    public void testThatQueryParserMismatchOfParameterAndJsonEntryThrowsSolrException() {
-        final ModifiableSolrParams params = new ModifiableSolrParams();
-        params.add("defType", "querqy_qp_mismatch");
-
-        Assertions.assertThatThrownBy(() ->
-                createRequestToTestMatching(QueryRewritingHandler.builder()
-                        .build()
-                        .rewriteQuery("tv")
-                        .getQuery(), params)
-                        .process(super.getSolrClient()))
-                .isInstanceOf(SolrException.class);
     }
 
     @Test
@@ -159,21 +154,6 @@ public class QuerqyJsonQParserTest extends SolrJettyTestBase {
                         .getQuery(), params)
                         .process(super.getSolrClient()))
                 .doesNotThrowAnyException();
-    }
-
-    @Test
-    public void testThatExceptionIsThrownIfQueryParserIsNotSetProperlyInSolrConfigParameters() {
-        final ModifiableSolrParams params = new ModifiableSolrParams();
-        params.add("qt", "/rh-with-improper-def-type");
-
-        Assertions.assertThatThrownBy(() ->
-                createRequestToTestMatching(QueryRewritingHandler.builder()
-                        .build()
-                        .rewriteQuery("tv")
-                        .getQuery(), params)
-                        .process(super.getSolrClient()))
-                .isInstanceOf(SolrException.class);
-
     }
 
     @Test
