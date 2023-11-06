@@ -21,13 +21,13 @@ import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TermScorer;
 import org.apache.lucene.search.TermStatistics;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.Similarity;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * This {@link TermQueryBuilder} creates a {@link DependentTermQuery}, which takes part in {@link DocumentFrequencyCorrection}
