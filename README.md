@@ -32,7 +32,7 @@ for further Querqy integrations can be found at:
 
 Check out [Querqy.org](https://querqy.org) for related projects that help you speed up search software development.
 
-Developer channel: Join #querqy-dev on the [E-commerce search Slack space](https://ecom-search.slack.com)
+Developer channel: Join #querqy on the [Relevance & Matching Tech Slack space](https://relevancy.slack.com)
 
 ## License
 
