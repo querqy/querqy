@@ -75,8 +75,8 @@
         <mockito.version>5.11.0</mockito.version>
         <skipITs>true</skipITs>
 
-        <querqy.core.version>3.17.0</querqy.core.version>
-        <lucene.version>9.8.0</lucene.version>
+        <querqy.core.version>3.18.0-SNAPSHOT</querqy.core.version>
+        <lucene.version>9.11.1</lucene.version>
         <commons.io.version>2.14.0</commons.io.version>
 
     </properties>
@@ -128,7 +128,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene95</tests.codec>
+                        <tests.codec>Lucene99</tests.codec>
                         <java.security.egd>file:/dev/./urandom</java.security.egd>
                         <!-- Use narrow US-ASCII as default Java character set (via file.encoding system property)
                         to increase the chance of catching code that relies on the JDK default encoding -->
