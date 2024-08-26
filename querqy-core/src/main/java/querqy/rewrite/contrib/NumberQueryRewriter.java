@@ -26,16 +26,20 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
     List<Term> termsToAdd = null;
     List<Term> numberTermsToAdd = new ArrayList<>();
     int numberOfClauses = 0;
-    int i = 1;
+    // We use clauseCount to keep track of the query clauses we have already looked at.
+    // When we have reached numberOfClauses we can process the collected numerical terms accordingly.
+    int clauseCount = 1;
 
     final boolean acceptGeneratedTerms;
+    final int minimumLengthOfResultingQueryTerm;
 
     public NumberQueryRewriter(){
-        this(false);
+        this(false, 3);
     }
 
-    public NumberQueryRewriter(final boolean acceptGeneratedTerms) {
+    public NumberQueryRewriter(final boolean acceptGeneratedTerms, int minimumLengthOfResultingQueryTerm) {
         this.acceptGeneratedTerms = acceptGeneratedTerms;
+        this.minimumLengthOfResultingQueryTerm = minimumLengthOfResultingQueryTerm;
     }
 
     @Override
@@ -45,7 +49,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
             previousTerm = null;
             termsToAdd = new LinkedList<>();
             numberOfClauses = ((Query) userQuery).getClauses().size();
-            i = 1;
+            clauseCount = 1;
             visit((Query) userQuery);
             for (Term term : termsToAdd) {
                 term.getParent().addClause(term);
@@ -109,7 +113,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
                 && (term.isGenerated() == acceptGeneratedTerms || !term.isGenerated())
                 && (previousTerm.isGenerated() == acceptGeneratedTerms || !previousTerm.isGenerated())) {
             //if previousTerm and term are digits-only add them to a list
-            if (previousTerm.toString().matches("\\d+") && term.toString().matches("\\d+") && previousTerm.toString().concat(term.toString()).length() > 2) {
+            if (isDigit(previousTerm) && isDigit(term) && (previousTerm.length() + term.length()) >= minimumLengthOfResultingQueryTerm) {
                 if (numberTermsToAdd.isEmpty()) {
                     numberTermsToAdd.add(previousTerm);
                 }
@@ -119,14 +123,14 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
             } else if (!numberTermsToAdd.isEmpty()) {
                 processTerms(numberTermsToAdd);
             }
-            //When we are looking at the last term (i==numberOfClauses) and we have something to process (!numberTermsToAdd.isEmpty())
+            //When we are looking at the last term (clauseCount==numberOfClauses) and we have something to process (!numberTermsToAdd.isEmpty())
             //we process the numeric terms. Otherwise we wouldn't do anything with numeric terms at the end of a query.
-            if (i==numberOfClauses && !numberTermsToAdd.isEmpty()) {
+            if (clauseCount==numberOfClauses && !numberTermsToAdd.isEmpty()) {
                 processTerms(numberTermsToAdd);
             }
         }
         previousTerm = term;
-        i++;
+        clauseCount++;
         return term;
     }
 
@@ -136,6 +140,16 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
             termsToAdd.add(new Term(numberTerm.getParent(), numberTerm.getField(), seq, true));
         }
         numberTermsToAdd.clear();
+    }
+
+    final boolean isDigit(final Term term) {
+        if (term.length() < 1) return false; //for cases where there is an empty query term
+        for (int pos = 0, size=term.length(); pos < size; pos++) {
+            if (!Character.isDigit(term.charAt(pos))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static <T> boolean eq(final T value1, final T value2) {

@@ -14,6 +14,7 @@ import java.util.Set;
 public class NumberQueryRewriterFactory extends RewriterFactory {
 
     protected final boolean acceptGeneratedTerms;
+    protected int minimumLengthOfResultingQueryTerm;
 
     public NumberQueryRewriterFactory(final String rewriterId) {
 
@@ -21,13 +22,18 @@ public class NumberQueryRewriterFactory extends RewriterFactory {
     }
 
     public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms) {
+        this(rewriterId, acceptGeneratedTerms, 3);
+    }
+
+    public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms, final int minimumLengthOfResultingQueryTerm) {
         super(rewriterId);
         this.acceptGeneratedTerms = acceptGeneratedTerms;
+        this.minimumLengthOfResultingQueryTerm = minimumLengthOfResultingQueryTerm;
     }
 
     @Override
-    public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return new NumberQueryRewriter(acceptGeneratedTerms);
+    public QueryRewriter createRewriter(final ExpandedQuery input, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+        return new NumberQueryRewriter(acceptGeneratedTerms, minimumLengthOfResultingQueryTerm);
     }
 
     @Override
