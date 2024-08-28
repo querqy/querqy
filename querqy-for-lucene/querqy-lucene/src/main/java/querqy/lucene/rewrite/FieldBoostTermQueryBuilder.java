@@ -1,6 +1,5 @@
 package querqy.lucene.rewrite;
 
-import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.PostingsEnum;
@@ -19,7 +18,6 @@ import org.apache.lucene.search.Weight;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.Set;
 
 public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
 
@@ -61,8 +59,8 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
         @Override
         public Weight createWeight(final IndexSearcher searcher, final ScoreMode scoreMode, final float boost)
                 throws IOException {
-            final IndexReaderContext context = searcher.getTopReaderContext();
-            final TermStates termState = TermStates.build(context, term, scoreMode.needsScores());
+
+            final TermStates termState = TermStates.build(searcher, term, scoreMode.needsScores());
             // TODO: set boosts to 1f if needsScores is false?
             return new FieldBoostWeight(termState, boost, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
         }
