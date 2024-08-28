@@ -14,6 +14,17 @@ public interface ConfigUtils {
         return value == null ? defaultValue : value;
     }
 
+    static Optional<Integer> getIntArg(final Map<String, Object> config, final String name) {
+        final Object object = config.get(name);
+        if (object == null) {
+            return Optional.empty();
+        } else if (object instanceof Integer) {
+            return Optional.of((Integer) object);
+        } else {
+            return Optional.of(Integer.parseInt(object.toString()));
+        }
+    }
+
     static Optional<String> getStringArg(final Map<String, Object> config, final String name) {
         return Optional.ofNullable((String) config.get(name));
     }
