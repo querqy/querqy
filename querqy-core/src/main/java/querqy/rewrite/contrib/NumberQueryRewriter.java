@@ -9,6 +9,7 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>A query rewriter that joins two or more adjacent numeric query terms into a new term
@@ -33,11 +34,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
     final boolean acceptGeneratedTerms;
     final int minimumLengthOfResultingQueryTerm;
 
-    public NumberQueryRewriter(){
-        this(false, 3);
-    }
-
-    public NumberQueryRewriter(final boolean acceptGeneratedTerms, int minimumLengthOfResultingQueryTerm) {
+    public NumberQueryRewriter(final boolean acceptGeneratedTerms, final int minimumLengthOfResultingQueryTerm) {
         this.acceptGeneratedTerms = acceptGeneratedTerms;
         this.minimumLengthOfResultingQueryTerm = minimumLengthOfResultingQueryTerm;
     }
@@ -45,7 +42,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
     @Override
     public RewriterOutput rewrite(final ExpandedQuery query, final SearchEngineRequestAdapter requestAdapter) {
         final QuerqyQuery<?> userQuery = query.getUserQuery();
-        if (userQuery != null && userQuery instanceof Query){
+        if (userQuery instanceof Query){
             previousTerm = null;
             termsToAdd = new LinkedList<>();
             numberOfClauses = ((Query) userQuery).getClauses().size();
@@ -109,7 +106,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
     @Override
     public Node visit(final Term term) {
         if (previousTerm != null
-                && eq(previousTerm.getField(), term.getField())
+                && Objects.equals(previousTerm.getField(), term.getField())
                 && (term.isGenerated() == acceptGeneratedTerms || !term.isGenerated())
                 && (previousTerm.isGenerated() == acceptGeneratedTerms || !previousTerm.isGenerated())) {
             //if previousTerm and term are digits-only add them to a list
@@ -134,7 +131,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
         return term;
     }
 
-    private void processTerms(List<Term> numberTermsToAdd) {
+    private void processTerms(final List<Term> numberTermsToAdd) {
         final CharSequence seq = new CompoundCharSequence(null, numberTermsToAdd);
         for (Term numberTerm : numberTermsToAdd) {
             termsToAdd.add(new Term(numberTerm.getParent(), numberTerm.getField(), seq, true));
@@ -143,17 +140,14 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
     }
 
     final boolean isDigit(final Term term) {
-        if (term.length() < 1) return false; //for cases where there is an empty query term
-        for (int pos = 0, size=term.length(); pos < size; pos++) {
+        final int termLength = term.length();
+        if (termLength < 1) return false; //for cases where there is an empty query term
+        for (int pos = 0; pos < termLength; pos++) {
             if (!Character.isDigit(term.charAt(pos))) {
                 return false;
             }
         }
         return true;
-    }
-
-    private static <T> boolean eq(final T value1, final T value2) {
-        return value1 == null && value2 == null || value1 != null && value1.equals(value2);
     }
 
     @Override

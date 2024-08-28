@@ -13,6 +13,8 @@ import java.util.Set;
  */
 public class NumberQueryRewriterFactory extends RewriterFactory {
 
+    public static final int DEFAULT_MIN_LENGTH_OF_RESULTING_QUERY_TERM = 3;
+
     protected final boolean acceptGeneratedTerms;
     protected int minimumLengthOfResultingQueryTerm;
 
@@ -22,17 +24,19 @@ public class NumberQueryRewriterFactory extends RewriterFactory {
     }
 
     public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms) {
-        this(rewriterId, acceptGeneratedTerms, 3);
+        this(rewriterId, acceptGeneratedTerms, DEFAULT_MIN_LENGTH_OF_RESULTING_QUERY_TERM);
     }
 
-    public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms, final int minimumLengthOfResultingQueryTerm) {
+    public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms,
+                                      final int minimumLengthOfResultingQueryTerm) {
         super(rewriterId);
         this.acceptGeneratedTerms = acceptGeneratedTerms;
         this.minimumLengthOfResultingQueryTerm = minimumLengthOfResultingQueryTerm;
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input, final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final ExpandedQuery input,
+                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new NumberQueryRewriter(acceptGeneratedTerms, minimumLengthOfResultingQueryTerm);
     }
 
@@ -41,7 +45,4 @@ public class NumberQueryRewriterFactory extends RewriterFactory {
         return QueryRewriter.EMPTY_GENERABLE_TERMS;
     }
 
-    public boolean isAcceptGeneratedTerms() {
-        return acceptGeneratedTerms;
-    }
 }

@@ -21,7 +21,7 @@ public class NumberQueryRewriterTest {
         addTerm(query, "123");
         addTerm(query, "456");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
@@ -47,7 +47,7 @@ public class NumberQueryRewriterTest {
         addTerm(query, "789");
         addTerm(query, "b");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
@@ -79,7 +79,7 @@ public class NumberQueryRewriterTest {
         Query query = new Query();
         addTerm(query, "1");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
@@ -97,7 +97,7 @@ public class NumberQueryRewriterTest {
         addTerm(query, "f1", "123");
         addTerm(query, "f1", "456");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
@@ -120,7 +120,7 @@ public class NumberQueryRewriterTest {
         addTerm(query, "f1", "123");
         addTerm(query, "f2", "456");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
@@ -141,7 +141,7 @@ public class NumberQueryRewriterTest {
         addTerm(query, "123");
         addTerm(query, "f", "456");
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
@@ -162,7 +162,7 @@ public class NumberQueryRewriterTest {
         addTerm(query, "123");
         addTerm(query, "456", true);
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
-        NumberQueryRewriter rewriter = new NumberQueryRewriter();
+        NumberQueryRewriter rewriter = new NumberQueryRewriter(false, 3);
         rewriter.rewrite(expandedQuery, null);
 
         assertThat((Query) expandedQuery.getUserQuery(),
