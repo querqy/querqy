@@ -216,10 +216,10 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         Map<String, Sink> sinks = loadSinks(resourceLoader);
 
         final Boolean inMemory = (Boolean) initArgs.get("inMemory");
-        final Boolean solrCore = (Boolean) initArgs.get("solrCore");
+        final Boolean useConfigurationCore = (Boolean) initArgs.get("useConfigurationCore");
         if (inMemory != null && inMemory) {
             rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader, sinks);
-        } else if (solrCore != null && solrCore) {
+        } else if (useConfigurationCore != null && useConfigurationCore) {
             rewriterContainer = new SolrCoreRewriterContainer(core, resourceLoader, sinks);
         } else if (resourceLoader instanceof ZkSolrResourceLoader) {
             rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader, sinks);

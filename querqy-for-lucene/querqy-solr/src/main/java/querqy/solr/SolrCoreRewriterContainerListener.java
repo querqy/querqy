@@ -15,10 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.apache.solr.common.SolrException.ErrorCode.CONFLICT;
 import static querqy.solr.utils.CoreUtils.*;
@@ -33,8 +30,6 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
 
     private boolean enabled;
 
-    private List<String> coreNames;
-
     private String querqyComponentName;
 
     @Override
@@ -42,7 +37,6 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
         var initArgs = args.toSolrParams();
         this.enabled = initArgs.getBool("enabled", false);
         this.querqyComponentName = initArgs.get("querqyRequestHandlerName", "/querqy/rewriter");
-        this.coreNames = Arrays.stream(initArgs.getParams("coreNames")).collect(Collectors.toList());
     }
 
     @Override
@@ -52,7 +46,7 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
         }
 
         if (this.enabled) {
-            SolrCoreUpdateListener listener = new SolrCoreUpdateListener(this.querqyComponentName, this.coreNames);
+            SolrCoreUpdateListener listener = new SolrCoreUpdateListener(this.querqyComponentName);
             core.registerNewSearcherListener(listener);
         }
     }
@@ -76,12 +70,9 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
 
         private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-        private final List<String> coreNames;
-
         private final String querqyComponentName;
 
-        public SolrCoreUpdateListener(String querqyComponentName, List<String> coreNames) {
-            this.coreNames = coreNames;
+        public SolrCoreUpdateListener(String querqyComponentName) {
             this.querqyComponentName = querqyComponentName;
         }
 
@@ -101,21 +92,13 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
 
             var coreContainer = newSearcher.getCore().getCoreContainer();
 
-            for (String coreName : this.coreNames) {
+            coreContainer.getAllCoreNames()
+                    .parallelStream()
+                    .forEach(coreName -> {
                 try {
                     withCore(
                             core -> {
-                                Optional<SolrRequestHandler> requestHandler = Optional.ofNullable(core.getRequestHandler(this.querqyComponentName));
-
-                                requestHandler.ifPresentOrElse(it -> {
-                                            if (it instanceof QuerqyRewriterRequestHandler) {
-                                                ((QuerqyRewriterRequestHandler) it).notifyRewriterConfigChanged(newSearcher);
-                                            } else {
-                                                LOG.error("Unable to notify querqy rewriter request handler in core {}: unexpected handler type {}", coreName, it.getClass().getName());
-                                            }
-                                        },
-                                        () -> LOG.error("Unable to notify querqy rewriter request handler in core {}: handler not found", coreName)
-                                );
+                                notifyRewriterConfigChanged(core, newSearcher);
                                 return null;
                             },
                             coreName,
@@ -125,7 +108,19 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
                 } catch (IOException e) {
                     LOG.error("Unable to notify querqy rewriter request handler in core {}", coreName, e);
                 }
-            }
+            });
+        }
+
+        private void notifyRewriterConfigChanged(SolrCore core, SolrIndexSearcher newSearcher) {
+            Optional<SolrRequestHandler> requestHandler = Optional.ofNullable(core.getRequestHandler(this.querqyComponentName));
+            requestHandler.ifPresent(it -> {
+                    if (it instanceof QuerqyRewriterRequestHandler) {
+                        ((QuerqyRewriterRequestHandler) it).notifyRewriterConfigChanged(newSearcher);
+                    } else {
+                        LOG.error("Unable to notify querqy rewriter request handler in core {}: unexpected handler type {}", core.getName(), it.getClass().getName());
+                    }
+                }
+            );
         }
 
         @Override

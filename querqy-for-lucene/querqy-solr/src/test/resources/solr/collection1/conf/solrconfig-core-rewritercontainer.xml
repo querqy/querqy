@@ -8,7 +8,7 @@
 	<dataDir>${solr.core0.data.dir:}</dataDir>
 
 	<schemaFactory class="ClassicIndexSchemaFactory" />
-	
+
     <indexConfig>
         <!-- Needed for RAMDirectoryFactory -->
         <lockType>single</lockType>
@@ -50,19 +50,19 @@
 	</searchComponent>
 
 	<requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler">
-		<bool name="solrCore">true</bool>
-		<bool name="follower">false</bool>
+		<bool name="useConfigurationCore">true</bool>
+		<bool name="isFollower">false</bool>
 	</requestHandler>
-	
+
 	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
-	
+
 		<lst name="parser">
 			<str name="factory">querqy.solr.SimpleQuerqyQParserFactory</str>
          	<str name="class">querqy.parser.WhiteSpaceQuerqyParser</str>
 		</lst>
-     	 
+
 	</queryParser>
-	
+
 	<admin>
 		<defaultQuery>solr</defaultQuery>
 	</admin>
