@@ -63,7 +63,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
     protected void init(@SuppressWarnings({"rawtypes"}) NamedList args) {
         var initArgs = args.toSolrParams();
         this.rewriterConfigCoreName = initArgs.get("configCoreName", "querqy");
-        this.isFollower = initArgs.getBool("follower", false);
+        this.isFollower = initArgs.getBool("isFollower", false);
         try {
             withConfigurationCore(core -> core.withSearcher(this::loadRewriters), Duration.ofMinutes(1));
         } catch (IOException e) {

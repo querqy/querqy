@@ -18,10 +18,7 @@
     </indexConfig>
 
     <searchComponent name="querqyListener" class="querqy.solr.SolrCoreRewriterContainerListener">
-        <bool name="isLeader">true</bool>
-        <arr name="coreNames">
-            <str>search</str>
-        </arr>
+        <bool name="enabled">false</bool>
     </searchComponent>
 
     <updateHandler class="solr.DirectUpdateHandler2">
