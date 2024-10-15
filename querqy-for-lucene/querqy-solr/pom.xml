@@ -195,7 +195,7 @@
                         <project.build.directory>${project.build.directory}</project.build.directory>
                         <project.build.finalName>${project.build.finalName}</project.build.finalName>
                         <project.version>${project.version}</project.version>
-                        <solr.test.versions>solr:9.6,solr:9.5,solr:9.4,solr:9.3,solr:9.2,solr:9.1,solr:9.0</solr.test.versions>
+                        <solr.test.versions>solr:9.6,solr:9.5,solr:9.4,solr:9.3,solr:9.2,solr:9.1</solr.test.versions>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
