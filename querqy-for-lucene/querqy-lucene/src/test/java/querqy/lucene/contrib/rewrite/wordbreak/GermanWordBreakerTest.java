@@ -901,8 +901,6 @@ public class GermanWordBreakerTest extends LuceneTestCase {
 
         indexWriter.close();
 
-        System.out.println("Done indexing");
-
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
             final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, "f1", true, 50, 1, 100);
