@@ -50,16 +50,16 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
 
             /**
              * (2) the QuerqyRewriterRequestHandler is closed
-             * 
+             *
              * (3) the SolrCore is closed
-             * 
+             *
              * (4) We are going to close the RewriterContainer
              */
             @Override
             public void postClose(SolrCore core) {
                 close();
             }
-            
+
         });
     }
 
@@ -107,8 +107,7 @@ public abstract class RewriterContainer<R extends SolrResourceLoader> {
         rewriters = null;
     }
 
-    protected synchronized void loadRewriter(final String rewriterId, final Map<String, Object> instanceDesc) throws
-            Exception {
+    protected synchronized void loadRewriter(final String rewriterId, final Map<String, Object> instanceDesc) {
 
         final SolrRewriterFactoryAdapter factoryLoader = SolrRewriterFactoryAdapter.loadInstance(rewriterId,
                 instanceDesc);
