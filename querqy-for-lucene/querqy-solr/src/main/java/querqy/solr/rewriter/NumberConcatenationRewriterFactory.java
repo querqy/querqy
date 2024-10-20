@@ -12,18 +12,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * RewriterFactoryLoader for {@link NumberQueryRewriterFactory}
+ * RewriterFactoryLoader for {@link NumberConcatenationRewriterFactory}
  */
-public class NumberQueryRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
+public class NumberConcatenationRewriterFactory extends SolrRewriterFactoryAdapter implements ClassicConfigurationParser {
 
     public static final String CONF_ACCEPT_GENERATED_TERMS = "acceptGeneratedTerms";
     public static final String CONF_MIN_LENGTH_QUERY_TERM = "minimumLengthOfResultingQueryTerm";
 
     public static  final int DEFAULT_MIN_LENGTH_QUERY_TERM = 3;
 
-    private querqy.rewrite.contrib.NumberQueryRewriterFactory factory = null;
+    private querqy.rewrite.contrib.NumberConcatenationRewriterFactory factory = null;
 
-    public NumberQueryRewriterFactory(final String rewriterId) {
+    public NumberConcatenationRewriterFactory(final String rewriterId) {
         super(rewriterId);
     }
 
@@ -35,7 +35,7 @@ public class NumberQueryRewriterFactory extends SolrRewriterFactoryAdapter imple
         final Integer minimumLength = ConfigUtils.getArg(config, CONF_MIN_LENGTH_QUERY_TERM,
                 DEFAULT_MIN_LENGTH_QUERY_TERM);
 
-        factory = new querqy.rewrite.contrib.NumberQueryRewriterFactory(rewriterId, accept, minimumLength);
+        factory = new querqy.rewrite.contrib.NumberConcatenationRewriterFactory(rewriterId, accept, minimumLength);
     }
 
     @Override
@@ -63,13 +63,13 @@ public class NumberQueryRewriterFactory extends SolrRewriterFactoryAdapter imple
         return factory;
     }
 
-    public static class NumberQueryConfigRequestBuilder extends RewriterConfigRequestBuilder {
+    public static class NumberConcatenationConfigRequestBuilder extends RewriterConfigRequestBuilder {
 
         private Boolean acceptGeneratedTerms;
         private Integer minimumLengthOfResultingQueryTerm;
 
-        public NumberQueryConfigRequestBuilder() {
-            super(NumberQueryRewriterFactory.class);
+        public NumberConcatenationConfigRequestBuilder() {
+            super(NumberConcatenationRewriterFactory.class);
         }
 
         @Override
@@ -84,12 +84,12 @@ public class NumberQueryRewriterFactory extends SolrRewriterFactoryAdapter imple
             return config;
         }
 
-        public NumberQueryConfigRequestBuilder acceptGeneratedTerms(final Boolean accept) {
+        public NumberConcatenationConfigRequestBuilder acceptGeneratedTerms(final Boolean accept) {
             acceptGeneratedTerms = accept;
             return this;
         }
 
-        public NumberQueryConfigRequestBuilder minimumLengthOfResultingQueryTerm(final Integer minimumLength) {
+        public NumberConcatenationConfigRequestBuilder minimumLengthOfResultingQueryTerm(final Integer minimumLength) {
             minimumLengthOfResultingQueryTerm = minimumLength;
             return this;
         }

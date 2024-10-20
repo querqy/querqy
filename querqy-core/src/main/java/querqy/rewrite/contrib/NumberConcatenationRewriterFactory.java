@@ -9,26 +9,26 @@ import querqy.rewrite.SearchEngineRequestAdapter;
 import java.util.Set;
 
 /**
- * Factory for {@link NumberQueryRewriter}
+ * Factory for {@link NumberConcatenationRewriter}
  */
-public class NumberQueryRewriterFactory extends RewriterFactory {
+public class NumberConcatenationRewriterFactory extends RewriterFactory {
 
     public static final int DEFAULT_MIN_LENGTH_OF_RESULTING_QUERY_TERM = 3;
 
     protected final boolean acceptGeneratedTerms;
     protected int minimumLengthOfResultingQueryTerm;
 
-    public NumberQueryRewriterFactory(final String rewriterId) {
+    public NumberConcatenationRewriterFactory(final String rewriterId) {
 
         this(rewriterId, false);
     }
 
-    public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms) {
+    public NumberConcatenationRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms) {
         this(rewriterId, acceptGeneratedTerms, DEFAULT_MIN_LENGTH_OF_RESULTING_QUERY_TERM);
     }
 
-    public NumberQueryRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms,
-                                      final int minimumLengthOfResultingQueryTerm) {
+    public NumberConcatenationRewriterFactory(final String rewriterId, final boolean acceptGeneratedTerms,
+                                              final int minimumLengthOfResultingQueryTerm) {
         super(rewriterId);
         this.acceptGeneratedTerms = acceptGeneratedTerms;
         this.minimumLengthOfResultingQueryTerm = minimumLengthOfResultingQueryTerm;
@@ -37,7 +37,7 @@ public class NumberQueryRewriterFactory extends RewriterFactory {
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery input,
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return new NumberQueryRewriter(acceptGeneratedTerms, minimumLengthOfResultingQueryTerm);
+        return new NumberConcatenationRewriter(acceptGeneratedTerms, minimumLengthOfResultingQueryTerm);
     }
 
     @Override

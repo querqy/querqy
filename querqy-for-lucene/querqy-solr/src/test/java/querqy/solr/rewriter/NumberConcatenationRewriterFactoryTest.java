@@ -11,11 +11,11 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CLASS;
 import static querqy.solr.RewriterConfigRequestBuilder.CONF_CONFIG;
-import static querqy.solr.rewriter.NumberQueryRewriterFactory.CONF_ACCEPT_GENERATED_TERMS;
+import static querqy.solr.rewriter.NumberConcatenationRewriterFactory.CONF_ACCEPT_GENERATED_TERMS;
 
-public class NumberQueryRewriterFactoryTest {
+public class NumberConcatenationRewriterFactoryTest {
 
-    private final NumberQueryRewriterFactory factory = new NumberQueryRewriterFactory("test");
+    private final NumberConcatenationRewriterFactory factory = new NumberConcatenationRewriterFactory("test");
 
     @Test
     public void testThatDeprecatedConfigurationIsCorrectlyParsed() {
@@ -23,7 +23,7 @@ public class NumberQueryRewriterFactoryTest {
         final GZIPAwareResourceLoader resourceLoader = mock(GZIPAwareResourceLoader.class);
 
         NamedList<Object> configuration = new NamedList<>();
-        configuration.add(CONF_CLASS, NumberQueryRewriterFactory.class.getName());
+        configuration.add(CONF_CLASS, NumberConcatenationRewriterFactory.class.getName());
         configuration.add(CONF_ACCEPT_GENERATED_TERMS, true);
 
         Map<String, Object> parsed = factory.parseConfigurationToRequestHandlerBody(configuration, resourceLoader);
@@ -32,7 +32,7 @@ public class NumberQueryRewriterFactoryTest {
 
         RewriterFactory rewriterFactory = factory.getRewriterFactory();
 
-        Assertions.assertThat(rewriterFactory).isInstanceOf(querqy.rewrite.contrib.NumberQueryRewriterFactory.class);
+        Assertions.assertThat(rewriterFactory).isInstanceOf(querqy.rewrite.contrib.NumberConcatenationRewriterFactory.class);
         Assertions.assertThat(factory.validateConfiguration((Map<String, Object>) parsed.get(CONF_CONFIG))).isNullOrEmpty();
     }
 }

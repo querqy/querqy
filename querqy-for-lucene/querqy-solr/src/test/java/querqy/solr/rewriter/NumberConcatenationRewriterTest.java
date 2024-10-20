@@ -16,7 +16,7 @@ import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 import static querqy.solr.StandaloneSolrTestSupport.withRewriter;
 
 @SolrTestCaseJ4.SuppressSSL
-public class NumberQueryRewriterTest extends SolrTestCaseJ4 {
+public class NumberConcatenationRewriterTest extends SolrTestCaseJ4 {
 
     private final static String REWRITERS = "common_rules_before_shingles,shingles,common_rules_after_shingles";
 
@@ -27,7 +27,7 @@ public class NumberQueryRewriterTest extends SolrTestCaseJ4 {
                 "configs/commonrules/rules-before-shingles.txt");
         final Map<String, Object> config = new HashMap<>();
         config.put("acceptGeneratedTerms", false);
-        withRewriter(h.getCore(), "shingles", NumberQueryRewriterFactory.class, config);
+        withRewriter(h.getCore(), "shingles", NumberConcatenationRewriterFactory.class, config);
         withCommonRulesRewriter(h.getCore(), "common_rules_after_shingles",
                 "configs/commonrules/rules-shingles.txt");
     }
@@ -180,13 +180,13 @@ public class NumberQueryRewriterTest extends SolrTestCaseJ4 {
 
     @Test
     public void testConfigRequestAcceptGeneratedTerms() {
-        final Map<String, Object> config = new NumberQueryRewriterFactory.NumberQueryConfigRequestBuilder()
+        final Map<String, Object> config = new NumberConcatenationRewriterFactory.NumberConcatenationConfigRequestBuilder()
                 .acceptGeneratedTerms(true).buildConfig();
 
         org.hamcrest.MatcherAssert.assertThat(config, IsMapContaining.hasEntry(
-                NumberQueryRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.TRUE));
+                NumberConcatenationRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.TRUE));
 
-        final NumberQueryRewriterFactory factory = new NumberQueryRewriterFactory("id");
+        final NumberConcatenationRewriterFactory factory = new NumberConcatenationRewriterFactory("id");
 
         final List<String> errors = factory.validateConfiguration(config);
         assertTrue(errors == null || errors.isEmpty());
@@ -200,13 +200,13 @@ public class NumberQueryRewriterTest extends SolrTestCaseJ4 {
 
     @Test
     public void testConfigRequestDoNotAcceptGeneratedTerms() {
-        final Map<String, Object> config = new NumberQueryRewriterFactory.NumberQueryConfigRequestBuilder()
+        final Map<String, Object> config = new NumberConcatenationRewriterFactory.NumberConcatenationConfigRequestBuilder()
                 .acceptGeneratedTerms(false).buildConfig();
 
         org.hamcrest.MatcherAssert.assertThat(config, IsMapContaining.hasEntry(
                 ShingleRewriterFactory.CONF_ACCEPT_GENERATED_TERMS, Boolean.FALSE));
 
-        final NumberQueryRewriterFactory factory = new NumberQueryRewriterFactory("id");
+        final NumberConcatenationRewriterFactory factory = new NumberConcatenationRewriterFactory("id");
 
         final List<String> errors = factory.validateConfiguration(config);
         assertTrue(errors == null || errors.isEmpty());
@@ -220,11 +220,11 @@ public class NumberQueryRewriterTest extends SolrTestCaseJ4 {
 
     @Test
     public void testConfigRequestDefaultAcceptGeneratedTerms() {
-        final Map<String, Object> config = new NumberQueryRewriterFactory.NumberQueryConfigRequestBuilder().buildConfig();
+        final Map<String, Object> config = new NumberConcatenationRewriterFactory.NumberConcatenationConfigRequestBuilder().buildConfig();
 
         assertTrue(config.isEmpty());
 
-        final NumberQueryRewriterFactory factory = new NumberQueryRewriterFactory("id");
+        final NumberConcatenationRewriterFactory factory = new NumberConcatenationRewriterFactory("id");
 
         final List<String> errors = factory.validateConfiguration(config);
         assertTrue(errors == null || errors.isEmpty());
