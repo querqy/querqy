@@ -4,12 +4,6 @@ public class LookupPreprocessorFactory {
 
     private static final LookupPreprocessor IDENTITY_PREPROCESSOR = charSequence -> charSequence;
 
-    private static final LookupPreprocessor GERMAN_PREPROCESSOR = PipelinePreprocessor.of(
-            LowerCasePreprocessor.create(),
-            GermanUmlautPreprocessor.create(),
-            GermanNounNormalizer.create()
-    );
-
     private static final LookupPreprocessor LOWERCASE_PREPROCESSOR = LowerCasePreprocessor.create();
 
     public static LookupPreprocessor identity() {
@@ -27,7 +21,7 @@ public class LookupPreprocessorFactory {
                 return IDENTITY_PREPROCESSOR;
 
             case GERMAN:
-                return GERMAN_PREPROCESSOR;
+                return GermanPreprocessorOnDemandClassHolder.GERMAN_PREPROCESSOR;
 
             case LOWERCASE:
                 return LOWERCASE_PREPROCESSOR;
@@ -36,5 +30,14 @@ public class LookupPreprocessorFactory {
                 throw new IllegalArgumentException("Preprocessor of type " + " is currently not supported");
         }
 
+    }
+
+    // This wrapper makes sure the maps in the GermanNounNormalizer are loaded lazily (and in a synchronized way)
+    private static class GermanPreprocessorOnDemandClassHolder {
+        private static final LookupPreprocessor GERMAN_PREPROCESSOR = PipelinePreprocessor.of(
+                LowerCasePreprocessor.create(),
+                GermanUmlautPreprocessor.create(),
+                GermanNounNormalizer.create()
+        );
     }
 }
