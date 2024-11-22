@@ -364,7 +364,11 @@ public class ZkRewriterContainer extends RewriterContainer<ZkSolrResourceLoader>
 
     public synchronized void onRewriterChanged(final String rewriterId) throws Exception {
 
-        loadRewriter(rewriterId, readRewriterDefinition(rewriterId, newRewriterWatcher(rewriterId)));
+        if (this.zkClient != null) {
+            // We might get a call from a rewriter watcher after a call to doClose(),
+            // which sets zkClient to null
+            loadRewriter(rewriterId, readRewriterDefinition(rewriterId, newRewriterWatcher(rewriterId)));
+        }
 
     }
 
