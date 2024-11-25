@@ -18,18 +18,23 @@ import org.apache.solr.metrics.SolrMetricsContext;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.plugin.SolrCoreAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import querqy.lucene.rewrite.infologging.Sink;
-import querqy.rewrite.RewriterFactory;
 import querqy.solr.explain.ExplainRewriteChainRequestHandler;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedRequestHandler, SolrCoreAware {
 
     public static final String PARAM_ACTION = "action";
     public static final String PATH_EXPLAIN_CHAIN = "/_explain/chain";
+
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Override
     public void initializeMetrics(final SolrMetricsContext parentContext, final String scope) {
@@ -211,15 +216,16 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         Map<String, Sink> sinks = loadSinks(resourceLoader);
 
         final Boolean inMemory = (Boolean) initArgs.get("inMemory");
+        final Boolean solrCore = (Boolean) initArgs.get("solrCore");
         if (inMemory != null && inMemory) {
             rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader, sinks);
+        } else if (solrCore != null && solrCore) {
+            rewriterContainer = new SolrCoreRewriterContainer(core, resourceLoader, sinks);
         } else if (resourceLoader instanceof ZkSolrResourceLoader) {
             rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader, sinks);
-
         } else {
             rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader, sinks);
         }
-
 
         rewriterContainer.init(initArgs);
     }
@@ -267,6 +273,23 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         }
         final Boolean inMemory = (Boolean) initArgs.get("inMemory");
         return (inMemory == null || !inMemory);
+    }
+
+    /**
+     * Called by the SolrCoreRewriterContainerListener.
+     * <p>
+     * <em>Note: This is only relevant when using the SolrCoreRewriterContainer.</em>
+     *
+     * @param newConfigurationSearcher current searcher for reading the updated rewriter config from the config core
+     */
+    void notifyRewriterConfigChanged(SolrIndexSearcher newConfigurationSearcher) {
+        if (rewriterContainer instanceof SolrCoreRewriterContainer) {
+            try {
+                ((SolrCoreRewriterContainer) rewriterContainer).reloadRewriterConfig(newConfigurationSearcher);
+            } catch (IOException e) {
+                LOG.error("Failed to load all rewriter data", e);
+            }
+        }
     }
 
     public Optional<RewriterFactoryContext> getRewriterFactory(final String rewriterId) {
