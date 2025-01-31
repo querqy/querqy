@@ -13,6 +13,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.SolrContainer;
+import org.testcontainers.utility.ComparableVersion;
 import org.testcontainers.utility.DockerImageName;
 
 public class QuerqySolrContainer extends SolrContainer {
@@ -35,12 +36,17 @@ public class QuerqySolrContainer extends SolrContainer {
 
     private final int numShards;
 
+    // TODO remove once TestContainers can deal with Solr >= 9.7
+    // for version-specific adjustments
+    private final ComparableVersion imageVersion;
+
     /**
      * Sets up a Solr Docker container running the current querqy version
      */
     public QuerqySolrContainer(DockerImageName image, int numShards) {
         super(image);
         this.numShards = numShards;
+        this.imageVersion = new ComparableVersion(image.getVersionPart());
 
         checkMavenFailsafeSetup();
 
@@ -56,6 +62,21 @@ public class QuerqySolrContainer extends SolrContainer {
         // link conf directory into container
         addFileSystemBind(querqyConfigurationPath,
                 String.format("/opt/solr/server/solr/configsets/%s", QUERQY_IT_CONFIGSET), BindMode.READ_ONLY);
+    }
+
+    // TODO remove once TestContainers can deal with Solr >= 9.7
+    @Override
+    protected void configure() {
+        super.configure();
+        final String command;
+        // we assume that we always use ZK
+        if (this.imageVersion.isGreaterThanOrEqualTo("9.7.0")) {
+            command = "-DzkRun --host localhost";
+        } else {
+            command = "-DzkRun -h localhost";
+        }
+        this.setCommand(command);
+
     }
 
     /**

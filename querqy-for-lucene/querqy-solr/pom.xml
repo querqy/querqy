@@ -17,7 +17,7 @@
         <minidev.json-smart.version>2.4.10</minidev.json-smart.version>
         <slf4j.version>2.0.7</slf4j.version>
         <solr.version>9.6.1</solr.version>
-        <testcontainers.version>1.20.3</testcontainers.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -195,7 +195,7 @@
                         <project.build.directory>${project.build.directory}</project.build.directory>
                         <project.build.finalName>${project.build.finalName}</project.build.finalName>
                         <project.version>${project.version}</project.version>
-                        <solr.test.versions>solr:9.6,solr:9.5,solr:9.4,solr:9.3,solr:9.2,solr:9.1</solr.test.versions>
+                        <solr.test.versions>solr:9.8,solr:9.7,solr:9.6,solr:9.5,solr:9.4,solr:9.3,solr:9.2,solr:9.1</solr.test.versions>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
