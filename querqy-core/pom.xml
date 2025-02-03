@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-core</artifactId>
-    <version>3.19.0-SNAPSHOT</version>
+    <version>3.18.2-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting: Querqy Core</description>
@@ -59,19 +59,21 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.4.1</maven-jar-plugin.version>
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
-        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
         <junit.version>4.13.2</junit.version>
-        <hamcrest.version>2.2</hamcrest.version>
-        <mockito.version>5.14.2</mockito.version>
+        <hamcrest.version>3.0</hamcrest.version>
+        <mockito.version>5.15.2</mockito.version>
+        <assertj.version>3.27.3</assertj.version>
 
-        <jackson.version>2.14.2</jackson.version>
-        <json-path.version>2.7.0</json-path.version>
+        <jackson.version>2.18.2</jackson.version>
+        <json-path.version>2.9.0</json-path.version>
     </properties>
 
     <dependencies>
@@ -127,7 +129,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.27.3</version>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -237,7 +239,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.4</version>
+                        <version>${maven-gpg-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
