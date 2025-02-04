@@ -50,7 +50,7 @@
 	</searchComponent>
 
 	<requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler">
-		<bool name="useConfigurationCore">true</bool>
+		<str name="rewriterStorage">index</str>
 		<bool name="isFollower">false</bool>
 	</requestHandler>
 
