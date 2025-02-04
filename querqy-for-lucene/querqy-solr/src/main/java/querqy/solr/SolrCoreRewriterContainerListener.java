@@ -33,31 +33,31 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
     private String querqyComponentName;
 
     @Override
-    public void init(NamedList args) {
-        var initArgs = args.toSolrParams();
+    public void init(final NamedList args) {
+        final var initArgs = args.toSolrParams();
         this.enabled = initArgs.getBool("enabled", false);
         this.querqyComponentName = initArgs.get("querqyRequestHandlerName", "/querqy/rewriter");
     }
 
     @Override
-    public void inform(SolrCore core) {
+    public void inform(final SolrCore core) {
         if (core.getCoreContainer().isZooKeeperAware()) {
             throw new SolrException(CONFLICT, "SolrCoreRewriterContainerListener cannot be used in solr cloud mode");
         }
 
         if (this.enabled) {
-            SolrCoreUpdateListener listener = new SolrCoreUpdateListener(this.querqyComponentName);
+            final SolrCoreUpdateListener listener = new SolrCoreUpdateListener(this.querqyComponentName);
             core.registerNewSearcherListener(listener);
         }
     }
 
     @Override
-    public void prepare(ResponseBuilder rb) {
+    public void prepare(final ResponseBuilder rb) {
         // nothing to do here
     }
 
     @Override
-    public void process(ResponseBuilder rb) {
+    public void process(final ResponseBuilder rb) {
         // nothing to do here
     }
 
@@ -72,7 +72,7 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
 
         private final String querqyComponentName;
 
-        public SolrCoreUpdateListener(String querqyComponentName) {
+        public SolrCoreUpdateListener(final String querqyComponentName) {
             this.querqyComponentName = querqyComponentName;
         }
 
@@ -87,10 +87,10 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
         }
 
         @Override
-        public void newSearcher(SolrIndexSearcher newSearcher, SolrIndexSearcher currentSearcher) {
+        public void newSearcher(final SolrIndexSearcher newSearcher, final SolrIndexSearcher currentSearcher) {
             LOG.info("Querqy rewriter data was updated. Notifying all configured core using querqy...");
 
-            var coreContainer = newSearcher.getCore().getCoreContainer();
+            final var coreContainer = newSearcher.getCore().getCoreContainer();
 
             coreContainer.getAllCoreNames()
                     .parallelStream()
@@ -111,8 +111,8 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
             });
         }
 
-        private void notifyRewriterConfigChanged(SolrCore core, SolrIndexSearcher newSearcher) {
-            Optional<SolrRequestHandler> requestHandler = Optional.ofNullable(core.getRequestHandler(this.querqyComponentName));
+        private void notifyRewriterConfigChanged(final SolrCore core, final SolrIndexSearcher newSearcher) {
+            final Optional<SolrRequestHandler> requestHandler = Optional.ofNullable(core.getRequestHandler(this.querqyComponentName));
             requestHandler.ifPresent(it -> {
                     if (it instanceof QuerqyRewriterRequestHandler) {
                         ((QuerqyRewriterRequestHandler) it).notifyRewriterConfigChanged(newSearcher);
@@ -124,7 +124,7 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
         }
 
         @Override
-        public void init(NamedList args) {
+        public void init(final NamedList args) {
             // noop
         }
     }

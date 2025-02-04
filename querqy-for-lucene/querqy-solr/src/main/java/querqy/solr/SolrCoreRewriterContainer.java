@@ -54,14 +54,16 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
 
     private String rewriterConfigCoreName;
 
-    public SolrCoreRewriterContainer(final SolrCore core, final SolrResourceLoader resourceLoader,
-                                     final Map<String, Sink> infoLoggingSinks) {
+    public SolrCoreRewriterContainer(final SolrCore core,
+                                     final SolrResourceLoader resourceLoader,
+                                     final Map<String, Sink> infoLoggingSinks
+    ) {
         super(core, resourceLoader, infoLoggingSinks);
     }
 
     @Override
-    protected void init(@SuppressWarnings({"rawtypes"}) NamedList args) {
-        var initArgs = args.toSolrParams();
+    protected void init(@SuppressWarnings({"rawtypes"}) final NamedList args) {
+        final var initArgs = args.toSolrParams();
         this.rewriterConfigCoreName = initArgs.get("configCoreName", "querqy");
         this.isFollower = initArgs.getBool("isFollower", false);
         try {
@@ -76,7 +78,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         // nothing to close
     }
 
-    private synchronized List<String> loadRewriters(SolrIndexSearcher configurationSearcher) throws IOException {
+    private synchronized List<String> loadRewriters(final SolrIndexSearcher configurationSearcher) throws IOException {
         final List<String> storedRewriters = listStoredRewriterIds(configurationSearcher);
         for (final String rewriterId : storedRewriters) {
             loadRewriter(rewriterId, readRewriterDefinition(rewriterId, configurationSearcher));
@@ -84,7 +86,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         return storedRewriters;
     }
 
-    synchronized void reloadRewriterConfig(SolrIndexSearcher newConfigurationSearcher) throws IOException {
+    synchronized void reloadRewriterConfig(final SolrIndexSearcher newConfigurationSearcher) throws IOException {
         final Set<String> previouslyLoadedRewriters = new HashSet<>(rewriters.keySet());
         final List<String> loadedRewriters = loadRewriters(newConfigurationSearcher);
 
@@ -103,8 +105,8 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         notifyRewritersChangeListener();
     }
 
-    private List<String> listStoredRewriterIds(SolrIndexSearcher searcher) throws IOException {
-        List<SolrDocument> rewriterConfigurationDocuments = allConfigurationDocuments(searcher, core.getName());
+    private List<String> listStoredRewriterIds(final SolrIndexSearcher searcher) throws IOException {
+        final List<SolrDocument> rewriterConfigurationDocuments = allConfigurationDocuments(searcher, core.getName());
         return rewriterConfigurationDocuments.stream().map(this::getRewriterIdFromDocument).collect(Collectors.toList());
     }
 
@@ -116,9 +118,9 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         ));
     }
 
-    private synchronized Map<String, Object> readRewriterDefinition(final String rewriterId, SolrIndexSearcher searcher)
+    private synchronized Map<String, Object> readRewriterDefinition(final String rewriterId, final SolrIndexSearcher searcher)
             throws IOException {
-        Optional<SolrDocument> rewriterConfigurationDocument = configurationDocumentForRewriter(searcher, core.getName(), rewriterId);
+        final Optional<SolrDocument> rewriterConfigurationDocument = configurationDocumentForRewriter(searcher, core.getName(), rewriterId);
         return rewriterConfigurationDocument.map(this::readConfigurationFromDocument).orElseThrow(() -> new SolrException(NOT_FOUND, "No such rewriter: " + rewriterId));
     }
 
@@ -131,22 +133,22 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         }
 
         withConfigurationCore(configurationCore -> {
-            SolrInputDocument doc = new SolrInputDocument();
+            final SolrInputDocument doc = new SolrInputDocument();
             doc.addField(FIELD_DOC_ID, configurationDocumentId(core.getName(), rewriterId));
             doc.addField(FIELD_REWRITER_ID, rewriterId);
             doc.addField(FIELD_CORE_NAME, core.getName());
             writeConfigurationToDocument(instanceDescription, doc);
 
-            SolrParams requestParams = new MapSolrParams(Map.of(
+            final SolrParams requestParams = new MapSolrParams(Map.of(
                     "action", "update",
                     "name", this.rewriterConfigCoreName));
 
-            try (LocalSolrQueryRequest solrUpdateRequest = new LocalSolrQueryRequest(configurationCore, requestParams)) {
-                AddUpdateCommand addCmd = new AddUpdateCommand(solrUpdateRequest);
+            try (final LocalSolrQueryRequest solrUpdateRequest = new LocalSolrQueryRequest(configurationCore, requestParams)) {
+                final AddUpdateCommand addCmd = new AddUpdateCommand(solrUpdateRequest);
                 addCmd.solrDoc = doc;
                 configurationCore.getUpdateHandler().addDoc(addCmd);
 
-                CommitUpdateCommand commitCmd = new CommitUpdateCommand(solrUpdateRequest, false);
+                final CommitUpdateCommand commitCmd = new CommitUpdateCommand(solrUpdateRequest, false);
                 configurationCore.getUpdateHandler().commit(commitCmd);
             }
             return null;
@@ -164,16 +166,16 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         }
 
         withConfigurationCore(configurationCore -> {
-            SolrParams requestParams = new MapSolrParams(Map.of(
+            final SolrParams requestParams = new MapSolrParams(Map.of(
                     "action", "update",
                     "name", this.rewriterConfigCoreName));
 
-            try (LocalSolrQueryRequest solrUpdateRequest = new LocalSolrQueryRequest(configurationCore, requestParams)) {
-                DeleteUpdateCommand deleteCmd = new DeleteUpdateCommand(solrUpdateRequest);
+            try (final LocalSolrQueryRequest solrUpdateRequest = new LocalSolrQueryRequest(configurationCore, requestParams)) {
+                final DeleteUpdateCommand deleteCmd = new DeleteUpdateCommand(solrUpdateRequest);
                 deleteCmd.id = configurationDocumentId(core.getName(), rewriterId);
                 configurationCore.getUpdateHandler().delete(deleteCmd);
 
-                CommitUpdateCommand commitCmd = new CommitUpdateCommand(solrUpdateRequest, false);
+                final CommitUpdateCommand commitCmd = new CommitUpdateCommand(solrUpdateRequest, false);
                 configurationCore.getUpdateHandler().commit(commitCmd);
             }
             return null;
@@ -188,8 +190,8 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         notifyRewritersChangeListener();
     }
 
-    protected String getRewriterIdFromDocument(SolrDocument doc) {
-        var fieldValue = doc.getFieldValue(FIELD_REWRITER_ID);
+    protected String getRewriterIdFromDocument(final SolrDocument doc) {
+        final var fieldValue = doc.getFieldValue(FIELD_REWRITER_ID);
         if (fieldValue == null) {
             throw new SolrException(INVALID_STATE, String.format("Unexpected null value encountered in field '%s'", FIELD_REWRITER_ID));
         } else if (fieldValue instanceof IndexableField) {
@@ -199,8 +201,8 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         }
     }
 
-    protected Map<String, Object> readConfigurationFromDocument(SolrDocument doc) {
-        var fieldValue = doc.getFieldValue(FIELD_DATA);
+    protected Map<String, Object> readConfigurationFromDocument(final SolrDocument doc) {
+        final var fieldValue = doc.getFieldValue(FIELD_DATA);
         if (fieldValue == null) {
             throw new SolrException(INVALID_STATE, String.format("Unexpected null value encountered in field '%s'", FIELD_DATA));
         } else if (fieldValue instanceof IndexableField) {
@@ -211,24 +213,24 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         }
     }
 
-    protected void writeConfigurationToDocument(Map<String, Object> configuration, SolrInputDocument document) {
-        var byteArrayOutputStream = new ByteArrayOutputStream();
+    protected void writeConfigurationToDocument(final Map<String, Object> configuration, final SolrInputDocument document) {
+        final var byteArrayOutputStream = new ByteArrayOutputStream();
         JsonUtil.writeJson(configuration, byteArrayOutputStream);
         document.addField(FIELD_DATA, byteArrayOutputStream.toByteArray());
     }
 
-    protected Optional<SolrDocument> configurationDocumentForRewriter(SolrIndexSearcher searcher, String coreName, String rewriterId) throws IOException {
-        try (LocalSolrQueryRequest req = new LocalSolrQueryRequest(searcher.getCore(), new ModifiableSolrParams())) {
+    protected Optional<SolrDocument> configurationDocumentForRewriter(final SolrIndexSearcher searcher, final String coreName, final String rewriterId) throws IOException {
+        try (final LocalSolrQueryRequest req = new LocalSolrQueryRequest(searcher.getCore(), new ModifiableSolrParams())) {
 
-            QueryResult result = new QueryResult();
+            final QueryResult result = new QueryResult();
 
-            QueryCommand queryCommand = new QueryCommand();
+            final QueryCommand queryCommand = new QueryCommand();
             queryCommand.setQuery(new TermQuery(new Term(FIELD_DOC_ID, configurationDocumentId(coreName, rewriterId))));
             queryCommand.setLen(1);
 
             searcher.search(result, queryCommand);
 
-            SolrDocumentList docs = toSolrDocumentList(result.getDocList(),
+            final SolrDocumentList docs = toSolrDocumentList(result.getDocList(),
                     searcher,
                     searcher.getSchema(),
                     new SolrReturnFields(
@@ -246,20 +248,20 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         }
     }
 
-    protected List<SolrDocument> allConfigurationDocuments(SolrIndexSearcher searcher, String coreName) throws IOException {
-        ArrayList<SolrDocument> configurationDocuments = new ArrayList<>();
-        try (LocalSolrQueryRequest req = new LocalSolrQueryRequest(searcher.getCore(), new ModifiableSolrParams())) {
+    protected List<SolrDocument> allConfigurationDocuments(final SolrIndexSearcher searcher, final String coreName) throws IOException {
+        final ArrayList<SolrDocument> configurationDocuments = new ArrayList<>();
+        try (final LocalSolrQueryRequest req = new LocalSolrQueryRequest(searcher.getCore(), new ModifiableSolrParams())) {
             final ResponseBuilder rsp = new ResponseBuilder(req,
                     new SolrQueryResponse(),
                     Collections.emptyList());
 
             rsp.setSortSpec(new SortSpec(null, Collections.emptyList()));
 
-            QueryResult result = new QueryResult();
+            final QueryResult result = new QueryResult();
 
-            SortSpec sortSpec = SortSpecParsing.parseSortSpec(String.format("%s asc", FIELD_DOC_ID), searcher.getSchema());
+            final SortSpec sortSpec = SortSpecParsing.parseSortSpec(String.format("%s asc", FIELD_DOC_ID), searcher.getSchema());
 
-            QueryCommand queryCommand = new QueryCommand();
+            final QueryCommand queryCommand = new QueryCommand();
             queryCommand.setFilterList(new FilterQuery(new TermQuery(new Term(FIELD_CORE_NAME, coreName))));
             queryCommand.setLen(100);
             queryCommand.setSort(sortSpec.getSort());
@@ -272,7 +274,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
                 queryCommand.setCursorMark(cursorMark);
                 searcher.search(result, queryCommand);
 
-                SolrDocumentList docs = toSolrDocumentList(result.getDocList(),
+                final SolrDocumentList docs = toSolrDocumentList(result.getDocList(),
                         searcher,
                         searcher.getSchema(),
                         new SolrReturnFields(
@@ -285,7 +287,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
 
                 configurationDocuments.addAll(docs);
 
-                CursorMark nextCursorMark = result.getNextCursorMark();
+                final CursorMark nextCursorMark = result.getNextCursorMark();
 
                 if (nextCursorMark == null || nextCursorMark.getSerializedTotem().equals(cursorMark.getSerializedTotem())) {
                     // cursor mark remained the same meaning the
@@ -301,30 +303,31 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
     }
 
     private static SolrDocumentList toSolrDocumentList(
-            DocList docList,
-            IndexSearcher searcher,
-            IndexSchema schema,
-            ReturnFields fields) throws IOException {
-        SolrDocumentList solrDocuments = new SolrDocumentList();
-        Iterator<Integer> docIds = docList.iterator();
+            final DocList docList,
+            final IndexSearcher searcher,
+            final IndexSchema schema,
+            final ReturnFields fields
+    ) throws IOException {
+        final SolrDocumentList solrDocuments = new SolrDocumentList();
+        final Iterator<Integer> docIds = docList.iterator();
         while (docIds.hasNext()) {
             solrDocuments.add(DocsStreamer.convertLuceneDocToSolrDoc(
-                    searcher.doc(docIds.next()),
+                    searcher.storedFields().document(docIds.next(), fields.getLuceneFieldNames()),
                     schema,
                     fields));
         }
         return solrDocuments;
     }
 
-    private <R> R withConfigurationCore(IOFunction<SolrCore, R> lambda) throws IOException {
+    private <R> R withConfigurationCore(final IOFunction<SolrCore, R> lambda) throws IOException {
         return withCore(lambda, rewriterConfigCoreName, core.getCoreContainer());
     }
 
-    private <R> void withConfigurationCore(IOFunction<SolrCore, R> lambda, Duration waitTimeout) throws IOException {
+    private <R> void withConfigurationCore(final IOFunction<SolrCore, R> lambda, final Duration waitTimeout) throws IOException {
         withCore(lambda, rewriterConfigCoreName, core.getCoreContainer(), waitTimeout);
     }
 
-    static String configurationDocumentId(String coreName, String rewriterId) {
+    static String configurationDocumentId(final String coreName, final String rewriterId) {
         return coreName + "#" + rewriterId;
     }
 
