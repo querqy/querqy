@@ -2,6 +2,8 @@ package querqy.solr;
 
 import static java.util.stream.Collectors.toMap;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.*;
+import static querqy.solr.QuerqyRewriterRequestHandler.SolrMode.*;
+import static querqy.solr.QuerqyRewriterRequestHandler.RewriterStorageType.*;
 import static querqy.solr.utils.JsonUtil.readJson;
 
 import org.apache.solr.cloud.ZkSolrResourceLoader;
@@ -75,7 +77,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
             if (method.equalsIgnoreCase("POST")) {
 
-                if (!actionParam.isPresent()) {
+                if (actionParam.isEmpty()) {
                     throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "HTTP POST requires parameter: "
                             + PARAM_ACTION);
                 }
@@ -92,7 +94,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
             } else if (method.equalsIgnoreCase("GET")) {
 
-                if (!actionParam.isPresent()) {
+                if (actionParam.isEmpty()) {
                     return Optional.of(GET);
                 }
                 if (actionParam.get() == ActionParam.GET) {
@@ -103,7 +105,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
             } else if (method.equalsIgnoreCase("DELETE")) {
 
-                if (!actionParam.isPresent()) {
+                if (actionParam.isEmpty()) {
                     return Optional.of(DELETE);
                 }
                 if (actionParam.get() == ActionParam.DELETE) {
@@ -114,7 +116,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
             } else if (method.equalsIgnoreCase("PUT")) {
 
-                if (!actionParam.isPresent()) {
+                if (actionParam.isEmpty()) {
                     return Optional.of(SAVE);
                 }
                 if (actionParam.get() == ActionParam.SAVE) {
@@ -154,9 +156,9 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     public static final String DEFAULT_HANDLER_NAME = "/querqy/rewriter";
 
-    private RewriterContainer<?> rewriterContainer = null;
+    private RewriterStorageType rewriterStorageType = null;
 
-    private Map<String, Sink> infoLoggingSinks = null;
+    private RewriterContainer<?> rewriterContainer = null;
 
     @SuppressWarnings({"rawtypes"})
     private NamedList initArgs = null;
@@ -209,22 +211,102 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         return Category.OTHER;
     }
 
+    public enum SolrMode {
+        CLOUD(ZK, IN_MEMORY),
+        STANDALONE(CONF_DIR, IN_MEMORY, INDEX);
+
+        private final RewriterStorageType defaultRewriterStorageType;
+
+        private final Set<RewriterStorageType> supportedRewriterStorageTypes;
+
+        SolrMode(final RewriterStorageType defaultRewriterStorageType, final RewriterStorageType... otherSupportedRewriterStorageTypes) {
+            this.defaultRewriterStorageType = defaultRewriterStorageType;
+            this.supportedRewriterStorageTypes = new HashSet<>(Arrays.asList(otherSupportedRewriterStorageTypes));
+            this.supportedRewriterStorageTypes.add(defaultRewriterStorageType);
+        }
+
+        public RewriterStorageType getDefaultRewriterStorageType() {
+            return defaultRewriterStorageType;
+        }
+
+        public boolean supportsRewriterStorageType(final RewriterStorageType rewriterStorageType) {
+            return supportedRewriterStorageTypes.contains(rewriterStorageType);
+        }
+    }
+
+    public enum RewriterStorageType {
+        IN_MEMORY("inMemory", false),
+        CONF_DIR("confDir", true),
+        INDEX("index", true),
+        ZK("zk", true);
+
+        private final String value;
+        private final boolean isPersisting;
+
+        RewriterStorageType(final String value, final boolean isPersisting) {
+            this.value = value;
+            this.isPersisting = isPersisting;
+        }
+
+        public boolean isPersisting() {
+            return isPersisting;
+        }
+
+        public static RewriterStorageType rewriterStorageTypeFromString(final String str) {
+            return Arrays.stream(values())
+                    .filter(v -> v.value.equals(str))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown rewriter storage type: " + str));
+        }
+
+        public static RewriterStorageType fromConfig(final NamedList<?> initArgs, final SolrMode solrMode) {
+            // Option key "inMemory=true" is deprecated. Will be removed in future versions.
+            // New option key is "rewriterStorage=inMemory".
+            final Optional<Boolean> inMemory = Optional.ofNullable((Boolean) initArgs.get("inMemory"));
+            final Optional<String> rewriterStorageStr = Optional.ofNullable((String) initArgs.get("rewriterStorage"));
+            RewriterStorageType rewriterStorageType;
+            if (inMemory.isPresent() && inMemory.get()) {
+                rewriterStorageType = IN_MEMORY;
+                LOG.warn("You are using a deprecated configuration option: <bool name=\"inMemory\">true</bool>. Please use <str name=\"rewriterStorage\">inMemory</str> instead.");
+            } else if (rewriterStorageStr.isPresent()) {
+                rewriterStorageType = rewriterStorageTypeFromString(rewriterStorageStr.get());
+            } else {
+                rewriterStorageType = solrMode.getDefaultRewriterStorageType();
+            }
+
+            if (solrMode.supportsRewriterStorageType(rewriterStorageType)) {
+                LOG.info("Using rewriter storage: {}", rewriterStorageType);
+            } else {
+                throw new IllegalArgumentException("Rewriter storage " + rewriterStorageType + " is not supported for solr mode " + solrMode);
+            }
+            return rewriterStorageType;
+        }
+    }
+
     @Override
     public void inform(final SolrCore core) {
 
         final SolrResourceLoader resourceLoader = core.getResourceLoader();
         Map<String, Sink> sinks = loadSinks(resourceLoader);
 
-        final Boolean inMemory = (Boolean) initArgs.get("inMemory");
-        final Boolean useConfigurationCore = (Boolean) initArgs.get("useConfigurationCore");
-        if (inMemory != null && inMemory) {
-            rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader, sinks);
-        } else if (useConfigurationCore != null && useConfigurationCore) {
-            rewriterContainer = new SolrCoreRewriterContainer(core, resourceLoader, sinks);
-        } else if (resourceLoader instanceof ZkSolrResourceLoader) {
-            rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader, sinks);
-        } else {
-            rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader, sinks);
+        final SolrMode solrMode = resourceLoader instanceof ZkSolrResourceLoader ? CLOUD : STANDALONE;
+
+        rewriterStorageType = RewriterStorageType.fromConfig(initArgs, solrMode);
+
+        switch (rewriterStorageType) {
+            case IN_MEMORY:
+                rewriterContainer = new InMemoryRewriteContainer(core, resourceLoader, sinks);
+                break;
+            case CONF_DIR:
+                rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader, sinks);
+                break;
+            case INDEX:
+                rewriterContainer = new SolrCoreRewriterContainer(core, resourceLoader, sinks);
+                break;
+            case ZK:
+                assert resourceLoader instanceof ZkSolrResourceLoader;
+                rewriterContainer = new ZkRewriterContainer(core, (ZkSolrResourceLoader) resourceLoader, sinks);
+                break;
         }
 
         rewriterContainer.init(initArgs);
@@ -262,17 +344,13 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     }
 
 
-        /**
-         * This check is used for validation as long as we are still allowing rewriters to be configured in solrconfig.xml
-         * @return true iff rewriter configs sent to this handler will be persisted
-         */
+    /**
+     * This check is used for validation as long as we are still allowing rewriters to be configured in solrconfig.xml
+     * @return true if rewriter configs sent to this handler will be persisted
+     */
     @Deprecated
     public boolean isPersistingRewriters() {
-        if (rewriterContainer instanceof InMemoryRewriteContainer) {
-            return false;
-        }
-        final Boolean inMemory = (Boolean) initArgs.get("inMemory");
-        return (inMemory == null || !inMemory);
+        return rewriterStorageType.isPersisting();
     }
 
     /**
