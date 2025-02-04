@@ -45,10 +45,13 @@ import static querqy.solr.utils.CoreUtils.withCore;
  */
 public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoader> {
 
-    private static final String FIELD_DOC_ID = "id";
-    private static final String FIELD_REWRITER_ID = "rewriterId";
-    private static final String FIELD_CORE_NAME = "core";
-    private static final String FIELD_DATA = "data";
+    static final int CURRENT_CONFIG_VERSION = 1;
+
+    static final String FIELD_DOC_ID = "id";
+    static final String FIELD_REWRITER_ID = "rewriterId";
+    static final String FIELD_CORE_NAME = "core";
+    static final String FIELD_DATA = "data";
+    static final String FIELD_CONF_VERSION = "confVersion";
 
     private boolean isFollower;
 
@@ -137,6 +140,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
             doc.addField(FIELD_DOC_ID, configurationDocumentId(core.getName(), rewriterId));
             doc.addField(FIELD_REWRITER_ID, rewriterId);
             doc.addField(FIELD_CORE_NAME, core.getName());
+            doc.addField(FIELD_CONF_VERSION, CURRENT_CONFIG_VERSION);
             writeConfigurationToDocument(instanceDescription, doc);
 
             final SolrParams requestParams = new MapSolrParams(Map.of(
@@ -238,6 +242,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
                                     FIELD_DOC_ID,
                                     FIELD_REWRITER_ID,
                                     FIELD_CORE_NAME,
+                                    FIELD_CONF_VERSION,
                                     FIELD_DATA
                             },
                             req

@@ -6,12 +6,14 @@
         <field name="core" type="string" indexed="true" stored="true" required="true" multiValued="false" />
         <field name="rewriterId" type="string" indexed="true" stored="true" required="true" multiValued="false" />
         <field name="data" type="binary" indexed="false" stored="true" required="true" multiValued="false" />
+        <field name="confVersion" type="pint" indexed="false" stored="true" required="true" multiValued="false" />
     </fields>
 
     <uniqueKey>id</uniqueKey>
 
     <types>
         <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
+        <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
         <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
         <fieldType name="binary" class="solr.BinaryField"/>
     </types>
