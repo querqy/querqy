@@ -7,7 +7,6 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
 import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.common.SolrDocument;
@@ -33,7 +32,7 @@ import java.util.Objects;
 import org.assertj.core.api.Assertions;
 import querqy.solr.rewriter.commonrules.CommonRulesRewriterFactory;
 
-import static querqy.solr.SolrCoreRewriterContainer.configurationDocumentId;
+import static querqy.solr.SolrCoreRewriterContainer.*;
 import static querqy.solr.StandaloneSolrTestSupport.deleteRewriter;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
@@ -49,15 +48,15 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
 
     @BeforeClass
     public static void startServer() throws Exception {
-        solrHome = prepareSolrHomeWithConfigsets("solr");
+        solrHome = prepareSolrHomeWithConfigsets();
         startSolr(solrHome);
     }
 
     @Before
     public void createCores() throws Exception {
-        createCore(embeddedSolr, QUERQY_CONFIG_CORE_NAME, "querqyrewriters", null, null);
-        createCore(embeddedSolr, SEARCH_CORE_NAME_A, "collection1", "solrconfig-core-rewritercontainer.xml", null);
-        createCore(embeddedSolr, SEARCH_CORE_NAME_B, "collection1", "solrconfig-core-rewritercontainer.xml", null);
+        createCore(embeddedSolr, QUERQY_CONFIG_CORE_NAME, "querqyrewriters", null);
+        createCore(embeddedSolr, SEARCH_CORE_NAME_A, "collection1", "solrconfig-core-rewritercontainer.xml");
+        createCore(embeddedSolr, SEARCH_CORE_NAME_B, "collection1", "solrconfig-core-rewritercontainer.xml");
     }
 
     @After
@@ -94,6 +93,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
+                .hasConfVersion(CURRENT_CONFIG_VERSION)
                 .hasData(builder.buildJson());
 
         final NamedList<?> response = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -121,6 +121,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
+                .hasConfVersion(CURRENT_CONFIG_VERSION)
                 .hasData(builderV1.buildJson());
 
         final NamedList<?> responseV1 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -140,6 +141,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
+                .hasConfVersion(CURRENT_CONFIG_VERSION)
                 .hasData(builderV2.buildJson());
 
         final NamedList<?> responseV2 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -174,6 +176,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
+                .hasConfVersion(CURRENT_CONFIG_VERSION)
                 .hasData(builderA.buildJson());
 
         final NamedList<?> responseA = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -189,6 +192,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_B, "rewriterB"))
                 .hasCoreName(SEARCH_CORE_NAME_B)
                 .hasRewriterId("rewriterB")
+                .hasConfVersion(CURRENT_CONFIG_VERSION)
                 .hasData(builderB.buildJson());
 
         final NamedList<?> responseB = embeddedSolr.query(SEARCH_CORE_NAME_B, queryRewriterSubHandler("rewriterB")).getResponse();
@@ -300,29 +304,26 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         coreContainer.load();
     }
 
-    private static Path prepareSolrHomeWithConfigsets(final String configsetsResourceFolder) throws Exception {
+    private static Path prepareSolrHomeWithConfigsets() throws Exception {
         final Path solrHome = SolrTestCase.createTempDir("solrHome");
         final Path configsetsDirectory = solrHome.resolve("configsets");
         Files.createDirectory(configsetsDirectory);
-        final Path configsetResourcePath = resourcePath(configsetsResourceFolder);
+        final Path configsetResourcePath = resourcePath();
         FileUtils.copyDirectory(configsetResourcePath.toFile(), configsetsDirectory.toFile());
         return solrHome;
     }
 
-    private static Path resourcePath(final String resource) throws Exception {
-        return new File(Objects.requireNonNull(SolrCoreRewriterContainerTest.class.getClassLoader().getResource(resource)).toURI()).getAbsoluteFile().toPath();
+    private static Path resourcePath() throws Exception {
+        return new File(Objects.requireNonNull(SolrCoreRewriterContainerTest.class.getClassLoader().getResource("solr")).toURI()).getAbsoluteFile().toPath();
     }
 
-    private static void createCore(final SolrClient solrClient, final String name, final String configset, final String configFile, final String schemaFile) throws SolrServerException, IOException {
+    private static void createCore(final SolrClient solrClient, final String name, final String configset, final String configFile) throws SolrServerException, IOException {
         final CoreAdminRequest.Create req = new CoreAdminRequest.Create();
         req.setCoreName(name);
         req.setInstanceDir(name);
         req.setConfigSet(configset);
         if (configFile != null) {
             req.setConfigName(configFile);
-        }
-        if (schemaFile != null) {
-            req.setSchemaName(schemaFile);
         }
         req.process(solrClient);
     }
@@ -335,8 +336,8 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
     private static NodeConfig.NodeConfigBuilder newNodeConfigBuilder(final Path solrHome) {
         final UpdateShardHandlerConfig shardHandlerConfig =
                 new UpdateShardHandlerConfig(
-                        HttpClientUtil.DEFAULT_MAXCONNECTIONS,
-                        HttpClientUtil.DEFAULT_MAXCONNECTIONSPERHOST,
+                        100000,
+                        100000,
                         30000,
                         30000,
                         UpdateShardHandlerConfig.DEFAULT_METRICNAMESTRATEGY,
@@ -400,22 +401,27 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         }
 
         public StoredRewriterConfigurationAssert hasId(final String id) {
-            Assertions.assertThat(actual.getFieldValue("id")).isEqualTo(id);
+            Assertions.assertThat(actual.getFieldValue(FIELD_DOC_ID)).isEqualTo(id);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasCoreName(final String coreName) {
-            Assertions.assertThat(actual.getFieldValue("core")).isEqualTo(coreName);
+            Assertions.assertThat(actual.getFieldValue(FIELD_CORE_NAME)).isEqualTo(coreName);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasRewriterId(final String rewriterId) {
-            Assertions.assertThat(actual.getFieldValue("rewriterId")).isEqualTo(rewriterId);
+            Assertions.assertThat(actual.getFieldValue(FIELD_REWRITER_ID)).isEqualTo(rewriterId);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasData(final String jsonData) {
-            Assertions.assertThat(new String((byte[]) actual.getFieldValue("data"), StandardCharsets.UTF_8)).isEqualTo(jsonData);
+            Assertions.assertThat(new String((byte[]) actual.getFieldValue(FIELD_DATA), StandardCharsets.UTF_8)).isEqualTo(jsonData);
+            return this;
+        }
+
+        public StoredRewriterConfigurationAssert hasConfVersion(final int confVersion) {
+            Assertions.assertThat(actual.getFieldValue(FIELD_CONF_VERSION)).isEqualTo(confVersion);
             return this;
         }
     }
