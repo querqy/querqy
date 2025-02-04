@@ -83,20 +83,20 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                 .rules("a =>\n SYNONYM: aa");
 
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             withCommonRulesRewriter(searchCore, "rewriterA", builder);
         }
 
-        SolrDocumentList querqyConfigurationDocumentA = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
+        final SolrDocumentList querqyConfigurationDocumentA = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
         Assertions.assertThat(querqyConfigurationDocumentA).hasSize(1);
-        SolrDocument docA = querqyConfigurationDocumentA.stream().findFirst().get();
+        final SolrDocument docA = querqyConfigurationDocumentA.stream().findFirst().get();
         assertThat(docA)
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
                 .hasData(builder.buildJson());
 
-        NamedList<?> response = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
+        final NamedList<?> response = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
         assertThat(response)
                 .hasRewriterId("rewriterA")
                 .hasClass(CommonRulesRewriterFactory.class.getName())
@@ -110,39 +110,39 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         final CommonRulesConfigRequestBuilder builderV2 = new CommonRulesConfigRequestBuilder()
                 .rules("z =>\n SYNONYM: zz");
 
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             withCommonRulesRewriter(searchCore, "rewriterA", builderV1);
         }
 
-        SolrDocumentList querqyConfigurationDocumentV1 = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
+        final SolrDocumentList querqyConfigurationDocumentV1 = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
         Assertions.assertThat(querqyConfigurationDocumentV1).hasSize(1);
-        SolrDocument docV1 = querqyConfigurationDocumentV1.stream().findFirst().get();
+        final SolrDocument docV1 = querqyConfigurationDocumentV1.stream().findFirst().get();
         assertThat(docV1)
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
                 .hasData(builderV1.buildJson());
 
-        NamedList<?> responseV1 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
+        final NamedList<?> responseV1 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
         assertThat(responseV1)
                 .hasRewriterId("rewriterA")
                 .hasClass(CommonRulesRewriterFactory.class.getName())
                 .hasRules("a =>\n SYNONYM: aa");
 
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             withCommonRulesRewriter(searchCore, "rewriterA", builderV2);
         }
 
-        SolrDocumentList querqyConfigurationDocumentV2 = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
+        final SolrDocumentList querqyConfigurationDocumentV2 = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
         Assertions.assertThat(querqyConfigurationDocumentV2).hasSize(1);
-        SolrDocument docV2 = querqyConfigurationDocumentV2.stream().findFirst().get();
+        final SolrDocument docV2 = querqyConfigurationDocumentV2.stream().findFirst().get();
         assertThat(docV2)
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
                 .hasData(builderV2.buildJson());
 
-        NamedList<?> responseV2 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
+        final NamedList<?> responseV2 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
         assertThat(responseV2)
                 .hasRewriterId("rewriterA")
                 .hasClass(CommonRulesRewriterFactory.class.getName())
@@ -157,41 +157,41 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .rules("b =>\n SYNONYM: bb");
 
         // Add a rewriter config for each core
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             withCommonRulesRewriter(searchCore, "rewriterA", builderA);
         }
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_B)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_B)) {
             withCommonRulesRewriter(searchCore, "rewriterB", builderB);
         }
 
-        SolrDocumentList querqyConfigurationDocuments = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
+        final SolrDocumentList querqyConfigurationDocuments = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
         Assertions.assertThat(querqyConfigurationDocuments).hasSize(2);
 
-        SolrDocumentList querqyConfigurationDocumentA = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterA", SEARCH_CORE_NAME_A)).getResults();
+        final SolrDocumentList querqyConfigurationDocumentA = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterA", SEARCH_CORE_NAME_A)).getResults();
         Assertions.assertThat(querqyConfigurationDocumentA).hasSize(1);
-        SolrDocument docA = querqyConfigurationDocumentA.stream().findFirst().get();
+        final SolrDocument docA = querqyConfigurationDocumentA.stream().findFirst().get();
         assertThat(docA)
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
                 .hasData(builderA.buildJson());
 
-        NamedList<?> responseA = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
+        final NamedList<?> responseA = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
         assertThat(responseA)
                 .hasRewriterId("rewriterA")
                 .hasClass(CommonRulesRewriterFactory.class.getName())
                 .hasRules("a =>\n SYNONYM: aa");
 
-        SolrDocumentList querqyConfigurationDocumentB = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterB", SEARCH_CORE_NAME_B)).getResults();
+        final SolrDocumentList querqyConfigurationDocumentB = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterB", SEARCH_CORE_NAME_B)).getResults();
         Assertions.assertThat(querqyConfigurationDocumentB).hasSize(1);
-        SolrDocument docB = querqyConfigurationDocumentB.stream().findFirst().get();
+        final SolrDocument docB = querqyConfigurationDocumentB.stream().findFirst().get();
         assertThat(docB)
                 .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_B, "rewriterB"))
                 .hasCoreName(SEARCH_CORE_NAME_B)
                 .hasRewriterId("rewriterB")
                 .hasData(builderB.buildJson());
 
-        NamedList<?> responseB = embeddedSolr.query(SEARCH_CORE_NAME_B, queryRewriterSubHandler("rewriterB")).getResponse();
+        final NamedList<?> responseB = embeddedSolr.query(SEARCH_CORE_NAME_B, queryRewriterSubHandler("rewriterB")).getResponse();
         assertThat(responseB)
                 .hasRewriterId("rewriterB")
                 .hasClass(CommonRulesRewriterFactory.class.getName())
@@ -203,22 +203,22 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
                 .rules("a =>\n SYNONYM: aa");
 
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             withCommonRulesRewriter(searchCore, "rewriterA", builder);
         }
 
-        SolrDocumentList querqyConfigurationDocument = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterA", SEARCH_CORE_NAME_A)).getResults();
+        final SolrDocumentList querqyConfigurationDocument = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterA", SEARCH_CORE_NAME_A)).getResults();
         Assertions.assertThat(querqyConfigurationDocument).hasSize(1);
 
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             deleteRewriter(searchCore, "rewriterA");
         }
 
-        SolrDocumentList allConfigurationDocuments = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, new SolrQuery("*:*")).getResults();
+        final SolrDocumentList allConfigurationDocuments = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, new SolrQuery("*:*")).getResults();
         Assertions.assertThat(allConfigurationDocuments).isEmpty();
 
-        SolrQuery queryRewriterA = queryRewriterSubHandler("rewriterA");
-        SolrException exception = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterA));
+        final SolrQuery queryRewriterA = queryRewriterSubHandler("rewriterA");
+        final SolrException exception = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterA));
         Assertions.assertThat(exception.getMessage()).contains("No such rewriter: rewriterA");
     }
 
@@ -230,36 +230,36 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .rules("b =>\n SYNONYM: bb");
 
         // Add a rewriter config for each core
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             withCommonRulesRewriter(searchCore, "rewriterA", builderA);
         }
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_B)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_B)) {
             withCommonRulesRewriter(searchCore, "rewriterB", builderB);
         }
 
-        SolrDocumentList querqyConfigurationDocumentA = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterA", SEARCH_CORE_NAME_A)).getResults();
+        final SolrDocumentList querqyConfigurationDocumentA = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterA", SEARCH_CORE_NAME_A)).getResults();
         Assertions.assertThat(querqyConfigurationDocumentA).hasSize(1);
 
-        SolrDocumentList querqyConfigurationDocumentB = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterB", SEARCH_CORE_NAME_B)).getResults();
+        final SolrDocumentList querqyConfigurationDocumentB = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchRewriterConfigById("rewriterB", SEARCH_CORE_NAME_B)).getResults();
         Assertions.assertThat(querqyConfigurationDocumentB).hasSize(1);
 
         try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             deleteRewriter(searchCore, "rewriterA");
         }
 
-        SolrQuery queryRewriterA = queryRewriterSubHandler("rewriterA");
-        SolrException exceptionA = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterA));
+        final SolrQuery queryRewriterA = queryRewriterSubHandler("rewriterA");
+        final SolrException exceptionA = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterA));
         Assertions.assertThat(exceptionA.getMessage()).contains("No such rewriter: rewriterA");
 
         SolrDocumentList allConfigurationDocuments = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
         Assertions.assertThat(allConfigurationDocuments).hasSize(1);
 
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_B)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_B)) {
             deleteRewriter(searchCore, "rewriterB");
         }
 
-        SolrQuery queryRewriterB = queryRewriterSubHandler("rewriterB");
-        SolrException exceptionB = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_B, queryRewriterB));
+        final SolrQuery queryRewriterB = queryRewriterSubHandler("rewriterB");
+        final SolrException exceptionB = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_B, queryRewriterB));
         Assertions.assertThat(exceptionB.getMessage()).contains("No such rewriter: rewriterB");
 
         allConfigurationDocuments = embeddedSolr.query(QUERQY_CONFIG_CORE_NAME, matchAll()).getResults();
@@ -268,14 +268,14 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
 
     @Test
     public void getUnknownRewriterConfiguration() {
-        SolrQuery queryRewriter = queryRewriterSubHandler("rewriterX");
-        SolrException exception = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriter));
+        final SolrQuery queryRewriter = queryRewriterSubHandler("rewriterX");
+        final SolrException exception = assertThrows(SolrException.class, () -> embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriter));
         Assertions.assertThat(exception.getMessage()).contains("No such rewriter: rewriterX");
     }
 
     @Test
     public void deleteUnknownRewriterConfiguration() {
-        try (SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
+        try (final SolrCore searchCore = embeddedSolr.getCoreContainer().getCore(SEARCH_CORE_NAME_A)) {
             SolrException solrException = assertThrows(SolrException.class, () -> deleteRewriter(searchCore, "rewriterX"));
             assertEquals("No such rewriter: rewriterX", solrException.getMessage());
         }
@@ -285,36 +285,36 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         return new SolrQuery("*:*");
     }
 
-    private static SolrQuery matchRewriterConfigById(String rewriterId, String coreName) {
+    private static SolrQuery matchRewriterConfigById(final String rewriterId, final String coreName) {
         return new SolrQuery(String.format("id:%s", configurationDocumentId(coreName, rewriterId)));
     }
 
-    private static SolrQuery queryRewriterSubHandler(String rewriterId) {
+    private static SolrQuery queryRewriterSubHandler(final String rewriterId) {
         return new SolrQuery("qt", "/querqy/rewriter/" + rewriterId);
     }
 
-    private static void startSolr(Path solrHome) {
-        NodeConfig nodeConfig = newNodeConfigBuilder(solrHome).build();
+    private static void startSolr(final Path solrHome) {
+        final NodeConfig nodeConfig = newNodeConfigBuilder(solrHome).build();
         coreContainer = new CoreContainer(nodeConfig);
         embeddedSolr = new EmbeddedSolrServer(coreContainer, null);
         coreContainer.load();
     }
 
-    private static Path prepareSolrHomeWithConfigsets(String configsetsResourceFolder) throws Exception {
-        Path solrHome = SolrTestCase.createTempDir("solrHome");
-        Path configsetsDirectory = solrHome.resolve("configsets");
+    private static Path prepareSolrHomeWithConfigsets(final String configsetsResourceFolder) throws Exception {
+        final Path solrHome = SolrTestCase.createTempDir("solrHome");
+        final Path configsetsDirectory = solrHome.resolve("configsets");
         Files.createDirectory(configsetsDirectory);
-        Path configsetResourcePath = resourcePath(configsetsResourceFolder);
+        final Path configsetResourcePath = resourcePath(configsetsResourceFolder);
         FileUtils.copyDirectory(configsetResourcePath.toFile(), configsetsDirectory.toFile());
         return solrHome;
     }
 
-    private static Path resourcePath(String resource) throws Exception {
+    private static Path resourcePath(final String resource) throws Exception {
         return new File(Objects.requireNonNull(SolrCoreRewriterContainerTest.class.getClassLoader().getResource(resource)).toURI()).getAbsoluteFile().toPath();
     }
 
-    private static void createCore(SolrClient solrClient, String name, String configset, String configFile, String schemaFile) throws SolrServerException, IOException {
-        CoreAdminRequest.Create req = new CoreAdminRequest.Create();
+    private static void createCore(final SolrClient solrClient, final String name, final String configset, final String configFile, final String schemaFile) throws SolrServerException, IOException {
+        final CoreAdminRequest.Create req = new CoreAdminRequest.Create();
         req.setCoreName(name);
         req.setInstanceDir(name);
         req.setConfigSet(configset);
@@ -327,13 +327,13 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         req.process(solrClient);
     }
 
-    private static void deleteCore(SolrClient solrClient, String name) throws SolrServerException, IOException {
-        CoreAdminResponse response = CoreAdminRequest.unloadCore(name, true, true, solrClient);
+    private static void deleteCore(final SolrClient solrClient, final String name) throws SolrServerException, IOException {
+        final CoreAdminResponse response = CoreAdminRequest.unloadCore(name, true, true, solrClient);
         System.out.println("Core " + name + " deleted with status " + response.getStatus());
     }
 
-    private static NodeConfig.NodeConfigBuilder newNodeConfigBuilder(Path solrHome) {
-        UpdateShardHandlerConfig shardHandlerConfig =
+    private static NodeConfig.NodeConfigBuilder newNodeConfigBuilder(final Path solrHome) {
+        final UpdateShardHandlerConfig shardHandlerConfig =
                 new UpdateShardHandlerConfig(
                         HttpClientUtil.DEFAULT_MAXCONNECTIONS,
                         HttpClientUtil.DEFAULT_MAXCONNECTIONSPERHOST,
@@ -347,44 +347,44 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
                 .setCoreRootDirectory(SolrTestCase.createTempDir("cores").toString());
     }
 
-    private static ReturnedRewriterConfigurationAssert assertThat(NamedList<?> actual) {
+    private static ReturnedRewriterConfigurationAssert assertThat(final NamedList<?> actual) {
         return new ReturnedRewriterConfigurationAssert(actual);
     }
 
-    private static StoredRewriterConfigurationAssert assertThat(SolrDocument actual) {
+    private static StoredRewriterConfigurationAssert assertThat(final SolrDocument actual) {
         return new StoredRewriterConfigurationAssert(actual);
     }
 
     private static class ReturnedRewriterConfigurationAssert extends AbstractAssert<ReturnedRewriterConfigurationAssert, NamedList<?>> {
 
-        public ReturnedRewriterConfigurationAssert(NamedList<?> actual) {
+        public ReturnedRewriterConfigurationAssert(final NamedList<?> actual) {
             super(actual, SolrCoreRewriterContainerTest.ReturnedRewriterConfigurationAssert.class);
         }
 
-        public ReturnedRewriterConfigurationAssert hasRewriterId(String expectedRewriterId) {
-            Map<?, ?> rewriterMap = (Map<?, ?>) actual.get("rewriter");
-            String actualRewriterId = (String) rewriterMap.get("id");
+        public ReturnedRewriterConfigurationAssert hasRewriterId(final String expectedRewriterId) {
+            final Map<?, ?> rewriterMap = (Map<?, ?>) actual.get("rewriter");
+            final String actualRewriterId = (String) rewriterMap.get("id");
             if (!expectedRewriterId.equals(actualRewriterId)) {
                 failWithMessage("Expected rewriter id to be <%s> but was <%s>", expectedRewriterId, actualRewriterId);
             }
             return this;
         }
 
-        public ReturnedRewriterConfigurationAssert hasClass(String expectedClass) {
-            Map<?, ?> rewriterMap = (Map<?, ?>) actual.get("rewriter");
-            Map<?, ?> definition = (Map<?, ?>) rewriterMap.get("definition");
-            String actualClass = (String) definition.get("class");
+        public ReturnedRewriterConfigurationAssert hasClass(final String expectedClass) {
+            final Map<?, ?> rewriterMap = (Map<?, ?>) actual.get("rewriter");
+            final Map<?, ?> definition = (Map<?, ?>) rewriterMap.get("definition");
+            final String actualClass = (String) definition.get("class");
             if (!expectedClass.equals(actualClass)) {
                 failWithMessage("Expected rewriter class to be <%s> but was <%s>", expectedClass, actualClass);
             }
             return this;
         }
 
-        public ReturnedRewriterConfigurationAssert hasRules(String expectedRules) {
-            Map<?, ?> rewriterMap = (Map<?, ?>) actual.get("rewriter");
-            Map<?, ?> definition = (Map<?, ?>) rewriterMap.get("definition");
-            Map<?, ?> config = (Map<?, ?>) definition.get("config");
-            String actualRules = (String) config.get("rules");
+        public ReturnedRewriterConfigurationAssert hasRules(final String expectedRules) {
+            final Map<?, ?> rewriterMap = (Map<?, ?>) actual.get("rewriter");
+            final Map<?, ?> definition = (Map<?, ?>) rewriterMap.get("definition");
+            final Map<?, ?> config = (Map<?, ?>) definition.get("config");
+            final String actualRules = (String) config.get("rules");
             if (!expectedRules.equals(actualRules)) {
                 failWithMessage("Expected rewriter rules to be <%s> but was <%s>", expectedRules, actualRules);
             }
@@ -395,26 +395,26 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
 
     private static class StoredRewriterConfigurationAssert extends AbstractAssert<StoredRewriterConfigurationAssert, SolrDocument> {
 
-        public StoredRewriterConfigurationAssert(SolrDocument actual) {
+        public StoredRewriterConfigurationAssert(final SolrDocument actual) {
             super(actual, StoredRewriterConfigurationAssert.class);
         }
 
-        public StoredRewriterConfigurationAssert hasId(String id) {
+        public StoredRewriterConfigurationAssert hasId(final String id) {
             Assertions.assertThat(actual.getFieldValue("id")).isEqualTo(id);
             return this;
         }
 
-        public StoredRewriterConfigurationAssert hasCoreName(String coreName) {
+        public StoredRewriterConfigurationAssert hasCoreName(final String coreName) {
             Assertions.assertThat(actual.getFieldValue("core")).isEqualTo(coreName);
             return this;
         }
 
-        public StoredRewriterConfigurationAssert hasRewriterId(String rewriterId) {
+        public StoredRewriterConfigurationAssert hasRewriterId(final String rewriterId) {
             Assertions.assertThat(actual.getFieldValue("rewriterId")).isEqualTo(rewriterId);
             return this;
         }
 
-        public StoredRewriterConfigurationAssert hasData(String jsonData) {
+        public StoredRewriterConfigurationAssert hasData(final String jsonData) {
             Assertions.assertThat(new String((byte[]) actual.getFieldValue("data"), StandardCharsets.UTF_8)).isEqualTo(jsonData);
             return this;
         }

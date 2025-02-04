@@ -282,7 +282,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
      *
      * @param newConfigurationSearcher current searcher for reading the updated rewriter config from the config core
      */
-    void notifyRewriterConfigChanged(SolrIndexSearcher newConfigurationSearcher) {
+    void notifyRewriterConfigChanged(final SolrIndexSearcher newConfigurationSearcher) {
         if (rewriterContainer instanceof SolrCoreRewriterContainer) {
             try {
                 ((SolrCoreRewriterContainer) rewriterContainer).reloadRewriterConfig(newConfigurationSearcher);

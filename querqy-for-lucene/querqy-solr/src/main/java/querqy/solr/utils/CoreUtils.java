@@ -38,14 +38,14 @@ public final class CoreUtils {
      * @throws SolrException if the core is not available within the specified timeout
      */
     public static <R> R withCore(
-            IOFunction<SolrCore, R> lambda,
-            String coreName,
-            CoreContainer coreContainer,
-            Duration waitTimeout
+            final IOFunction<SolrCore, R> lambda,
+            final String coreName,
+            final CoreContainer coreContainer,
+            final Duration waitTimeout
     ) throws IOException {
-        Optional<SolrCore> possibleCore = getCoreOrWait(coreName, coreContainer, waitTimeout);
+        final Optional<SolrCore> possibleCore = getCoreOrWait(coreName, coreContainer, waitTimeout);
         if (possibleCore.isPresent()) {
-            try (SolrCore core = possibleCore.get()) {
+            try (final SolrCore core = possibleCore.get()) {
                 return lambda.apply(core);
             }
         } else {
@@ -65,13 +65,13 @@ public final class CoreUtils {
      * @throws SolrException if the core is not available within the specified timeout
      */
     public static <R> R withCore(
-            IOFunction<SolrCore, R> lambda,
-            String coreName,
-            CoreContainer coreContainer
+            final IOFunction<SolrCore, R> lambda,
+            final String coreName,
+            final CoreContainer coreContainer
     ) throws IOException {
-        Optional<SolrCore> possibleCore = getCore(coreName, coreContainer);
+        final Optional<SolrCore> possibleCore = getCore(coreName, coreContainer);
         if (possibleCore.isPresent()) {
-            try (SolrCore core = possibleCore.get()) {
+            try (final SolrCore core = possibleCore.get()) {
                 return lambda.apply(core);
             }
         } else {
@@ -87,7 +87,7 @@ public final class CoreUtils {
      *
      * @return an optional core, present if the core was already loaded
      */
-    private static Optional<SolrCore> getCore(String coreName, CoreContainer coreContainer) {
+    private static Optional<SolrCore> getCore(final String coreName, final CoreContainer coreContainer) {
         return Optional.ofNullable(coreContainer.getCore(coreName));
     }
 
@@ -100,11 +100,11 @@ public final class CoreUtils {
      *
      * @return an optional core, empty if the core was not available within the specified wait timeout
      */
-    private static Optional<SolrCore> getCoreOrWait(String coreName, CoreContainer coreContainer, Duration waitTimeout) {
+    private static Optional<SolrCore> getCoreOrWait(final String coreName, final CoreContainer coreContainer, final Duration waitTimeout) {
         int tries = 0;
-        LocalDateTime start = LocalDateTime.now();
+        final LocalDateTime start = LocalDateTime.now();
         while (true) {
-            Optional<SolrCore> core = getCore(coreName, coreContainer);
+            final Optional<SolrCore> core = getCore(coreName, coreContainer);
             if (core.isPresent()) {
                 return core;
             } else if (Duration.between(start, LocalDateTime.now()).getSeconds() > waitTimeout.getSeconds()) {
