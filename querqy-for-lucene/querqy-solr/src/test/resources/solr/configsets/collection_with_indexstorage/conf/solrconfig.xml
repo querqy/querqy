@@ -55,11 +55,11 @@
 
 	<requestHandler name="/replication" class="solr.ReplicationHandler">
 		<lst name="leader">
-			<str name="enable">${solr.replication.leader.enabled:true}</str>
+			<str name="enable">${solr.replication.leader.enabled:false}</str>
 		</lst>
 		<lst name="follower">
 			<str name="enable">${solr.replication.follower.enabled:false}</str>
-			<str name="leaderUrl">http://localhost:8983/solr</str>
+			<str name="leaderUrl">${solr.replication.leader.url:}</str>
 		</lst>
 	</requestHandler>
 
