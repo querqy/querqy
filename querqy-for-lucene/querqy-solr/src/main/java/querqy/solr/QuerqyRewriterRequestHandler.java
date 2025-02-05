@@ -239,11 +239,11 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
         INDEX("index", true),
         ZK("zk", true);
 
-        private final String value;
+        private final String configValue;
         private final boolean isPersisting;
 
-        RewriterStorageType(final String value, final boolean isPersisting) {
-            this.value = value;
+        RewriterStorageType(final String configValue, final boolean isPersisting) {
+            this.configValue = configValue;
             this.isPersisting = isPersisting;
         }
 
@@ -253,7 +253,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
         public static RewriterStorageType rewriterStorageTypeFromString(final String str) {
             return Arrays.stream(values())
-                    .filter(v -> v.value.equals(str))
+                    .filter(v -> v.configValue.equals(str))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Unknown rewriter storage type: " + str));
         }
