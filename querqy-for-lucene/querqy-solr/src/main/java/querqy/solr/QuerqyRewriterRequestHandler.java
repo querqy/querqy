@@ -217,12 +217,11 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
         private final RewriterStorageType defaultRewriterStorageType;
 
-        private final Set<RewriterStorageType> supportedRewriterStorageTypes;
+        private final EnumSet<RewriterStorageType> supportedRewriterStorageTypes;
 
         SolrMode(final RewriterStorageType defaultRewriterStorageType, final RewriterStorageType... otherSupportedRewriterStorageTypes) {
             this.defaultRewriterStorageType = defaultRewriterStorageType;
-            this.supportedRewriterStorageTypes = new HashSet<>(Arrays.asList(otherSupportedRewriterStorageTypes));
-            this.supportedRewriterStorageTypes.add(defaultRewriterStorageType);
+            this.supportedRewriterStorageTypes = EnumSet.of(defaultRewriterStorageType, otherSupportedRewriterStorageTypes);
         }
 
         public RewriterStorageType getDefaultRewriterStorageType() {
@@ -265,7 +264,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
             final Optional<Boolean> inMemory = Optional.ofNullable((Boolean) initArgs.get("inMemory"));
             final Optional<String> rewriterStorageStr = Optional.ofNullable((String) initArgs.get("rewriterStorage"));
             RewriterStorageType rewriterStorageType;
-            if (inMemory.isPresent() && inMemory.get()) {
+            if (inMemory.isPresent() && Boolean.TRUE.equals(inMemory.get())) {
                 rewriterStorageType = IN_MEMORY;
                 LOG.warn("You are using a deprecated configuration option: <bool name=\"inMemory\">true</bool>. Please use <str name=\"rewriterStorage\">inMemory</str> instead.");
             } else if (rewriterStorageStr.isPresent()) {
