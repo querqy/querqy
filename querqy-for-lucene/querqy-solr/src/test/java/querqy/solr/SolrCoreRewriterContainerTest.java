@@ -32,7 +32,7 @@ import java.util.Objects;
 import org.assertj.core.api.Assertions;
 import querqy.solr.rewriter.commonrules.CommonRulesRewriterFactory;
 
-import static querqy.solr.SolrCoreRewriterContainer.*;
+import static querqy.solr.SolrCoreRewriterContainer.configurationDocumentId;
 import static querqy.solr.StandaloneSolrTestSupport.deleteRewriter;
 import static querqy.solr.StandaloneSolrTestSupport.withCommonRulesRewriter;
 
@@ -90,10 +90,10 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         Assertions.assertThat(querqyConfigurationDocumentA).hasSize(1);
         final SolrDocument docA = querqyConfigurationDocumentA.stream().findFirst().get();
         assertThat(docA)
-                .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
+                .hasId(configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
-                .hasConfVersion(CURRENT_CONFIG_VERSION)
+                .hasConfVersion(1)
                 .hasData(builder.buildJson());
 
         final NamedList<?> response = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -118,10 +118,10 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         Assertions.assertThat(querqyConfigurationDocumentV1).hasSize(1);
         final SolrDocument docV1 = querqyConfigurationDocumentV1.stream().findFirst().get();
         assertThat(docV1)
-                .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
+                .hasId(configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
-                .hasConfVersion(CURRENT_CONFIG_VERSION)
+                .hasConfVersion(1)
                 .hasData(builderV1.buildJson());
 
         final NamedList<?> responseV1 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -138,10 +138,10 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         Assertions.assertThat(querqyConfigurationDocumentV2).hasSize(1);
         final SolrDocument docV2 = querqyConfigurationDocumentV2.stream().findFirst().get();
         assertThat(docV2)
-                .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
+                .hasId(configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
-                .hasConfVersion(CURRENT_CONFIG_VERSION)
+                .hasConfVersion(1)
                 .hasData(builderV2.buildJson());
 
         final NamedList<?> responseV2 = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -173,10 +173,10 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         Assertions.assertThat(querqyConfigurationDocumentA).hasSize(1);
         final SolrDocument docA = querqyConfigurationDocumentA.stream().findFirst().get();
         assertThat(docA)
-                .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
+                .hasId(configurationDocumentId(SEARCH_CORE_NAME_A, "rewriterA"))
                 .hasCoreName(SEARCH_CORE_NAME_A)
                 .hasRewriterId("rewriterA")
-                .hasConfVersion(CURRENT_CONFIG_VERSION)
+                .hasConfVersion(1)
                 .hasData(builderA.buildJson());
 
         final NamedList<?> responseA = embeddedSolr.query(SEARCH_CORE_NAME_A, queryRewriterSubHandler("rewriterA")).getResponse();
@@ -189,10 +189,10 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         Assertions.assertThat(querqyConfigurationDocumentB).hasSize(1);
         final SolrDocument docB = querqyConfigurationDocumentB.stream().findFirst().get();
         assertThat(docB)
-                .hasId(SolrCoreRewriterContainer.configurationDocumentId(SEARCH_CORE_NAME_B, "rewriterB"))
+                .hasId(configurationDocumentId(SEARCH_CORE_NAME_B, "rewriterB"))
                 .hasCoreName(SEARCH_CORE_NAME_B)
                 .hasRewriterId("rewriterB")
-                .hasConfVersion(CURRENT_CONFIG_VERSION)
+                .hasConfVersion(1)
                 .hasData(builderB.buildJson());
 
         final NamedList<?> responseB = embeddedSolr.query(SEARCH_CORE_NAME_B, queryRewriterSubHandler("rewriterB")).getResponse();
@@ -401,27 +401,27 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
         }
 
         public StoredRewriterConfigurationAssert hasId(final String id) {
-            Assertions.assertThat(actual.getFieldValue(FIELD_DOC_ID)).isEqualTo(id);
+            Assertions.assertThat(actual.getFieldValue("id")).isEqualTo(id);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasCoreName(final String coreName) {
-            Assertions.assertThat(actual.getFieldValue(FIELD_CORE_NAME)).isEqualTo(coreName);
+            Assertions.assertThat(actual.getFieldValue("core")).isEqualTo(coreName);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasRewriterId(final String rewriterId) {
-            Assertions.assertThat(actual.getFieldValue(FIELD_REWRITER_ID)).isEqualTo(rewriterId);
+            Assertions.assertThat(actual.getFieldValue("rewriterId")).isEqualTo(rewriterId);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasData(final String jsonData) {
-            Assertions.assertThat(new String((byte[]) actual.getFieldValue(FIELD_DATA), StandardCharsets.UTF_8)).isEqualTo(jsonData);
+            Assertions.assertThat(new String((byte[]) actual.getFieldValue("data"), StandardCharsets.UTF_8)).isEqualTo(jsonData);
             return this;
         }
 
         public StoredRewriterConfigurationAssert hasConfVersion(final int confVersion) {
-            Assertions.assertThat(actual.getFieldValue(FIELD_CONF_VERSION)).isEqualTo(confVersion);
+            Assertions.assertThat(actual.getFieldValue("confVersion")).isEqualTo(confVersion);
             return this;
         }
     }
