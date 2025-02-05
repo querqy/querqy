@@ -15,9 +15,11 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
+import org.apache.solr.handler.ReplicationHandler;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.query.FilterQuery;
 import org.apache.solr.request.LocalSolrQueryRequest;
+import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.DocsStreamer;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.schema.IndexSchema;
@@ -55,7 +57,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
 
     private boolean isFollower;
 
-    private String rewriterConfigCoreName;
+    private String rewriterConfigIndexName;
 
     public SolrCoreRewriterContainer(final SolrCore core,
                                      final SolrResourceLoader resourceLoader,
@@ -67,13 +69,23 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
     @Override
     protected void init(@SuppressWarnings({"rawtypes"}) final NamedList args) {
         final var initArgs = args.toSolrParams();
-        this.rewriterConfigCoreName = initArgs.get("configCoreName", "querqy");
-        this.isFollower = initArgs.getBool("isFollower", false);
+        this.rewriterConfigIndexName = initArgs.get("configIndexName", "querqy");
+        final var replicationHandlerName = initArgs.get("replicationHandlerName", ReplicationHandler.PATH);
         try {
             withConfigurationCore(core -> core.withSearcher(this::loadRewriters), Duration.ofMinutes(1));
         } catch (IOException e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Could not load rewriter data", e);
         }
+        final Optional<SolrRequestHandler> requestHandler = Optional.ofNullable(core.getRequestHandler(replicationHandlerName));
+        requestHandler.ifPresent(handler -> {
+            if (handler instanceof ReplicationHandler) {
+                final var replicationHandler = (ReplicationHandler) handler;
+                this.isFollower = replicationHandler.isFollower();
+                LOG.warn("Querqy rewriter container is running in mode: {}", isFollower ? "follower" : "leader");
+            } else {
+                LOG.warn("Request handler '{}' is not an instance of solr.ReplicationHandler. Cannot detect if rewriter is leader or follower", replicationHandlerName);
+            }
+        });
     }
 
     @Override
@@ -145,7 +157,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
 
             final SolrParams requestParams = new MapSolrParams(Map.of(
                     "action", "update",
-                    "name", this.rewriterConfigCoreName));
+                    "name", this.rewriterConfigIndexName));
 
             try (final LocalSolrQueryRequest solrUpdateRequest = new LocalSolrQueryRequest(configurationCore, requestParams)) {
                 final AddUpdateCommand addCmd = new AddUpdateCommand(solrUpdateRequest);
@@ -172,7 +184,7 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
         withConfigurationCore(configurationCore -> {
             final SolrParams requestParams = new MapSolrParams(Map.of(
                     "action", "update",
-                    "name", this.rewriterConfigCoreName));
+                    "name", this.rewriterConfigIndexName));
 
             try (final LocalSolrQueryRequest solrUpdateRequest = new LocalSolrQueryRequest(configurationCore, requestParams)) {
                 final DeleteUpdateCommand deleteCmd = new DeleteUpdateCommand(solrUpdateRequest);
@@ -325,11 +337,11 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
     }
 
     private <R> R withConfigurationCore(final IOFunction<SolrCore, R> lambda) throws IOException {
-        return withCore(lambda, rewriterConfigCoreName, core.getCoreContainer());
+        return withCore(lambda, rewriterConfigIndexName, core.getCoreContainer());
     }
 
     private <R> void withConfigurationCore(final IOFunction<SolrCore, R> lambda, final Duration waitTimeout) throws IOException {
-        withCore(lambda, rewriterConfigCoreName, core.getCoreContainer(), waitTimeout);
+        withCore(lambda, rewriterConfigIndexName, core.getCoreContainer(), waitTimeout);
     }
 
     static String configurationDocumentId(final String coreName, final String rewriterId) {
