@@ -26,7 +26,7 @@ import static querqy.solr.utils.CoreUtils.*;
  *
  * @author Markus Schuch
  */
-public class SolrCoreRewriterContainerListener extends SearchComponent implements SolrCoreAware {
+public class IndexRewriterContainerListener extends SearchComponent implements SolrCoreAware {
 
     private boolean enabled;
 
@@ -42,7 +42,7 @@ public class SolrCoreRewriterContainerListener extends SearchComponent implement
     @Override
     public void inform(final SolrCore core) {
         if (core.getCoreContainer().isZooKeeperAware()) {
-            throw new SolrException(CONFLICT, "SolrCoreRewriterContainerListener cannot be used in solr cloud mode");
+            throw new SolrException(CONFLICT, "IndexRewriterContainerListener cannot be used in solr cloud mode");
         }
 
         if (this.enabled) {
