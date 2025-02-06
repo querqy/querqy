@@ -41,11 +41,11 @@ import static org.apache.solr.common.SolrException.ErrorCode.*;
 import static querqy.solr.utils.CoreUtils.withCore;
 
 /**
- * A RewriterContainer that persists the rewriter configuration in a Solr core.
+ * A RewriterContainer that persists the rewriter configuration in a Solr index.
  *
  * @author Matthias Krueger, Markus Schuch
  */
-public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoader> {
+public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader> {
 
     static final int CURRENT_CONFIG_VERSION = 1;
 
@@ -59,9 +59,9 @@ public class SolrCoreRewriterContainer extends RewriterContainer<SolrResourceLoa
 
     private String rewriterConfigIndexName;
 
-    public SolrCoreRewriterContainer(final SolrCore core,
-                                     final SolrResourceLoader resourceLoader,
-                                     final Map<String, Sink> infoLoggingSinks
+    public IndexRewriterContainer(final SolrCore core,
+                                  final SolrResourceLoader resourceLoader,
+                                  final Map<String, Sink> infoLoggingSinks
     ) {
         super(core, resourceLoader, infoLoggingSinks);
     }

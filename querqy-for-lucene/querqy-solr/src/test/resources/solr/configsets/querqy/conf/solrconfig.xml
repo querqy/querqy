@@ -17,7 +17,7 @@
         <infoStream>true</infoStream>
     </indexConfig>
 
-    <searchComponent name="querqyListener" class="querqy.solr.SolrCoreRewriterContainerListener">
+    <searchComponent name="querqyListener" class="querqy.solr.IndexRewriterContainerListener">
         <bool name="enabled">false</bool>
     </searchComponent>
 

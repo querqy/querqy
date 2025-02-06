@@ -36,9 +36,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.containsString;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.SAVE;
-import static querqy.solr.SolrCoreRewriterContainer.configurationDocumentId;
+import static querqy.solr.IndexRewriterContainer.configurationDocumentId;
 
-public class SolrCoreRewriterContainerTest extends SolrTestCase {
+public class IndexRewriterContainerTest extends SolrTestCase {
 
     private static final String QUERQY_CONFIG_CORE_NAME = "querqy";
     private static final String SEARCH_CORE_NAME_A = "search_a";
@@ -318,7 +318,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
     private static class ReturnedRewriterConfigurationAssert extends AbstractAssert<ReturnedRewriterConfigurationAssert, NamedList<?>> {
 
         public ReturnedRewriterConfigurationAssert(final NamedList<?> actual) {
-            super(actual, SolrCoreRewriterContainerTest.ReturnedRewriterConfigurationAssert.class);
+            super(actual, IndexRewriterContainerTest.ReturnedRewriterConfigurationAssert.class);
         }
 
         public ReturnedRewriterConfigurationAssert hasRewriterId(final String expectedRewriterId) {
@@ -430,7 +430,7 @@ public class SolrCoreRewriterContainerTest extends SolrTestCase {
     }
 
     private static Path resourcePath() throws Exception {
-        return new File(Objects.requireNonNull(SolrCoreRewriterContainerTest.class.getClassLoader().getResource("solr")).toURI()).getAbsoluteFile().toPath();
+        return new File(Objects.requireNonNull(IndexRewriterContainer.class.getClassLoader().getResource("solr")).toURI()).getAbsoluteFile().toPath();
     }
 
     private static final class CreateWithPropertiesRequest extends CoreAdminRequest.Create {

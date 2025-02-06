@@ -300,7 +300,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
                 rewriterContainer = new StandAloneRewriterContainer(core, resourceLoader, sinks);
                 break;
             case INDEX:
-                rewriterContainer = new SolrCoreRewriterContainer(core, resourceLoader, sinks);
+                rewriterContainer = new IndexRewriterContainer(core, resourceLoader, sinks);
                 break;
             case ZK:
                 assert resourceLoader instanceof ZkSolrResourceLoader;
@@ -353,16 +353,16 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     }
 
     /**
-     * Called by the SolrCoreRewriterContainerListener.
+     * Called by the * Called by the {@link IndexRewriterContainerListener}.
      * <p>
-     * <em>Note: This is only relevant when using the SolrCoreRewriterContainer.</em>
+     * <em>Note: This is only relevant when using the {@link IndexRewriterContainerListener}.</em>
      *
      * @param newConfigurationSearcher current searcher for reading the updated rewriter config from the config core
      */
     void notifyRewriterConfigChanged(final SolrIndexSearcher newConfigurationSearcher) {
-        if (rewriterContainer instanceof SolrCoreRewriterContainer) {
+        if (rewriterContainer instanceof IndexRewriterContainer) {
             try {
-                ((SolrCoreRewriterContainer) rewriterContainer).reloadRewriterConfig(newConfigurationSearcher);
+                ((IndexRewriterContainer) rewriterContainer).reloadRewriterConfig(newConfigurationSearcher);
             } catch (IOException e) {
                 LOG.error("Failed to load all rewriter data", e);
             }
