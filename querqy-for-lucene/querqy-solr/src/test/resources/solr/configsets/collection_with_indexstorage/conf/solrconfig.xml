@@ -51,6 +51,7 @@
 
 	<requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler">
 		<str name="rewriterStorage">index</str>
+		<str name="configPollingInterval">PT1S</str>
 	</requestHandler>
 
 	<requestHandler name="/replication" class="solr.ReplicationHandler">

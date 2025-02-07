@@ -508,7 +508,6 @@ public class IndexRewriterContainerTest extends SolrTestCase {
         final var properties = new HashMap<String, String>();
         properties.put("solr.replication.leader.url", "http://localhost:" + leaderJetty.getLocalPort() + "/solr/" + name);
         properties.put("solr.replication.follower.enabled", "true");
-        properties.put("querqy.index.listener.enabled", "true");
         createCore(solrClient, name, configset, properties);
     }
 
