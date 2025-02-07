@@ -91,7 +91,6 @@
 
     <requestHandler name="/replication" class="solr.ReplicationHandler">
         <lst name="leader">
-            <str name="enable">${solr.replication.leader.enabled:false}</str>
             <str name="replicateAfter">commit</str>
         </lst>
         <lst name="follower">
