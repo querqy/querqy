@@ -21,7 +21,7 @@ import java.util.Objects;
  *
  * @author Daniel Wrigley
  */
-public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
+public class NumberConcatenationRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
     Term previousTerm = null;
     List<Term> termsToAdd = null;
@@ -34,7 +34,7 @@ public class NumberQueryRewriter extends AbstractNodeVisitor<Node> implements Qu
     final boolean acceptGeneratedTerms;
     final int minimumLengthOfResultingQueryTerm;
 
-    public NumberQueryRewriter(final boolean acceptGeneratedTerms, final int minimumLengthOfResultingQueryTerm) {
+    public NumberConcatenationRewriter(final boolean acceptGeneratedTerms, final int minimumLengthOfResultingQueryTerm) {
         this.acceptGeneratedTerms = acceptGeneratedTerms;
         this.minimumLengthOfResultingQueryTerm = minimumLengthOfResultingQueryTerm;
     }
