@@ -14,6 +14,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.CloseHook;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.handler.ReplicationHandler;
@@ -29,12 +30,16 @@ import org.apache.solr.update.AddUpdateCommand;
 import org.apache.solr.update.CommitUpdateCommand;
 import org.apache.solr.update.DeleteUpdateCommand;
 import org.apache.solr.util.IOFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import querqy.lucene.rewrite.infologging.Sink;
 import querqy.solr.utils.JsonUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.apache.solr.common.SolrException.ErrorCode.*;
-import static querqy.solr.utils.CoreUtils.withCore;
 
 /**
  * A RewriterContainer that persists the rewriter configuration in a Solr index.
@@ -51,13 +55,15 @@ import static querqy.solr.utils.CoreUtils.withCore;
  */
 public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader> {
 
-    static final int CURRENT_CONFIG_VERSION = 1;
+    private static final int CURRENT_CONFIG_VERSION = 1;
 
-    static final String FIELD_DOC_ID = "id";
-    static final String FIELD_REWRITER_ID = "rewriterId";
-    static final String FIELD_CORE_NAME = "core";
-    static final String FIELD_DATA = "data";
-    static final String FIELD_CONF_VERSION = "confVersion";
+    private static final String FIELD_DOC_ID = "id";
+    private static final String FIELD_REWRITER_ID = "rewriterId";
+    private static final String FIELD_CORE_NAME = "core";
+    private static final String FIELD_DATA = "data";
+    private static final String FIELD_CONF_VERSION = "confVersion";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private boolean isFollower;
 
@@ -90,14 +96,14 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
             if (handler instanceof ReplicationHandler) {
                 final var replicationHandler = (ReplicationHandler) handler;
                 this.isFollower = replicationHandler.isFollower();
-                LOG.warn("Querqy rewriter container is running in mode: {}", isFollower ? "follower" : "leader");
+                LOGGER.warn("Querqy rewriter container is running in mode: {}", isFollower ? "follower" : "leader");
             } else {
-                LOG.warn("Request handler '{}' is not an instance of solr.ReplicationHandler. Cannot detect if rewriter is leader or follower", replicationHandlerName);
+                LOGGER.warn("Request handler '{}' is not an instance of solr.ReplicationHandler. Cannot detect if rewriter is leader or follower", replicationHandlerName);
             }
         });
 
         if (isFollower) {
-            LOG.info("Initiate querqy configuration core polling in core {} with interval {}", core.getName(), pollingInterval);
+            LOGGER.info("Initiate querqy configuration core polling in core {} with interval {}", core.getName(), pollingInterval);
             final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
             scheduler.scheduleWithFixedDelay(this::checkAndReloadRewriterConfig, 0,  pollingInterval.getSeconds(), TimeUnit.SECONDS);
             core.addCloseHook(new CloseHook() {
@@ -124,18 +130,18 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
     }
 
     private void checkAndReloadRewriterConfig() {
-        LOG.info("Checking and reloading rewriter config for core {}", core.getName());
+        LOGGER.info("Checking and reloading rewriter config for core {}", core.getName());
         try {
             withConfigurationCore(core -> core.withSearcher(searcher -> {
                 long currentGeneration = searcher.getIndexReader().getIndexCommit().getGeneration();
-                LOG.info("Querqy configuration index generation is {}. Last seen generation was {}.", currentGeneration, generation);
+                LOGGER.info("Querqy configuration index generation is {}. Last seen generation was {}.", currentGeneration, generation);
                 if (currentGeneration != generation) {
                     reloadRewriterConfig(searcher);
                 }
                 return null;
             }));
         } catch (IOException e) {
-            LOG.error("Error checking and reloading rewriter config for core {}", core.getName(), e);
+            LOGGER.error("Error checking and reloading rewriter config for core {}", core.getName(), e);
         }
     }
 
@@ -150,7 +156,7 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
 
         final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         previouslyLoadedRewriters.forEach(rewriterId -> {
-            LOG.info("Unloading rewriter {} in core {}", rewriterId, core.getName());
+            LOGGER.info("Unloading rewriter {} in core {}", rewriterId, core.getName());
             newRewriters.remove(rewriterId);
         });
         rewriters = newRewriters;
@@ -352,7 +358,7 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
 
                 cursorMark = nextCursorMark;
             }
-            LOG.info("Fetched {} rewriter configuration documents for core {}", configurationDocuments.size(), core.getName());
+            LOGGER.info("Fetched {} rewriter configuration documents for core {}", configurationDocuments.size(), core.getName());
             return configurationDocuments;
         }
     }
@@ -384,6 +390,104 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
 
     static String configurationDocumentId(final String coreName, final String rewriterId) {
         return coreName + "#" + rewriterId;
+    }
+
+    /**
+     * Executes the passed lambda function on the requested core.
+     * Waits for the core to become available in a specified time period.
+     *
+     * @param lambda the function to execute
+     * @param coreName the core to use for the execution
+     * @param coreContainer the core container to get the cores from
+     * @param waitTimeout the amount of time to wait for the core before
+     * @return the result of the function
+     * @param <R> the result type of the function
+     * @throws IOException might be thrown by the executed function
+     * @throws SolrException if the core is not available within the specified timeout
+     */
+    public static <R> R withCore(
+            final IOFunction<SolrCore, R> lambda,
+            final String coreName,
+            final CoreContainer coreContainer,
+            final Duration waitTimeout
+    ) throws IOException {
+        final Optional<SolrCore> possibleCore = getCoreOrWait(coreName, coreContainer, waitTimeout);
+        if (possibleCore.isPresent()) {
+            try (final SolrCore core = possibleCore.get()) {
+                return lambda.apply(core);
+            }
+        } else {
+            throw new SolrException(SERVER_ERROR, String.format("Core %s not available after %s seconds", coreName, waitTimeout.getSeconds()));
+        }
+    }
+
+    /**
+     * Executes the passed lambda function on the requested core.
+     *
+     * @param lambda the function to execute
+     * @param coreName the core to use for the execution
+     * @param coreContainer the core container to get the cores from
+     * @return the result of the function
+     * @param <R> the result type of the function
+     * @throws IOException might be thrown by the executed function
+     * @throws SolrException if the core is not available within the specified timeout
+     */
+    public static <R> R withCore(
+            final IOFunction<SolrCore, R> lambda,
+            final String coreName,
+            final CoreContainer coreContainer
+    ) throws IOException {
+        final Optional<SolrCore> possibleCore = getCore(coreName, coreContainer);
+        if (possibleCore.isPresent()) {
+            try (final SolrCore core = possibleCore.get()) {
+                return lambda.apply(core);
+            }
+        } else {
+            throw new SolrException(SERVER_ERROR, String.format("Core %s not available", coreName));
+        }
+    }
+
+    /**
+     * Looks up the specified core if it is already loaded
+     *
+     * @param coreName the name of the core to lookup
+     * @param coreContainer the core container to use for the lookup
+     *
+     * @return an optional core, present if the core was already loaded
+     */
+    private static Optional<SolrCore> getCore(final String coreName, final CoreContainer coreContainer) {
+        return Optional.ofNullable(coreContainer.getCore(coreName));
+    }
+
+    /**
+     * Looks up the specified core and waits for defined period, if it is not available yet.
+     *
+     * @param coreName the name of the core to lookup
+     * @param coreContainer the core container to use for the lookup
+     * @param waitTimeout the duration to wait for the core
+     *
+     * @return an optional core, empty if the core was not available within the specified wait timeout
+     */
+    private static Optional<SolrCore> getCoreOrWait(final String coreName, final CoreContainer coreContainer, final Duration waitTimeout) {
+        int tries = 0;
+        final LocalDateTime start = LocalDateTime.now();
+        while (true) {
+            final Optional<SolrCore> core = getCore(coreName, coreContainer);
+            if (core.isPresent()) {
+                return core;
+            } else if (Duration.between(start, LocalDateTime.now()).getSeconds() > waitTimeout.getSeconds()) {
+                return Optional.empty();
+            } else {
+                tries++;
+                try {
+                    TimeUnit.SECONDS.sleep(5L);
+                } catch (InterruptedException e) {
+                    LOGGER.warn("Lookup for core {} was interrupted", coreName);
+                    Thread.currentThread().interrupt();
+                }
+                LOGGER.info("Retrying to lookup core {} (retry={})", coreName, tries);
+            }
+        }
     }
 
 }
