@@ -9,9 +9,13 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.ContentStreamBase;
@@ -28,12 +32,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.commons.io.filefilter.FileFilterUtils.*;
 import static org.hamcrest.Matchers.containsString;
 import static querqy.solr.QuerqyRewriterRequestHandler.ActionParam.SAVE;
 import static querqy.solr.IndexRewriterContainer.configurationDocumentId;
@@ -65,11 +71,9 @@ public class IndexRewriterContainerTest extends SolrTestCase {
         createLeaderCore(leaderClient, SEARCH_CORE_NAME_A, "collection_with_indexstorage");
         createLeaderCore(leaderClient, SEARCH_CORE_NAME_B, "collection_with_indexstorage");
 
-        var leaderUrl = "http://localhost:" + leaderJetty.getLocalPort() + "/solr";
-
-        createFollowerCore(followerClient, QUERQY_CONFIG_CORE_NAME, "querqy", leaderUrl);
-        createFollowerCore(followerClient, SEARCH_CORE_NAME_A, "collection_with_indexstorage", leaderUrl);
-        createFollowerCore(followerClient, SEARCH_CORE_NAME_B, "collection_with_indexstorage", leaderUrl);
+        createFollowerCore(followerClient, QUERQY_CONFIG_CORE_NAME, "querqy");
+        createFollowerCore(followerClient, SEARCH_CORE_NAME_A, "collection_with_indexstorage");
+        createFollowerCore(followerClient, SEARCH_CORE_NAME_B, "collection_with_indexstorage");
     }
 
     @After
@@ -295,6 +299,46 @@ public class IndexRewriterContainerTest extends SolrTestCase {
         assertThat(solrException.getMessage(), containsString("Rewriter config must be updated via the leader"));
     }
 
+    @Test
+    public void indexRewriterReplication() throws Exception {
+        final CommonRulesConfigRequestBuilder builder = new CommonRulesConfigRequestBuilder()
+                .rules("laptop =>\n SYNONYM: notebook");
+
+        final SolrInputDocument document = new SolrInputDocument();
+        document.addField("id", "doc1");
+        document.addField("f1", "notebook");
+        leaderClient.add(SEARCH_CORE_NAME_A, document);
+        leaderClient.commit(SEARCH_CORE_NAME_A);
+
+        saveCommonRulesRewriter(leaderClient, SEARCH_CORE_NAME_A, "common_rules", builder);
+
+        final long start = System.currentTimeMillis();
+        final var timeout = Duration.ofSeconds(30);
+        while (true) {
+            final Duration timeWaitedForReplication = Duration.ofMillis(System.currentTimeMillis() - start);
+            if (timeWaitedForReplication.compareTo(timeout) > 0) {
+                fail("Replication of rewriter configuration did not happen after " + timeWaitedForReplication);
+            }
+            try {
+                ModifiableSolrParams params = new ModifiableSolrParams();
+                params.set(CommonParams.Q, "laptop");
+                params.set("defType", "querqy");
+                params.set(QuerqyQParserPlugin.PARAM_REWRITERS, "common_rules");
+                params.set(DisMaxParams.QF, "f1");
+                QueryResponse query = followerClient.query(SEARCH_CORE_NAME_A, params);
+                if (query.getResults().getNumFound() > 0) {
+                    break;
+                }
+            } catch (final SolrException e) {
+                if (!e.getMessage().contains("No such rewriter")) {
+                    throw e;
+                }
+            }
+            // Replication is async, eventually we need to retry after another second
+            TimeUnit.SECONDS.sleep(1);
+        }
+    }
+
     private static SolrQuery matchAll() {
         return new SolrQuery("*:*");
     }
@@ -426,6 +470,8 @@ public class IndexRewriterContainerTest extends SolrTestCase {
         final Path solrHome = SolrTestCase.createTempDir("solrHome-" + name);
         final Path configsetResourcePath = resourcePath();
         FileUtils.copyDirectory(configsetResourcePath.toFile(), solrHome.toFile());
+        FileUtils.copyDirectory(configsetResourcePath.toFile(), solrHome.toFile(), notFileFilter(
+                and(directoryFileFilter(), nameFileFilter("collection1"))));
         return solrHome;
     }
 
@@ -457,14 +503,15 @@ public class IndexRewriterContainerTest extends SolrTestCase {
     private static void createFollowerCore(
             final SolrClient solrClient,
             final String name,
-            final String configset,
-            final String leaderUrl
+            final String configset
     ) throws SolrServerException, IOException {
         final var properties = new HashMap<String, String>();
-        properties.put("solr.replication.leader.url", leaderUrl);
+        properties.put("solr.replication.leader.url", "http://localhost:" + leaderJetty.getLocalPort() + "/solr/" + name);
         properties.put("solr.replication.follower.enabled", "true");
+        properties.put("querqy.index.listener.enabled", "true");
         createCore(solrClient, name, configset, properties);
     }
+
 
     private static void createCore(
             final SolrClient solrClient,

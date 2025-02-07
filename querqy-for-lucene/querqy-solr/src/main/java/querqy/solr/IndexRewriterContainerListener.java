@@ -36,7 +36,7 @@ public class IndexRewriterContainerListener extends SearchComponent implements S
     public void init(final NamedList args) {
         final var initArgs = args.toSolrParams();
         this.enabled = initArgs.getBool("enabled", false);
-        this.querqyComponentName = initArgs.get("querqyRequestHandlerName", "/querqy/rewriter");
+        this.querqyComponentName = initArgs.get("querqyRequestHandlerName", QuerqyRewriterRequestHandler.DEFAULT_HANDLER_NAME);
     }
 
     @Override
