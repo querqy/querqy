@@ -13,6 +13,7 @@ import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.CloseHook;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.handler.ReplicationHandler;
@@ -35,6 +36,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.apache.solr.common.SolrException.ErrorCode.*;
@@ -57,6 +61,8 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
 
     private boolean isFollower;
 
+    private long generation = Long.MIN_VALUE;
+
     private String rewriterConfigIndexName;
 
     public IndexRewriterContainer(final SolrCore core,
@@ -71,11 +77,14 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
         final var initArgs = args.toSolrParams();
         this.rewriterConfigIndexName = initArgs.get("configIndexName", "querqy");
         final var replicationHandlerName = initArgs.get("replicationHandlerName", ReplicationHandler.PATH);
+        final var pollingInterval = Duration.parse(initArgs.get("configPollingInterval", "PT20S"));
+
         try {
             withConfigurationCore(core -> core.withSearcher(this::loadRewriters), Duration.ofMinutes(1));
         } catch (IOException e) {
             throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Could not load rewriter data", e);
         }
+
         final Optional<SolrRequestHandler> requestHandler = Optional.ofNullable(core.getRequestHandler(replicationHandlerName));
         requestHandler.ifPresent(handler -> {
             if (handler instanceof ReplicationHandler) {
@@ -86,6 +95,18 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
                 LOG.warn("Request handler '{}' is not an instance of solr.ReplicationHandler. Cannot detect if rewriter is leader or follower", replicationHandlerName);
             }
         });
+
+        if (isFollower) {
+            LOG.info("Initiate querqy configuration core polling in core {} with interval {}", core.getName(), pollingInterval);
+            final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            scheduler.scheduleWithFixedDelay(this::checkAndReloadRewriterConfig, 0,  pollingInterval.getSeconds(), TimeUnit.SECONDS);
+            core.addCloseHook(new CloseHook() {
+                @Override
+                public void preClose(SolrCore core) {
+                    scheduler.shutdown();
+                }
+            });
+        }
     }
 
     @Override
@@ -94,11 +115,28 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
     }
 
     private synchronized List<String> loadRewriters(final SolrIndexSearcher configurationSearcher) throws IOException {
+        generation = configurationSearcher.getIndexReader().getIndexCommit().getGeneration();
         final List<String> storedRewriters = listStoredRewriterIds(configurationSearcher);
         for (final String rewriterId : storedRewriters) {
             loadRewriter(rewriterId, readRewriterDefinition(rewriterId, configurationSearcher));
         }
         return storedRewriters;
+    }
+
+    private void checkAndReloadRewriterConfig() {
+        LOG.info("Checking and reloading rewriter config for core {}", core.getName());
+        try {
+            withConfigurationCore(core -> core.withSearcher(searcher -> {
+                long currentGeneration = searcher.getIndexReader().getIndexCommit().getGeneration();
+                LOG.info("Querqy configuration index generation is {}. Last seen generation was {}.", currentGeneration, generation);
+                if (currentGeneration != generation) {
+                    reloadRewriterConfig(searcher);
+                }
+                return null;
+            }));
+        } catch (IOException e) {
+            LOG.error("Error checking and reloading rewriter config for core {}", core.getName(), e);
+        }
     }
 
     synchronized void reloadRewriterConfig(final SolrIndexSearcher newConfigurationSearcher) throws IOException {
@@ -112,7 +150,7 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
 
         final Map<String, RewriterFactoryContext> newRewriters = new HashMap<>(rewriters);
         previouslyLoadedRewriters.forEach(rewriterId -> {
-            LOG.info("Unloading rewriter: {}", rewriterId);
+            LOG.info("Unloading rewriter {} in core {}", rewriterId, core.getName());
             newRewriters.remove(rewriterId);
         });
         rewriters = newRewriters;
@@ -314,7 +352,7 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
 
                 cursorMark = nextCursorMark;
             }
-            LOG.info("Fetched {} rewriter configuration documents", configurationDocuments.size());
+            LOG.info("Fetched {} rewriter configuration documents for core {}", configurationDocuments.size(), core.getName());
             return configurationDocuments;
         }
     }

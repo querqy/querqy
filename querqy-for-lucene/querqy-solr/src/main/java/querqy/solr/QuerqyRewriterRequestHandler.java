@@ -20,7 +20,6 @@ import org.apache.solr.metrics.SolrMetricsContext;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
-import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -350,23 +349,6 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
     @Deprecated
     public boolean isPersistingRewriters() {
         return rewriterStorageType.isPersisting();
-    }
-
-    /**
-     * Called by the * Called by the {@link IndexRewriterContainerListener}.
-     * <p>
-     * <em>Note: This is only relevant when using the {@link IndexRewriterContainerListener}.</em>
-     *
-     * @param newConfigurationSearcher current searcher for reading the updated rewriter config from the config core
-     */
-    void notifyRewriterConfigChanged(final SolrIndexSearcher newConfigurationSearcher) {
-        if (rewriterContainer instanceof IndexRewriterContainer) {
-            try {
-                ((IndexRewriterContainer) rewriterContainer).reloadRewriterConfig(newConfigurationSearcher);
-            } catch (IOException e) {
-                LOG.error("Failed to load all rewriter data", e);
-            }
-        }
     }
 
     public Optional<RewriterFactoryContext> getRewriterFactory(final String rewriterId) {

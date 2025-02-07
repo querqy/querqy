@@ -17,10 +17,6 @@
         <infoStream>true</infoStream>
     </indexConfig>
 
-    <searchComponent name="querqyListener" class="querqy.solr.IndexRewriterContainerListener">
-        <bool name="enabled">${querqy.index.listener.enabled:false}</bool>
-    </searchComponent>
-
     <updateHandler class="solr.DirectUpdateHandler2">
         <updateLog>
             <str name="dir">${solr.ulog.dir:}</str>
