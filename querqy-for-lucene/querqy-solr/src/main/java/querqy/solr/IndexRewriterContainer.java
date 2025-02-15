@@ -140,7 +140,8 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
                 }
                 return null;
             }));
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
+            // We must catch and log RuntimeExceptions here as they would be swallowed by the scheduled executor
             LOGGER.error("Error checking and reloading rewriter config for core {}", core.getName(), e);
         }
     }
