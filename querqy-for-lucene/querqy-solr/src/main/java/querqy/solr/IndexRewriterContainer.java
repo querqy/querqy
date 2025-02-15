@@ -96,7 +96,7 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
             if (handler instanceof ReplicationHandler) {
                 final var replicationHandler = (ReplicationHandler) handler;
                 this.isFollower = replicationHandler.isFollower();
-                LOGGER.warn("Querqy rewriter container is running in mode: {}", isFollower ? "follower" : "leader");
+                LOGGER.info("Querqy rewriter container is running in mode: {}", isFollower ? "follower" : "leader");
             } else {
                 LOGGER.warn("Request handler '{}' is not an instance of solr.ReplicationHandler. Cannot detect if rewriter is leader or follower", replicationHandlerName);
             }
@@ -130,11 +130,11 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
     }
 
     private void checkAndReloadRewriterConfig() {
-        LOGGER.info("Checking and reloading rewriter config for core {}", core.getName());
+        LOGGER.debug("Checking and reloading rewriter config for core {}", core.getName());
         try {
             withConfigurationCore(core -> core.withSearcher(searcher -> {
                 long currentGeneration = searcher.getIndexReader().getIndexCommit().getGeneration();
-                LOGGER.info("Querqy configuration index generation is {}. Last seen generation was {}.", currentGeneration, generation);
+                LOGGER.debug("Querqy configuration index generation is {}. Last seen generation was {}.", currentGeneration, generation);
                 if (currentGeneration != generation) {
                     reloadRewriterConfig(searcher);
                 }
