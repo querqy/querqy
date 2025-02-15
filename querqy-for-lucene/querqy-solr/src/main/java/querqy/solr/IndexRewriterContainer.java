@@ -18,12 +18,10 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.handler.ReplicationHandler;
-import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.query.FilterQuery;
 import org.apache.solr.request.LocalSolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.DocsStreamer;
-import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.search.*;
 import org.apache.solr.update.AddUpdateCommand;
@@ -313,12 +311,6 @@ public class IndexRewriterContainer extends RewriterContainer<SolrResourceLoader
     protected List<SolrDocument> allConfigurationDocuments(final SolrIndexSearcher searcher, final String coreName) throws IOException {
         final ArrayList<SolrDocument> configurationDocuments = new ArrayList<>();
         try (final LocalSolrQueryRequest req = new LocalSolrQueryRequest(searcher.getCore(), new ModifiableSolrParams())) {
-            final ResponseBuilder rsp = new ResponseBuilder(req,
-                    new SolrQueryResponse(),
-                    Collections.emptyList());
-
-            rsp.setSortSpec(new SortSpec(null, Collections.emptyList()));
-
             final QueryResult result = new QueryResult();
 
             final SortSpec sortSpec = SortSpecParsing.parseSortSpec(String.format("%s asc", FIELD_DOC_ID), searcher.getSchema());
