@@ -180,6 +180,11 @@ public abstract class RewriterConfigRequestBuilder {
         }
 
         @Override
+        public boolean requiresCollection() {
+            return true;
+        }
+
+        @Override
         protected DeleteRewriterConfigSolrSolrResponse createResponse(final SolrClient client) {
             return new DeleteRewriterConfigSolrSolrResponse();
         }
