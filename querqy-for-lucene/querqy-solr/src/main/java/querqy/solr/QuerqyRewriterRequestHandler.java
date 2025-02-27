@@ -344,7 +344,7 @@ public class QuerqyRewriterRequestHandler implements SolrRequestHandler, NestedR
 
     /**
      * This check is used for validation as long as we are still allowing rewriters to be configured in solrconfig.xml
-     * @return true if rewriter configs sent to this handler will be persisted
+     * @return true iff rewriter configs sent to this handler will be persisted
      */
     @Deprecated
     public boolean isPersistingRewriters() {
