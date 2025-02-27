@@ -51,7 +51,7 @@
 
     <requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler">
         <!-- testing an INVALID config here: valid configs should say:
-        <bool name="inMemory">true</bool>
+        <str name="rewriterStorage">inMemory</str>
         -->
     </requestHandler>
 

@@ -72,7 +72,7 @@
 	<searchComponent name="query" class="querqy.solr.QuerqyQueryComponent"/>
 
     <requestHandler name="/querqy/rewriter" class="querqy.solr.QuerqyRewriterRequestHandler">
-		<bool name="inMemory">true</bool>
+		<str name="rewriterStorage">inMemory</str>
 	</requestHandler>
 
 	<queryParser name="querqy" class="querqy.solr.QuerqyDismaxQParserPlugin">
