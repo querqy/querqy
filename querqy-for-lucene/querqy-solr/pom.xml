@@ -14,10 +14,12 @@
     <description>Querqy library for query rewriting for Solr</description>
 
     <properties>
-        <minidev.json-smart.version>2.4.10</minidev.json-smart.version>
-        <slf4j.version>2.0.7</slf4j.version>
+        <minidev.json-smart.version>2.5.0</minidev.json-smart.version>
+        <log4j.version>2.21.1</log4j.version>
+        <slf4j.version>2.0.13</slf4j.version>
         <solr.version>9.8.0</solr.version>
         <testcontainers.version>1.20.4</testcontainers.version>
+        <maven-download-plugin.version>1.13.0</maven-download-plugin.version>
     </properties>
 
     <dependencies>
@@ -93,21 +95,21 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.20.0</version>
+            <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.20.0</version>
+            <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
-            <version>2.20.0</version>
+            <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -165,7 +167,7 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.11.5</version>
+                <version>${maven-download-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>download-test-product-data</id>
