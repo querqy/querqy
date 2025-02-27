@@ -135,6 +135,10 @@ public abstract class RewriterConfigRequestBuilder {
             return SAVE.params();
         }
 
+        @Override
+        public boolean requiresCollection() {
+            return true;
+        }
 
         @Override
         protected SaveRewriterConfigSolrResponse createResponse(final SolrClient client) {
@@ -173,6 +177,11 @@ public abstract class RewriterConfigRequestBuilder {
         @Override
         public SolrParams getParams() {
             return DELETE.params();
+        }
+
+        @Override
+        public boolean requiresCollection() {
+            return true;
         }
 
         @Override
