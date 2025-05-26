@@ -72,7 +72,7 @@
         <java.version>11</java.version>
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <mockito.version>5.15.2</mockito.version>
+        <mockito.version>5.18.0</mockito.version>
         <assertj-core.version>3.27.3</assertj-core.version>
         <skipITs>true</skipITs>
 
