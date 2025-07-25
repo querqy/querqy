@@ -1,4 +1,0 @@
-k =>
-    SYNONYM: h
-    @_id: 21
-    @_log: "k in rewriter 2"

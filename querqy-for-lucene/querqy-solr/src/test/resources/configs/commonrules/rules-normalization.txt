@@ -1,9 +1,0 @@
-handy =>
-    SYNONYM: smartphone
-
-spülmaschine =>
-    SYNONYM: geschirrreiniger
-
-massnahmen =>
-    SYNONYM: initiative
-

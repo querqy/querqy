@@ -1,4 +1,0 @@
-a =>
-	SYNONYM: b
-	UP(20): c
-

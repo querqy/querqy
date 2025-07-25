@@ -1,20 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
 
-    <!--
-       Do not add a <parent>..</parent> here as we want to release querqy-core and querqy-for lucene
-       separately. The pom.xml in the parent directory only serves as a help to run a multi-module build when
-       developing new core and lucene/solr features at the same time.
-    -->
-
     <groupId>org.querqy</groupId>
-    <artifactId>querqy-for-lucene</artifactId>
+    <artifactId>querqy-lucene</artifactId>
     <version>5.10.lucene980.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Querqy library for query rewriting: Lucene parent</description>
+    <description>Querqy library for query rewriting for Lucene</description>
+
     <url>https://querqy.org</url>
 
     <licenses>
@@ -52,43 +45,79 @@
         <tag>HEAD</tag>
     </scm>
 
-    <prerequisites>
-        <maven>3.3.0</maven>
-    </prerequisites>
-
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>11</java.version>
 
+<<<<<<< HEAD:querqy-for-lucene/pom.xml
         <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
+=======
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+>>>>>>> cc272473 (Removing Querqy for Solr from this repo. Implements #304):querqy-lucene/pom.xml
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
-        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-        <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-        <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>11</java.version>
-        <junit.version>4.13.2</junit.version>
-        <hamcrest.version>3.0</hamcrest.version>
-        <mockito.version>5.15.2</mockito.version>
-        <assertj-core.version>3.27.3</assertj-core.version>
-        <skipITs>true</skipITs>
-
 
         <querqy.core.version>3.18.2</querqy.core.version>
         <lucene.version>9.11.1</lucene.version>
+        <junit.version>4.13.2</junit.version>
         <commons.io.version>2.15.1</commons.io.version>
-
+        <hamcrest.version>3.0</hamcrest.version>
+        <mockito.version>5.15.2</mockito.version>
+        <assertj-core.version>3.27.3</assertj-core.version>
     </properties>
 
-    <modules>
-        <module>querqy-lucene</module>
-        <module>querqy-solr</module>
-    </modules>
-
     <dependencies>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-test-framework</artifactId>
+            <version>${lucene.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>querqy-core</artifactId>
+            <version>${querqy.core.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>querqy-core</artifactId>
+            <version>${querqy.core.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analysis-common</artifactId>
+            <version>${lucene.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queries</artifactId>
+            <version>${lucene.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-suggest</artifactId>
+            <version>${lucene.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
@@ -119,8 +148,8 @@
             <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
 
+    </dependencies>
 
     <build>
         <plugins>
@@ -171,6 +200,7 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
     </build>
 
     <profiles>
@@ -244,17 +274,6 @@
             </build>
         </profile>
     </profiles>
-
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>${cobertura-maven-plugin.version}</version>
-            </plugin>
-        </plugins>
-    </reporting>
 
     <distributionManagement>
         <snapshotRepository>

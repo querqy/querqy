@@ -6,26 +6,9 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 20
   - package-ecosystem: "maven"
-    directory: "/querqy-for-lucene"
+    directory: "/querqy-lucene"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 20
-    ignore:
-      - dependency-name: "solr*"
-      - dependency-name: "lucene*"
-  - package-ecosystem: "maven"
-    directory: "/querqy-for-lucene/querqy-lucene"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 20
-    ignore:
-      - dependency-name: "solr*"
-      - dependency-name: "lucene*"
-  - package-ecosystem: "maven"
-    directory: "/querqy-for-lucene/querqy-solr"
-    schedule:
-      interval: "weekly"
-    ignore:
-      - dependency-name: "solr*"
-      - dependency-name: "lucene*"
-    open-pull-requests-limit: 20
+
+

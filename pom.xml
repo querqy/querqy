@@ -63,7 +63,7 @@
 
     <modules>
         <module>querqy-core</module>
-        <module>querqy-for-lucene</module>
+        <module>querqy-lucene</module>
     </modules>
 
 
