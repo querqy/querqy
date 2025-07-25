@@ -60,7 +60,7 @@
         <junit.version>4.13.2</junit.version>
         <commons.io.version>2.15.1</commons.io.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <mockito.version>5.15.2</mockito.version>
+        <mockito.version>5.18.0</mockito.version>
         <assertj-core.version>3.27.3</assertj-core.version>
     </properties>
 
