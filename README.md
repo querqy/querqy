@@ -2,7 +2,7 @@
 
 [![Build Querqy](https://github.com/querqy/querqy/actions/workflows/ci.yml/badge.svg)](https://github.com/querqy/querqy/actions/workflows/ci.yml)
 [![Querqy Core](https://img.shields.io/maven-central/v/org.querqy/querqy-core.svg?label=Querqy%20core%20(Maven%20Central))](https://repo1.maven.org/maven2/org/querqy/querqy-core/)
-[![Querqy Lucene](https://img.shields.io/maven-central/v/org.querqy/querqy-lucene.svg?label=Querqy%20core%20(Maven%20Central))](https://repo1.maven.org/maven2/org/querqy/querqy-lucene/)
+[![Querqy Lucene](https://img.shields.io/maven-central/v/org.querqy/querqy-lucene.svg?label=Querqy%20Lucene%20(Maven%20Central))](https://repo1.maven.org/maven2/org/querqy/querqy-lucene/)
 
 **IMPORTANT: The Querqy plugin for Solr is no longer maintained in this repository. It has moved to its own repo at https://github.com/querqy/querqy-solr** 
 
