@@ -58,7 +58,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
-        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
@@ -144,6 +144,13 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                     <release>${java.version}</release>
                 </configuration>
             </plugin>
