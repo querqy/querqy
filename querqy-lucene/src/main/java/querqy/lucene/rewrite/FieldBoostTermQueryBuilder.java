@@ -1,6 +1,5 @@
 package querqy.lucene.rewrite;
 
-import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.ReaderUtil;
@@ -8,15 +7,19 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.ConstantScoreScorer;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.ScorerSupplier;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.util.IOSupplier;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 
 public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
@@ -62,7 +65,7 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
 
             final TermStates termState = TermStates.build(searcher, term, scoreMode.needsScores());
             // TODO: set boosts to 1f if needsScores is false?
-            return new FieldBoostWeight(termState, boost, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
+            return new FieldBoostWeight(termState, scoreMode, boost, fieldBoost.getBoost(term.field(), searcher.getIndexReader()));
         }
 
 
@@ -72,13 +75,15 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
             private float score;
             private float queryBoost;
             private final float fieldBoost;
+            private final ScoreMode scoreMode;
 
 
-            public FieldBoostWeight(final TermStates termStates, final float queryBoost, final float fieldBoost) {
+            public FieldBoostWeight(final TermStates termStates, final ScoreMode scoreMode, final float queryBoost,
+                                    final float fieldBoost) {
                 super(FieldBoostTermQuery.this);
                 assert termStates != null : "TermContext must not be null";
                 this.termStates = termStates;
-
+                this.scoreMode = scoreMode;
                 this.queryBoost = queryBoost;
                 this.fieldBoost = fieldBoost;
                 this.score = queryBoost * fieldBoost;
@@ -94,42 +99,65 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
             }
 
 
-
             @Override
-            public Scorer scorer(final LeafReaderContext context) throws IOException {
-                assert termStates != null && termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
-                        : "The top-reader used to create Weight is not the same as the current reader's top-reader: " + ReaderUtil.getTopLevelContext(context);
-                final TermsEnum termsEnum = getTermsEnum(context);
-                if (termsEnum == null) {
+            public ScorerSupplier scorerSupplier(final LeafReaderContext context) throws IOException {
+                assert termStates == null || termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
+                        : "The top-reader used to create Weight is not the same as the current reader's top-reader ("
+                        + ReaderUtil.getTopLevelContext(context);
+
+                final IOSupplier<TermState> stateSupplier = termStates.get(context);
+                if (stateSupplier == null) {
                     return null;
                 }
-                PostingsEnum docs = termsEnum.postings(null, PostingsEnum.NONE);
-                assert docs != null;
-                return new TermBoostScorer(this, docs, score);
-            }
 
-            /**
-             * Returns a {@link TermsEnum} positioned at this weights Term or null if
-             * the term does not exist in the given context
-             */
-            private TermsEnum getTermsEnum(final LeafReaderContext context) throws IOException {
-                final TermState state = termStates.get(context);
-                if (state == null) { // term is not present in that reader
-                    assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;
-                    return null;
-                }
-                // System.out.println("LD=" + reader.getLiveDocs() + " set?=" +
-                // (reader.getLiveDocs() != null ? reader.getLiveDocs().get(0) : "null"));
-                final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
-                termsEnum.seekExact(term.bytes());
-                return termsEnum;
-            }
+                return new ScorerSupplier() {
 
-            private boolean termNotInReader(final LeafReader reader, final Term term) throws IOException {
-                // only called from assert
-                // System.out.println("TQ.termNotInReader reader=" + reader + " term=" +
-                // field + ":" + bytes.utf8ToString());
-                return reader.docFreq(term) == 0;
+                    private TermsEnum termsEnum;
+
+                    private TermsEnum getTermsEnum() throws IOException {
+                        if (termsEnum == null) {
+                            TermState state = stateSupplier.get();
+                            if (state == null) {
+                                return null;
+                            }
+                            termsEnum = context.reader().terms(term.field()).iterator();
+                            termsEnum.seekExact(term.bytes(), state);
+                        }
+                        return termsEnum;
+                    }
+
+                    @Override
+                    public Scorer get(final long leadCost) throws IOException {
+
+                        final TermsEnum termsEnum = getTermsEnum();
+                        if (termsEnum == null) {
+                            // term does not exist, always return a score of 0
+                            return new ConstantScoreScorer(0f, scoreMode, DocIdSetIterator.empty());
+                        }
+
+
+                        final PostingsEnum docs = termsEnum.postings(null, PostingsEnum.NONE);
+
+                        assert docs != null;
+                        return new TermBoostScorer(FieldBoostWeight.this, docs, score);
+
+                    }
+
+                    @Override
+                    public long cost() {
+                        try {
+                            TermsEnum te = getTermsEnum();
+                            return te == null ? 0 : te.docFreq();
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+
+                    @Override
+                    public void setTopLevelScoringClause() {
+                        // no-op
+                    }
+                };
             }
 
             @Override
@@ -173,6 +201,7 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
         class TermBoostScorer extends Scorer {
             private final PostingsEnum postingsEnum;
             private final float score;
+            private final Weight weight;
 
             /**
              * Construct a <code>TermScorer</code>.
@@ -185,7 +214,7 @@ public class FieldBoostTermQueryBuilder implements TermQueryBuilder {
              *          The score
              */
             TermBoostScorer(final Weight weight, final PostingsEnum td, final float score) {
-                super(weight);
+                this.weight = weight;
                 this.score = score;
                 this.postingsEnum = td;
             }

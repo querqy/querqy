@@ -138,7 +138,7 @@ public class PRMSAndQueryTest extends LuceneTestCase {
         assertEquals(capturedBoosts.get(0), capturedBoosts.get(1), 0.00001);
         assertEquals(capturedBoosts.get(2), capturedBoosts.get(3), 0.00001);
 
-        final Query query1 = bq1.clauses().get(0).getQuery();
+        final Query query1 = bq1.clauses().get(0).query();
         assertTrue(query1 instanceof DependentTermQueryBuilder.DependentTermQuery);
         final String field1 = ((DependentTermQueryBuilder.DependentTermQuery) query1).getTerm().field();
         // Dismax clauses are a set - we have no guarantee about order -> identify by field name

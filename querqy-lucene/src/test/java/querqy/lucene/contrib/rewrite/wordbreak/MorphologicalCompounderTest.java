@@ -2,6 +2,7 @@ package querqy.lucene.contrib.rewrite.wordbreak;
 
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.LeafReader;
 import org.junit.Test;
 import querqy.model.Term;
 
@@ -23,7 +24,7 @@ public class MorphologicalCompounderTest {
     private final int minSuggestionFrequency = 1;
     private final int maxCompoundExpansions = 10;
     private final MorphologicalCompounder compounder = new MorphologicalCompounder(morphologyMock, "field1", false, minSuggestionFrequency, maxCompoundExpansions);
-    private final IndexReader indexReader = mock(IndexReader.class);
+    private final IndexReader indexReader = mock(LeafReader.class);
     private final Term leftTerm = new Term(null, "field1", "w1");
     private final Term rightTerm = new Term(null, "field1", "w2");
 

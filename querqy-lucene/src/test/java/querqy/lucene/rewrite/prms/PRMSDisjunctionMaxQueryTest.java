@@ -125,7 +125,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
         
         Query disjunct1 = disjuncts.get(0);
         assertTrue(disjunct1 instanceof DisjunctionMaxQuery);
-        Query dmq1 = disjunct1.rewrite(indexReader);
+        Query dmq1 = disjunct1.rewrite(indexSearcher);
         if (dmq1 instanceof BoostQuery) {
             dmq1 = ((BoostQuery) dmq1).getQuery();
         }
@@ -133,7 +133,7 @@ public class PRMSDisjunctionMaxQueryTest extends LuceneTestCase {
 
         Query disjunct2 = disjuncts.get(1);
         assertTrue(disjunct2 instanceof DisjunctionMaxQuery);
-        Query dmq2 = disjunct2.rewrite(indexReader);
+        Query dmq2 = disjunct2.rewrite(indexSearcher);
         if (dmq2 instanceof BoostQuery) {
             dmq2 = ((BoostQuery) dmq2).getQuery();
         }

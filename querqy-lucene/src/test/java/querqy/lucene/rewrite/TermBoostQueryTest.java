@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
@@ -152,8 +153,9 @@ public class TermBoostQueryTest extends LuceneTestCase {
         FieldBoostTermQueryBuilder.FieldBoostTermQuery termBoostQuery = new FieldBoostTermQueryBuilder.FieldBoostTermQuery(new Term("f1", "v1"), fieldBoost);
         TopDocs topDocs = indexSearcher.search(termBoostQuery, 10);
 
-        assertEquals(1, topDocs.totalHits.value);
-        Document resultDoc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
+        assertEquals(1, topDocs.totalHits.value());
+        StoredFields storedFields = indexReader.storedFields();
+        Document resultDoc = storedFields.document(topDocs.scoreDocs[0].doc);
         assertEquals("v1", resultDoc.get("f1"));
 
         indexReader.close();

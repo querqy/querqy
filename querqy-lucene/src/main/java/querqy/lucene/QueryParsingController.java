@@ -418,7 +418,7 @@ public class QueryParsingController {
                         final List<BooleanClause> clauses = booleanQuery.clauses();
 
                         final List<BooleanClause> mustNotClauses = clauses.stream()
-                                .filter(clause -> clause.getOccur() == BooleanClause.Occur.MUST_NOT)
+                                .filter(clause -> clause.occur() == BooleanClause.Occur.MUST_NOT)
                                 .collect(Collectors.toList());
 
                         if (mustNotClauses.size() == clauses.size()) {
@@ -426,7 +426,7 @@ public class QueryParsingController {
                             // boosting on purely negative query, apply negated boost on the negated query
                             final BooleanQuery.Builder builder = new BooleanQuery.Builder();
                             builder.setMinimumNumberShouldMatch(booleanQuery.getMinimumNumberShouldMatch());
-                            mustNotClauses.forEach(q -> builder.add(q.getQuery(), BooleanClause.Occur.MUST));
+                            mustNotClauses.forEach(q -> builder.add(q.query(), BooleanClause.Occur.MUST));
 
                             queryToAdd = builder.build();
 

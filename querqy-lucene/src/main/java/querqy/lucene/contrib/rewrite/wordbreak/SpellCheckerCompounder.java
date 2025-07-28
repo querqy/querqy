@@ -54,12 +54,12 @@ public class SpellCheckerCompounder implements LuceneCompounder {
                 .map(combineSuggestion -> {
 
                     final Term[] originalTerms =
-                            ((!reverse) && (combineSuggestion.originalTermIndexes.length == luceneTerms.length))
+                            ((!reverse) && (combineSuggestion.originalTermIndexes().length == luceneTerms.length))
                                     ? terms
-                                    : Arrays.stream(combineSuggestion.originalTermIndexes)
+                                    : Arrays.stream(combineSuggestion.originalTermIndexes())
                                         .mapToObj(index -> reverse ? terms[terms.length - index - 1] : terms[index])
                                         .toArray(Term[]::new);
-                    return new CompoundTerm(combineSuggestion.suggestion.string, originalTerms);
+                    return new CompoundTerm(combineSuggestion.suggestion().string, originalTerms);
 
                 })
                 .collect(Collectors.toList());

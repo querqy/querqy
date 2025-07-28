@@ -8,6 +8,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -122,8 +123,9 @@ public class DependentTermQueryBuilderTest extends LuceneTestCase {
 
         TopDocs topDocs = indexSearcher.search(query, 10);
 
-        assertEquals(1, topDocs.totalHits.value);
-        Document resultDoc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
+        assertEquals(1, topDocs.totalHits.value());
+        StoredFields storedFields = indexReader.storedFields();
+        Document resultDoc = storedFields.document(topDocs.scoreDocs[0].doc);
         assertEquals("v1", resultDoc.get("f1"));
 
         indexReader.close();
