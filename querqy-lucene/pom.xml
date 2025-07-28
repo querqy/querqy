@@ -3,7 +3,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-lucene</artifactId>
-    <version>5.9.lucene1010.0</version>
+    <version>5.10.lucene1010.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting for Lucene</description>
@@ -42,7 +42,7 @@
         <url>git@github.com:querqy/querqy.git</url>
         <connection>scm:git:git@github.com:querqy/querqy.git</connection>
         <developerConnection>scm:git:git@github.com:querqy/querqy.git</developerConnection>
-        <tag>querqy-lucene-5.9.lucene1010.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
