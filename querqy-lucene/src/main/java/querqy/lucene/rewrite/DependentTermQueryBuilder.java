@@ -2,17 +2,18 @@ package querqy.lucene.rewrite;
 
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.ReaderUtil;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.TermStates;
-import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.CollectionStatistics;
+import org.apache.lucene.search.ConstantScoreScorer;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.LeafSimScorer;
 import org.apache.lucene.search.Matches;
 import org.apache.lucene.search.MatchesIterator;
 import org.apache.lucene.search.MatchesUtils;
@@ -20,13 +21,16 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.ScorerSupplier;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TermScorer;
 import org.apache.lucene.search.TermStatistics;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.util.IOSupplier;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 
 /**
@@ -249,61 +253,88 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
             }
 
             @Override
-            public TermScorer scorer(final LeafReaderContext context) throws IOException {
-
+            public ScorerSupplier scorerSupplier(final LeafReaderContext context) throws IOException {
                 assert termStates == null || termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
                         : "The top-reader used to create Weight is not the same as the current reader's top-reader ("
                         + ReaderUtil.getTopLevelContext(context);
 
-                final TermsEnum termsEnum = getTermsEnum(context);
-                if (termsEnum == null) {
+                final IOSupplier<TermState> stateSupplier = termStates.get(context);
+                if (stateSupplier == null) {
                     return null;
                 }
 
-                LeafSimScorer scorer = new LeafSimScorer(simScorer, context.reader(), getTerm().field(),
-                        scoreMode.needsScores());
-                if (scoreMode == ScoreMode.TOP_SCORES) {
-                    return new TermScorer(this, termsEnum.impacts(PostingsEnum.FREQS), scorer);
-                } else {
-                    return new TermScorer(this, termsEnum.postings(null, scoreMode.needsScores()
-                            ? PostingsEnum.FREQS : PostingsEnum.NONE), scorer);
-                }
+                return new ScorerSupplier() {
 
+                    private TermsEnum termsEnum;
+                    private boolean topLevelScoringClause = false;
+
+                    private TermsEnum getTermsEnum() throws IOException {
+                        if (termsEnum == null) {
+                            TermState state = stateSupplier.get();
+                            if (state == null) {
+                                return null;
+                            }
+                            final Term term = getTerm();
+                            termsEnum = context.reader().terms(term.field()).iterator();
+                            termsEnum.seekExact(term.bytes(), state);
+                        }
+                        return termsEnum;
+                    }
+
+                    @Override
+                    public Scorer get(long leadCost) throws IOException {
+                        TermsEnum termsEnum = getTermsEnum();
+                        if (termsEnum == null) {
+                            return new ConstantScoreScorer(0f, scoreMode, DocIdSetIterator.empty());
+                        }
+
+                        NumericDocValues norms = null;
+                        if (scoreMode.needsScores()) {
+                            norms = context.reader().getNormValues(getTerm().field());
+                        }
+
+                        if (scoreMode == ScoreMode.TOP_SCORES) {
+                            return new TermScorer(
+                                    termsEnum.impacts(PostingsEnum.FREQS), simScorer, norms, topLevelScoringClause);
+                        } else {
+                            int flags = scoreMode.needsScores() ? PostingsEnum.FREQS : PostingsEnum.NONE;
+                            return new TermScorer(termsEnum.postings(null, flags), simScorer, norms);
+                        }
+                    }
+
+                    @Override
+                    public long cost() {
+                        try {
+                            TermsEnum te = getTermsEnum();
+                            return te == null ? 0 : te.docFreq();
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+
+                    @Override
+                    public void setTopLevelScoringClause() throws IOException {
+                        topLevelScoringClause = true;
+                    }
+                };
             }
 
-            /**
-             * Returns a {@link TermsEnum} positioned at this weights Term or null if
-             * the term does not exist in the given context
-             */
-            private TermsEnum getTermsEnum(final LeafReaderContext context) throws IOException {
+            private TermsEnum getTermsEnum(LeafReaderContext context) throws IOException {
+                assert termStates != null;
+                assert termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
+                        : "The top-reader used to create Weight is not the same as the current reader's top-reader ("
+                        + ReaderUtil.getTopLevelContext(context);
+                final IOSupplier<TermState> supplier = termStates.get(context);
+                final TermState state = supplier == null ? null : supplier.get();
                 final Term term = getTerm();
-                if (termStates != null) {
-                    assert termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context))
-                            : "The top-reader used to create Weight is not the same as the current reader's top-reader (" +
-                            ReaderUtil.getTopLevelContext(context);
-
-                    final TermState state = termStates.get(context);
-                    if (state == null) { // term is not present in that reader
-                        assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;
-                        return null;
-                    }
-                    //System.out.println("LD=" + reader.getLiveDocs() + " set?=" + (reader.getLiveDocs() != null ? reader.getLiveDocs().get(0) : "null"));
-                    final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
-                    termsEnum.seekExact(term.bytes(), state);
-                    return termsEnum;
-                } else {
-                    // TermQuery used as a filter, so the term states have not been built up front
-                    final Terms terms = context.reader().terms(term.field());
-                    if (terms == null) {
-                        return null;
-                    }
-                    final TermsEnum termsEnum = terms.iterator();
-                    if (termsEnum.seekExact(term.bytes())) {
-                        return termsEnum;
-                    } else {
-                        return null;
-                    }
+                if (state == null) { // term is not present in that reader
+                    assert termNotInReader(context.reader(), getTerm())
+                            : "no termstate found but term exists in reader term=" + term;
+                    return null;
                 }
+                final TermsEnum termsEnum = context.reader().terms(term.field()).iterator();
+                termsEnum.seekExact(term.bytes(), state);
+                return termsEnum;
             }
 
             private boolean termNotInReader(final LeafReader reader, final Term term) throws IOException {
@@ -313,23 +344,34 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
             @Override
             public Explanation explain(final LeafReaderContext context, final int doc) throws IOException {
 
-                TermScorer scorer = scorer(context);
+                Scorer scorer = scorer(context);
                 if (scorer != null) {
                     int newDoc = scorer.iterator().advance(doc);
                     if (newDoc == doc) {
-                        float freq = scorer.freq();
-                        LeafSimScorer docScorer = new LeafSimScorer(simScorer, context.reader(), getTerm().field(), true);
-                        Explanation freqExplanation = Explanation.match(freq, "freq, occurrences of term within document");
-                        Explanation scoreExplanation = docScorer.explain(doc, freqExplanation);
+                        float freq = ((TermScorer) scorer).freq();
+                        NumericDocValues norms = context.reader().getNormValues(getTerm().field());
+                        long norm = 1L;
+                        if (norms != null && norms.advanceExact(doc)) {
+                            norm = norms.longValue();
+                        }
+                        Explanation freqExplanation =
+                                Explanation.match(freq, "freq, occurrences of term within document");
+                        Explanation scoreExplanation = simScorer.explain(freqExplanation, norm);
                         return Explanation.match(
                                 scoreExplanation.getValue(),
-                                "weight(" + getQuery() + " in " + doc + ") ["
-                                        + similarity.getClass().getSimpleName() + "], result of:",
+                                "weight("
+                                        + getQuery()
+                                        + " in "
+                                        + doc
+                                        + ") ["
+                                        + similarity.getClass().getSimpleName()
+                                        + "], result of:",
                                 scoreExplanation);
                     }
                 }
                 return Explanation.noMatch("no matching term");
             }
+
 
         }
 
@@ -346,8 +388,7 @@ public class DependentTermQueryBuilder implements TermQueryBuilder {
             }
 
             @Override
-            public Scorer scorer(LeafReaderContext context)
-                    throws IOException {
+            public ScorerSupplier scorerSupplier(final LeafReaderContext context) throws IOException {
                 return null;
             }
 

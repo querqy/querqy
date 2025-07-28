@@ -129,7 +129,7 @@ public class AbstractLuceneQueryTest {
 
       @Override
       protected boolean matchesSafely(BooleanClause clause) {
-         return clause.getOccur() == occur && queryMatcher.matches(clause.getQuery());
+         return clause.occur() == occur && queryMatcher.matches(clause.query());
       }
 
    }

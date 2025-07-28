@@ -1,6 +1,6 @@
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.CombineSuggestion;
 import org.apache.lucene.search.spell.SuggestWord;
@@ -41,7 +41,7 @@ public class WordBreakCompoundRewriterTest {
     WordBreakSpellChecker wordBreakSpellChecker;
 
     @Mock
-    IndexReader indexReader;
+    LeafReader indexReader;
 
     private static final TrieMap<Boolean> NO_TRIGGERWORDS = new TrieMap<>();
     private static final TrieMap<Boolean> NO_PROTECTEDWORDS = new TrieMap<>();
