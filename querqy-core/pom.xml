@@ -70,7 +70,7 @@
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
         <mockito.version>5.18.0</mockito.version>
-        <assertj.version>3.27.3</assertj.version>
+        <assertj.version>3.27.6</assertj.version>
 
         <jackson.version>2.18.2</jackson.version>
         <json-path.version>2.9.0</json-path.version>
