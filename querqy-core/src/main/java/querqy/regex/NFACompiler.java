@@ -12,46 +12,122 @@ import java.util.Set;
 
 public final class NFACompiler {
 
-    public static NFAFragment compile(final List<Symbol> symbols) {
-        NFAFragment result = null;
+    public static NFAFragment compileSequence(final List<Symbol> symbols) {
+        NFAFragment fragment = null;
 
-        for (final Symbol symbol : symbols) {
-            NFAFragment next = compileSymbol(symbol);
-            if (result == null) {
-                result = next;
+        for (final Symbol symbol: symbols) {
+            NFAFragment frag;
+            if (symbol instanceof GroupSymbol gs) {
+                frag = compileGroupSymbol(gs);
             } else {
-                // connect result → next
-                for (NFAState accept : result.accepts()) {
-                    accept.addEpsilon(next.start());
-                }
-                result = new NFAFragment(
-                        result.start(),
-                        next.accepts()
-                );
+                frag = compileAtomicSymbol(symbol);
             }
+            fragment = concatenate(fragment, frag);
+
         }
 
         // empty regex case
-        if (result == null) {
+        if (fragment == null) {
             NFAState s = new NFAState();
             return NFAFragment.single(s, s);
         }
 
-        return result;
+        return fragment;
     }
 
-    private static NFAFragment compileSymbol(final Symbol symbol) {
-        final NFAFragment base = switch (symbol) {
-            case CharSymbol cs -> compileChar(cs);
-            case AnyDigitSymbol anyDigitSymbol -> compileDigit();
-            case GroupSymbol gs -> compile(gs.getChildren());
-            case null, default -> throw new IllegalStateException("Unknown Symbol type");
-        };
+    private static NFAFragment compileGroupSymbol(final GroupSymbol g) {
+        NFAFragment inner = compileSequence(g.getChildren());
 
-        return applyQuantifier(base, symbol.getMinOccur(), symbol.getMaxOccur());
+        // attach group markers if no quantifier
+        if (g.getMinOccur() == 1 && g.getMaxOccur() == 1) {
+            attachGroupMarkers(inner, g.getGroupIndex());
+            return inner;
+        }
+
+        return applyGroupQuantifier(inner, g.getMinOccur(), g.getMaxOccur(), g.getGroupIndex());
     }
 
-    private static NFAFragment compileChar(final CharSymbol cs) {
+    // ---------- group quantifier: repetition with group markers ----------
+    private static NFAFragment applyGroupQuantifier(NFAFragment frag, int min, int max, int groupIndex) {
+        NFAFragment result = null;
+
+        // mandatory repetitions
+        for (int i = 0; i < min; i++) {
+            NFAFragment copy = cloneFragment(frag);
+            attachGroupMarkers(copy, groupIndex);
+            result = concatenate(result, copy);
+        }
+
+        // optional repetitions
+        int optionalCount = (max == Integer.MAX_VALUE) ? Integer.MAX_VALUE : max - min;
+        NFAFragment current = result;
+        for (int i = 0; i < optionalCount; i++) {
+            NFAFragment copy = cloneFragment(frag);
+            attachGroupMarkers(copy, groupIndex);
+
+            NFAState skip = new NFAState();
+            skip.addEpsilon(copy.start);
+            for (NFAState a : current.accepts) a.addEpsilon(skip);
+            current = NFAFragment.single(copy.start, skip);
+
+            if (max != Integer.MAX_VALUE && i >= optionalCount - 1) break;
+        }
+
+        return current;
+    }
+
+    private static void attachGroupMarkers(NFAFragment frag, int groupIndex) {
+        frag.start.addGroupStart(groupIndex);
+        for (NFAState a : frag.accepts) a.addGroupEnd(groupIndex);
+    }
+
+
+
+    private static NFAFragment compileAtomicSymbol(final Symbol symbol) {
+        NFAState start = new NFAState();
+        NFAState accept = new NFAState();
+
+        if (symbol instanceof CharSymbol cs) {
+            start.addCharTransition(cs.getValue(), accept);
+        } else if (symbol instanceof AnyDigitSymbol) {
+            start.addDigitTransition(accept);
+        } else {
+            throw new IllegalArgumentException("Unexpected Symbol type");
+        }
+
+        NFAFragment frag = NFAFragment.single(start, accept);
+
+        // handle repetition for atomic symbols (simple linear copy)
+        if (symbol.getMinOccur() != 1 || symbol.getMaxOccur() != 1) {
+            frag = applyAtomicQuantifier(frag, symbol.getMinOccur(), symbol.getMaxOccur());
+        }
+
+        return frag;
+    }
+
+    // ---------- atomic quantifier: simple repetition ----------
+    private static NFAFragment applyAtomicQuantifier(NFAFragment frag, int min, int max) {
+        NFAFragment result = null;
+        // mandatory
+        for (int i = 0; i < min; i++) {
+            NFAFragment copy = cloneFragment(frag);
+            result = concatenate(result, copy);
+        }
+        // optional
+        int optional = (max == Integer.MAX_VALUE) ? Integer.MAX_VALUE : max - min;
+        NFAFragment current = result;
+        for (int i = 0; i < optional; i++) {
+            NFAFragment copy = cloneFragment(frag);
+            NFAState skip = new NFAState();
+            skip.addEpsilon(copy.start);
+            for (NFAState a : current.accepts) a.addEpsilon(skip);
+            current = NFAFragment.single(copy.start, skip);
+            if (max != Integer.MAX_VALUE && i >= max - min - 1) break;
+        }
+        return current;
+    }
+
+  /*  private static NFAFragment compileChar(final CharSymbol cs) {
         NFAState start = new NFAState();
         NFAState accept = new NFAState();
 
@@ -64,6 +140,23 @@ public final class NFACompiler {
         final NFAState accept = new NFAState();
 
         start.addDigitTransition(accept);
+        return NFAFragment.single(start, accept);
+    }
+
+    private static NFAFragment compileGroup(final GroupSymbol group) {
+        NFAFragment inner = compileSequence(group.getChildren());
+
+        final NFAState start = new NFAState();
+        final NFAState accept = new NFAState();
+
+        start.addGroupStart(group.getGroupIndex());
+        start.addEpsilon(inner.start);
+
+        for (final NFAState a: inner.accepts) {
+            a.addGroupEnd(group.getGroupIndex());
+            a.addEpsilon(accept);
+        }
+
         return NFAFragment.single(start, accept);
     }
 
@@ -90,16 +183,16 @@ public final class NFACompiler {
 
         // general {min,max}
         return boundedRepeat(base, min, max);
-    }
+    }*/
 
     private static NFAFragment optional(final NFAFragment base) {
         final NFAState start = new NFAState();
         final NFAState accept = new NFAState();
 
-        start.addEpsilon(base.start());
+        start.addEpsilon(base.start);
         start.addEpsilon(accept);
 
-        for (final NFAState a : base.accepts()) {
+        for (final NFAState a : base.accepts) {
             a.addEpsilon(accept);
         }
 
@@ -107,8 +200,8 @@ public final class NFACompiler {
     }
 
     private static NFAFragment oneOrMore(final NFAFragment base) {
-        for (final NFAState a : base.accepts()) {
-            a.addEpsilon(base.start());
+        for (final NFAState a : base.accepts) {
+            a.addEpsilon(base.start);
         }
         return base;
     }
@@ -117,11 +210,11 @@ public final class NFACompiler {
         final NFAState start = new NFAState();
         final NFAState accept = new NFAState();
 
-        start.addEpsilon(base.start());
+        start.addEpsilon(base.start);
         start.addEpsilon(accept);
 
-        for (final NFAState a : base.accepts()) {
-            a.addEpsilon(base.start());
+        for (final NFAState a : base.accepts) {
+            a.addEpsilon(base.start);
             a.addEpsilon(accept);
         }
 
@@ -150,46 +243,35 @@ public final class NFACompiler {
     }
 
     private static NFAFragment concatenate(final NFAFragment a, final NFAFragment b) {
-        for (final NFAState s: a.accepts()) {
-            s.addEpsilon(b.start());
-        }
-        return new NFAFragment(a.start(), b.accepts());
+        if (a == null) return b;
+        for (NFAState as : a.accepts) as.addEpsilon(b.start);
+        return new NFAFragment(a.start, b.accepts);
     }
 
     private static NFAFragment cloneFragment(final NFAFragment original) {
-        final Map<NFAState, NFAState> map = new HashMap<>();
-        cloneState(original.start(), map);
-
-        final Set<NFAState> newAccepts = new HashSet<>();
-        for (final NFAState a: original.accepts()) {
-            newAccepts.add(map.get(a));
-        }
-
-        return new NFAFragment(map.get(original.start()), newAccepts);
+        Map<NFAState, NFAState> map = new HashMap<>();
+        NFAState newStart = cloneState(original.start, map);
+        Set<NFAState> newAccepts = new HashSet<>();
+        for (NFAState a : original.accepts) newAccepts.add(map.get(a));
+        return new NFAFragment(newStart, newAccepts);
     }
 
-    private static void cloneState(final NFAState state, final Map<NFAState, NFAState> map) {
-        if (map.containsKey(state)) return;
-
-        final NFAState copy = new NFAState();
+    private static NFAState cloneState(final NFAState state, final Map<NFAState, NFAState> map) {
+        if (map.containsKey(state)) return map.get(state);
+        NFAState copy = new NFAState();
+        copy.groupStarts.addAll(state.groupStarts);
+        copy.groupEnds.addAll(state.groupEnds);
         map.put(state, copy);
 
-        for (final var e : state.charTransitions.entrySet()) {
-            for (final NFAState tgt : e.getValue()) {
-                cloneState(tgt, map);
-                copy.addCharTransition(e.getKey(), map.get(tgt));
-            }
+        for (Map.Entry<Character, Set<NFAState>> e : state.charTransitions.entrySet()) {
+            copy.charTransitions.put(e.getKey(), new HashSet<>());
+            for (NFAState t : e.getValue()) copy.charTransitions.get(e.getKey()).add(cloneState(t, map));
         }
+        for (NFAState t : state.digitTransitions) copy.digitTransitions.add(cloneState(t, map));
+        for (NFAState t : state.epsilonTransitions) copy.epsilonTransitions.add(cloneState(t, map));
+        copy.accepting.addAll(state.accepting);
 
-        for (final NFAState tgt : state.digitTransitions) {
-            cloneState(tgt, map);
-            copy.addDigitTransition(map.get(tgt));
-        }
-
-        for (final NFAState tgt : state.epsilonTransitions) {
-            cloneState(tgt, map);
-            copy.addEpsilon(map.get(tgt));
-        }
+        return copy;
     }
 
 }

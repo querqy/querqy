@@ -20,7 +20,7 @@ public abstract class Symbol {
         return maxOccur;
     }
 
-    public void setOccurrence(int min, int max) {
+    public void setQuantifier(int min, int max) {
         this.minOccur = min;
         this.maxOccur = max;
     }
@@ -51,16 +51,23 @@ public abstract class Symbol {
 
     public static final class GroupSymbol extends Symbol {
 
+        private final int groupIndex;
         private final List<Symbol> children;
 
-        public GroupSymbol(final List<Symbol> children) {
+        public GroupSymbol(final int groupIndex, final List<Symbol> children) {
             super(1, 1);
+            this.groupIndex = groupIndex;
             this.children = children;
         }
 
         public List<Symbol> getChildren() {
             return children;
         }
+
+        public int getGroupIndex() {
+            return groupIndex;
+        }
+
     }
 
 

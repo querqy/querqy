@@ -7,130 +7,183 @@ import querqy.regex.Symbol.GroupSymbol;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: pass regex to constructor so we dont't have to mess with state??
 public final class RegexParser {
 
-    private record ParseResult(List<Symbol> symbols, int index) { }
+    private String input;
+    private int pos;
+    private int nextGroupIndex = 1;
 
-    public static List<Symbol> parse(final String regex) {
-        ParseResult result = parseSequence(regex, 0, 0);
-        if (result.index != regex.length()) {
-            throw new IllegalArgumentException("Unmatched ')'");
+    public List<Symbol> parse(final String regex) {
+
+        this.input = regex;
+        this.pos = 0;
+        this.nextGroupIndex = 1;
+
+        final List<Symbol> symbols = parseSequence(false);
+
+        if (pos != input.length()) {
+            throw error("Unexpected trailing input");
         }
-        return result.symbols;
+
+        return symbols;
     }
 
-    private static ParseResult parseSequence(final String regex, final int start, final int nestingLevel) {
+    public int getGroupCount() {
+        return nextGroupIndex - 1;
+    }
 
-        final List<Symbol> symbols = new ArrayList<>();
 
-        int i = start;
 
-        while (i < regex.length()) {
 
-            final char c = regex.charAt(i);
+    private List<Symbol> parseSequence(boolean insideGroup) {
+        List<Symbol> symbols = new ArrayList<>();
 
-            // ----- closing group -----
+        while (pos < input.length()) {
+            char c = input.charAt(pos);
+
             if (c == ')') {
-                if (nestingLevel == 0) {
-                    throw new IllegalArgumentException( "Unmatched ')' at position " + i);
+                if (!insideGroup) {
+                    throw error("Unmatched ')'");
                 }
-                return new ParseResult(symbols, i + 1);
+                pos++; // consume ')'
+                return symbols;
             }
 
-            Symbol symbol;
-
-            // ----- opening group -----
-            if (c == '(') {
-                final ParseResult inner = parseSequence(regex, i + 1, nestingLevel + 1);
-                symbol = new GroupSymbol(inner.symbols);
-                i = inner.index - 1;
-            }
-            // ----- escape -----
-            else if (c == '\\') {
-                if (i + 1 >= regex.length()) {
-                    throw new IllegalArgumentException("Dangling escape");
-                }
-                final char next = regex.charAt(++i);
-                symbol = switch (next) {
-                    case 'd' -> new AnyDigitSymbol();
-                    case '\\', '{', '+', '?', '(', ')' -> new CharSymbol(next);
-                    default -> throw new IllegalArgumentException("Illegal escape sequence: \\" + next);
-                };
-            }
-            // ----- quantifier without target -----
-            else if (isQuantifier(c)) {
-                throw new IllegalArgumentException(
-                        "Quantifier without target at position " + i
-                );
-            }
-            // ----- literal -----
-            else {
-                symbol = new CharSymbol(c);
-            }
-
-            // ----- quantifier application -----
-            if (i + 1 < regex.length()) {
-                char q = regex.charAt(i + 1);
-                if (q == '+') {
-                    symbol.setOccurrence(1, Integer.MAX_VALUE);
-                    i++;
-                } else if (q == '?') {
-                    symbol.setOccurrence(0, 1);
-                    i++;
-                } else if (q == '{') {
-                    i = parseCount(regex, i + 1, symbol);
-                }
-            }
-
-            symbols.add(symbol);
-            i++;
+            Symbol s = parseAtom();
+            parseQuantifierIfAny(s);
+            symbols.add(s);
         }
 
-        if (nestingLevel > 0) {
-            throw new IllegalArgumentException("Unclosed '('");
+        if (insideGroup) {
+            throw error("Unclosed '('");
         }
 
-        return new ParseResult(symbols, i);
+        return symbols;
     }
 
-    private static boolean isQuantifier(final char c) {
-        return c == '+' || c == '?' || c == '{';
-    }
-
-    private static int parseCount(final String regex, final int start, final Symbol symbol) {
-        final int end = regex.indexOf('}', start);
-        if (end == -1) {
-            throw new IllegalArgumentException("Unclosed '{'");
+    private Symbol parseAtom() {
+        if (pos >= input.length()) {
+            throw error("Unexpected end");
         }
 
-        final String content = regex.substring(start + 1, end);
-        final String[] parts = content.split(",", -1);
+        char c = input.charAt(pos);
 
-        int min;
-        int max;
+        // group
+        if (c == '(') {
+            pos++; // consume '('
+            int groupIndex = nextGroupIndex++;
+            List<Symbol> children = parseSequence(true);
+            return new GroupSymbol(groupIndex, children);
+        }
 
-        try {
-            if (parts.length == 1) {
-                min = max = Integer.parseInt(parts[0]);
-            } else if (parts.length == 2) {
-                min = parts[0].isEmpty() ? 0 : Integer.parseInt(parts[0]);
-                max = parts[1].isEmpty()
-                        ? Integer.MAX_VALUE
-                        : Integer.parseInt(parts[1]);
-            } else {
-                throw new IllegalArgumentException("Invalid quantifier {" + content + "}");
+        // escape
+        if (c == '\\') {
+            pos++;
+            if (pos >= input.length()) {
+                throw error("Dangling escape");
             }
-        } catch (final NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid number in {" + content + "}");
+            char escaped = input.charAt(pos++);
+            return parseEscaped(escaped);
         }
 
-        if (min > max) {
-            throw new IllegalArgumentException("min > max in {" + content + "}");
+        // illegal standalone quantifiers
+        if (c == '+' || c == '?' || c == '{') {
+            throw error("Quantifier without target");
         }
 
-        symbol.setOccurrence(min, max);
-        return end;
+        // literal
+        pos++;
+        return new CharSymbol(c);
     }
 
+    private Symbol parseEscaped(char c) {
+        return switch (c) {
+            case 'd' -> new AnyDigitSymbol();
+            case '\\', '(', ')', '+', '?', '{', '}' -> new CharSymbol(c);
+            default -> throw error("Illegal escape: \\" + c);
+        };
+    }
+
+    // ---------- quantifiers ----------
+
+    private void parseQuantifierIfAny(final Symbol s) {
+        if (pos >= input.length()) return;
+
+        char c = input.charAt(pos);
+
+        if (c == '+') {
+            pos++;
+            s.setQuantifier(1, Integer.MAX_VALUE);
+            return;
+        }
+
+        if (c == '?') {
+            pos++;
+            s.setQuantifier(0, 1);
+            return;
+        }
+
+        if (c == '{') {
+            pos++;
+            parseBoundedQuantifier(s);
+        }
+    }
+
+    private void parseBoundedQuantifier(final Symbol s) {
+        int min = parseNumber();
+
+        if (pos >= input.length()) {
+            throw error("Unclosed '{'");
+        }
+
+        if (input.charAt(pos) == '}') {
+            pos++;
+            s.setQuantifier(min, min);
+            return;
+        }
+
+        if (input.charAt(pos) != ',') {
+            throw error("Expected ',' in quantifier");
+        }
+
+        pos++; // consume ','
+
+        if (pos < input.length() && input.charAt(pos) == '}') {
+            pos++;
+            s.setQuantifier(min, Integer.MAX_VALUE);
+            return;
+        }
+
+        int max = parseNumber();
+
+        if (pos >= input.length() || input.charAt(pos) != '}') {
+            throw error("Unclosed '{'");
+        }
+
+        pos++; // consume '}'
+
+        if (max < min) {
+            throw error("max < min in quantifier");
+        }
+
+        s.setQuantifier(min, max);
+    }
+
+    private int parseNumber() {
+        if (pos >= input.length() || !Character.isDigit(input.charAt(pos))) {
+            throw error("Expected number");
+        }
+
+        int n = 0;
+        while (pos < input.length() && Character.isDigit(input.charAt(pos))) {
+            n = n * 10 + (input.charAt(pos++) - '0');
+        }
+        return n;
+    }
+
+    private IllegalArgumentException error(final String msg) {
+        return new IllegalArgumentException(msg + " at position " + pos);
+    }
 }
 
