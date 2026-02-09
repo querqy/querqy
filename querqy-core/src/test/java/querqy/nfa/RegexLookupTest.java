@@ -14,9 +14,11 @@ public class RegexLookupTest {
     @Test
     public void testOne() {
         RegexLookup lookup = new RegexLookup();
-        lookup.put("abc", "ABC");
-        lookup.put("a(c{1,8}){3}d", "QQ");
-        System.out.println(lookup.get("abc"));
-        System.out.println(lookup.get("acccd"));
+        //lookup.put("abc", "ABC");
+        //lookup.put("a(c{1,8}){3}d", "QQ");
+        //lookup.put("a((c){1,2})", "QQ");
+        lookup.put("a((\\d){2})", "QQ");
+        System.out.println(lookup.get("a12"));
+       // System.out.println(lookup.get("acccd"));
     }
 }

@@ -4,7 +4,7 @@ import java.util.*;
 
 public final class NFARunner {
 
-    public static <T> Set<T> run(final NFAState start, final String input) {
+    public static  Set<RegexEntry> run(final NFAState start, final String input) {
         // initial ε-closure
         Set<NFAState> current = NFARunnerUtil.epsilonClosure(Set.of(start));
 
@@ -36,9 +36,9 @@ public final class NFARunner {
         }
 
         // collect accepting values
-        final Set<T> results = new HashSet<>();
+        final Set<RegexEntry> results = new HashSet<>();
         for (final NFAState state : current) {
-            results.addAll(state.acceptingValues);
+            results.addAll(state.accepting);
         }
 
         return results;
