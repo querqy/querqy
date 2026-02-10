@@ -1,6 +1,9 @@
 package querqy.regex;
 
+import querqy.regex.Symbol.AlternationSymbol;
+import querqy.regex.Symbol.AnyCharSymbol;
 import querqy.regex.Symbol.AnyDigitSymbol;
+import querqy.regex.Symbol.CharClassSymbol;
 import querqy.regex.Symbol.CharSymbol;
 import querqy.regex.Symbol.GroupSymbol;
 
@@ -20,7 +23,7 @@ public final class RegexParser {
         this.pos = 0;
         this.nextGroupIndex = 1;
 
-        final List<Symbol> symbols = parseSequence(false);
+        final List<Symbol> symbols = parseAlternation(false);// parseSequence(false);
 
         if (pos != input.length()) {
             throw error("Unexpected trailing input");
@@ -33,6 +36,21 @@ public final class RegexParser {
         return nextGroupIndex - 1;
     }
 
+    private List<Symbol> parseAlternation(boolean insideGroup) {
+        List<List<Symbol>> alternatives = new ArrayList<>();
+        alternatives.add(parseSequence(insideGroup));
+
+        while (pos < input.length() && input.charAt(pos) == '|') {
+            pos++; // consume '|'
+            alternatives.add(parseSequence(insideGroup));
+        }
+
+        if (alternatives.size() == 1) {
+            return alternatives.get(0);
+        }
+
+        return List.of(new AlternationSymbol(alternatives));
+    }
 
 
 
@@ -42,17 +60,17 @@ public final class RegexParser {
         while (pos < input.length()) {
             char c = input.charAt(pos);
 
-            if (c == ')') {
+            if (c == '|' || c == ')') {
                 if (!insideGroup) {
                     throw error("Unmatched ')'");
                 }
-                pos++; // consume ')'
+                //pos++; // consume ')'
                 return symbols;
             }
 
-            Symbol s = parseAtom();
-            parseQuantifierIfAny(s);
-            symbols.add(s);
+            //Symbol s = parseAtom();
+            //parseQuantifierIfAny(s);
+            symbols.add( parseAtom());
         }
 
         if (insideGroup) {
@@ -68,36 +86,63 @@ public final class RegexParser {
         }
 
         char c = input.charAt(pos);
+        Symbol base;
 
         // group
         if (c == '(') {
             pos++; // consume '('
             int groupIndex = nextGroupIndex++;
-            List<Symbol> children = parseSequence(true);
-            return new GroupSymbol(groupIndex, children);
-        }
-
-        // escape
-        if (c == '\\') {
+            List<Symbol> children = parseAlternation(true);//parseSequence(true);
+            pos++; // consume ')'
+            base =  new GroupSymbol(groupIndex, children);
+        } else if (c == '.') {
             pos++;
-            if (pos >= input.length()) {
-                throw error("Dangling escape");
-            }
-            char escaped = input.charAt(pos++);
-            return parseEscaped(escaped);
-        }
-
-        // illegal standalone quantifiers
-        if (c == '+' || c == '?' || c == '{') {
+            base = new AnyCharSymbol();
+        } else if (c == '[') {
+            base = parseCharClass();
+        } else if (c == '\\') {
+            base = parseEscaped();
+        } else if (c == '+' || c == '?' || c == '{') {
             throw error("Quantifier without target");
+        } else {
+            pos++;
+            base = new CharSymbol(c);
         }
 
-        // literal
-        pos++;
-        return new CharSymbol(c);
+        parseQuantifierIfAny(base);
+
+        return base;
     }
 
-    private Symbol parseEscaped(char c) {
+    private Symbol parseCharClass() {
+        int start = pos;
+        int depth = 0;
+
+        while (pos < input.length()) {
+            char c = input.charAt(pos++);
+            if (c == '[') depth++;
+            else if (c == ']') {
+                depth--;
+                if (depth == 0) break;
+            } else if (c == '\\') {
+                pos++; // skip escaped char
+            }
+        }
+
+        if (depth != 0) {
+            throw new IllegalArgumentException("Unclosed character class");
+        }
+
+        String classText = input.substring(start, pos);
+
+        CharacterClass cc = CharClassParser.parse(classText);
+        return new CharClassSymbol(cc::matches);
+
+    }
+    private Symbol parseEscaped() {
+        pos++; // skip '\'
+        if (pos >= input.length()) throw error("Dangling escape");
+        final char c = input.charAt(pos++);
         return switch (c) {
             case 'd' -> new AnyDigitSymbol();
             case '\\', '(', ')', '+', '?', '{', '}' -> new CharSymbol(c);
@@ -115,16 +160,10 @@ public final class RegexParser {
         if (c == '+') {
             pos++;
             s.setQuantifier(1, Integer.MAX_VALUE);
-            return;
-        }
-
-        if (c == '?') {
+        } else if (c == '?') {
             pos++;
             s.setQuantifier(0, 1);
-            return;
-        }
-
-        if (c == '{') {
+        } else if (c == '{') {
             pos++;
             parseBoundedQuantifier(s);
         }

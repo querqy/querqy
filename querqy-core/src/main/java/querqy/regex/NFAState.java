@@ -15,6 +15,11 @@ public final class NFAState {
     // digit transition (\d)
     public final Set<NFAState> digitTransitions = new HashSet<>();
 
+    // any char: .
+    public final Set<NFAState> anyCharTransitions = new HashSet<>();
+
+    public final Set<CharClassTransition> charClassTransitions = new HashSet<>();
+
     // group starts / ends. These do not consume input. We're using them to index group matches.
     public final List<GroupStart> groupStarts = new ArrayList<>();
     public final List<GroupEnd> groupEnds = new ArrayList<>();
@@ -30,8 +35,16 @@ public final class NFAState {
         charTransitions.computeIfAbsent(c, k -> new HashSet<>()).add(target);
     }
 
+    public void addCharClassTransition(final CharClassTransition transition) {
+        charClassTransitions.add(transition);
+    }
+
     public void addDigitTransition(final NFAState target) {
         digitTransitions.add(target);
+    }
+
+    public void addAnyCharTransition(final NFAState target) {
+        anyCharTransitions.add(target);
     }
 
     public void addEpsilon(final NFAState target) {

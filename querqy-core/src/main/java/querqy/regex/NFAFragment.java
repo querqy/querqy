@@ -14,5 +14,10 @@ public class NFAFragment {
     public static NFAFragment single(final NFAState start, final NFAState accept) {
         return new NFAFragment(start, Set.of(accept));
     }
+
+    public static NFAFragment empty() {
+        final NFAState state = new NFAState();
+        return single(state, state);
+    }
 }
 

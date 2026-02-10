@@ -4,13 +4,8 @@ import java.util.List;
 
 public abstract class Symbol {
 
-    protected int minOccur;
-    protected int maxOccur; // Integer.MAX_VALUE = infinity
-
-    protected Symbol(final int minOccur, final int maxOccur) {
-        this.minOccur = minOccur;
-        this.maxOccur = maxOccur;
-    }
+    protected int minOccur = 1;
+    protected int maxOccur = 1; // Integer.MAX_VALUE = infinity
 
     public int getMinOccur() {
         return minOccur;
@@ -30,7 +25,6 @@ public abstract class Symbol {
         private final char value;
 
         public CharSymbol(final char value) {
-            super(1, 1);
             this.value = value;
         }
 
@@ -40,14 +34,29 @@ public abstract class Symbol {
 
     }
 
-    public static final class AnyDigitSymbol extends Symbol {
+    public static final class AnyDigitSymbol extends Symbol {}
 
-        public AnyDigitSymbol() {
-            super(1, 1);
+    public static final class AnyCharSymbol extends Symbol {}
+
+    static final class CharClassSymbol extends Symbol {
+        private final CharPredicate predicate;
+
+        CharClassSymbol(CharPredicate predicate) {
+            this.predicate = predicate;
+        }
+
+        boolean matches(char c) {
+            return predicate.matches(c);
         }
     }
 
+    public static final class AlternationSymbol extends Symbol {
+        public final List<List<Symbol>> alternatives;
 
+        public AlternationSymbol(final List<List<Symbol>> alternatives) {
+            this.alternatives = alternatives;
+        }
+    }
 
     public static final class GroupSymbol extends Symbol {
 
@@ -55,7 +64,6 @@ public abstract class Symbol {
         private final List<Symbol> children;
 
         public GroupSymbol(final int groupIndex, final List<Symbol> children) {
-            super(1, 1);
             this.groupIndex = groupIndex;
             this.children = children;
         }
