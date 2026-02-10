@@ -22,8 +22,8 @@ public class NFAMatcher {
             final Set<ActiveState> next = new HashSet<>();
 
             for (final ActiveState as: current) {
-                final NFAState s = as.state();
-                final CaptureEvents cap = as.captures();
+                final NFAState s = as.state;
+                final CaptureEvents cap = as.captures;
 
                 // literal transitions
                 Set<NFAState> literalTargets = s.charTransitions.get(c);
@@ -33,11 +33,21 @@ public class NFAMatcher {
                     }
                 }
 
+                for (final CharClassTransition t: s.charClassTransitions) {
+                    if (t.predicate().matches(c)) {
+                        next.add(new ActiveState(t.target(), cap.copy()));
+                    }
+                }
+
                 // digit transitions
                 if (Character.isDigit(c)) {
                     for (final NFAState t: s.digitTransitions) {
                         next.add(new ActiveState(t, cap.copy()));
                     }
+                }
+
+                for (final NFAState t: s.anyCharTransitions) {
+                    next.add(new ActiveState(t, cap.copy()));
                 }
             }
 
@@ -50,8 +60,8 @@ public class NFAMatcher {
 
         // acceptance
         for (final ActiveState as: current) {
-            for (final RegexEntry re: as.state().accepting) {
-                return new MatchResult(re.value(), materializeGroups(as.captures(), re.groupCount(), input));
+            for (final RegexEntry re: as.state.accepting) {
+                return new MatchResult(re.value(), materializeGroups(as.captures, re.groupCount(), input));
             }
         }
 
@@ -59,31 +69,64 @@ public class NFAMatcher {
     }
 
     private static Set<ActiveState> epsilonClosure(final Set<ActiveState> states, final int position) {
+        System.out.println("=====");
         final Set<ActiveState> closure = new HashSet<>(states);
         final Deque<ActiveState> stack = new ArrayDeque<>(states);
 
         while (!stack.isEmpty()) {
             final ActiveState cur = stack.pop();
-            final NFAState s = cur.state();
-            final CaptureEvents cap = cur.captures();
+            final NFAState s = cur.state;
 
-            // overwrite each time: last iteration wins
-            for (final GroupStart gs: s.groupStarts) {
-                cap.start.put(gs.group(), position);
-            }
+            for (final NFAState next : s.epsilonTransitions) {
 
-            // group end markers
-            for (final GroupEnd ge: s.groupEnds) {
-                cap.end.put(ge.group(), position);
-            }
+                // copy FIRST
+                CaptureEvents cap = cur.captures.copy();
 
-            for (final NFAState next: s.epsilonTransitions) {
-                final ActiveState ns = new ActiveState(next, cap.copy());
+                // THEN apply group markers of *next*
+                for (final GroupStart gs : next.groupStarts) {
+                    cap.start.put(gs.group(), position);
+                }
+                for (final GroupEnd ge : next.groupEnds) {
+                    cap.end.put(ge.group(), position);
+                }
+
+                final ActiveState ns = new ActiveState(next, cap);
+
                 if (closure.add(ns)) {
                     stack.push(ns);
                 }
             }
         }
+
+        for (ActiveState s : closure) {
+            System.out.println(s.state.charTransitions + " " + s.captures);
+            System.out.println("----");
+        }
+
+
+//
+//        while (!stack.isEmpty()) {
+//            final ActiveState cur = stack.pop();
+//            final NFAState s = cur.state();
+//            final CaptureEvents cap = cur.captures();
+//
+//            // overwrite each time: last iteration wins
+//            for (final GroupStart gs: s.groupStarts) {
+//                cap.start.put(gs.group(), position);
+//            }
+//
+//            // group end markers
+//            for (final GroupEnd ge: s.groupEnds) {
+//                cap.end.put(ge.group(), position);
+//            }
+//
+//            for (final NFAState next: s.epsilonTransitions) {
+//                final ActiveState ns = new ActiveState(next, cap.copy());
+//                if (closure.add(ns)) {
+//                    stack.push(ns);
+//                }
+//            }
+//        }
         return closure;
     }
 
@@ -114,8 +157,8 @@ public class NFAMatcher {
             Set<ActiveState> next = new HashSet<>();
 
             for (ActiveState as : current) {
-                NFAState s = as.state();
-                CaptureEvents cap = as.captures();
+                NFAState s = as.state;
+                CaptureEvents cap = as.captures;
 
                 // literal transitions
                 Set<NFAState> literalTargets = s.charTransitions.get(c);
@@ -125,11 +168,21 @@ public class NFAMatcher {
                     }
                 }
 
+                for (final CharClassTransition t: s.charClassTransitions) {
+                    if (t.predicate().matches(c)) {
+                        next.add(new ActiveState(t.target(), cap.copy()));
+                    }
+                }
+
                 // digit transitions
                 if (Character.isDigit(c)) {
                     for (NFAState t : s.digitTransitions) {
                         next.add(new ActiveState(t, cap.copy()));
                     }
+                }
+
+                for (final NFAState t: s.anyCharTransitions) {
+                    next.add(new ActiveState(t, cap.copy()));
                 }
             }
 
@@ -142,10 +195,10 @@ public class NFAMatcher {
 
         // collect matches from all accepting states
         for (ActiveState as : current) {
-            for (RegexEntry re : as.state().accepting) {
+            for (RegexEntry re : as.state.accepting) {
                 results.add(new MatchResult(
                         re.value(),
-                        materializeGroups(as.captures(), re.groupCount(), input)
+                        materializeGroups(as.captures, re.groupCount(), input)
                 ));
             }
         }

@@ -18,8 +18,7 @@ public class RegexLookup {
         }
     }
 
-    public Set<MatchResult> get(final String input) {
-        System.out.println(NFAMatcher.match(start, input));
+    public Set<MatchResult> getAll(final String input) {
         return NFAMatcher.matchAll(start, input);//NFARunner.run(start, input);
     }
 }
