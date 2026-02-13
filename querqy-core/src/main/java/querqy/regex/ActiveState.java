@@ -2,10 +2,10 @@ package querqy.regex;
 
 import java.util.Objects;
 
-class ActiveState {
-    final NFAState state; final CaptureEvents captures;
+class ActiveState<T> {
+    final NFAState<T> state; final CaptureEvents captures;
 
-    ActiveState(final NFAState state, final CaptureEvents captures) {
+    ActiveState(final NFAState<T> state, final CaptureEvents captures) {
         this.state = state;
         this.captures = captures;
     }
