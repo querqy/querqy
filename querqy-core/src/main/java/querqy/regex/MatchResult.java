@@ -2,4 +2,4 @@ package querqy.regex;
 
 import java.util.Map;
 
-public record MatchResult (Object value, Map<Integer, String> groups) {}
+public record MatchResult<T>(T value, Map<Integer, CharSequence> groups) {}

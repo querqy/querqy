@@ -2,21 +2,21 @@ package querqy.regex;
 
 import java.util.Set;
 
-public class NFAFragment {
+public class NFAFragment<T> {
 
-    final NFAState start;
-    final Set<NFAState> accepts;
+    final NFAState<T> start;
+    final Set<NFAState<T>> accepts;
 
-    public NFAFragment(final NFAState start, final Set<NFAState> accepts) {
+    public NFAFragment(final NFAState<T> start, final Set<NFAState<T>> accepts) {
         this.start = start;
         this.accepts = accepts;
     }
-    public static NFAFragment single(final NFAState start, final NFAState accept) {
+    public static <T> NFAFragment<T> single(final NFAState<T> start, final NFAState<T> accept) {
         return new NFAFragment(start, Set.of(accept));
     }
 
-    public static NFAFragment empty() {
-        final NFAState state = new NFAState();
+    public static <T> NFAFragment<T> empty() {
+        final NFAState<T> state = new NFAState<T>();
         return single(state, state);
     }
 }

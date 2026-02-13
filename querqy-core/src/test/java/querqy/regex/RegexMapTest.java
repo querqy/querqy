@@ -14,12 +14,12 @@ public class RegexMapTest {
     @Test
     public void testOne() {
         RegexMap lookup = new RegexMap();
-        //lookup.put("abc", "ABC");
+        lookup.put("abc", "ABC");
         //lookup.put("a(c{1,8}){3}d", "QQ");
-        //lookup.put("a((c){1,2})", "QQ");
+        lookup.put("a((c){1,2})", "LL");
         lookup.put("a\\d{2,3}c", "QQ");
-//        System.out.println(lookup.getAll("a12c"));
-       // System.out.println(lookup.get("acccd"));
+        System.out.println(lookup.getAll("a12c"));
+        System.out.println(lookup.getAll("acc"));
     }
 
     @Test

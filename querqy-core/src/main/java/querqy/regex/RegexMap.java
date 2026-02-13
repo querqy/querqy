@@ -9,11 +9,12 @@ import java.util.Set;
 
 public class RegexMap<T> {
 
-    protected final TrieMap<PrefixAndState> trieMap = new TrieMap<>();
-    protected NFAState prefixlessStart = new NFAState();
+    protected final TrieMap<PrefixAndState<T>> trieMap = new TrieMap<>();
+    protected NFAState<T> prefixlessStart = new NFAState<>();
+    protected final NFAMatcher<T> matcher = new NFAMatcher<>();
 
     protected record PrefixSplit(String prefix, List<Symbol> tail) {}
-    protected record PrefixAndState(String prefix, NFAState state) {}
+    protected record PrefixAndState<T>(String prefix, NFAState<T> state) {}
 
     protected static PrefixSplit extractLiteralPrefix(final List<Symbol> symbols) {
 
@@ -61,33 +62,34 @@ public class RegexMap<T> {
 
         if (tail.isEmpty()) {
             // all literals
-            final PrefixAndState pas = getOrCreatePrefixAndState(patternString);
+            final PrefixAndState<T> pas = getOrCreatePrefixAndState(patternString);
             pas.state.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
         } else {
-            final NFAFragment nfaFragment = NFACompiler.compileSequence(tail);
-            final NFAState start = prefixSplit.prefix.isEmpty()
+            final NFACompiler<T> compiler = new NFACompiler<>();
+            final NFAFragment<T> nfaFragment = compiler.compileSequence(tail);
+            final NFAState<T> start = prefixSplit.prefix.isEmpty()
                     ? prefixlessStart
                     : getOrCreatePrefixAndState(prefixSplit.prefix).state;
             start.addEpsilon(nfaFragment.start);
-            for (final NFAState as: nfaFragment.accepts) {
+            for (final NFAState<T> as: nfaFragment.accepts) {
                 as.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
             }
 
         }
     }
 
-    public Set<MatchResult> getAll(final String input) {
-        final Set<MatchResult> result = NFAMatcher.matchAll(prefixlessStart, input, 0);
-        for (final PrefixAndState pas : trieMap.collectPartialMatchValues(input)) {
-            result.addAll(NFAMatcher.matchAll(pas.state, input, pas.prefix.length()));
+    public Set<MatchResult<T>> getAll(final String input) {
+        final Set<MatchResult<T>> result = matcher.matchAll(prefixlessStart, input, 0);
+        for (final PrefixAndState<T> pas : trieMap.collectPartialMatchValues(input)) {
+            result.addAll(matcher.matchAll(pas.state, input, pas.prefix.length()));
         }
         return result;
     }
 
-    protected PrefixAndState getOrCreatePrefixAndState(final String prefix) {
-        PrefixAndState pas = trieMap.get(prefix).getStateForCompleteSequence().value;
+    protected PrefixAndState<T> getOrCreatePrefixAndState(final String prefix) {
+        PrefixAndState<T> pas = trieMap.get(prefix).getStateForCompleteSequence().value;
         if (pas == null) {
-            pas = new PrefixAndState(prefix, new NFAState());
+            pas = new PrefixAndState<>(prefix, new NFAState<>());
             trieMap.put(prefix, pas);
         }
         return pas;

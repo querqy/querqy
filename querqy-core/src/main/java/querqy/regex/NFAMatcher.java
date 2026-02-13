@@ -10,30 +10,30 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class NFAMatcher {
+public class NFAMatcher<T> {
 
-    public static MatchResult match(final NFAState start, final String input, final int offset) {
+    public MatchResult<T> match(final NFAState<T> start, final String input, final int offset) {
 
-        Set<ActiveState> current = epsilonClosure(Set.of(new ActiveState(start, new CaptureEvents())), 0);
+        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())), 0);
 
         for (int pos = offset; pos < input.length(); pos++) {
 
             final char c = input.charAt(pos);
-            final Set<ActiveState> next = new HashSet<>();
+            final Set<ActiveState<T>> next = new HashSet<>();
 
-            for (final ActiveState as: current) {
-                final NFAState s = as.state;
+            for (final ActiveState<T> as: current) {
+                final NFAState<T> s = as.state;
                 final CaptureEvents cap = as.captures;
 
                 // literal transitions
-                Set<NFAState> literalTargets = s.charTransitions.get(c);
+                Set<NFAState<T>> literalTargets = s.charTransitions.get(c);
                 if (literalTargets != null) {
-                    for (final NFAState t: literalTargets) {
+                    for (final NFAState<T> t: literalTargets) {
                         next.add(fromCapture(t, cap, pos + 1));
                     }
                 }
 
-                for (final CharClassTransition t: s.charClassTransitions) {
+                for (final CharClassTransition<T> t: s.charClassTransitions) {
                     if (t.predicate().matches(c)) {
                         next.add(fromCapture(t.target(), cap, pos + 1));
 //                        next.add(new ActiveState(t.target(), cap.copy()));
@@ -42,13 +42,13 @@ public class NFAMatcher {
 
                 // digit transitions
                 if (Character.isDigit(c)) {
-                    for (final NFAState t: s.digitTransitions) {
+                    for (final NFAState<T> t: s.digitTransitions) {
                         next.add(fromCapture(t, cap, pos + 1));
 //                        next.add(new ActiveState(t, cap.copy()));
                     }
                 }
 
-                for (final NFAState t: s.anyCharTransitions) {
+                for (final NFAState<T> t: s.anyCharTransitions) {
                     next.add(fromCapture(t, cap, pos + 1));
                    // next.add(new ActiveState(t, cap.copy()));
                 }
@@ -62,24 +62,24 @@ public class NFAMatcher {
         }
 
         // acceptance
-        for (final ActiveState as: current) {
-            for (final RegexEntry re: as.state.accepting) {
-                return new MatchResult(re.value(), materializeGroups(as.captures, re.groupCount(), input));
+        for (final ActiveState<T> as: current) {
+            for (final RegexEntry<T> re: as.state.accepting) {
+                return new MatchResult<T>(re.value(), materializeGroups(as.captures, re.groupCount(), input));
             }
         }
 
         return null;
     }
 
-    private static Set<ActiveState> epsilonClosure(final Set<ActiveState> states, final int position) {
-        final Set<ActiveState> closure = new HashSet<>(states);
-        final Deque<ActiveState> stack = new ArrayDeque<>(states);
+    private Set<ActiveState<T>> epsilonClosure(final Set<ActiveState<T>> states, final int position) {
+        final Set<ActiveState<T>> closure = new HashSet<>(states);
+        final Deque<ActiveState<T>> stack = new ArrayDeque<>(states);
 
         while (!stack.isEmpty()) {
-            final ActiveState cur = stack.pop();
-            final NFAState s = cur.state;
+            final ActiveState<T> cur = stack.pop();
+            final NFAState<T> s = cur.state;
 
-            for (final NFAState next : s.epsilonTransitions) {
+            for (final NFAState<T> next : s.epsilonTransitions) {
 
                 // copy FIRST
                 CaptureEvents cap = cur.captures.copy();
@@ -92,7 +92,7 @@ public class NFAMatcher {
                     cap.end.put(ge.group(), position);
                 }
 
-                final ActiveState ns = new ActiveState(next, cap);
+                final ActiveState<T> ns = new ActiveState<>(next, cap);
 
                 if (closure.add(ns)) {
                     stack.push(ns);
@@ -127,9 +127,9 @@ public class NFAMatcher {
         return closure;
     }
 
-    private static Map<Integer, String> materializeGroups(final CaptureEvents events, final int groupCount,
+    private static Map<Integer, CharSequence> materializeGroups(final CaptureEvents events, final int groupCount,
                                                           final String input) {
-        final Map<Integer, String> result = new HashMap<>();
+        final Map<Integer, CharSequence> result = new HashMap<>();
 
         // group 0 = whole match
         result.put(0, input);
@@ -144,37 +144,37 @@ public class NFAMatcher {
         return result;
     }
 
-    private static ActiveState fromCapture(final NFAState state, CaptureEvents cap, final int currentPos) {
-        final ActiveState copy = new ActiveState(state, cap.copy());
+    private ActiveState<T> fromCapture(final NFAState<T> state, CaptureEvents cap, final int currentPos) {
+        final ActiveState<T> copy = new ActiveState<T>(state, cap.copy());
         for (final GroupEnd groupEnd: state.groupEnds) {
             copy.captures.end.put(groupEnd.group(), currentPos + 1);
         }
         return copy;
     }
 
-    public static Set<MatchResult> matchAll(final NFAState start, final String input, final int offset) {
-        Set<MatchResult> results = new HashSet<>();
+    public Set<MatchResult<T>> matchAll(final NFAState<T> start, final String input, final int offset) {
+        Set<MatchResult<T>> results = new HashSet<>();
 
-        Set<ActiveState> current = epsilonClosure(Set.of(new ActiveState(start, new CaptureEvents())),0);
+        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())),0);
 
         for (int pos = offset; pos < input.length(); pos++) {
             char c = input.charAt(pos);
-            Set<ActiveState> next = new HashSet<>();
+            Set<ActiveState<T>> next = new HashSet<>();
 
-            for (ActiveState as : current) {
-                NFAState s = as.state;
+            for (ActiveState<T> as : current) {
+                NFAState<T> s = as.state;
                 CaptureEvents cap = as.captures;
 
                 // literal transitions
-                Set<NFAState> literalTargets = s.charTransitions.get(c);
+                Set<NFAState<T>> literalTargets = s.charTransitions.get(c);
                 if (literalTargets != null) {
-                    for (final NFAState t: literalTargets) {
+                    for (final NFAState<T> t: literalTargets) {
                         next.add(fromCapture(t, cap, pos));
 //                        next.add(new ActiveState(t, cap.copy()));
                     }
                 }
 
-                for (final CharClassTransition t: s.charClassTransitions) {
+                for (final CharClassTransition<T> t: s.charClassTransitions) {
                     if (t.predicate().matches(c)) {
                         next.add(fromCapture(t.target(), cap, pos));
                     }
@@ -182,12 +182,12 @@ public class NFAMatcher {
 
                 // digit transitions
                 if (Character.isDigit(c)) {
-                    for (NFAState t : s.digitTransitions) {
+                    for (NFAState<T> t : s.digitTransitions) {
                         next.add(fromCapture(t, cap, pos));
                     }
                 }
 
-                for (final NFAState t: s.anyCharTransitions) {
+                for (final NFAState<T> t: s.anyCharTransitions) {
                     next.add(fromCapture(t, cap, pos));
 //                    next.add(new ActiveState(t, cap.copy()));
                 }
@@ -201,11 +201,9 @@ public class NFAMatcher {
         }
 
         // collect matches from all accepting states
-        for (ActiveState as : current) {
-            for (RegexEntry re : as.state.accepting) {
-                results.add(new MatchResult(
-                        re.value(),
-                        materializeGroups(as.captures, re.groupCount(), input)
+        for (ActiveState<T> as : current) {
+            for (RegexEntry<T> re : as.state.accepting) {
+                results.add(new MatchResult<T>(re.value(), materializeGroups(as.captures, re.groupCount(), input)
                 ));
             }
         }
