@@ -150,10 +150,14 @@ public class RegexMapTest {
 
     @Test
     public void testGroupQuantifiers() {
-        RegexMap lookup = new RegexMap();
-        lookup.put("a(bc)d", "1");
-        lookup.put("e(fg){2}d", "2");
-        lookup.put("h(bc){2,3}e", "3");
+        RegexMap<String> regexMap = new RegexMap<>();
+        //regexMap.put("a(bc)d", "1");
+        regexMap.put("e(fg){2}d", "2");
+        regexMap.put("h(bc){2,3}e", "3");
+        regexMap.put("([^ ]+ ){0,}(abc)( [^ ]+){0,}", "4");
+        System.out.println( regexMap.getAll("abc"));
+        System.out.println( regexMap.getAll("abc hello"));
+
     }
 
     @Test
