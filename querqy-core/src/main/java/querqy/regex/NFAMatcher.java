@@ -12,11 +12,11 @@ import java.util.Set;
 
 public class NFAMatcher {
 
-    public static MatchResult match(final NFAState start, final String input) {
+    public static MatchResult match(final NFAState start, final String input, final int offset) {
 
         Set<ActiveState> current = epsilonClosure(Set.of(new ActiveState(start, new CaptureEvents())), 0);
 
-        for (int pos = 0; pos < input.length(); pos++) {
+        for (int pos = offset; pos < input.length(); pos++) {
 
             final char c = input.charAt(pos);
             final Set<ActiveState> next = new HashSet<>();
@@ -29,25 +29,28 @@ public class NFAMatcher {
                 Set<NFAState> literalTargets = s.charTransitions.get(c);
                 if (literalTargets != null) {
                     for (final NFAState t: literalTargets) {
-                        next.add(new ActiveState(t, cap.copy()));
+                        next.add(fromCapture(t, cap, pos + 1));
                     }
                 }
 
                 for (final CharClassTransition t: s.charClassTransitions) {
                     if (t.predicate().matches(c)) {
-                        next.add(new ActiveState(t.target(), cap.copy()));
+                        next.add(fromCapture(t.target(), cap, pos + 1));
+//                        next.add(new ActiveState(t.target(), cap.copy()));
                     }
                 }
 
                 // digit transitions
                 if (Character.isDigit(c)) {
                     for (final NFAState t: s.digitTransitions) {
-                        next.add(new ActiveState(t, cap.copy()));
+                        next.add(fromCapture(t, cap, pos + 1));
+//                        next.add(new ActiveState(t, cap.copy()));
                     }
                 }
 
                 for (final NFAState t: s.anyCharTransitions) {
-                    next.add(new ActiveState(t, cap.copy()));
+                    next.add(fromCapture(t, cap, pos + 1));
+                   // next.add(new ActiveState(t, cap.copy()));
                 }
             }
 
@@ -69,7 +72,6 @@ public class NFAMatcher {
     }
 
     private static Set<ActiveState> epsilonClosure(final Set<ActiveState> states, final int position) {
-        System.out.println("=====");
         final Set<ActiveState> closure = new HashSet<>(states);
         final Deque<ActiveState> stack = new ArrayDeque<>(states);
 
@@ -96,11 +98,6 @@ public class NFAMatcher {
                     stack.push(ns);
                 }
             }
-        }
-
-        for (ActiveState s : closure) {
-            System.out.println(s.state.charTransitions + " " + s.captures);
-            System.out.println("----");
         }
 
 
@@ -147,12 +144,20 @@ public class NFAMatcher {
         return result;
     }
 
-    public static Set<MatchResult> matchAll(final NFAState start, final String input) {
+    private static ActiveState fromCapture(final NFAState state, CaptureEvents cap, final int currentPos) {
+        final ActiveState copy = new ActiveState(state, cap.copy());
+        for (final GroupEnd groupEnd: state.groupEnds) {
+            copy.captures.end.put(groupEnd.group(), currentPos + 1);
+        }
+        return copy;
+    }
+
+    public static Set<MatchResult> matchAll(final NFAState start, final String input, final int offset) {
         Set<MatchResult> results = new HashSet<>();
 
         Set<ActiveState> current = epsilonClosure(Set.of(new ActiveState(start, new CaptureEvents())),0);
 
-        for (int pos = 0; pos < input.length(); pos++) {
+        for (int pos = offset; pos < input.length(); pos++) {
             char c = input.charAt(pos);
             Set<ActiveState> next = new HashSet<>();
 
@@ -163,26 +168,28 @@ public class NFAMatcher {
                 // literal transitions
                 Set<NFAState> literalTargets = s.charTransitions.get(c);
                 if (literalTargets != null) {
-                    for (NFAState t : literalTargets) {
-                        next.add(new ActiveState(t, cap.copy()));
+                    for (final NFAState t: literalTargets) {
+                        next.add(fromCapture(t, cap, pos));
+//                        next.add(new ActiveState(t, cap.copy()));
                     }
                 }
 
                 for (final CharClassTransition t: s.charClassTransitions) {
                     if (t.predicate().matches(c)) {
-                        next.add(new ActiveState(t.target(), cap.copy()));
+                        next.add(fromCapture(t.target(), cap, pos));
                     }
                 }
 
                 // digit transitions
                 if (Character.isDigit(c)) {
                     for (NFAState t : s.digitTransitions) {
-                        next.add(new ActiveState(t, cap.copy()));
+                        next.add(fromCapture(t, cap, pos));
                     }
                 }
 
                 for (final NFAState t: s.anyCharTransitions) {
-                    next.add(new ActiveState(t, cap.copy()));
+                    next.add(fromCapture(t, cap, pos));
+//                    next.add(new ActiveState(t, cap.copy()));
                 }
             }
 

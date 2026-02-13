@@ -19,6 +19,6 @@ public class RegexLookup {
     }
 
     public Set<MatchResult> getAll(final String input) {
-        return NFAMatcher.matchAll(start, input);//NFARunner.run(start, input);
+        return NFAMatcher.matchAll(start, input, 0);//NFARunner.run(start, input);
     }
 }

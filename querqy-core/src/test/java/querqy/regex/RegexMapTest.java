@@ -1,8 +1,6 @@
-package querqy.nfa;
+package querqy.regex;
 
 import org.junit.Test;
-import querqy.regex.MatchResult;
-import querqy.regex.RegexLookup;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,22 +9,22 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class RegexLookupTest {
+public class RegexMapTest {
 
     @Test
     public void testOne() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         //lookup.put("abc", "ABC");
         //lookup.put("a(c{1,8}){3}d", "QQ");
         //lookup.put("a((c){1,2})", "QQ");
         lookup.put("a\\d{2,3}c", "QQ");
-        System.out.println(lookup.getAll("a12c"));
+//        System.out.println(lookup.getAll("a12c"));
        // System.out.println(lookup.get("acccd"));
     }
 
     @Test
     public void testLiteralsWithExactQuantifier() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("ab{1}c", "1");
         lookup.put("bab{2}c", "2");
         lookup.put("cabc{3}", "3");
@@ -47,7 +45,7 @@ public class RegexLookupTest {
 
     @Test
     public void testLiteralsWithMinQuantifier() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("ab{1,}c", "1");
         lookup.put("bab{2,}c", "2");
         lookup.put("cabc{3,}", "3");
@@ -70,7 +68,7 @@ public class RegexLookupTest {
 
     @Test
     public void testLiteralsWithMinMaxQuantifier() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("ab{1,2}c", "1");
         lookup.put("kl{2,3}m", "2");
         assertEquals(Set.of(matchResult("2", "kllm")), lookup.getAll("kllm"));
@@ -80,7 +78,7 @@ public class RegexLookupTest {
 
     @Test
     public void testAnyCharNoQuantifier() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("a.c", "1");
         lookup.put(".ef", "2");
         lookup.put("ghi.", "3");
@@ -107,7 +105,7 @@ public class RegexLookupTest {
 
     @Test
     public void testAnyCharWithExactQuantifier() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap<String> lookup = new RegexMap();
         lookup.put("a.{2}c", "1");
         lookup.put("ghi.{3}", "2");
         lookup.put(".{4}", "3");
@@ -137,7 +135,7 @@ public class RegexLookupTest {
 
     @Test
     public void testAnyCharWithRangeQuantifier() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("a.{2,3}c", "1");
         lookup.put(".{0,2}k", "2");
 
@@ -152,7 +150,7 @@ public class RegexLookupTest {
 
     @Test
     public void testGroupQuantifiers() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("a(bc)d", "1");
         lookup.put("e(fg){2}d", "2");
         lookup.put("h(bc){2,3}e", "3");
@@ -160,7 +158,7 @@ public class RegexLookupTest {
 
     @Test
     public void testCharacterClass() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a[a-zA-Z]c", "1");
         lookup.put("k[0-9&&[^45]]l", "2");
 
@@ -176,14 +174,19 @@ public class RegexLookupTest {
 
     @Test
     public void testAlternation() {
-        RegexLookup lookup = new RegexLookup();
+        RegexMap lookup = new RegexMap();
         lookup.put("a(b|c)d", "1");
 
-        System.out.println(lookup.getAll("abd"));
 
     }
 
-
+    @Test
+    public void testReplaceExactlyOnceQuantifier() {
+        assertEquals("abc", RegexMap.replaceExactlyOnceQuantifier("{1}abc"));
+        assertEquals("abc", RegexMap.replaceExactlyOnceQuantifier("a{1}b{1}c{1}"));
+        assertEquals("\\{1}a\\{1}}bc", RegexMap.replaceExactlyOnceQuantifier("\\{1}a\\{1}}bc"));
+        assertEquals("{1}", RegexMap.replaceExactlyOnceQuantifier("{1}"));
+    }
 
 
     MatchResult matchResult(final Object value, final String... groupMatches) {
