@@ -1,3 +1,3 @@
 package querqy.regex;
 
-public record RegexEntry(Object value, int groupCount) {}
+public record RegexEntry<T>(T value, int groupCount) {}
