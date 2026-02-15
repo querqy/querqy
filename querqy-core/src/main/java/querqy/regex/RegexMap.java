@@ -82,31 +82,12 @@ public class RegexMap<T> {
         }
     }
 
-    MatchResult<T> adjustGroupIndex(final MatchResult<T> matchResult) {
-        final Map<Integer, CharSequence> groups = matchResult.groups();
-        if ((groups.size() == 1) && groups.containsKey(0)) {
-            return matchResult;
-        }
-
-
-        final Map<Integer, CharSequence> copy = new HashMap<>(groups.size());
-        for (Map.Entry<Integer, CharSequence> entry: groups.entrySet()) {
-            if (entry.getKey() == 0) {
-                copy.put(0, entry.getValue());
-            } else {
-                copy.put(entry.getKey() - 1, entry.getValue());
-            }
-        }
-        return new MatchResult<>(matchResult.value(), copy);
-
-    }
-    public Set<MatchResult<T>> getAll(final String input) {
+    public Set<MatchResult<T>> getAll(final CharSequence input) {
         final Set<MatchResult<T>> result = matcher.matchAll(prefixlessStart, input, 0);
         for (final PrefixAndState<T> pas : trieMap.collectPartialMatchValues(input)) {
             result.addAll(matcher.matchAll(pas.state, input, pas.prefix.length()));
         }
         return result;
-//        return result.stream().map(this::adjustGroupIndex).collect(Collectors.toSet());
     }
 
     protected PrefixAndState<T> getOrCreatePrefixAndState(final String prefix) {
