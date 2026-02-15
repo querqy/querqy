@@ -19,7 +19,7 @@ public class MatchLog {
     }
 
     public enum MatchType {
-        EXACT("exact"), AFFIX("affix");
+        EXACT("exact"), AFFIX("affix"), REGEX("regex");
 
         private final String typeName;
 

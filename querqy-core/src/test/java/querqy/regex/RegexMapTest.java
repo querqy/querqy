@@ -1,7 +1,9 @@
 package querqy.regex;
 
 import org.junit.Test;
+import querqy.regex.MatchResult.GroupMatch;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -92,15 +94,9 @@ public class RegexMapTest {
         assertEquals(Set.of(matchResult("4", "z")), lookup.getAll("z"));
         assertEquals(Set.of(matchResult("5", "km")), lookup.getAll("km"));
         assertEquals(Set.of(matchResult("6", "iko")), lookup.getAll("iko"));
-        assertEquals(Set.of(matchResult("7", "xy2ft", "xy")), lookup.getAll("xy2ft"));
+        assertEquals(Set.of(matchResult("7", group("xy2ft", 0),
+                group("xy", 0))), lookup.getAll("xy2ft"));
 
-
-        //lookup.put("abc", "ABC");
-        //lookup.put("a(c{1,8}){3}d", "QQ");
-        //lookup.put("a((c){1,2})", "QQ");
-        //lookup.put("a(1){2,3}c", "QQ");
-       // System.out.println(lookup.get("ac"));
-        // System.out.println(lookup.get("acccd"));
     }
 
     @Test
@@ -128,7 +124,8 @@ public class RegexMapTest {
 
         assertEquals(Set.of(matchResult("5", "123k78")), lookup.getAll("123k78"));
 
-        assertEquals(Set.of(matchResult("6", "12y789ft", "12y")), lookup.getAll("12y789ft"));
+        assertEquals(Set.of(matchResult("6", group("12y789ft",0),
+                group("12y",0))), lookup.getAll("12y789ft"));
 
     }
 
@@ -193,16 +190,25 @@ public class RegexMapTest {
     }
 
 
-    MatchResult matchResult(final Object value, final String... groupMatches) {
+    MatchResult matchResult(final Object value, final String match) {
+        return new MatchResult(value, Map.of(0, new GroupMatch(match, 0)));
+    }
 
-        return new MatchResult(value, IntStream.range(0, groupMatches.length)
+    MatchResult matchResult(final Object value, final GroupMatch... groups) {
+
+        return new MatchResult(value, IntStream.range(0, groups.length)
                 .boxed()
                 .collect(Collectors.toMap(
                         i -> i,
-                        i -> groupMatches[i]
+                        i -> groups[i]
                 )));
 
     }
+
+    GroupMatch group(final String match, final int position) {
+        return new GroupMatch(match, position);
+    }
+
 
 
 }

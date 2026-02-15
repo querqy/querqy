@@ -1,6 +1,7 @@
 package querqy.rewrite.contrib.replace;
 
 import org.junit.Test;
+import querqy.rewrite.replace.RegexReplacing;
 
 public class RegexReplacingTest {
 

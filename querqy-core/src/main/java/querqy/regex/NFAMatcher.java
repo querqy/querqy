@@ -1,5 +1,6 @@
 package querqy.regex;
 
+import querqy.regex.MatchResult.GroupMatch;
 import querqy.regex.NFAState.GroupEnd;
 import querqy.regex.NFAState.GroupStart;
 
@@ -127,18 +128,18 @@ public class NFAMatcher<T> {
         return closure;
     }
 
-    private static Map<Integer, CharSequence> materializeGroups(final CaptureEvents events, final int groupCount,
-                                                          final String input) {
-        final Map<Integer, CharSequence> result = new HashMap<>();
+    private static Map<Integer, GroupMatch> materializeGroups(final CaptureEvents events, final int groupCount,
+                                                                          final CharSequence input) {
+        final Map<Integer, GroupMatch> result = new HashMap<>();
 
         // group 0 = whole match
-        result.put(0, input);
+        result.put(0, new GroupMatch(input, 0));
 
         for (int g = 1; g <= groupCount; g++) {
             final Integer s = events.start.get(g);
             final Integer e = events.end.get(g);
             if (s != null && e != null && s <= e) {
-                result.put(g, input.substring(s, e));
+                result.put(g, new GroupMatch(input.subSequence(s, e), s));
             }
         }
         return result;
@@ -152,7 +153,7 @@ public class NFAMatcher<T> {
         return copy;
     }
 
-    public Set<MatchResult<T>> matchAll(final NFAState<T> start, final String input, final int offset) {
+    public Set<MatchResult<T>> matchAll(final NFAState<T> start, final CharSequence input, final int offset) {
         Set<MatchResult<T>> results = new HashSet<>();
 
         Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())),0);
@@ -203,8 +204,7 @@ public class NFAMatcher<T> {
         // collect matches from all accepting states
         for (ActiveState<T> as : current) {
             for (RegexEntry<T> re : as.state.accepting) {
-                results.add(new MatchResult<T>(re.value(), materializeGroups(as.captures, re.groupCount(), input)
-                ));
+                results.add(new MatchResult<T>(re.value(), materializeGroups(as.captures, re.groupCount(), input)));
             }
         }
 
