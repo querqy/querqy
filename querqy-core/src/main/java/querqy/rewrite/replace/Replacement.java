@@ -1,6 +1,5 @@
 package querqy.rewrite.replace;
 
-import querqy.regex.MatchResult;
 import querqy.regex.MatchResult.GroupMatch;
 
 import java.util.ArrayList;
@@ -11,15 +10,17 @@ import java.util.stream.Collectors;
 
 public class Replacement {
 
+    protected final float weight;
     protected final List<Symbol> symbols;
 
-    protected Replacement(final List<Symbol> symbols) {
+    protected Replacement(final List<Symbol> symbols, final float weight) {
+        this.weight = weight;
         this.symbols = symbols;
     }
 
 
-    public static Replacement build(final String input) {
-        return new Replacement(parse(input));
+    public static Replacement build(final String input, final float weight) {
+        return new Replacement(parse(input), weight);
     }
 
     public String apply(final Map<Integer, GroupMatch> groups) {
@@ -28,7 +29,7 @@ public class Replacement {
     }
 
 
-    protected interface Symbol {
+    protected sealed interface Symbol permits CharSeq, Placeholder {
         CharSequence get(Map<Integer, GroupMatch> groups);
     }
 
