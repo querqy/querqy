@@ -127,8 +127,33 @@ public class RegexReplaceRewriterTest {
         );
     }
 
+    @Test
+    public void testRuleOrdering() throws IOException {
+        RegexReplaceRewriterFactory factory = factory("""
+                a\\dc => first
+                a1c => second
+                d1f => third
+                d\\df => forth
+                """);
 
+        assertThat((Query) factory
+                        .createRewriter(null, null)
+                        .rewrite(query("a1c"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
+                        .getUserQuery(),
+                bq(
+                        dmq(term("second"))
+                )
+        );
 
+        assertThat((Query) factory
+                        .createRewriter(null, null)
+                        .rewrite(query("d1f"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
+                        .getUserQuery(),
+                bq(
+                        dmq(term("forth"))
+                )
+        );
+    }
 
     static RegexReplaceRewriterFactory factory(final String rules) throws IOException {
         return factory(rules, true);

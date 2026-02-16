@@ -13,65 +13,6 @@ import java.util.Set;
 
 public class NFAMatcher<T> {
 
-    public MatchResult<T> match(final NFAState<T> start, final String input, final int offset) {
-
-        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())), 0);
-
-        for (int pos = offset; pos < input.length(); pos++) {
-
-            final char c = input.charAt(pos);
-            final Set<ActiveState<T>> next = new HashSet<>();
-
-            for (final ActiveState<T> as: current) {
-                final NFAState<T> s = as.state;
-                final CaptureEvents cap = as.captures;
-
-                // literal transitions
-                Set<NFAState<T>> literalTargets = s.charTransitions.get(c);
-                if (literalTargets != null) {
-                    for (final NFAState<T> t: literalTargets) {
-                        next.add(fromCapture(t, cap, pos + 1));
-                    }
-                }
-
-                for (final CharClassTransition<T> t: s.charClassTransitions) {
-                    if (t.predicate().matches(c)) {
-                        next.add(fromCapture(t.target(), cap, pos + 1));
-//                        next.add(new ActiveState(t.target(), cap.copy()));
-                    }
-                }
-
-                // digit transitions
-                if (Character.isDigit(c)) {
-                    for (final NFAState<T> t: s.digitTransitions) {
-                        next.add(fromCapture(t, cap, pos + 1));
-//                        next.add(new ActiveState(t, cap.copy()));
-                    }
-                }
-
-                for (final NFAState<T> t: s.anyCharTransitions) {
-                    next.add(fromCapture(t, cap, pos + 1));
-                   // next.add(new ActiveState(t, cap.copy()));
-                }
-            }
-
-            if (next.isEmpty()) {
-                return null;
-            }
-
-            current = epsilonClosure(next, pos + 1);
-        }
-
-        // acceptance
-        for (final ActiveState<T> as: current) {
-            for (final RegexEntry<T> re: as.state.accepting) {
-                return new MatchResult<T>(re.value(), materializeGroups(as.captures, re.groupCount(), input));
-            }
-        }
-
-        return null;
-    }
-
     private Set<ActiveState<T>> epsilonClosure(final Set<ActiveState<T>> states, final int position) {
         final Set<ActiveState<T>> closure = new HashSet<>(states);
         final Deque<ActiveState<T>> stack = new ArrayDeque<>(states);
