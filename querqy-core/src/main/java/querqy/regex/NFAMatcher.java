@@ -97,7 +97,7 @@ public class NFAMatcher<T> {
     public Set<MatchResult<T>> matchAll(final NFAState<T> start, final CharSequence input, final int offset) {
         Set<MatchResult<T>> results = new HashSet<>();
 
-        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())),0);
+        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())),offset);
 
         for (int pos = offset; pos < input.length(); pos++) {
             char c = input.charAt(pos);
