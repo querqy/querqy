@@ -1,5 +1,7 @@
 package querqy.regex;
 
+import querqy.trie.Node;
+
 import java.util.*;
 
 public final class NFAState<T> {
@@ -35,7 +37,7 @@ public final class NFAState<T> {
         charTransitions.computeIfAbsent(c, k -> new HashSet<>()).add(target);
     }
 
-    public void addCharClassTransition(final CharClassTransition transition) {
+    public void addCharClassTransition(final CharClassTransition<T> transition) {
         charClassTransitions.add(transition);
     }
 
