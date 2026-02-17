@@ -14,19 +14,8 @@ import static org.junit.Assert.assertTrue;
 public class RegexMapTest {
 
     @Test
-    public void testOne() {
-        RegexMap lookup = new RegexMap();
-        lookup.put("abc", "ABC");
-        //lookup.put("a(c{1,8}){3}d", "QQ");
-        lookup.put("a((c){1,2})", "LL");
-        lookup.put("a\\d{2,3}c", "QQ");
-        System.out.println(lookup.getAll("a12c"));
-        System.out.println(lookup.getAll("acc"));
-    }
-
-    @Test
     public void testLiteralsWithExactQuantifier() {
-        RegexMap lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("ab{1}c", "1");
         lookup.put("bab{2}c", "2");
         lookup.put("cabc{3}", "3");
@@ -47,7 +36,7 @@ public class RegexMapTest {
 
     @Test
     public void testLiteralsWithMinQuantifier() {
-        RegexMap lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("ab{1,}c", "1");
         lookup.put("bab{2,}c", "2");
         lookup.put("cabc{3,}", "3");
@@ -70,7 +59,7 @@ public class RegexMapTest {
 
     @Test
     public void testLiteralsWithMinMaxQuantifier() {
-        RegexMap lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("ab{1,2}c", "1");
         lookup.put("kl{2,3}m", "2");
         assertEquals(Set.of(matchResult("2", "kllm")), lookup.getAll("kllm"));
@@ -80,7 +69,7 @@ public class RegexMapTest {
 
     @Test
     public void testAnyCharNoQuantifier() {
-        RegexMap lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a.c", "1");
         lookup.put(".ef", "2");
         lookup.put("ghi.", "3");
@@ -101,7 +90,7 @@ public class RegexMapTest {
 
     @Test
     public void testAnyCharWithExactQuantifier() {
-        RegexMap<String> lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a.{2}c", "1");
         lookup.put("ghi.{3}", "2");
         lookup.put(".{4}", "3");
@@ -132,7 +121,7 @@ public class RegexMapTest {
 
     @Test
     public void testAnyCharWithRangeQuantifier() {
-        RegexMap lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a.{2,3}c", "1");
         lookup.put(".{0,2}k", "2");
 
@@ -148,7 +137,6 @@ public class RegexMapTest {
     @Test
     public void testGroupQuantifiers() {
         RegexMap<String> regexMap = new RegexMap<>();
-        //regexMap.put("a(bc)d", "1");
         regexMap.put("e(fg){2}d", "2");
         regexMap.put("h(bc){2,3}e", "3");
         regexMap.put("([^ ]+ ){0,}(abc)( [^ ]+){0,}", "4");
@@ -175,9 +163,11 @@ public class RegexMapTest {
 
     @Test
     public void testAlternation() {
-        RegexMap lookup = new RegexMap();
+        RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a(b|c)d", "1");
-
+        assertEquals(Set.of(matchResult("1", group("abd", 0), group("b", 1))),
+                lookup.getAll("abd"));
+        assertTrue(lookup.getAll("abc").isEmpty());
 
     }
 
@@ -190,11 +180,11 @@ public class RegexMapTest {
     }
 
 
-    MatchResult matchResult(final Object value, final String match) {
+    <T> MatchResult<T> matchResult(final T value, final String match) {
         return new MatchResult(value, Map.of(0, new GroupMatch(match, 0)));
     }
 
-    MatchResult matchResult(final Object value, final GroupMatch... groups) {
+    <T> MatchResult<T> matchResult(final T value, final GroupMatch... groups) {
 
         return new MatchResult(value, IntStream.range(0, groups.length)
                 .boxed()
@@ -208,7 +198,5 @@ public class RegexMapTest {
     GroupMatch group(final String match, final int position) {
         return new GroupMatch(match, position);
     }
-
-
 
 }

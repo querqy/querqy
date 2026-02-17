@@ -98,9 +98,9 @@ public class RegexReplacing {
         final String replacement = matchResult.value().apply(groups);
         final GroupMatch groupMatch = groups.get(0);
         final String match = groupMatch.match().toString();
-        if (match.equals(replacement)) {
-            return new ReplacementResult(input, replacement);
-        }
+//        if (match.equals(replacement)) {
+//            return new ReplacementResult(input, replacement);
+//        }
 
 
         String inputString = input.toString();

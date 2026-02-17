@@ -1,6 +1,7 @@
 package querqy.regex;
 
 import querqy.regex.Symbol.CharSymbol;
+import querqy.trie.States;
 import querqy.trie.TrieMap;
 
 import java.util.Collections;
