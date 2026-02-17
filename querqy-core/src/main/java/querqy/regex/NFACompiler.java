@@ -50,6 +50,12 @@ public final class NFACompiler<T> {
     }
 
     private NFAFragment<T> makeBaseFragment(final Symbol s) {
+        if (s instanceof GroupSymbol gs) {
+            NFAFragment<T> inner = compileSequence(gs.getChildren());
+            attachGroupMarkers(inner, gs.getGroupIndex());
+            return inner;
+        }
+
         NFAState<T> start = new NFAState<>();
         NFAState<T> accept = new NFAState<>();
 
@@ -58,10 +64,6 @@ public final class NFACompiler<T> {
         else if (s instanceof AnyCharSymbol) start.anyCharTransitions.add(accept);
         else if (s instanceof CharClassSymbol cc) {
             start.charClassTransitions.add(new CharClassTransition<>(cc::matches, accept));
-        } else if (s instanceof GroupSymbol gs) {
-            NFAFragment<T> inner = compileSequence(gs.getChildren());
-            attachGroupMarkers(inner, gs.getGroupIndex());
-            return inner;
         }
         return new NFAFragment<T>(start, Set.of(accept));
     }
@@ -81,21 +83,6 @@ public final class NFACompiler<T> {
             }
         }
 
-/*
-         if (max == Integer.MAX_VALUE) {
-            NFAFragment copy = cloneFragment(frag);
-            if (groupIdx >= 0) attachGroupMarkers(copy, groupIdx);
-
-            for (NFAState a : result.accepts) {
-                a.addEpsilon(copy.start);
-            }
-            for (NFAState a : copy.accepts) {
-                a.addEpsilon(copy.start);
-            }
-
-            return new NFAFragment(result.start, copy.accepts);
-        }
-         */
 
         // optional part
         if (max == Integer.MAX_VALUE) {
