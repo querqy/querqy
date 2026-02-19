@@ -14,12 +14,6 @@ public final class NFAState<T> {
     // literal character transitions
     public final Map<Character, Set<NFAState<T>>> charTransitions = new HashMap<>();
 
-    // digit transition (\d)
-    public final Set<NFAState<T>> digitTransitions = new HashSet<>();
-
-    // any char: .
-    public final Set<NFAState<T>> anyCharTransitions = new HashSet<>();
-
     public final Set<CharClassTransition<T>> charClassTransitions = new HashSet<>();
 
     // group starts / ends. These do not consume input. We're using them to index group matches.
@@ -39,14 +33,6 @@ public final class NFAState<T> {
 
     public void addCharClassTransition(final CharClassTransition<T> transition) {
         charClassTransitions.add(transition);
-    }
-
-    public void addDigitTransition(final NFAState<T> target) {
-        digitTransitions.add(target);
-    }
-
-    public void addAnyCharTransition(final NFAState<T> target) {
-        anyCharTransitions.add(target);
     }
 
     public void addEpsilon(final NFAState<T> target) {

@@ -1,13 +1,10 @@
 package querqy.regex;
 
 import querqy.regex.Symbol.AlternationSymbol;
-import querqy.regex.Symbol.AnyCharSymbol;
-import querqy.regex.Symbol.AnyDigitSymbol;
 import querqy.regex.Symbol.CharClassSymbol;
 import querqy.regex.Symbol.CharSymbol;
 import querqy.regex.Symbol.GroupSymbol;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -60,12 +57,10 @@ public final class NFACompiler<T> {
         NFAState<T> accept = new NFAState<>();
 
         if (s instanceof CharSymbol cs) start.addCharTransition(cs.getValue(), accept);
-        else if (s instanceof AnyDigitSymbol) start.addDigitTransition(accept);
-        else if (s instanceof AnyCharSymbol) start.anyCharTransitions.add(accept);
         else if (s instanceof CharClassSymbol cc) {
             start.charClassTransitions.add(new CharClassTransition<>(cc::matches, accept));
         }
-        return new NFAFragment<T>(start, Set.of(accept));
+        return new NFAFragment<>(start, Set.of(accept));
     }
 
     private NFAFragment<T> applyQuantifier(NFAFragment<T> frag, int min, int max, int groupIdx) {
@@ -159,11 +154,9 @@ public final class NFACompiler<T> {
                 copy.addCharTransition(e.getKey(), cloneState(target, clones));
             }
         }
-        for (final NFAState<T> t: state.digitTransitions) copy.digitTransitions.add(cloneState(t, clones));
-        for (final NFAState<T> t: state.anyCharTransitions) copy.anyCharTransitions.add(cloneState(t, clones));
         // character class transitions
         for (final CharClassTransition<T> t : state.charClassTransitions) {
-            copy.charClassTransitions.add(new CharClassTransition<T>(t.predicate(), cloneState(t.target(), clones)));
+            copy.charClassTransitions.add(new CharClassTransition<>(t.predicate(), cloneState(t.target(), clones)));
         }
         for (final NFAState<T> t : state.epsilonTransitions) copy.epsilonTransitions.add(cloneState(t, clones));
 

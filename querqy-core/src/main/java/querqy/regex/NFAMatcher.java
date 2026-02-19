@@ -42,30 +42,6 @@ public class NFAMatcher<T> {
             }
         }
 
-
-//
-//        while (!stack.isEmpty()) {
-//            final ActiveState cur = stack.pop();
-//            final NFAState s = cur.state();
-//            final CaptureEvents cap = cur.captures();
-//
-//            // overwrite each time: last iteration wins
-//            for (final GroupStart gs: s.groupStarts) {
-//                cap.start.put(gs.group(), position);
-//            }
-//
-//            // group end markers
-//            for (final GroupEnd ge: s.groupEnds) {
-//                cap.end.put(ge.group(), position);
-//            }
-//
-//            for (final NFAState next: s.epsilonTransitions) {
-//                final ActiveState ns = new ActiveState(next, cap.copy());
-//                if (closure.add(ns)) {
-//                    stack.push(ns);
-//                }
-//            }
-//        }
         return closure;
     }
 
@@ -112,7 +88,6 @@ public class NFAMatcher<T> {
                 if (literalTargets != null) {
                     for (final NFAState<T> t: literalTargets) {
                         next.add(fromCapture(t, cap, pos));
-//                        next.add(new ActiveState(t, cap.copy()));
                     }
                 }
 
@@ -122,17 +97,6 @@ public class NFAMatcher<T> {
                     }
                 }
 
-                // digit transitions
-                if (Character.isDigit(c)) {
-                    for (NFAState<T> t : s.digitTransitions) {
-                        next.add(fromCapture(t, cap, pos));
-                    }
-                }
-
-                for (final NFAState<T> t: s.anyCharTransitions) {
-                    next.add(fromCapture(t, cap, pos));
-//                    next.add(new ActiveState(t, cap.copy()));
-                }
             }
 
             if (next.isEmpty()) {
@@ -145,7 +109,7 @@ public class NFAMatcher<T> {
         // collect matches from all accepting states
         for (ActiveState<T> as : current) {
             for (RegexEntry<T> re : as.state.accepting) {
-                results.add(new MatchResult<T>(re.value(), materializeGroups(as.captures, re.groupCount(), input)));
+                results.add(new MatchResult<>(re.value(), materializeGroups(as.captures, re.groupCount(), input)));
             }
         }
 
