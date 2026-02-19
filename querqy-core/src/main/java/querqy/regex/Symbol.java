@@ -34,11 +34,11 @@ public abstract class Symbol {
 
     }
 
-    public static final class AnyDigitSymbol extends Symbol {}
 
-    public static final class AnyCharSymbol extends Symbol {}
 
-    static final class CharClassSymbol extends Symbol {
+
+
+    static class CharClassSymbol extends Symbol {
         private final CharPredicate predicate;
 
         CharClassSymbol(CharPredicate predicate) {
@@ -47,6 +47,20 @@ public abstract class Symbol {
 
         boolean matches(char c) {
             return predicate.matches(c);
+        }
+    }
+
+    final static CharPredicate ANY_CHAR_PREDICATE = c -> true;
+
+    public static final class AnyCharSymbol extends CharClassSymbol {
+        AnyCharSymbol() {
+            super(ANY_CHAR_PREDICATE);
+        }
+    }
+
+    public static final class AnyDigitSymbol extends CharClassSymbol {
+        AnyDigitSymbol () {
+            super(Character::isDigit);
         }
     }
 

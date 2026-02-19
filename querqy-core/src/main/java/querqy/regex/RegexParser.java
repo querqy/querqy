@@ -145,7 +145,7 @@ public final class RegexParser {
         final char c = input.charAt(pos++);
         return switch (c) {
             case 'd' -> new AnyDigitSymbol();
-            case '\\', '(', ')', '+', '?', '{', '}' -> new CharSymbol(c);
+            case '\\', '(', ')', '+', '?', '{', '}', '.' -> new CharSymbol(c);
             default -> throw error("Illegal escape: \\" + c);
         };
     }
