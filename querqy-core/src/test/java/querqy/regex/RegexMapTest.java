@@ -66,6 +66,14 @@ public class RegexMapTest {
         assertEquals(Set.of(matchResult("2", "klllm")), lookup.getAll("klllm"));
     }
 
+    @Test
+    public void testPrefixes() {
+        RegexMap<String> lookup = new RegexMap<>();
+        lookup.put("xc", "8", "([^ ]+)?");
+        lookup.put("lm", "9", "([^ ]+)?");
+        NFADebugPrinter.printDot(lookup.prefixlessStart);
+    }
+
 
     @Test
     public void testAnyCharNoQuantifier() {
@@ -77,6 +85,9 @@ public class RegexMapTest {
         lookup.put("..", "5");
         lookup.put(".k.", "6");
         lookup.put("(.y).ft", "7");
+        lookup.put("([^ ]+)?xc", "8");
+        //NFADebugPrinter.print(lookup.prefixlessStart);
+        NFADebugPrinter.printDot(lookup.prefixlessStart);
         assertEquals(Set.of(matchResult("1", "abc")), lookup.getAll("abc"));
         assertEquals(Set.of(matchResult("2", "def")), lookup.getAll("def"));
         assertEquals(Set.of(matchResult("3", "ghij")), lookup.getAll("ghij"));

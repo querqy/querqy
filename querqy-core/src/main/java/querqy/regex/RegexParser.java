@@ -18,10 +18,14 @@ public final class RegexParser {
     private int nextGroupIndex = 1;
 
     public List<Symbol> parse(final String regex) {
+        return parse(regex, 1);
+    }
+
+    public List<Symbol> parse(final String regex, final int nextGroupIndex) {
 
         this.input = regex;
         this.pos = 0;
-        this.nextGroupIndex = 1;
+        this.nextGroupIndex = nextGroupIndex;
 
         final List<Symbol> symbols = parseAlternation(false);// parseSequence(false);
 

@@ -36,8 +36,6 @@ public abstract class Symbol {
 
 
 
-
-
     static class CharClassSymbol extends Symbol {
         private final CharPredicate predicate;
 
