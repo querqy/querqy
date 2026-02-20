@@ -4,14 +4,23 @@ import querqy.regex.Symbol.CharSymbol;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RegexMap<T> {
+
+    protected record Prefix<T>(NFAState<T> state, int nextGroupIndex) {}
+
+    protected Map<String, Prefix<T>> prefixes = new HashMap<>();
 
     protected final TrieMap<PrefixAndState<T>> trieMap = new TrieMap<>();
     protected NFAState<T> prefixlessStart = new NFAState<>();
@@ -56,31 +65,72 @@ public class RegexMap<T> {
     }
 
     public void put(final String pattern, T value) {
+        put(pattern, value, null);
+    }
+    public void put(final String pattern, T value, final String prefix) {
 
         String patternString = replaceExactlyOnceQuantifier(pattern);
-        // patternString = "([^ ]+ ){0,}" + patternString + "( [^ ]+){0,}";
 
         final RegexParser parser = new RegexParser();
-        final List<Symbol> ast = parser.parse(patternString);
-        final PrefixSplit prefixSplit = extractLiteralPrefix(ast);
-        final List<Symbol> tail = prefixSplit.tail;
 
-        if (tail.isEmpty()) {
-            // all literals
-            final PrefixAndState<T> pas = getOrCreatePrefixAndState(patternString);
-            pas.state.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
+        final int nextGroupIndex;
+        final NFAState<T> start;
+
+        if (prefix == null) {
+            nextGroupIndex = 1;
+            start = prefixlessStart;
         } else {
-            final NFACompiler<T> compiler = new NFACompiler<>();
-            final NFAFragment<T> nfaFragment = compiler.compileSequence(tail);
-            final NFAState<T> start = prefixSplit.prefix.isEmpty()
-                    ? prefixlessStart
-                    : getOrCreatePrefixAndState(prefixSplit.prefix).state;
-            start.addEpsilon(nfaFragment.start);
-            for (final NFAState<T> as: nfaFragment.accepts) {
-                as.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
+            Prefix<T> compiledPrefix = prefixes.get(prefix);
+            if (compiledPrefix != null) {
+                nextGroupIndex = compiledPrefix.nextGroupIndex();
+                start = compiledPrefix.state;
+            } else {
+                final List<Symbol> prefixAst = parser.parse(prefix);
+                final NFACompiler<T> compiler = new NFACompiler<>();
+                final NFAFragment<T> fragment = compiler.compileSequence(prefixAst);
+                prefixlessStart.addEpsilon(fragment.start);
+                nextGroupIndex = parser.getGroupCount() + 1;
+
+                if (fragment.accepts.size() == 1) {
+                    compiledPrefix = new Prefix<>(fragment.accepts.iterator().next(), nextGroupIndex);
+                } else {
+                    final NFAState<T> endOfPrefix = new NFAState<>();
+                    for (final NFAState<T> accept: fragment.accepts) {
+                        accept.addEpsilon(endOfPrefix);
+                    }
+                    compiledPrefix = new Prefix<>(endOfPrefix, nextGroupIndex);
+                }
+
+                prefixes.put(prefix, compiledPrefix);
+                start = compiledPrefix.state;
             }
 
         }
+
+        final List<Symbol> ast = parser.parse(patternString, nextGroupIndex);
+
+//        final PrefixSplit prefixSplit = extractLiteralPrefix(ast);
+//        final List<Symbol> tail = prefixSplit.tail;
+//
+//        if (tail.isEmpty()) {
+//            // all literals
+//            final PrefixAndState<T> pas = getOrCreatePrefixAndState(patternString);
+//            pas.state.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
+//        } else {
+
+            final NFACompiler<T> compiler = new NFACompiler<>();
+            final NFAFragment<T> nfaFragment = compiler.compileSequence(ast);
+//            for (final NFAState<T> start: starts) {
+//                final NFAState<T> start = prefixSplit.prefix.isEmpty()
+//                        ? prefixlessStart
+//                        : getOrCreatePrefixAndState(prefixSplit.prefix).state;
+                start.addEpsilon(nfaFragment.start);
+                for (final NFAState<T> as: nfaFragment.accepts) {
+                    as.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
+                }
+//            }
+
+//        }
     }
 
     public Set<MatchResult<T>> getAll(final CharSequence input) {
@@ -98,5 +148,54 @@ public class RegexMap<T> {
             trieMap.put(prefix, pas);
         }
         return pas;
+    }
+
+    protected static <T> void adjustGroupIndex(final NFAFragment<T> fragment, final int adjustment) {
+        Queue<NFAState<T>> queue = new ArrayDeque<>();
+
+        queue.add(fragment.start);
+        Set<NFAState<T>> seen = new HashSet<>();
+        seen.add(fragment.start);
+
+
+        while (!queue.isEmpty()) {
+
+            NFAState<T> current = queue.poll();
+
+            if (!current.groupStarts.isEmpty()) {
+                current.groupStarts.replaceAll(gs -> new NFAState.GroupStart(gs.group() + adjustment));
+            }
+
+            if (!current.groupEnds.isEmpty()) {
+                current.groupEnds.replaceAll(gs -> new NFAState.GroupEnd(gs.group() + adjustment));
+            }
+
+
+
+            for (final NFAState<T> next: current.epsilonTransitions) {
+                if (!seen.contains(next)) {
+                    queue.add(next);
+                    seen.add(next);
+                }
+            }
+
+            for (final var nexts: current.charTransitions.values()) {
+                for (final NFAState<T> next: nexts) {
+                    if (!seen.contains(next)) {
+                        queue.add(next);
+                        seen.add(next);
+                    }
+                }
+            }
+
+            for (final CharClassTransition<T> t: current.charClassTransitions) {
+                final NFAState<T> next = t.target();
+                if (!seen.contains(next)) {
+                    queue.add(next);
+                    seen.add(next);
+                }
+            }
+        }
+
     }
 }

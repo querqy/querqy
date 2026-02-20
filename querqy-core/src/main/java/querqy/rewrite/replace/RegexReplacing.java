@@ -71,7 +71,7 @@ public class RegexReplacing {
 
     public void put(final String pattern, final String replacement) {
         final String replacementString = ignoreCase ? replacement.trim().toLowerCase() : replacement.trim();
-        regexMap.put("([^ ]+ ){0,}(" + pattern + ")( [^ ]+){0,}", Replacement.build(replacementString, addCount++));
+        regexMap.put("(" + pattern + ")( [^ ]+){0,}", Replacement.build(replacementString, addCount++), "([^ ]+ ){0,}");
     }
 
     public Optional<ReplacementResult> replace(final CharSequence input) {
