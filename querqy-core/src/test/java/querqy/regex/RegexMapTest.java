@@ -3,6 +3,7 @@ package querqy.regex;
 import org.junit.Test;
 import querqy.regex.MatchResult.GroupMatch;
 
+import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,13 +67,22 @@ public class RegexMapTest {
         assertEquals(Set.of(matchResult("2", "klllm")), lookup.getAll("klllm"));
     }
 
-    @Test
-    public void testPrefixes() {
-        RegexMap<String> lookup = new RegexMap<>();
-        lookup.put("xc", "8", "([^ ]+)?");
-        lookup.put("lm", "9", "([^ ]+)?");
-        NFADebugPrinter.printDot(lookup.prefixlessStart);
-    }
+//    @Test
+//    public void testPrefixes2() throws IOException {
+//        RegexMap<String> lookup = new RegexMap<>();
+//        lookup.put("a.{2}c", "1");
+//       // lookup.put("ghi.{3}", "2");
+//        NFADebugPrinter.printDot(lookup.prefixlessStart,
+//                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
+//
+//    }
+//    @Test
+//    public void testPrefixes() {
+//        RegexMap<String> lookup = new RegexMap<>();
+//        lookup.put("xc", "8", "([^ ]+)?");
+//        lookup.put("lm", "9", "([^ ]+)?");
+//        NFADebugPrinter.printDot(lookup.prefixlessStart, System.out);
+//    }
 
 
     @Test
@@ -87,7 +97,7 @@ public class RegexMapTest {
         lookup.put("(.y).ft", "7");
         lookup.put("([^ ]+)?xc", "8");
         //NFADebugPrinter.print(lookup.prefixlessStart);
-        NFADebugPrinter.printDot(lookup.prefixlessStart);
+       // NFADebugPrinter.printDot(lookup.prefixlessStart, System.out);
         assertEquals(Set.of(matchResult("1", "abc")), lookup.getAll("abc"));
         assertEquals(Set.of(matchResult("2", "def")), lookup.getAll("def"));
         assertEquals(Set.of(matchResult("3", "ghij")), lookup.getAll("ghij"));
@@ -100,7 +110,7 @@ public class RegexMapTest {
     }
 
     @Test
-    public void testAnyCharWithExactQuantifier() {
+    public void testAnyCharWithExactQuantifier() throws FileNotFoundException {
         RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a.{2}c", "1");
         lookup.put("ghi.{3}", "2");
@@ -151,9 +161,16 @@ public class RegexMapTest {
         regexMap.put("e(fg){2}d", "2");
         regexMap.put("h(bc){2,3}e", "3");
         regexMap.put("([^ ]+ ){0,}(abc)( [^ ]+){0,}", "4");
-        System.out.println( regexMap.getAll("abc"));
-        System.out.println( regexMap.getAll("abc hello"));
-
+        assertEquals(Set.of(matchResult("2", group("efgfgd", 0), group("fg", 3))),
+                regexMap.getAll("efgfgd"));
+        assertEquals(Set.of(matchResult("3", group("hbcbce", 0), group("bc", 3))),
+                regexMap.getAll("hbcbce"));
+        assertEquals(Set.of(matchResult("3", group("hbcbcbce", 0), group("bc", 5))),
+                regexMap.getAll("hbcbcbce"));
+        assertEquals(Set.of(matchResult("4", group("abc", 0), null,
+                group("abc", 0))), regexMap.getAll("abc"));
+        assertEquals(Set.of(matchResult("4", group("abc hello", 0), null,
+                group("abc", 0), group(" hello", 3))), regexMap.getAll("abc hello"));
     }
 
     @Test
@@ -198,6 +215,7 @@ public class RegexMapTest {
     <T> MatchResult<T> matchResult(final T value, final GroupMatch... groups) {
 
         return new MatchResult(value, IntStream.range(0, groups.length)
+                .filter(i -> groups[i] != null)
                 .boxed()
                 .collect(Collectors.toMap(
                         i -> i,

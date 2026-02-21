@@ -1,5 +1,6 @@
 package querqy.regex;
 
+import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -8,6 +9,52 @@ import java.util.stream.Collectors;
 
 public class NFADebugPrinter {
 
+    public static <T> void printDot(NFAState<T> start, PrintStream out) {
+        Map<NFAState<T>, Integer> ids = assignIds(start);
+
+        out.println("digraph NFA {");
+
+        for (var entry : ids.entrySet()) {
+            int id = entry.getValue();
+            NFAState<T> state = entry.getKey();
+
+            String shape = !state.accepting.isEmpty() ? "doublecircle" : "circle";
+            String label = Integer.toString(id);
+            if (!state.accepting.isEmpty()) {
+                label += ",v=" + state.accepting.stream().map(v -> v.value().toString()).collect(
+                        Collectors.joining(","));
+            }
+            if (!state.groupStarts.isEmpty()) {
+                label += ",gs=" + state.groupStarts.stream().map(gs -> Integer.toString(gs.group())).collect(
+                        Collectors.joining(","));
+            }
+            if (!state.groupEnds.isEmpty()) {
+                label += ",ge=" + state.groupEnds.stream().map(gs -> Integer.toString(gs.group())).collect(
+                        Collectors.joining(","));
+            }
+            out.println("  S" + id +  "[shape=" + shape + ", label=\"S" + label + "\"];");
+
+            for (NFAState<T> next : state.epsilonTransitions) {
+                out.println("  S" + id + " -> S" + ids.get(next) + " [label=\"ε\"];");
+            }
+
+            for (var e : state.charTransitions.entrySet()) {
+                for (NFAState<T> next : e.getValue()) {
+                    out.println("  S" + id + " -> S" + ids.get(next) +
+                            " [label=\"" + printable(e.getKey()) + "\"];");
+                }
+            }
+
+            for (final CharClassTransition<T> t: state.charClassTransitions) {
+                out.println("  S" + id + " -> S" + ids.get(t.target()) +
+                        " [label=\"CC\"];");
+
+
+            }
+        }
+
+        out.println("}");
+    }
 
     public static <T> void print(NFAState<T> start) {
 
@@ -118,50 +165,4 @@ public class NFADebugPrinter {
         return String.valueOf(c);
     }
 
-    public static <T> void printDot(NFAState<T> start) {
-        Map<NFAState<T>, Integer> ids = assignIds(start);
-
-        System.out.println("digraph NFA {");
-
-        for (var entry : ids.entrySet()) {
-            int id = entry.getValue();
-            NFAState<T> state = entry.getKey();
-
-            String shape = !state.accepting.isEmpty() ? "doublecircle" : "circle";
-            String label = Integer.toString(id);
-            if (!state.accepting.isEmpty()) {
-                label += ",v=" + state.accepting.stream().map(v -> v.value().toString()).collect(
-                        Collectors.joining(","));
-            }
-            if (!state.groupStarts.isEmpty()) {
-                label += ",gs=" + state.groupStarts.stream().map(gs -> Integer.toString(gs.group())).collect(
-                        Collectors.joining(","));
-            }
-            if (!state.groupEnds.isEmpty()) {
-                label += ",ge=" + state.groupEnds.stream().map(gs -> Integer.toString(gs.group())).collect(
-                        Collectors.joining(","));
-            }
-            System.out.println("  S" + id +  "[shape=" + shape + ", label=\"S" + label + "\"];");
-
-            for (NFAState<T> next : state.epsilonTransitions) {
-                System.out.println("  S" + id + " -> S" + ids.get(next) + " [label=\"ε\"];");
-            }
-
-            for (var e : state.charTransitions.entrySet()) {
-                for (NFAState<T> next : e.getValue()) {
-                    System.out.println("  S" + id + " -> S" + ids.get(next) +
-                            " [label=\"" + printable(e.getKey()) + "\"];");
-                }
-            }
-
-            for (final CharClassTransition<T> t: state.charClassTransitions) {
-                System.out.println("  S" + id + " -> S" + ids.get(t.target()) +
-                        " [label=\"CC\"];");
-
-
-            }
-        }
-
-        System.out.println("}");
-    }
 }
