@@ -73,7 +73,18 @@ public class NFAMatcher<T> {
     public Set<MatchResult<T>> matchAll(final NFAState<T> start, final CharSequence input, final int offset) {
         Set<MatchResult<T>> results = new HashSet<>();
 
-        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, new CaptureEvents())),offset);
+        // deal with start node:
+        final CaptureEvents capStart = new CaptureEvents();
+
+        for (final GroupStart gs : start.groupStarts) {
+            capStart.start.put(gs.group(), offset);
+        }
+        for (final GroupEnd ge : start.groupEnds) {
+            capStart.end.put(ge.group(), offset);
+        }
+
+
+        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, capStart)),offset);
 
         for (int pos = offset; pos < input.length(); pos++) {
             char c = input.charAt(pos);

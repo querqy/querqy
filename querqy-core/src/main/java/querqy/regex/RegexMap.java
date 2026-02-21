@@ -124,13 +124,69 @@ public class RegexMap<T> {
 //                final NFAState<T> start = prefixSplit.prefix.isEmpty()
 //                        ? prefixlessStart
 //                        : getOrCreatePrefixAndState(prefixSplit.prefix).state;
+        if (isMergeable(nfaFragment.start)) {
+            nfaFragment.start.groupStarts.forEach(start::addGroupStart);
+            nfaFragment.start.groupEnds.forEach(start::addGroupEnd);
+            start.epsilonTransitions.addAll(nfaFragment.start.epsilonTransitions);
+            nfaFragment.start.charTransitions.forEach(start::addCharTransitions);
+            nfaFragment.start.charClassTransitions.forEach(start::addCharClassTransition);
+        } else {
                 start.addEpsilon(nfaFragment.start);
-                for (final NFAState<T> as: nfaFragment.accepts) {
-                    as.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
-                }
+
 //            }
 
-//        }
+        }
+
+        // FIXME: we might miss the following if there was only one state in the fragment and it got merged
+        for (final NFAState<T> as: nfaFragment.accepts) {
+            as.accepting.add(new RegexEntry<>(value, parser.getGroupCount()));
+        }
+    }
+
+    static <T> boolean isMergeable(final NFAState<T> state) {
+        final Queue<NFAState<T>> queue = new ArrayDeque<>();
+        final Set<NFAState<T>> seen = new HashSet<>();
+        queue.add(state);
+
+        while (!queue.isEmpty()) {
+
+            final NFAState<T> current = queue.poll();
+
+            for (final NFAState<T> next: current.epsilonTransitions) {
+                if (next == state) {
+                    return false;
+                }
+                if (!seen.contains(next)) {
+                    seen.add(next);
+                    queue.add(next);
+                }
+            }
+
+            for (final var list: current.charTransitions.values()) {
+                for (final NFAState<T> next: list) {
+                    if (next == state) {
+                        return false;
+                    }
+                    if (!seen.contains(next)) {
+                        seen.add(next);
+                        queue.add(next);
+                    }
+                }
+            }
+
+            for (final CharClassTransition<T> t: current.charClassTransitions) {
+                final NFAState<T> next = t.target();
+                if (next == state) {
+                    return false;
+                }
+                if (!seen.contains(next)) {
+                    seen.add(next);
+                    queue.add(next);
+                }
+            }
+        }
+
+        return true;
     }
 
     public Set<MatchResult<T>> getAll(final CharSequence input) {

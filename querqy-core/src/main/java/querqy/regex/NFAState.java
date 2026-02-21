@@ -31,6 +31,10 @@ public final class NFAState<T> {
         charTransitions.computeIfAbsent(c, k -> new HashSet<>()).add(target);
     }
 
+    public void addCharTransitions(final char c, final Set<NFAState<T>> target) {
+        charTransitions.computeIfAbsent(c, k -> new HashSet<>()).addAll(target);
+    }
+
     public void addCharClassTransition(final CharClassTransition<T> transition) {
         charClassTransitions.add(transition);
     }
@@ -43,8 +47,16 @@ public final class NFAState<T> {
         groupStarts.add(new GroupStart(group));
     }
 
+    public void addGroupStart(final GroupStart gs) {
+        groupStarts.add(gs);
+    }
+
     public void addGroupEnd(final int group) {
         groupEnds.add(new GroupEnd(group));
+    }
+
+    public void addGroupEnd(final GroupEnd ge) {
+        groupEnds.add(ge);
     }
 }
 
