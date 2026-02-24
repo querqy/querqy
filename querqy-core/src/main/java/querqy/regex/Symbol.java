@@ -34,16 +34,14 @@ public abstract class Symbol {
 
     }
 
-
-
     static class CharClassSymbol extends Symbol {
         private final CharPredicate predicate;
 
-        CharClassSymbol(CharPredicate predicate) {
+        CharClassSymbol(final CharPredicate predicate) {
             this.predicate = predicate;
         }
 
-        boolean matches(char c) {
+        boolean matches(final char c) {
             return predicate.matches(c);
         }
     }

@@ -1,5 +1,6 @@
 package querqy.regex;
 
+import querqy.regex.ActiveState.SuffixActiveState;
 import querqy.regex.MatchResult.GroupMatch;
 import querqy.regex.NFAState.GroupEnd;
 import querqy.regex.NFAState.GroupStart;
@@ -19,6 +20,16 @@ public class NFAMatcher<T> {
 
         while (!stack.isEmpty()) {
             final ActiveState<T> cur = stack.pop();
+            final NFAState.SuffixTransition<T> suffixTransition;
+            final int groupDelta;
+            if (cur instanceof SuffixActiveState<T> suffixActiveState) {
+                suffixTransition = suffixActiveState.suffixTransition;
+                groupDelta = suffixTransition.groupsBeforeSuffix();
+            } else {
+                suffixTransition = null;
+                groupDelta = 0;
+            }
+
             final NFAState<T> s = cur.state;
 
             for (final NFAState<T> next : s.epsilonTransitions) {
@@ -28,18 +39,40 @@ public class NFAMatcher<T> {
 
                 // THEN apply group markers of *next*
                 for (final GroupStart gs : next.groupStarts) {
-                    cap.start.put(gs.group(), position);
+                    cap.start.put(gs.group() + groupDelta, position);
                 }
                 for (final GroupEnd ge : next.groupEnds) {
-                    cap.end.put(ge.group(), position);
+                    cap.end.put(ge.group() + groupDelta, position);
                 }
 
-                final ActiveState<T> ns = new ActiveState<>(next, cap);
+                final ActiveState<T> ns = groupDelta > 0
+                        ? new SuffixActiveState<>(next, cap, suffixTransition) : new ActiveState<>(next, cap);
 
                 if (closure.add(ns)) {
                     stack.push(ns);
                 }
             }
+
+
+            for (final NFAState.SuffixTransition<T> sTransition: s.getSuffixTransitions()) {
+                // copy FIRST
+                CaptureEvents cap = cur.captures.copy();
+
+                // THEN apply group markers of *next*
+                for (final GroupStart gs : sTransition.suffix().start().groupStarts) {
+                    cap.start.put(gs.group() + sTransition.groupsBeforeSuffix(), position);
+                }
+                for (final GroupEnd ge : sTransition.suffix().start().groupEnds) {
+                    cap.end.put(ge.group() +  sTransition.groupsBeforeSuffix(), position);
+                }
+
+                final SuffixActiveState<T> ns = new SuffixActiveState<>(sTransition.suffix().start(), cap, sTransition);
+
+                if (closure.add(ns)) {
+                    stack.push(ns);
+                }
+            }
+
         }
 
         return closure;
@@ -62,10 +95,19 @@ public class NFAMatcher<T> {
         return result;
     }
 
-    private ActiveState<T> fromCapture(final NFAState<T> state, CaptureEvents cap, final int currentPos) {
-        final ActiveState<T> copy = new ActiveState<T>(state, cap.copy());
+    private ActiveState<T> fromCapture(final NFAState<T> state, CaptureEvents cap, final ActiveState<T> source, final int currentPos) {
+        final ActiveState<T> copy;
+        final int groupDelta;
+        if (source instanceof ActiveState.SuffixActiveState<T> suffixActiveState) {
+            copy = new SuffixActiveState<>(state, cap.copy(), suffixActiveState.suffixTransition);
+            groupDelta = suffixActiveState.suffixTransition.groupsBeforeSuffix();
+        } else {
+            copy = new ActiveState<T>(state, cap.copy());
+            groupDelta = 0;
+        }
+
         for (final GroupEnd groupEnd: state.groupEnds) {
-            copy.captures.end.put(groupEnd.group(), currentPos + 1);
+            copy.captures.end.put(groupEnd.group() + groupDelta, currentPos + 1);
         }
         return copy;
     }
@@ -84,7 +126,7 @@ public class NFAMatcher<T> {
         }
 
 
-        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, capStart)),offset);
+        Set<ActiveState<T>> current = epsilonClosure(Set.of(new ActiveState<>(start, capStart)), offset);
 
         for (int pos = offset; pos < input.length(); pos++) {
             char c = input.charAt(pos);
@@ -98,19 +140,20 @@ public class NFAMatcher<T> {
                 Set<NFAState<T>> literalTargets = s.charTransitions.get(c);
                 if (literalTargets != null) {
                     for (final NFAState<T> t: literalTargets) {
-                        next.add(fromCapture(t, cap, pos));
+                        next.add(fromCapture(t, cap, as, pos));
                     }
                 }
 
                 for (final CharClassTransition<T> t: s.charClassTransitions) {
                     if (t.predicate().matches(c)) {
-                        next.add(fromCapture(t.target(), cap, pos));
+                        next.add(fromCapture(t.target(), cap, as, pos));
                     }
                 }
 
             }
 
             if (next.isEmpty()) {
+                // TODO suffixes
                 return results;
             }
 
@@ -118,8 +161,8 @@ public class NFAMatcher<T> {
         }
 
         // collect matches from all accepting states
-        for (ActiveState<T> as : current) {
-            for (RegexEntry<T> re : as.state.accepting) {
+        for (final ActiveState<T> as: current) {
+            for (final RegexEntry<T> re: as.getAccepting()) {
                 results.add(new MatchResult<>(re.value(), materializeGroups(as.captures, re.groupCount(), input)));
             }
         }

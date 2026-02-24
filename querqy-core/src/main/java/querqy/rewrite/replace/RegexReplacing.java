@@ -4,7 +4,6 @@ import querqy.LowerCaseCharSequence;
 import querqy.regex.MatchResult;
 import querqy.regex.MatchResult.GroupMatch;
 import querqy.regex.RegexMap;
-import querqy.regex.Symbol;
 import querqy.rewrite.logging.ActionLog;
 import querqy.rewrite.logging.InstructionLog;
 import querqy.rewrite.logging.MatchLog;
@@ -71,7 +70,7 @@ public class RegexReplacing {
 
     public void put(final String pattern, final String replacement) {
         final String replacementString = ignoreCase ? replacement.trim().toLowerCase() : replacement.trim();
-        regexMap.put("(" + pattern + ")( [^ ]+){0,}", Replacement.build(replacementString, addCount++), "([^ ]+ ){0,}");
+        regexMap.put("(" + pattern + ")", Replacement.build(replacementString, addCount++), "([^ ]+ ){0,}", "( [^ ]+){0,}");
     }
 
     public Optional<ReplacementResult> replace(final CharSequence input) {
@@ -98,14 +97,10 @@ public class RegexReplacing {
         final String replacement = matchResult.value().apply(groups);
         final GroupMatch groupMatch = groups.get(0);
         final String match = groupMatch.match().toString();
-//        if (match.equals(replacement)) {
-//            return new ReplacementResult(input, replacement);
-//        }
-
 
         String inputString = input.toString();
 
-        int matchStart = groupMatch.position();// inputString.indexOf(match) ;
+        int matchStart = groupMatch.position();
         String prefix;
         if (matchStart > 0) {
             prefix = input.toString().substring(0, matchStart).trim();

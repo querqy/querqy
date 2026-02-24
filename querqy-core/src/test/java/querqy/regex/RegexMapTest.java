@@ -4,6 +4,9 @@ import org.junit.Test;
 import querqy.regex.MatchResult.GroupMatch;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,6 +79,18 @@ public class RegexMapTest {
 //                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
 //
 //    }
+
+    @Test
+    public void testSuffixes() throws IOException {
+        RegexMap<String> lookup = new RegexMap<>();
+        lookup.put("xc", "8", "([^ ]+ ){0,}", "( [^ ]+){0,}");
+//        lookup.put("xc", "8", "([^ ]+ ){0,}");
+        lookup.put("lm", "9", "([^ ]+ ){0,}", "( [^ ]+){0,}");
+//        lookup.put("lm", "9", "([^ ]+ ){0,}");
+        NFADebugPrinter.printDot(lookup.prefixlessStart,
+                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
+
+    }
 //    @Test
 //    public void testPrefixes() {
 //        RegexMap<String> lookup = new RegexMap<>();
@@ -190,6 +205,18 @@ public class RegexMapTest {
     }
 
     @Test
+    public void testMatchAll() {
+        RegexMap<String> lookup = new RegexMap<>();
+        lookup.put("\\d", "1", "([^ ]+ ){0,}", "( [^ ]+){0,}");
+        lookup.put("7", "2", "([^ ]+ ){0,}", "( [^ ]+){0,}");
+        assertEquals(Set.of(
+                        matchResult("1", "7"),
+                        matchResult("2", "7")),
+                lookup.getAll("7"));
+
+    }
+
+    @Test
     public void testAlternation() {
         RegexMap<String> lookup = new RegexMap<>();
         lookup.put("a(b|c)d", "1");
@@ -209,12 +236,12 @@ public class RegexMapTest {
 
 
     <T> MatchResult<T> matchResult(final T value, final String match) {
-        return new MatchResult(value, Map.of(0, new GroupMatch(match, 0)));
+        return new MatchResult<T>(value, Map.of(0, new GroupMatch(match, 0)));
     }
 
     <T> MatchResult<T> matchResult(final T value, final GroupMatch... groups) {
 
-        return new MatchResult(value, IntStream.range(0, groups.length)
+        return new MatchResult<T>(value, IntStream.range(0, groups.length)
                 .filter(i -> groups[i] != null)
                 .boxed()
                 .collect(Collectors.toMap(
