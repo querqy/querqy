@@ -87,8 +87,8 @@ public class RegexMapTest {
 //        lookup.put("xc", "8", "([^ ]+ ){0,}");
         lookup.put("lm", "9", "([^ ]+ ){0,}", "( [^ ]+){0,}");
 //        lookup.put("lm", "9", "([^ ]+ ){0,}");
-        NFADebugPrinter.printDot(lookup.prefixlessStart,
-                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
+//        NFADebugPrinter.printDot(lookup.prefixlessStart,
+//                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
 
     }
 //    @Test
