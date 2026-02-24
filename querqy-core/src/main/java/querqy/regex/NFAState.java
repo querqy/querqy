@@ -1,13 +1,14 @@
 package querqy.regex;
 
-import querqy.trie.Node;
-
 import java.util.*;
 
 public final class NFAState<T> {
 
-    public record GroupStart(int group) {}
+    public record GroupStart(int group) { }
+
     public record GroupEnd(int group) {}
+
+    public record SuffixTransition<T>(NFASuffix<T> suffix, Set<RegexEntry<T>> accepting, int groupsBeforeSuffix) {}
 
     // TODO: create these collections on demand only?
 
@@ -15,6 +16,8 @@ public final class NFAState<T> {
     public final Map<Character, Set<NFAState<T>>> charTransitions = new HashMap<>();
 
     public final Set<CharClassTransition<T>> charClassTransitions = new HashSet<>();
+
+    private Set<SuffixTransition<T>> suffixTransitions = null;
 
     // group starts / ends. These do not consume input. We're using them to index group matches.
     public final List<GroupStart> groupStarts = new ArrayList<>();
@@ -43,6 +46,17 @@ public final class NFAState<T> {
         epsilonTransitions.add(target);
     }
 
+    public void addSuffixTransition(final SuffixTransition<T> suffixTransition) {
+        if (suffixTransitions == null) {
+            suffixTransitions = new HashSet<>();
+        }
+        suffixTransitions.add(suffixTransition);
+    }
+
+    public Set<SuffixTransition<T>> getSuffixTransitions() {
+        return suffixTransitions == null ? Collections.emptySet() : suffixTransitions;
+    }
+
     public void addGroupStart(final int group) {
         groupStarts.add(new GroupStart(group));
     }
@@ -58,5 +72,7 @@ public final class NFAState<T> {
     public void addGroupEnd(final GroupEnd ge) {
         groupEnds.add(ge);
     }
+
+
 }
 

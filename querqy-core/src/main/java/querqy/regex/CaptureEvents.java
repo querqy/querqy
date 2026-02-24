@@ -17,9 +17,7 @@ final class CaptureEvents {
     }
 
     @Override
-    public boolean equals(Object o) {
-//        if (!(o instanceof CaptureEvents other)) return false;
-//        return start.equals(other.start) && end.equals(other.end);
+    public boolean equals(final Object o) {
         if (!(o instanceof CaptureEvents other)) return false;
         return this.start.equals(other.start) && this.end.equals(other.end);
 

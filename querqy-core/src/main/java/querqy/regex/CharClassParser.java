@@ -7,23 +7,23 @@ public class CharClassParser {
     private final String input;
     private int pos;
 
-    private CharClassParser(String input) {
+    private CharClassParser(final String input) {
         this.input = input;
         this.pos = 0;
     }
 
-    public static CharacterClass parse(String pattern) {
+    public static CharacterClass parse(final String pattern) {
         if (pattern.charAt(0) != '[') {
             throw new IllegalArgumentException("Character class must start with '['");
         }
-        CharClassParser p = new CharClassParser(pattern);
+        final CharClassParser p = new CharClassParser(pattern);
         return p.parseClass();
     }
 
     private CharacterClass parseClass() {
         expect('[');
 
-        CharacterClass cc = new CharacterClass();
+        final CharacterClass cc = new CharacterClass();
 
         if (peek() == '^') {
             cc.negated = true;
@@ -34,7 +34,7 @@ public class CharClassParser {
 
         while (peek() == '&' && peek(1) == '&') {
             pos += 2; // consume &&
-            CharacterClass rhs = parseClass();
+            final CharacterClass rhs = parseClass();
             cc.intersections.add(rhs);
         }
 
@@ -42,18 +42,18 @@ public class CharClassParser {
         return cc;
     }
 
-    private void parseUnion(CharacterClass cc) {
+    private void parseUnion(final CharacterClass cc) {
         while (true) {
-            char c = peek();
+            final char c = peek();
             if (c == ']' || (c == '&' && peek(1) == '&')) {
                 return;
             }
 
-            char first = parseLiteral();
+            final char first = parseLiteral();
 
             if (peek() == '-' && peek(1) != ']' ) {
                 pos++; // consume '-'
-                char second = parseLiteral();
+                final char second = parseLiteral();
                 if (second < first) {
                     throw new IllegalArgumentException("Invalid range: " + first + "-" + second);
                 }
@@ -65,11 +65,11 @@ public class CharClassParser {
     }
 
     private char parseLiteral() {
-        char c = peek();
+        final char c = peek();
 
         if (c == '\\') {
             pos++;
-            char escaped = peek();
+            final char escaped = peek();
             pos++;
             return escaped;
         }
@@ -82,16 +82,14 @@ public class CharClassParser {
         return pos < input.length() ? input.charAt(pos) : '\0';
     }
 
-    private char peek(int offset) {
-        int p = pos + offset;
+    private char peek(final int offset) {
+        final int p = pos + offset;
         return p < input.length() ? input.charAt(p) : '\0';
     }
 
-    private void expect(char c) {
+    private void expect(final char c) {
         if (peek() != c) {
-            throw new IllegalArgumentException(
-                    "Expected '" + c + "' at position " + pos
-            );
+            throw new IllegalArgumentException("Expected '" + c + "' at position " + pos);
         }
         pos++;
     }

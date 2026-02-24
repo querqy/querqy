@@ -18,13 +18,13 @@ public class CharacterClass {
     final List<CharacterClass> intersections = new ArrayList<>();
     boolean negated = false;
 
-    boolean matches(char c) {
+    boolean matches(final char c) {
         boolean base = singles.contains(c) || ranges.stream().anyMatch(r -> r.contains(c));
 
-        for (final CharacterClass cc : intersections) {
+        for (final CharacterClass cc: intersections) {
             base &= cc.matches(c);
         }
 
-        return negated ? !base : base;
+        return negated != base;
     }
 }

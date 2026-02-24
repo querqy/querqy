@@ -12,7 +12,7 @@ public class NFAFragment<T> {
         this.accepts = accepts;
     }
     public static <T> NFAFragment<T> single(final NFAState<T> start, final NFAState<T> accept) {
-        return new NFAFragment(start, Set.of(accept));
+        return new NFAFragment<T>(start, Set.of(accept));
     }
 
     public static <T> NFAFragment<T> empty() {

@@ -10,7 +10,6 @@ import querqy.regex.Symbol.GroupSymbol;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: pass regex to constructor so we dont't have to mess with state??
 public final class RegexParser {
 
     private String input;
@@ -41,7 +40,7 @@ public final class RegexParser {
     }
 
     private List<Symbol> parseAlternation(boolean insideGroup) {
-        List<List<Symbol>> alternatives = new ArrayList<>();
+        final List<List<Symbol>> alternatives = new ArrayList<>();
         alternatives.add(parseSequence(insideGroup));
 
         while (pos < input.length() && input.charAt(pos) == '|') {
@@ -50,7 +49,7 @@ public final class RegexParser {
         }
 
         if (alternatives.size() == 1) {
-            return alternatives.get(0);
+            return alternatives.getFirst();
         }
 
         return List.of(new AlternationSymbol(alternatives));
@@ -58,22 +57,19 @@ public final class RegexParser {
 
 
 
-    private List<Symbol> parseSequence(boolean insideGroup) {
-        List<Symbol> symbols = new ArrayList<>();
+    private List<Symbol> parseSequence(final boolean insideGroup) {
+        final List<Symbol> symbols = new ArrayList<>();
 
         while (pos < input.length()) {
-            char c = input.charAt(pos);
+            final char c = input.charAt(pos);
 
             if (c == '|' || c == ')') {
                 if (!insideGroup) {
                     throw error("Unmatched ')'");
                 }
-                //pos++; // consume ')'
                 return symbols;
             }
 
-            //Symbol s = parseAtom();
-            //parseQuantifierIfAny(s);
             symbols.add( parseAtom());
         }
 
@@ -89,8 +85,8 @@ public final class RegexParser {
             throw error("Unexpected end");
         }
 
-        char c = input.charAt(pos);
-        Symbol base;
+        final char c = input.charAt(pos);
+        final Symbol base;
 
         // group
         if (c == '(') {
@@ -123,11 +119,14 @@ public final class RegexParser {
         int depth = 0;
 
         while (pos < input.length()) {
-            char c = input.charAt(pos++);
-            if (c == '[') depth++;
-            else if (c == ']') {
+            final char c = input.charAt(pos++);
+            if (c == '[') {
+                depth++;
+            } else if (c == ']') {
                 depth--;
-                if (depth == 0) break;
+                if (depth == 0) {
+                    break;
+                }
             } else if (c == '\\') {
                 pos++; // skip escaped char
             }
@@ -137,9 +136,9 @@ public final class RegexParser {
             throw new IllegalArgumentException("Unclosed character class");
         }
 
-        String classText = input.substring(start, pos);
+        final String classText = input.substring(start, pos);
 
-        CharacterClass cc = CharClassParser.parse(classText);
+        final CharacterClass cc = CharClassParser.parse(classText);
         return new CharClassSymbol(cc::matches);
 
     }
@@ -159,7 +158,7 @@ public final class RegexParser {
     private void parseQuantifierIfAny(final Symbol s) {
         if (pos >= input.length()) return;
 
-        char c = input.charAt(pos);
+        final char c = input.charAt(pos);
 
         if (c == '+') {
             pos++;
@@ -174,7 +173,7 @@ public final class RegexParser {
     }
 
     private void parseBoundedQuantifier(final Symbol s) {
-        int min = parseNumber();
+        final int min = parseNumber();
 
         if (pos >= input.length()) {
             throw error("Unclosed '{'");
@@ -198,7 +197,7 @@ public final class RegexParser {
             return;
         }
 
-        int max = parseNumber();
+        final int max = parseNumber();
 
         if (pos >= input.length() || input.charAt(pos) != '}') {
             throw error("Unclosed '{'");

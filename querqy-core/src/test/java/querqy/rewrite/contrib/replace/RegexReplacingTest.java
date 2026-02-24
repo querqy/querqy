@@ -25,12 +25,30 @@ public class RegexReplacingTest {
         assertReplacement(regexReplacing, "aBc abc abcd abc abck", "abc abc abcd abc abck");
     }
 
+    @Test
+    public void testReplacement() {
+        RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("ak", "dy");
+        assertReplacement(regexReplacing, "ak ", "dy");
+    }
+
+
+
     private static void assertReplacement(final RegexReplacing regexReplacing, final String input,
                                           final String expected) {
         final Optional<RegexReplacing.ReplacementResult> resultOptional = regexReplacing.replace(input);
         assertTrue(resultOptional.isPresent());
         final RegexReplacing.ReplacementResult replacementResult = resultOptional.get();
         assertEquals(expected, replacementResult.replacement());
+    }
+
+    @Test
+    public void testMultiplePatterns() {
+        RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("a", "x");
+        regexReplacing.put("d", "y");
+        assertReplacement(regexReplacing, "a", "x");
+
     }
 
     @Test
