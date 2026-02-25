@@ -4,9 +4,6 @@ import org.junit.Test;
 import querqy.regex.MatchResult.GroupMatch;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -96,36 +93,6 @@ public class RegexMapTest {
         assertEquals(Set.of(matchResult("2", "klllm")), lookup.getAll("klllm"));
     }
 
-//    @Test
-//    public void testPrefixes2() throws IOException {
-//        RegexMap<String> lookup = new RegexMap<>();
-//        lookup.put("a.{2}c", "1");
-//       // lookup.put("ghi.{3}", "2");
-//        NFADebugPrinter.printDot(lookup.prefixlessStart,
-//                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
-//
-//    }
-
-    @Test
-    public void testSuffixes() throws IOException {
-        RegexMap<String> lookup = new RegexMap<>();
-        lookup.put("xc", "8", "([^ ]+ ){0,}", "( [^ ]+){0,}");
-//        lookup.put("xc", "8", "([^ ]+ ){0,}");
-        lookup.put("lm", "9", "([^ ]+ ){0,}", "( [^ ]+){0,}");
-//        lookup.put("lm", "9", "([^ ]+ ){0,}");
-//        NFADebugPrinter.printDot(lookup.prefixlessStart,
-//                new PrintStream(new FileOutputStream("/Users/rene/Developer/projects/querqy/querqy/graph")));
-
-    }
-//    @Test
-//    public void testPrefixes() {
-//        RegexMap<String> lookup = new RegexMap<>();
-//        lookup.put("xc", "8", "([^ ]+)?");
-//        lookup.put("lm", "9", "([^ ]+)?");
-//        NFADebugPrinter.printDot(lookup.prefixlessStart, System.out);
-//    }
-
-
     @Test
     public void testAnyCharNoQuantifier() {
         RegexMap<String> lookup = new RegexMap<>();
@@ -137,8 +104,6 @@ public class RegexMapTest {
         lookup.put(".k.", "6");
         lookup.put("(.y).ft", "7");
         lookup.put("([^ ]+)?xc", "8");
-        //NFADebugPrinter.print(lookup.prefixlessStart);
-       // NFADebugPrinter.printDot(lookup.prefixlessStart, System.out);
         assertEquals(Set.of(matchResult("1", "abc")), lookup.getAll("abc"));
         assertEquals(Set.of(matchResult("2", "def")), lookup.getAll("def"));
         assertEquals(Set.of(matchResult("3", "ghij")), lookup.getAll("ghij"));
@@ -159,6 +124,7 @@ public class RegexMapTest {
         lookup.put(".{2}.{3}", "4");
         lookup.put(".{3}k.{2}", "5");
         lookup.put("(.{2}y).{3}ft", "6");
+        lookup.put("kb{1}", "7");
 
         assertEquals(Set.of(
                 matchResult("1", "abbc"),
@@ -177,6 +143,8 @@ public class RegexMapTest {
 
         assertEquals(Set.of(matchResult("6", group("12y789ft",0),
                 group("12y",0))), lookup.getAll("12y789ft"));
+
+        assertEquals(Set.of(matchResult("7", "kb")), lookup.getAll("kb"));
 
     }
 
@@ -251,15 +219,6 @@ public class RegexMapTest {
         assertTrue(lookup.getAll("abc").isEmpty());
 
     }
-
-    @Test
-    public void testReplaceExactlyOnceQuantifier() {
-        assertEquals("abc", RegexMap.replaceExactlyOnceQuantifier("{1}abc"));
-        assertEquals("abc", RegexMap.replaceExactlyOnceQuantifier("a{1}b{1}c{1}"));
-        assertEquals("\\{1}a\\{1}}bc", RegexMap.replaceExactlyOnceQuantifier("\\{1}a\\{1}}bc"));
-        assertEquals("{1}", RegexMap.replaceExactlyOnceQuantifier("{1}"));
-    }
-
 
     <T> MatchResult<T> matchResult(final T value, final String match) {
         return new MatchResult<T>(value, Map.of(0, new GroupMatch(match, 0)));

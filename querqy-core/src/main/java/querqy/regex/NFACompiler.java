@@ -13,16 +13,6 @@ import java.util.Set;
 
 public final class NFACompiler<T> {
 
-    private final boolean isSuffixCompiler;
-
-    public NFACompiler() {
-        this(false);
-    }
-
-    public NFACompiler(final boolean isSuffixCompiler) {
-        this.isSuffixCompiler = isSuffixCompiler;
-    }
-
     public NFAFragment<T> compileSequence(final List<Symbol> symbols) {
 
         NFAFragment<T> fragment = null;
