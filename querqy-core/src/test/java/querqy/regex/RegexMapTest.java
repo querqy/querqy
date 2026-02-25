@@ -62,6 +62,32 @@ public class RegexMapTest {
     }
 
     @Test
+    public void testKleeneStar() {
+        RegexMap<String> lookup = new RegexMap<>();
+        lookup.put("ab*c", "1");
+        lookup.put("ad*c", "2");
+        lookup.put("k[a-z]*m", "3");
+        lookup.put("o(pqx)*z", "4");
+        lookup.put("f*", "5");
+
+        assertEquals(Set.of(matchResult("1", "abc")), lookup.getAll("abc"));
+        assertEquals(Set.of(matchResult("1", "abbc")), lookup.getAll("abbc"));
+
+        assertEquals(Set.of(matchResult("2", "adc")), lookup.getAll("adc"));
+        assertEquals(Set.of(matchResult("2", "addc")), lookup.getAll("addc"));
+
+        assertEquals(Set.of(matchResult("1", "ac"), matchResult("2", "ac")), lookup.getAll("ac"));
+        assertEquals(Set.of(matchResult("3", "kgm")), lookup.getAll("kgm"));
+        assertEquals(Set.of(matchResult("4", "oz")), lookup.getAll("oz"));
+        assertEquals(
+                Set.of(matchResult("4", group("opqxz", 0), group("pqx", 1))),
+                        lookup.getAll("opqxz"));
+        assertEquals(Set.of(matchResult("5", "f")), lookup.getAll("f"));
+        assertTrue(lookup.getAll("").isEmpty());
+    }
+
+
+    @Test
     public void testLiteralsWithMinMaxQuantifier() {
         RegexMap<String> lookup = new RegexMap<>();
         lookup.put("ab{1,2}c", "1");
