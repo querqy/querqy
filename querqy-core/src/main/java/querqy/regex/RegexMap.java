@@ -19,29 +19,13 @@ public class RegexMap<T> {
     protected NFAState<T> prefixlessStart = new NFAState<>();
     protected final NFAMatcher<T> matcher = new NFAMatcher<>();
 
-    static String replaceExactlyOnceQuantifier(final String input) {
-        // FIXME: a {1} quantifier causes problems when finding char prefixes. We'd have to model the
-        // quantifier as a symbol to properly solve this. Use this hack meanwhile:
-        String patternString = input;
-        int pos = 0;
-        while ((pos = patternString.indexOf("{1}", pos)) > -1 ) {
-            if ((pos == 0) || (patternString.charAt(pos - 1) != '\\')) {
-                patternString = patternString.substring(0, pos) + patternString.substring(pos + 3);
-            }
-            pos++;
-        }
-        // deals with input like "{1}" or "{1}{1}{1}". These are invalid regex patterns, which we let the parser deal
-        // with
-        return (patternString.equals("{1}") || patternString.isEmpty()) ?  input : patternString;
-    }
-
     public void put(final String pattern, T value) {
         put(pattern, value, null, null);
     }
 
-    public void put(final String pattern, T value, final String prefix, final String suffix) {
+    public void put(final String patternString, T value, final String prefix, final String suffix) {
 
-        String patternString = replaceExactlyOnceQuantifier(pattern);
+        //String patternString = replaceExactlyOnceQuantifier(pattern);
 
         final RegexParser parser = new RegexParser();
 
