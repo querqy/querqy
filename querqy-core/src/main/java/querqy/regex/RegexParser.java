@@ -102,7 +102,7 @@ public final class RegexParser {
             base = parseCharClass();
         } else if (c == '\\') {
             base = parseEscaped();
-        } else if (c == '+' || c == '?' || c == '{') {
+        } else if (c == '+' || c == '*' || c == '?' || c == '{') {
             throw error("Quantifier without target");
         } else {
             pos++;
@@ -148,7 +148,7 @@ public final class RegexParser {
         final char c = input.charAt(pos++);
         return switch (c) {
             case 'd' -> new AnyDigitSymbol();
-            case '\\', '(', ')', '+', '?', '{', '}', '.' -> new CharSymbol(c);
+            case '\\', '(', ')', '+', '?', '{', '}', '.', '*' -> new CharSymbol(c);
             default -> throw error("Illegal escape: \\" + c);
         };
     }
@@ -163,6 +163,9 @@ public final class RegexParser {
         if (c == '+') {
             pos++;
             s.setQuantifier(1, Integer.MAX_VALUE);
+        } else if (c == '*') {
+            pos++;
+            s.setQuantifier(0, Integer.MAX_VALUE);
         } else if (c == '?') {
             pos++;
             s.setQuantifier(0, 1);
