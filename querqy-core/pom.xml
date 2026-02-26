@@ -10,7 +10,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-core</artifactId>
-    <version>3.21.0-SNAPSHOT</version>
+    <version>3.20.1-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting: Querqy Core</description>
