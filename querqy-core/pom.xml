@@ -72,8 +72,8 @@
         <mockito.version>5.21.0</mockito.version>
         <assertj.version>3.27.7</assertj.version>
 
-        <jackson.version>2.18.2</jackson.version>
-        <json-path.version>2.9.0</json-path.version>
+        <jackson.version>2.21.2</jackson.version>
+        <json-path.version>3.0.0</json-path.version>
     </properties>
 
     <dependencies>
