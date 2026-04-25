@@ -3,7 +3,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-lucene</artifactId>
-    <version>5.10.lucene1021.0-SNAPSHOT</version>
+    <version>5.10.lucene1032.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting for Lucene</description>
@@ -56,7 +56,7 @@
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 
         <querqy.core.version>3.20.2</querqy.core.version>
-        <lucene.version>10.2.1</lucene.version>
+        <lucene.version>10.3.2</lucene.version>
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
         <mockito.version>5.23.0</mockito.version>
@@ -147,7 +147,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <tests.codec>Lucene101</tests.codec>
+                        <tests.codec>Lucene103</tests.codec>
                         <java.security.egd>file:/dev/./urandom</java.security.egd>
                         <!-- Use narrow US-ASCII as default Java character set (via file.encoding system property)
                         to increase the chance of catching code that relies on the JDK default encoding -->
