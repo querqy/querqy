@@ -58,7 +58,6 @@
         <querqy.core.version>3.20.2</querqy.core.version>
         <lucene.version>10.2.1</lucene.version>
         <junit.version>4.13.2</junit.version>
-        <commons.io.version>2.15.1</commons.io.version>
         <hamcrest.version>3.0</hamcrest.version>
         <mockito.version>5.23.0</mockito.version>
         <assertj-core.version>3.27.7</assertj-core.version>
@@ -70,11 +69,6 @@
             <artifactId>lucene-test-framework</artifactId>
             <version>${lucene.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons.io.version}</version>
         </dependency>
 
         <dependency>
