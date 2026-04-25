@@ -55,7 +55,7 @@
         <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 
-        <querqy.core.version>3.19.0</querqy.core.version>
+        <querqy.core.version>3.20.2</querqy.core.version>
         <lucene.version>10.2.1</lucene.version>
         <junit.version>4.13.2</junit.version>
         <commons.io.version>2.15.1</commons.io.version>
