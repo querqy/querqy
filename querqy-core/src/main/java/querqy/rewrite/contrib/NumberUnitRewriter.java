@@ -183,7 +183,11 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
     private BigDecimal parseNumber(final ComparableCharSequence seq, final int floatDelimiter) {
 
         if (floatDelimiter < 0) {
-            return createBigDecimal(seq.toString());
+            // Use subSequence rather than toString() directly: Term subclasses may override toString() to
+            // return a field-qualified form (e.g. "*:1") while charAt()/length() still operate on just the
+            // value. subSequence() creates a fresh object whose toString() is consistent with the character
+            // content.
+            return createBigDecimal(seq.subSequence(0, seq.length()).toString());
 
         } else if (floatDelimiter == seq.length() - 1) {
             return createBigDecimal(seq.subSequence(0, seq.length() - 1).toString());

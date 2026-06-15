@@ -249,6 +249,24 @@ public class NumberUnitRewriterTest {
 
     }
 
+    @Test
+    public void testThatNumberIsCorrectlyParsedWhenTermToStringReturnsFieldQualifiedForm() {
+        NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+
+        // Simulate a Term subclass that overrides toString() to return a field-qualified form (e.g. "*:1")
+        // while charAt()/length() still operate on just the value "1"
+        ComparableCharSequence seq = new ComparableCharSequenceWrapper("1") {
+            @Override
+            public String toString() {
+                return "*:1";
+            }
+        };
+
+        Optional<NumberUnitQueryInput> result = numberUnitRewriter.parseNumberAndUnit(seq);
+        assertThat(result).isNotEmpty();
+        assertThat(result.get()).isEqualTo(new NumberUnitQueryInput(new BigDecimal("1")));
+    }
+
     private ComparableCharSequence createSeq(String input) {
         return new ComparableCharSequenceWrapper(input);
     }
