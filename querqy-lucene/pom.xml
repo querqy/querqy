@@ -76,7 +76,7 @@
         <lucene.version>10.4.0</lucene.version>
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
-        <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <mockito.version>5.23.0</mockito.version>
         <assertj-core.version>3.27.7</assertj-core.version>
     </properties>
