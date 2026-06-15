@@ -30,6 +30,12 @@ import java.util.Map;
 @NoArgsConstructor(staticName = "create")
 public class PropertyParser {
 
+    private static final Configuration JACKSON_CONFIGURATION = Configuration.builder()
+            .jsonProvider(new JacksonJsonProvider())
+            .mappingProvider(new JacksonMappingProvider())
+            .build()
+            .addOptions(Option.ALWAYS_RETURN_LIST);
+
     public static final String ID = "_id";
     public static final String LOG_MESSAGE = "_log";
 
@@ -40,16 +46,6 @@ public class PropertyParser {
         propertiesWithDefaults.putIfAbsent(ID, defaultId);
         propertiesWithDefaults.putIfAbsent(LOG_MESSAGE, propertiesWithDefaults.get(ID));
 
-        return new InstructionsProperties(propertiesWithDefaults, createJsonPathConfiguration());
-    }
-
-    private Configuration createJsonPathConfiguration() {
-        final Configuration configuration = Configuration.builder()
-                .jsonProvider(new JacksonJsonProvider())
-                .mappingProvider(new JacksonMappingProvider())
-                .build();
-        configuration.addOptions(Option.ALWAYS_RETURN_LIST);
-
-        return configuration;
+        return new InstructionsProperties(propertiesWithDefaults, JACKSON_CONFIGURATION);
     }
 }

@@ -20,6 +20,9 @@ package querqy.rewrite.commonrules.model;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -30,6 +33,12 @@ import java.util.Optional;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class InstructionsProperties {
 
+    private static final Configuration JACKSON_CONFIGURATION = Configuration.builder()
+            .jsonProvider(new JacksonJsonProvider())
+            .mappingProvider(new JacksonMappingProvider())
+            .build()
+            .addOptions(Option.ALWAYS_RETURN_LIST);
+
     @EqualsAndHashCode.Include private final Map<String, Object> propertyMap;
     private final DocumentContext documentContext;
 
@@ -39,7 +48,7 @@ public class InstructionsProperties {
     }
 
     public InstructionsProperties(final Map<String, Object> propertyMap) {
-        this(propertyMap, Configuration.defaultConfiguration());
+        this(propertyMap, JACKSON_CONFIGURATION);
     }
 
 

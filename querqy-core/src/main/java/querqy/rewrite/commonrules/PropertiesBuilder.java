@@ -37,6 +37,12 @@ import java.util.Optional;
 @Deprecated
 public class PropertiesBuilder {
 
+    private static final Configuration JACKSON_CONFIGURATION = Configuration.builder()
+            .jsonProvider(new JacksonJsonProvider())
+            .mappingProvider(new JacksonMappingProvider())
+            .build()
+            .addOptions(Option.ALWAYS_RETURN_LIST);
+
     enum JsonObjState {BEFORE, IN_OBJECT, AFTER_OBJECT}
 
     private JsonObjState jsonObjState = JsonObjState.BEFORE;
@@ -44,7 +50,6 @@ public class PropertiesBuilder {
     private java.util.Map<String, Object> primitiveProperties;
     private StringBuilder jsonObjectString;
     private final ObjectMapper objectMapper;
-    private final Configuration jsonPathConfiguration;
 
     public PropertiesBuilder() {
         objectMapper = new ObjectMapper();
@@ -54,13 +59,6 @@ public class PropertiesBuilder {
         objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
         objectMapper.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
         objectMapper.configure(JsonParser.Feature.STRICT_DUPLICATE_DETECTION, true);
-
-
-
-        jsonPathConfiguration = Configuration.builder()
-                .jsonProvider(new JacksonJsonProvider())
-                .mappingProvider(new JacksonMappingProvider()).build();
-        jsonPathConfiguration.addOptions(Option.ALWAYS_RETURN_LIST);
 
         primitiveProperties = new HashMap<>();
         jsonObjectString =  new StringBuilder();
@@ -174,7 +172,7 @@ public class PropertiesBuilder {
             throw new RuleParseException("Cannot parse Json: " + jsonObjectString.toString());
         }
 
-        return new InstructionsProperties(primitiveProperties, jsonPathConfiguration);
+        return new InstructionsProperties(primitiveProperties, JACKSON_CONFIGURATION);
     }
 
     private void addProperty(final String name, final Object value, final Map<String, Object> target)
