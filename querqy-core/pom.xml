@@ -105,10 +105,6 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>org.slf4j-api</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>net.minidev</groupId>
-                    <artifactId>json-smart</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

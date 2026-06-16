@@ -71,4 +71,24 @@ public class InstructionsPropertiesTest {
 
 
     }
+
+    @Test
+    public void testInOperatorMatches() {
+        // addresses #491
+        final Map<String, Object> props = new HashMap<>();
+        props.put("p1", 1);
+        props.put("p2", "2");
+        props.put("p3", Arrays.asList("3", 33));
+
+        final Map<String, Object> p4 = new HashMap<>();
+        p4.put("p41", "41");
+        p4.put("p42", 42);
+        props.put("p4", p4);
+
+        final InstructionsProperties instructionsProperties = new InstructionsProperties(props, Configuration.builder()
+                .jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build());
+
+        assertTrue(instructionsProperties.matches("$[?(@.p2 in [\"2\",\"11\"])]"));
+
+    }
 }
