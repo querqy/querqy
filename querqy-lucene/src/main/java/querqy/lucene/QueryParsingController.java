@@ -44,6 +44,7 @@ import querqy.lucene.rewrite.TermQueryBuilder;
 import querqy.model.BoostQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.model.PhraseQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.rewrite.logging.RewriteChainLog;
@@ -404,7 +405,7 @@ public class QueryParsingController {
 
                     luceneQuery = requestAdapter.rawQueryToQuery((RawQuery) boostQuery);
 
-                } else if (boostQuery instanceof querqy.model.Query) {
+                } else if (boostQuery instanceof querqy.model.Query || boostQuery instanceof PhraseQuery) {
 
                     final LuceneQueryBuilder luceneQueryBuilder =
                             new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
@@ -418,7 +419,9 @@ public class QueryParsingController {
                                     throw new RuntimeException(e);
                                 }});
 
-                    luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
+                    luceneQuery = boostQuery instanceof PhraseQuery
+                            ? luceneQueryBuilder.createQuery(boostQuery)
+                            : luceneQueryBuilder.createQuery((querqy.model.Query) boostQuery, factor < 0f);
 
                 } else {
                     luceneQuery = null;
@@ -506,7 +509,7 @@ public class QueryParsingController {
                 // todo: this is copied from transformAdditiveBoostQueries, any way to combine or simplify?
                 if (query instanceof RawQuery) {
                     luceneQuery = requestAdapter.rawQueryToQuery((RawQuery) query);
-                } else if (query instanceof querqy.model.Query) {
+                } else if (query instanceof querqy.model.Query || query instanceof PhraseQuery) {
                     final LuceneQueryBuilder luceneQueryBuilder =
                             new LuceneQueryBuilder(boostTermQueryBuilder, queryAnalyzer,
                                     boostSearchFieldsAndBoostings,
@@ -518,7 +521,9 @@ public class QueryParsingController {
                                 } catch (final SyntaxException e) {
                                     throw new RuntimeException(e);
                                 }});
-                    luceneQuery = luceneQueryBuilder.createQuery((querqy.model.Query) query, true);
+                    luceneQuery = query instanceof PhraseQuery
+                            ? luceneQueryBuilder.createQuery(query)
+                            : luceneQueryBuilder.createQuery((querqy.model.Query) query, true);
                 } else {
                     luceneQuery = null;
                 }

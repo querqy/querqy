@@ -61,6 +61,10 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
     public T visit(final RawQuery rawQuery) {
         return null;
     }
-   
+
+    @Override
+    public T visit(final PhraseQuery phraseQuery) {
+        return null;
+    }
 
 }

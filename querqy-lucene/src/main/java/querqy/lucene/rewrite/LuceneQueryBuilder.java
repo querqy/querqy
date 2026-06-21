@@ -18,15 +18,20 @@
 package querqy.lucene.rewrite;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.util.QueryBuilder;
 
 import querqy.CompoundCharSequence;
+import querqy.lucene.LuceneQueryUtil;
 import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.AbstractNodeVisitor;
@@ -34,6 +39,7 @@ import querqy.model.BooleanQuery;
 import querqy.model.BoostedTerm;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
+import querqy.model.PhraseQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
 import querqy.model.Term;
@@ -55,6 +61,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
    final TermQueryBuilder termQueryBuilder;
    final SearchFieldsAndBoosting searchFieldsAndBoosting;
    final TermSubQueryBuilder termSubQueryBuilder;
+   final Analyzer analyzer;
 
    final Function<RawQuery, Query> rawQueryParser;
 
@@ -124,6 +131,7 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         this.normalizeBooleanQueryBoost = normalizeBooleanQueryBoost;
         this.multiMatchTieBreakerMultiplier = multiMatchTieBreakerMultiplier;
         this.termQueryBuilder = termQueryBuilder;
+        this.analyzer = analyzer;
         termSubQueryBuilder = new TermSubQueryBuilder(analyzer, termQueryCache);
         this.rawQueryParser = rawQueryParser;
     }
@@ -167,10 +175,41 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
 
         } else if (query instanceof RawQuery) {
             return rawQueryParser.apply((RawQuery) query);
+
+        } else if (query instanceof PhraseQuery) {
+            return createLucenePhraseQuery((PhraseQuery) query);
+
         } else {
             throw new IllegalArgumentException("Cannot handle query of type " + query.getClass().getName());
 
         }
+    }
+
+    protected Query createLucenePhraseQuery(final PhraseQuery phraseQuery) {
+        final String phraseText = String.join(" ", phraseQuery.getTerms());
+        final int slop = phraseQuery.getSlop();
+        final QueryBuilder qb = new QueryBuilder(analyzer);
+
+        final Map<String, Float> fieldBoostings = phraseQuery.isGenerated()
+                ? searchFieldsAndBoosting.generatedQueryFieldsAndBoostings
+                : searchFieldsAndBoosting.queryFieldsAndBoostings;
+
+        final List<Query> fieldQueries = new ArrayList<>(fieldBoostings.size());
+        for (final Map.Entry<String, Float> entry : fieldBoostings.entrySet()) {
+            final Query pq = qb.createPhraseQuery(entry.getKey(), phraseText, slop);
+            if (pq != null) {
+                final float fieldBoost = entry.getValue() == null ? 1f : entry.getValue();
+                fieldQueries.add(LuceneQueryUtil.boost(pq, fieldBoost));
+            }
+        }
+
+        if (fieldQueries.isEmpty()) {
+            return null;
+        }
+        if (fieldQueries.size() == 1) {
+            return fieldQueries.get(0);
+        }
+        return new org.apache.lucene.search.DisjunctionMaxQuery(fieldQueries, dmqTieBreakerMultiplier);
     }
 
     @Override
@@ -247,6 +286,32 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 return Occur.SHOULD;
         }
         throw new IllegalArgumentException("Cannot handle occur value: " + occur.name());
+    }
+
+    @Override
+    public LuceneQueryFactory<?> visit(final PhraseQuery phraseQuery) {
+        final Query lucenePhraseQuery = createLucenePhraseQuery(phraseQuery);
+        final LuceneQueryFactory<Query> factory = lucenePhraseQuery != null
+                ? new LuceneQueryFactory<Query>() {
+                    @Override
+                    public void prepareDocumentFrequencyCorrection(final DocumentFrequencyCorrection dfc, final boolean isBelowDMQ) {}
+                    @Override
+                    public Query createQuery(final FieldBoost boost, final TermQueryBuilder tqb) { return lucenePhraseQuery; }
+                    @Override
+                    public <R> R accept(final LuceneQueryFactoryVisitor<R> visitor) { return null; }
+                }
+                : NeverMatchQueryFactory.FACTORY;
+
+        switch (parentType) {
+            case DMQ:
+                if (!dmqStack.isEmpty()) { dmqStack.getLast().add(factory); }
+                break;
+            case BQ:
+            default:
+                if (!clauseStack.isEmpty()) { clauseStack.getLast().add(factory, occur(phraseQuery.occur)); }
+                break;
+        }
+        return factory;
     }
 
     @Override

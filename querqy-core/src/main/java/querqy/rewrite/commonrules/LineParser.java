@@ -36,9 +36,11 @@ import querqy.model.Clause;
 import querqy.model.Clause.Occur;
 import querqy.model.Input;
 import querqy.model.ParametrizedRawQuery;
+import querqy.model.PhraseQuery;
 import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
+import querqy.rewrite.rules.instruction.InstructionParser;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostDirection;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
@@ -162,6 +164,12 @@ public class LineParser {
                     return new ValidationError(e.getMessage());
                 }
 
+            } else if (InstructionParser.isPhraseValue(filterString)) {
+                try {
+                    return new FilterInstruction(InstructionParser.parsePhraseQuery(filterString, Occur.MUST));
+                } catch (querqy.rewrite.rules.RuleParseException e) {
+                    return new ValidationError(e.getMessage());
+                }
             } else if (querqyParserFactory == null) {
                 return new ValidationError("No querqy parser factory to parse filter query. Prefix '*' if you want " +
                         "to pass this line as a raw query String to your search engine. Line: " + line);
@@ -376,6 +384,14 @@ public class LineParser {
             try {
                 return new BoostInstruction(parseRawQuery(rawQueryString, Occur.SHOULD), direction, boostMethod, boost);
             } catch (RuleParseException e) {
+                return new ValidationError(e.getMessage());
+            }
+
+        } else if (InstructionParser.isPhraseValue(boostLine)) {
+            try {
+                final PhraseQuery phraseQuery = InstructionParser.parsePhraseQuery(boostLine, Occur.SHOULD);
+                return new BoostInstruction(phraseQuery, direction, boostMethod, boost);
+            } catch (querqy.rewrite.rules.RuleParseException e) {
                 return new ValidationError(e.getMessage());
             }
 

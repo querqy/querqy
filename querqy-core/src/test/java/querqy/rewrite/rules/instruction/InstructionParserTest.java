@@ -19,6 +19,7 @@ package querqy.rewrite.rules.instruction;
 
 import org.junit.Test;
 import querqy.model.Clause;
+import querqy.model.PhraseQuery;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.commonrules.QuerqyParserFactory;
 import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
@@ -285,6 +286,117 @@ public class InstructionParserTest {
                 .termsParser(TermsParser.createPrototype())
                 .boostMethod(BoostInstruction.BoostMethod.ADDITIVE)
                 .build();
+    }
+
+    // --- isPhraseValue tests ---
+
+    @Test
+    public void testIsPhraseValue_simplePhrase() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop bag\"")).isTrue();
+    }
+
+    @Test
+    public void testIsPhraseValue_phraseWithSlop() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop bag\"~2")).isTrue();
+    }
+
+    @Test
+    public void testIsPhraseValue_phraseWithSlopAndSpaces() {
+        assertThat(InstructionParser.isPhraseValue("  \"laptop bag\" ~ 3  ")).isTrue();
+    }
+
+    @Test
+    public void testIsPhraseValue_singleTermPhrase() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop\"")).isTrue();
+    }
+
+    @Test
+    public void testIsPhraseValue_notPhraseNoOpeningQuote() {
+        assertThat(InstructionParser.isPhraseValue("laptop bag")).isFalse();
+    }
+
+    @Test
+    public void testIsPhraseValue_notPhraseNoClosingQuote() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop bag")).isFalse();
+    }
+
+    @Test
+    public void testIsPhraseValue_notPhraseTrailingNonSlop() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop bag\"~x")).isFalse();
+    }
+
+    @Test
+    public void testIsPhraseValue_notPhraseAlphanumericSlop() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop bag\"~3a")).isFalse();
+    }
+
+    @Test
+    public void testIsPhraseValue_notPhraseDecimalSlop() {
+        assertThat(InstructionParser.isPhraseValue("\"laptop bag\"~3.1")).isFalse();
+    }
+
+    @Test
+    public void testIsPhraseValue_emptyString() {
+        assertThat(InstructionParser.isPhraseValue("")).isFalse();
+    }
+
+    // --- parsePhraseQuery tests ---
+
+    @Test
+    public void testParsePhraseQuery_simplePhrase() {
+        final PhraseQuery pq = InstructionParser.parsePhraseQuery("\"laptop bag\"", Clause.Occur.SHOULD);
+        assertThat(pq.getTerms()).containsExactly("laptop", "bag");
+        assertThat(pq.getSlop()).isEqualTo(0);
+        assertThat(pq.occur).isEqualTo(Clause.Occur.SHOULD);
+    }
+
+    @Test
+    public void testParsePhraseQuery_phraseWithSlop() {
+        final PhraseQuery pq = InstructionParser.parsePhraseQuery("\"laptop bag\"~2", Clause.Occur.MUST);
+        assertThat(pq.getTerms()).containsExactly("laptop", "bag");
+        assertThat(pq.getSlop()).isEqualTo(2);
+    }
+
+    @Test
+    public void testParsePhraseQuery_singleTerm() {
+        final PhraseQuery pq = InstructionParser.parsePhraseQuery("\"laptop\"", Clause.Occur.SHOULD);
+        assertThat(pq.getTerms()).containsExactly("laptop");
+        assertThat(pq.getSlop()).isEqualTo(0);
+    }
+
+    @Test
+    public void testParsePhraseQuery_emptyPhraseThrows() {
+        assertThrows(RuntimeException.class,
+                () -> InstructionParser.parsePhraseQuery("\"\"", Clause.Occur.SHOULD));
+    }
+
+    // --- integration: UP instruction with phrase ---
+
+    @Test
+    public void testUpInstructionWithPhrase() {
+        assertThat(parseInstruction(UP, "1.5", "\"laptop bag\"")).isEqualTo(
+                new BoostInstruction(
+                        new PhraseQuery(null, Clause.Occur.SHOULD, true, Arrays.asList("laptop", "bag"), 0),
+                        BoostInstruction.BoostDirection.UP,
+                        BoostInstruction.BoostMethod.ADDITIVE,
+                        1.5f));
+    }
+
+    @Test
+    public void testUpInstructionWithPhraseAndSlop() {
+        assertThat(parseInstruction(UP, "\"laptop bag\"~3")).isEqualTo(
+                new BoostInstruction(
+                        new PhraseQuery(null, Clause.Occur.SHOULD, true, Arrays.asList("laptop", "bag"), 3),
+                        BoostInstruction.BoostDirection.UP,
+                        BoostInstruction.BoostMethod.ADDITIVE,
+                        1.0f));
+    }
+
+    @Test
+    public void testFilterInstructionWithPhrase() {
+        assertThat(parseInstruction(FILTER, "\"laptop bag\"")).isEqualTo(
+                new FilterInstruction(
+                        new PhraseQuery(null, Clause.Occur.MUST, true, Arrays.asList("laptop", "bag"), 0)));
     }
 
     private Term term(final String value, final String... fields) {
