@@ -35,4 +35,6 @@ public interface NodeVisitor<T> {
 
    T visit(RawQuery rawQuery);
 
+   T visit(PhraseQuery phraseQuery);
+
 }

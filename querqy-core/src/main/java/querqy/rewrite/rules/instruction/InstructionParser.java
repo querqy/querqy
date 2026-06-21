@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import querqy.model.Clause;
+import querqy.model.PhraseQuery;
 import querqy.model.QuerqyQuery;
 import querqy.rewrite.commonrules.model.BoostInstruction;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
@@ -37,6 +38,7 @@ import querqy.rewrite.rules.query.QuerqyQueryParser;
 import querqy.rewrite.rules.query.TermsParser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -132,7 +134,9 @@ public class InstructionParser {
     private void parseAsBoost(final BoostInstruction.BoostDirection direction) {
         final float param = getParamAsFloat();
         final String value = getValueOrElseThrow();
-        final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.SHOULD).parse();
+        final QuerqyQuery<?> querqyQuery = isPhraseValue(value)
+                ? parsePhraseQuery(value, Clause.Occur.SHOULD)
+                : querqyQueryParser.with(value, Clause.Occur.SHOULD).parse();
         instructions.add(new BoostInstruction(querqyQuery, direction, boostMethod, param, createInstructionDescription()));
     }
 
@@ -140,9 +144,63 @@ public class InstructionParser {
         assertThatParamIsNotSet();
 
         final String value = getValueOrElseThrow();
-        final QuerqyQuery<?> querqyQuery = querqyQueryParser.with(value, Clause.Occur.MUST).parse();
+        final QuerqyQuery<?> querqyQuery = isPhraseValue(value)
+                ? parsePhraseQuery(value, Clause.Occur.MUST)
+                : querqyQueryParser.with(value, Clause.Occur.MUST).parse();
 
         instructions.add(new FilterInstruction(querqyQuery, createInstructionDescription()));
+    }
+
+    /**
+     * Returns true if {@code value} represents a phrase: starts with {@code "} and
+     * has a closing {@code "} optionally followed by a slop spec ({@code ~N}).
+     * Examples: {@code "laptop bag"}, {@code "laptop bag"~2}
+     */
+    public static boolean isPhraseValue(final String value) {
+        final String trimmed = value.trim();
+        if (trimmed.length() < 2 || trimmed.charAt(0) != '"') {
+            return false;
+        }
+        final int closingQuote = trimmed.indexOf('"', 1);
+        if (closingQuote < 0) {
+            return false;
+        }
+        final String afterClosingQuote = trimmed.substring(closingQuote + 1).trim();
+        if (afterClosingQuote.isEmpty()) {
+            return true;
+        }
+        if (afterClosingQuote.startsWith("~")) {
+            final String slopPart = afterClosingQuote.substring(1).trim();
+            return slopPart.matches("\\d+");
+        }
+        return false;
+    }
+
+    public static PhraseQuery parsePhraseQuery(final String value, final Clause.Occur occur) {
+        final String trimmed = value.trim();
+        // find the closing quote
+        final int closingQuote = trimmed.indexOf('"', 1);
+        String phraseContent = trimmed.substring(1, closingQuote).trim();
+
+        int slop = 0;
+        final String afterClosingQuote = trimmed.substring(closingQuote + 1).trim();
+        if (afterClosingQuote.startsWith("~")) {
+            try {
+                slop = Integer.parseInt(afterClosingQuote.substring(1).trim());
+            } catch (final NumberFormatException e) {
+                throw new RuleParseException("Invalid slop value in phrase query: " + value);
+            }
+            if (slop < 0) {
+                throw new RuleParseException("Slop must not be negative: " + value);
+            }
+        }
+
+        final String[] parts = phraseContent.split("\\s+");
+        final List<String> terms = Arrays.asList(parts);
+        if (terms.isEmpty() || (terms.size() == 1 && terms.get(0).isEmpty())) {
+            throw new RuleParseException("Phrase query must contain at least one term: " + value);
+        }
+        return new PhraseQuery(null, occur, true, terms, slop);
     }
 
     private void parseAsDelete() {
