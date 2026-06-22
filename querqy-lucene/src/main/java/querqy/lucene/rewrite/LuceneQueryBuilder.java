@@ -341,7 +341,8 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
         final ParentType myParentType = parentType;
         parentType = ParentType.DMQ;
 
-        final DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(dmqTieBreakerMultiplier);
+        final float tie = disjunctionMaxQuery.getTieBreaker().orElse(dmqTieBreakerMultiplier);
+        final DisjunctionMaxQueryFactory dmq = new DisjunctionMaxQueryFactory(tie);
 
         dmqStack.add(dmq);
         super.visit(disjunctionMaxQuery);

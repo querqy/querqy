@@ -18,6 +18,7 @@
 package querqy.model;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author René Kriegler, @renekrie
@@ -26,8 +27,24 @@ import java.util.List;
 public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxClause> implements BooleanClause,
       BooleanParent {
 
+   private final Float tieBreaker;
+
    public DisjunctionMaxQuery(final BooleanQuery parentQuery, final Occur occur, final boolean generated) {
+      this(parentQuery, occur, generated, null);
+   }
+
+   public DisjunctionMaxQuery(final BooleanQuery parentQuery, final Occur occur, final boolean generated,
+                               final Float tieBreaker) {
       super(parentQuery, occur, generated);
+      this.tieBreaker = tieBreaker;
+   }
+
+   /**
+    * Returns the tie-breaker for this disjunction, overriding the globally configured value.
+    * When empty, the search engine uses its default tie-breaker.
+    */
+   public Optional<Float> getTieBreaker() {
+      return Optional.ofNullable(tieBreaker);
    }
 
    public List<Term> getTerms() {
@@ -62,7 +79,7 @@ public class DisjunctionMaxQuery extends SubQuery<BooleanQuery, DisjunctionMaxCl
 
    @Override
    public BooleanClause clone(final BooleanQuery newParent, final Occur occur, final boolean generated) {
-       final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated);
+       final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(newParent, occur, generated, tieBreaker);
        for (final DisjunctionMaxClause clause : clauses) {
            dmq.addClause(clause.clone(dmq, generated));
        }
