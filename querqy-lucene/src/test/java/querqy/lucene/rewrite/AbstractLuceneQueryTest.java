@@ -365,6 +365,78 @@ public class AbstractLuceneQueryTest {
     }
 
 
+   public PQMatcher pq(final String field, final String... terms) {
+       return new PQMatcher(1f, field, 0, terms);
+   }
+
+   public PQMatcher pq(final float boost, final String field, final String... terms) {
+       return new PQMatcher(boost, field, 0, terms);
+   }
+
+   public PQMatcher pq(final String field, final int slop, final String... terms) {
+       return new PQMatcher(1f, field, slop, terms);
+   }
+
+   public PQMatcher pq(final float boost, final String field, final int slop, final String... terms) {
+       return new PQMatcher(boost, field, slop, terms);
+   }
+
+   class PQMatcher extends TypeSafeMatcher<Query> {
+       final float boost;
+       final String field;
+       final int slop;
+       final String[] terms;
+
+       public PQMatcher(final float boost, final String field, final int slop, final String... terms) {
+           super((boost == 1f) ? PhraseQuery.class : BoostQuery.class);
+           this.boost = boost;
+           this.field = field;
+           this.slop = slop;
+           this.terms = terms;
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+           description.appendText("PQ field=" + field + " slop=" + slop + " boost=" + boost
+                   + " terms=" + Arrays.toString(terms));
+       }
+
+       @Override
+       protected boolean matchesSafely(final Query query) {
+           final PhraseQuery pq;
+           if (query instanceof BoostQuery) {
+               final BoostQuery boostQuery = (BoostQuery) query;
+               if (boostQuery.getBoost() != boost) {
+                   return false;
+               }
+               if (!(boostQuery.getQuery() instanceof PhraseQuery)) {
+                   return false;
+               }
+               pq = (PhraseQuery) boostQuery.getQuery();
+           } else if (query instanceof PhraseQuery) {
+               if (boost != 1f) {
+                   return false;
+               }
+               pq = (PhraseQuery) query;
+           } else {
+               return false;
+           }
+           if (pq.getSlop() != slop) {
+               return false;
+           }
+           final Term[] pqTerms = pq.getTerms();
+           if (pqTerms.length != terms.length) {
+               return false;
+           }
+           for (int i = 0; i < terms.length; i++) {
+               if (!field.equals(pqTerms[i].field()) || !terms[i].equals(pqTerms[i].text())) {
+                   return false;
+               }
+           }
+           return true;
+       }
+   }
+
    class TQMatcher extends TypeSafeMatcher<Query> {
 
       final String field;

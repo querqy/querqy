@@ -32,11 +32,12 @@ import java.util.Objects;
 public class PhraseQuery extends Clause<BooleanParent>
         implements QuerqyQuery<BooleanParent>, BooleanClause, DisjunctionMaxClause {
 
+    private final String field;
     private final List<String> terms;
     private final int slop;
 
     public PhraseQuery(final BooleanParent parent, final Occur occur, final boolean generated,
-                       final List<String> terms, final int slop) {
+                       final String field, final List<String> terms, final int slop) {
         super(parent, occur, generated);
         if (terms == null || terms.isEmpty()) {
             throw new IllegalArgumentException("terms must not be null or empty");
@@ -44,8 +45,18 @@ public class PhraseQuery extends Clause<BooleanParent>
         if (slop < 0) {
             throw new IllegalArgumentException("slop must not be negative");
         }
+        this.field = field;
         this.terms = terms;
         this.slop = slop;
+    }
+
+    public PhraseQuery(final BooleanParent parent, final Occur occur, final boolean generated,
+                       final List<String> terms, final int slop) {
+        this(parent, occur, generated, null, terms, slop);
+    }
+
+    public String getField() {
+        return field;
     }
 
     public List<String> getTerms() {
@@ -65,41 +76,41 @@ public class PhraseQuery extends Clause<BooleanParent>
 
     @Override
     public PhraseQuery clone(final BooleanParent newParent) {
-        return new PhraseQuery(newParent, occur, generated, terms, slop);
+        return new PhraseQuery(newParent, occur, generated, field, terms, slop);
     }
 
     @Override
     public PhraseQuery clone(final BooleanParent newParent, final boolean newGenerated) {
-        return new PhraseQuery(newParent, occur, newGenerated, terms, slop);
+        return new PhraseQuery(newParent, occur, newGenerated, field, terms, slop);
     }
 
     // --- DisjunctionMaxClause ---
 
     @Override
     public DisjunctionMaxClause clone(final DisjunctionMaxQuery newParent, final boolean newGenerated) {
-        return new PhraseQuery(newParent, occur, newGenerated, terms, slop);
+        return new PhraseQuery(newParent, occur, newGenerated, field, terms, slop);
     }
 
     // --- BooleanClause ---
 
     @Override
     public BooleanClause clone(final BooleanQuery newParent) {
-        return new PhraseQuery(newParent, occur, generated, terms, slop);
+        return new PhraseQuery(newParent, occur, generated, field, terms, slop);
     }
 
     @Override
     public BooleanClause clone(final BooleanQuery newParent, final boolean newGenerated) {
-        return new PhraseQuery(newParent, occur, newGenerated, terms, slop);
+        return new PhraseQuery(newParent, occur, newGenerated, field, terms, slop);
     }
 
     @Override
     public BooleanClause clone(final BooleanQuery newParent, final Occur newOccur) {
-        return new PhraseQuery(newParent, newOccur, generated, terms, slop);
+        return new PhraseQuery(newParent, newOccur, generated, field, terms, slop);
     }
 
     @Override
     public BooleanClause clone(final BooleanQuery newParent, final Occur newOccur, final boolean newGenerated) {
-        return new PhraseQuery(newParent, newOccur, newGenerated, terms, slop);
+        return new PhraseQuery(newParent, newOccur, newGenerated, field, terms, slop);
     }
 
     @Override
@@ -108,19 +119,20 @@ public class PhraseQuery extends Clause<BooleanParent>
         if (!super.equals(obj)) return false;
         if (getClass() != obj.getClass()) return false;
         final PhraseQuery other = (PhraseQuery) obj;
-        return slop == other.slop && Objects.equals(terms, other.terms);
+        return slop == other.slop && Objects.equals(field, other.field) && Objects.equals(terms, other.terms);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + slop;
+        result = 31 * result + Objects.hashCode(field);
         result = 31 * result + Objects.hashCode(terms);
         return result;
     }
 
     @Override
     public String toString() {
-        return "PhraseQuery{terms=" + terms + ", slop=" + slop + ", occur=" + occur + "}";
+        return "PhraseQuery{field=" + field + ", terms=" + terms + ", slop=" + slop + ", occur=" + occur + "}";
     }
 }

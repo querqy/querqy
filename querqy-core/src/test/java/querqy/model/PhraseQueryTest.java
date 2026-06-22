@@ -42,6 +42,18 @@ public class PhraseQueryTest {
     }
 
     @Test
+    public void testFieldIsNullByDefault() {
+        final PhraseQuery pq = new PhraseQuery(null, SHOULD, true, TERMS, 0);
+        assertThat(pq.getField()).isNull();
+    }
+
+    @Test
+    public void testFieldIsSetWhenProvided() {
+        final PhraseQuery pq = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+        assertThat(pq.getField()).isEqualTo("title");
+    }
+
+    @Test
     public void testNullTermsThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> new PhraseQuery(null, SHOULD, true, null, 0));
@@ -72,6 +84,25 @@ public class PhraseQueryTest {
         assertThat(clonedPq.getSlop()).isEqualTo(1);
         assertThat(clonedPq.isGenerated()).isTrue();
         assertThat(clonedPq.occur).isEqualTo(SHOULD);
+    }
+
+    @Test
+    public void testClonePreservesField() {
+        final BooleanQuery boolParent = new BooleanQuery(null, SHOULD, false);
+        final PhraseQuery original = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+
+        assertThat(((PhraseQuery) original.clone(boolParent)).getField()).isEqualTo("title");
+        assertThat(((PhraseQuery) original.clone(boolParent, false)).getField()).isEqualTo("title");
+        assertThat(((PhraseQuery) original.clone(boolParent, MUST)).getField()).isEqualTo("title");
+        assertThat(((PhraseQuery) original.clone(boolParent, MUST, false)).getField()).isEqualTo("title");
+    }
+
+    @Test
+    public void testClonePreservesFieldForDmq() {
+        final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(null, SHOULD, false);
+        final PhraseQuery original = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+
+        assertThat(((PhraseQuery) original.clone(dmq, false)).getField()).isEqualTo("title");
     }
 
     @Test
@@ -116,6 +147,28 @@ public class PhraseQueryTest {
     }
 
     @Test
+    public void testEqualityWithSameField() {
+        final PhraseQuery pq1 = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+        final PhraseQuery pq2 = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+        assertEquals(pq1, pq2);
+        assertEquals(pq1.hashCode(), pq2.hashCode());
+    }
+
+    @Test
+    public void testInequalityDifferentField() {
+        final PhraseQuery pq1 = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+        final PhraseQuery pq2 = new PhraseQuery(null, SHOULD, true, "body", TERMS, 0);
+        assertNotEquals(pq1, pq2);
+    }
+
+    @Test
+    public void testInequalityFieldVsNoField() {
+        final PhraseQuery pq1 = new PhraseQuery(null, SHOULD, true, "title", TERMS, 0);
+        final PhraseQuery pq2 = new PhraseQuery(null, SHOULD, true, TERMS, 0);
+        assertNotEquals(pq1, pq2);
+    }
+
+    @Test
     public void testInequalityDifferentSlop() {
         final PhraseQuery pq1 = new PhraseQuery(null, SHOULD, true, TERMS, 1);
         final PhraseQuery pq2 = new PhraseQuery(null, SHOULD, true, TERMS, 2);
@@ -130,9 +183,9 @@ public class PhraseQueryTest {
     }
 
     @Test
-    public void testToStringContainsTermsAndSlop() {
-        final PhraseQuery pq = new PhraseQuery(null, SHOULD, true, TERMS, 3);
-        assertThat(pq.toString()).contains("laptop").contains("bag").contains("3");
+    public void testToStringContainsFieldTermsAndSlop() {
+        final PhraseQuery pq = new PhraseQuery(null, SHOULD, true, "title", TERMS, 3);
+        assertThat(pq.toString()).contains("title").contains("laptop").contains("bag").contains("3");
     }
 
     @Test
