@@ -36,6 +36,7 @@ import querqy.lucene.rewrite.BooleanQueryFactory.Clause;
 import querqy.lucene.rewrite.cache.TermQueryCache;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
+import querqy.model.BoostedPhraseQuery;
 import querqy.model.BoostedTerm;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.MatchAllQuery;
@@ -194,12 +195,32 @@ public class LuceneQueryBuilder extends AbstractNodeVisitor<LuceneQueryFactory<?
                 ? searchFieldsAndBoosting.generatedQueryFieldsAndBoostings
                 : searchFieldsAndBoosting.queryFieldsAndBoostings;
 
+        final String field = phraseQuery.getField();
+
+        if (field != null) {
+            // Specific field: use only the phrase-level boost; searchFieldsAndBoosting is ignored.
+            final Query pq = qb.createPhraseQuery(field, phraseText, slop);
+            if (pq == null) {
+                return null;
+            }
+            if (phraseQuery instanceof BoostedPhraseQuery) {
+                final float boost = ((BoostedPhraseQuery) phraseQuery).getBoost();
+                return boost != 1f ? LuceneQueryUtil.boost(pq, boost) : pq;
+            }
+            return pq;
+        }
+
+        // No specific field: expand across searchFieldsAndBoosting, multiplying by phrase boost if set.
+        final float phraseBoost = phraseQuery instanceof BoostedPhraseQuery
+                ? ((BoostedPhraseQuery) phraseQuery).getBoost()
+                : 1f;
+
         final List<Query> fieldQueries = new ArrayList<>(fieldBoostings.size());
         for (final Map.Entry<String, Float> entry : fieldBoostings.entrySet()) {
             final Query pq = qb.createPhraseQuery(entry.getKey(), phraseText, slop);
             if (pq != null) {
-                final float fieldBoost = entry.getValue() == null ? 1f : entry.getValue();
-                fieldQueries.add(LuceneQueryUtil.boost(pq, fieldBoost));
+                final float totalBoost = (entry.getValue() == null ? 1f : entry.getValue()) * phraseBoost;
+                fieldQueries.add(LuceneQueryUtil.boost(pq, totalBoost));
             }
         }
 
