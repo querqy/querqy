@@ -15,21 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
-import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.index.IndexReader;
+import querqy.CompoundCharSequence;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.Optional;
 
-/**
- * @author renekrie
- */
-public interface LuceneWordBreaker {
+public class SuffixWordGenerator implements WordGenerator {
 
-    List<CharSequence[]> breakWord(CharSequence word,
-                                   IndexReader indexReader,
-                                   int maxDecompoundExpansions,
-                                   boolean verifyCollation) throws IOException;
+    final CharSequence suffix;
+
+    public SuffixWordGenerator(final CharSequence suffix) {
+        if (suffix == null || suffix.length() == 0) {
+            throw new IllegalArgumentException("suffix with length > 0 expected");
+        }
+        this.suffix = suffix;
+    }
+
+    @Override
+    public Optional<CharSequence> generateModifier(final CharSequence reducedModifier) {
+        return Optional.of(new CompoundCharSequence(null, reducedModifier, suffix));
+    }
+
 }

@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
+import java.io.IOException;
 import java.util.List;
 
-public interface Morphology {
-    Compound[] suggestCompounds(CharSequence left, CharSequence right);
+public interface WordBreaker {
 
-    List<WordBreak> suggestWordBreaks(CharSequence word, int minBreakLength);
+    List<CharSequence[]> breakWord(CharSequence word,
+                                   TermCorpus termCorpus,
+                                   int maxDecompoundExpansions,
+                                   boolean verifyCollation) throws IOException;
 }

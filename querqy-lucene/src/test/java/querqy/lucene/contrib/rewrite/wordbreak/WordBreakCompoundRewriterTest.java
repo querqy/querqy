@@ -17,16 +17,10 @@
  */
 package querqy.lucene.contrib.rewrite.wordbreak;
 
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.spell.CombineSuggestion;
-import org.apache.lucene.search.spell.SuggestWord;
-import org.apache.lucene.search.spell.WordBreakSpellChecker;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.EmptySearchEngineRequestAdapter;
@@ -34,20 +28,22 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.RewriterOutput;
-import querqy.rewrite.contrib.ShingleRewriter;
+import querqy.rewrite.contrib.wordbreak.Compounder;
+import querqy.rewrite.contrib.wordbreak.TermCorpus;
+import querqy.rewrite.contrib.wordbreak.WordBreaker;
+import querqy.rewrite.contrib.wordbreak.WordBreakCompoundRewriter;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static querqy.QuerqyMatchers.*;
 
@@ -55,10 +51,13 @@ import static querqy.QuerqyMatchers.*;
 public class WordBreakCompoundRewriterTest {
 
     @Mock
-    WordBreakSpellChecker wordBreakSpellChecker;
+    WordBreaker wordBreaker;
 
     @Mock
-    LeafReader indexReader;
+    Compounder compounder;
+
+    @Mock
+    TermCorpus termCorpus;
 
     private static final TrieMap<Boolean> NO_TRIGGERWORDS = new TrieMap<>();
     private static final TrieMap<Boolean> NO_PROTECTEDWORDS = new TrieMap<>();
@@ -66,17 +65,14 @@ public class WordBreakCompoundRewriterTest {
     @Test
     public void testNoDecompoundForSingleToken() throws IOException {
 
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", false);
-
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
@@ -87,21 +83,17 @@ public class WordBreakCompoundRewriterTest {
                         dmq(
                                 term("w1w2", false)
                         )
-
                 )
         );
-
     }
 
     @Test
     public void testDecompoundSingleTokenIntoOneTwoTokenAlternative() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2")});
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}));
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", false);
@@ -118,9 +110,7 @@ public class WordBreakCompoundRewriterTest {
                                         dmq(must(), term("w1", true)),
                                         dmq(must(), term("w2", true))
                                 )
-
                         )
-
                 )
         );
     }
@@ -129,9 +119,7 @@ public class WordBreakCompoundRewriterTest {
     public void testThatGeneratedTermIsNotSplit() {
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", true);
@@ -144,28 +132,18 @@ public class WordBreakCompoundRewriterTest {
                 bq(
                         dmq(
                                 term("w1w2", true)
-
                         )
-
                 )
         );
     }
 
     @Test
     public void testThatGeneratedSecondTermIsNotCompounded() throws IOException {
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        // compound of terms at idx 0+1
-//        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-//                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
-
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
@@ -179,32 +157,21 @@ public class WordBreakCompoundRewriterTest {
                 bq(
                         dmq(
                                 term("w1", false)
-
                         ),
                         dmq(
                                 term("w2", true)
-
                         )
-
                 )
         );
     }
 
     @Test
     public void testThatGeneratedFirstTermIsNotCompounded() throws IOException {
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        // compound of terms at idx 0+1
-//        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-//                .thenReturn(new  CombineSuggestion[] { combineSuggestion("w1w2", 0, 1) });
-
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", true);
@@ -218,32 +185,26 @@ public class WordBreakCompoundRewriterTest {
                 bq(
                         dmq(
                                 term("w1", true)
-
                         ),
                         dmq(
                                 term("w2", false)
-
                         )
-
                 )
         );
     }
 
     @Test
     public void testThatCompoundingIfGeneratedIsMixedIn() throws IOException {
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        // compound of terms at idx 0+1
-        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
-
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), anyBoolean()))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w1w2", terms));
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
@@ -259,32 +220,25 @@ public class WordBreakCompoundRewriterTest {
                         dmq(
                                 term("w1", false),
                                 term("w1w2", true)
-
                         ),
                         dmq(
                                 term("w2g", true)
-
                         ),
                         dmq(
                                 term("w2", false),
                                 term("w1w2", true)
-
                         )
-
-
                 )
         );
     }
 
     @Test
     public void testDecompoundSingleTokenIntoTwoTwoTokenAlternatives() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2"), decompoundSuggestion("w", "1w2")});
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}, new CharSequence[]{"w", "1w2"}));
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1w2", false);
@@ -305,24 +259,18 @@ public class WordBreakCompoundRewriterTest {
                                         dmq(must(), term("w", true)),
                                         dmq(must(), term("1w2", true))
                                 )
-
                         )
-
                 )
         );
     }
 
-
     @Test
     public void testThatOnlyMaxExpansionsAreApplied() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w3", "w4"), decompoundSuggestion("w", "3w4"),
-                        decompoundSuggestion("w3w", "4")});
+        when(wordBreaker.breakWord(any(), any(), eq(2), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w3", "w4"}, new CharSequence[]{"w", "3w4"}));
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 2, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 2, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w3w4", false);
@@ -343,27 +291,23 @@ public class WordBreakCompoundRewriterTest {
                                         dmq(must(), term("w", true)),
                                         dmq(must(), term("3w4", true))
                                 )
-
                         )
-
                 )
         );
     }
 
     @Test
     public void testCompoundTwoInputTokensOnly() throws IOException {
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        // compound of terms at idx 0+1
-        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(false)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w1w2", terms));
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
@@ -383,29 +327,23 @@ public class WordBreakCompoundRewriterTest {
                                 term("w2", false),
                                 term("w1w2", true)
                         )
-
                 )
         );
     }
 
     @Test
     public void testNoCompoundForTwoInputTokensOnly() throws IOException {
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenReturn(new CombineSuggestion[]{});
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
         addTerm(query, "w2", false);
-
 
         ExpandedQuery expandedQuery = new ExpandedQuery(query);
 
@@ -419,27 +357,27 @@ public class WordBreakCompoundRewriterTest {
                         dmq(
                                 term("w2", false)
                         )
-
                 )
         );
     }
 
     @Test
     public void testAlwaysAddReverseCompoundsForTwoWordInput() throws IOException {
-
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w1", "w2"), new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
-        suggestions.put(Arrays.asList("w2", "w1"), new CombineSuggestion[]{combineSuggestion("w2w1", 0, 1)});
-        setupWordBreakMockWithCombinations(suggestions);
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(false)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w1w2", terms));
+                });
+        when(compounder.combine(any(), any(), eq(true)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w2w1", terms));
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, true, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, true, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
@@ -456,13 +394,11 @@ public class WordBreakCompoundRewriterTest {
                                 term("w1w2", true),
                                 term("w2w1", true)
                         ),
-
                         dmq(
                                 term("w2", false),
                                 term("w1w2", true),
                                 term("w2w1", true)
                         )
-
                 )
         );
     }
@@ -472,18 +408,18 @@ public class WordBreakCompoundRewriterTest {
         TrieMap<Boolean> triggerWords = new TrieMap<>();
         triggerWords.put("trigger", true);
 
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
-        setupWordBreakMockWithCombinations(suggestions);
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(false)))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(true)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w3w1", terms));
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, triggerWords, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, triggerWords, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
@@ -504,7 +440,6 @@ public class WordBreakCompoundRewriterTest {
                                 term("w3", false),
                                 term("w3w1", true)
                         )
-
                 )
         );
     }
@@ -515,18 +450,18 @@ public class WordBreakCompoundRewriterTest {
         triggerWords.put("Trigger_Upper", true);
         triggerWords.put("trigger_lower", true);
 
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
-        setupWordBreakMockWithCombinations(suggestions);
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(false)))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(true)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w3w1", terms));
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, triggerWords, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, triggerWords, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w1", false);
@@ -547,7 +482,6 @@ public class WordBreakCompoundRewriterTest {
                                 term("w3", false),
                                 term("w3w1", true)
                         )
-
                 )
         );
 
@@ -571,7 +505,6 @@ public class WordBreakCompoundRewriterTest {
                         dmq(
                                 term("w3", false)
                         )
-
                 )
         );
 
@@ -595,7 +528,6 @@ public class WordBreakCompoundRewriterTest {
                         dmq(
                                 term("w3", false)
                         )
-
                 )
         );
     }
@@ -605,18 +537,18 @@ public class WordBreakCompoundRewriterTest {
         TrieMap<Boolean> triggerWords = new TrieMap<>();
         triggerWords.put("trigger_lower", true);
 
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
-        setupWordBreakMockWithCombinations(suggestions);
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(false)))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(true)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w3w1", terms));
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, true, false, triggerWords, 5, false,
+                wordBreaker, compounder, termCorpus, true, false, triggerWords, 5, false,
                 NO_PROTECTEDWORDS);
 
         Query query1 = new Query();
@@ -638,7 +570,6 @@ public class WordBreakCompoundRewriterTest {
                                 term("w3", false),
                                 term("w3w1", true)
                         )
-
                 )
         );
 
@@ -661,7 +592,6 @@ public class WordBreakCompoundRewriterTest {
                                 term("w3", false),
                                 term("w3w1", true)
                         )
-
                 )
         );
     }
@@ -671,20 +601,26 @@ public class WordBreakCompoundRewriterTest {
         TrieMap<Boolean> triggerWords = new TrieMap<>();
         triggerWords.put("trigger", true);
 
-        // don't de-compound
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{new SuggestWord[]{}});
-
-        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w0", "w1"), new CombineSuggestion[]{combineSuggestion("w0w1", 0, 1)});
-        suggestions.put(Arrays.asList("w3", "w1"), new CombineSuggestion[]{combineSuggestion("w3w1", 0, 1)});
-        suggestions.put(Arrays.asList("w3", "w4"), new CombineSuggestion[]{combineSuggestion("w3w4", 0, 1)});
-        setupWordBreakMockWithCombinations(suggestions);
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), anyBoolean()))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    boolean reverse = invocation.getArgument(2);
+                    String left = terms[0].getValue().toString();
+                    String right = terms[1].getValue().toString();
+                    if ("w0".equals(left) && "w1".equals(right) && !reverse) {
+                        return List.of(new Compounder.CompoundTerm("w0w1", terms));
+                    } else if ("w1".equals(left) && "w3".equals(right) && reverse) {
+                        return List.of(new Compounder.CompoundTerm("w3w1", terms));
+                    } else if ("w3".equals(left) && "w4".equals(right) && !reverse) {
+                        return List.of(new Compounder.CompoundTerm("w3w4", terms));
+                    }
+                    return Collections.emptyList();
+                });
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, triggerWords, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, triggerWords, 5, false,
                 NO_PROTECTEDWORDS);
         Query query = new Query();
         addTerm(query, "w0", false);
@@ -722,109 +658,20 @@ public class WordBreakCompoundRewriterTest {
     }
 
     @Test
-    public void testThatDecompoundRespectsLowerCaseInputFalse() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{});
-
-        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
-                NO_PROTECTEDWORDS);
-        Query query = new Query();
-        addTerm(query, "W1w2", false);
-
-        ExpandedQuery expandedQuery = new ExpandedQuery(query);
-
-        rewriter.rewrite(expandedQuery, null);
-
-        verify(wordBreakSpellChecker).suggestWordBreaks(eq(new Term("field1", "W1w2")), anyInt(), any(), any(), any());
-
-    }
-
-    @Test
-    public void testThatDecompoundRespectsLowerCaseInputTrue() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{});
-
-        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", true),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", true),
-                indexReader, true, false, NO_TRIGGERWORDS, 5, false,
-                NO_PROTECTEDWORDS);
-        Query query = new Query();
-        addTerm(query, "W1w2", false);
-
-        ExpandedQuery expandedQuery = new ExpandedQuery(query);
-
-        rewriter.rewrite(expandedQuery, null);
-
-        verify(wordBreakSpellChecker).suggestWordBreaks(eq(new Term("field1", "w1w2")), anyInt(), any(), any(), any());
-
-    }
-
-    @Test
-    public void testThatCompoundRespectsLowerCaseInputTrue() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{});
-
-        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", true),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", true),
-                indexReader, true, false, NO_TRIGGERWORDS, 5, false,
-                NO_PROTECTEDWORDS);
-        Query query = new Query();
-        addTerm(query, "W1", false);
-        addTerm(query, "W2", false);
-
-        ExpandedQuery expandedQuery = new ExpandedQuery(query);
-
-        rewriter.rewrite(expandedQuery, null);
-
-        verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[]{
-                new Term("field1", "w1"), new Term("field1", "w2")}), anyInt(), any(), any());
-
-    }
-
-    @Test
-    public void testThatCompoundRespectsLowerCaseInputFalse() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{});
-
-        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
-                NO_PROTECTEDWORDS);
-        Query query = new Query();
-        addTerm(query, "W1", false);
-        addTerm(query, "W2", false);
-
-        ExpandedQuery expandedQuery = new ExpandedQuery(query);
-
-        rewriter.rewrite(expandedQuery, null);
-
-        verify(wordBreakSpellChecker).suggestWordCombinations(eq(new Term[]{
-                new Term("field1", "W1"), new Term("field1", "W2")}), anyInt(), any(), any());
-
-    }
-
-    @Test
     public void testCompoundingDoesNotCreateProtectedTerm() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{});
-
-        Map<List<String>, CombineSuggestion[]> suggestions = new HashMap<>();
-        suggestions.put(Arrays.asList("w1", "w2"), new CombineSuggestion[]{combineSuggestion("w1w2", 0, 1)});
-        setupWordBreakMockWithCombinations(suggestions);
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(Collections.emptyList());
+        when(compounder.combine(any(), any(), eq(false)))
+                .thenAnswer(invocation -> {
+                    querqy.model.Term[] terms = invocation.getArgument(0);
+                    return List.of(new Compounder.CompoundTerm("w1w2", terms));
+                });
 
         TrieMap<Boolean> protWord = new TrieMap<>();
         protWord.put("w1w2", true);
 
         WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, true, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, true, false, NO_TRIGGERWORDS, 5, false,
                 protWord);
 
         Query query = new Query();
@@ -849,8 +696,8 @@ public class WordBreakCompoundRewriterTest {
 
     @Test
     public void testThatProtectedTermIsNotSplit() throws IOException {
-        when(wordBreakSpellChecker.suggestWordBreaks(any(), anyInt(), any(), any(), any()))
-                .thenReturn(new SuggestWord[][]{decompoundSuggestion("w1", "w2")});
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}));
 
         WordBreakCompoundRewriter rewriterWithNoProtectedWords = rewriter(NO_PROTECTEDWORDS);
 
@@ -890,23 +737,16 @@ public class WordBreakCompoundRewriterTest {
         final ExpandedQuery query = new ExpandedQuery(userQuery);
 
         final WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, NO_TRIGGERWORDS, 5, false,
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
                 NO_PROTECTEDWORDS);
 
         final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
         assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
-
     }
 
     private WordBreakCompoundRewriter rewriter(TrieMap<Boolean> protectedTerms) {
-        return new WordBreakCompoundRewriter(
-                new SpellCheckerWordBreaker(wordBreakSpellChecker, "field1", false),
-                new SpellCheckerCompounder(wordBreakSpellChecker, "field1", false),
-                indexReader, false, false, new TrieMap<>(), 5, false,
-                protectedTerms
-        );
+        return new WordBreakCompoundRewriter(wordBreaker, compounder, termCorpus,
+                false, false, new TrieMap<>(), 5, false, protectedTerms);
     }
 
     private Query query(String term) {
@@ -924,28 +764,5 @@ public class WordBreakCompoundRewriterTest {
         query.addClause(dmq);
         querqy.model.Term term = new querqy.model.Term(dmq, field, value, isGenerated);
         dmq.addClause(term);
-    }
-
-    private void setupWordBreakMockWithCombinations(Map<List<String>, CombineSuggestion[]> suggestions) throws IOException {
-        when(wordBreakSpellChecker.suggestWordCombinations(any(), anyInt(), any(), any()))
-                .thenAnswer((Answer<CombineSuggestion[]>) invocation -> {
-                    Term[] luceneTerms = (Term[]) invocation.getArguments()[0];
-                    CombineSuggestion[] combineSuggestions = suggestions.get(Arrays.stream(luceneTerms).map(Term::text).collect(Collectors.toList()));
-                    return combineSuggestions == null ? new CombineSuggestion[0] : combineSuggestions;
-                });
-    }
-
-    private static CombineSuggestion combineSuggestion(String combination, int... indexes) {
-        return new CombineSuggestion(suggestWord(combination), indexes);
-    }
-
-    private static SuggestWord[] decompoundSuggestion(String... parts) {
-        return Arrays.stream(parts).map(WordBreakCompoundRewriterTest::suggestWord).toArray(SuggestWord[]::new);
-    }
-
-    private static SuggestWord suggestWord(String suggestion) {
-        SuggestWord suggestWord = new SuggestWord();
-        suggestWord.string = suggestion;
-        return suggestWord;
     }
 }

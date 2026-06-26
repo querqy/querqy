@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
 import querqy.CharSequenceUtil;
 
@@ -24,10 +24,10 @@ import java.util.Objects;
 
 public class Suggestion implements Comparable<Suggestion> {
 
-    final CharSequence[] sequence;
-    final float score;
+    public final CharSequence[] sequence;
+    public final float score;
 
-    Suggestion(final CharSequence[] sequence, final float score) {
+    public Suggestion(final CharSequence[] sequence, final float score) {
         this.sequence = sequence;
         this.score = score;
     }

@@ -15,17 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
-import org.apache.lucene.index.IndexReader;
 import querqy.model.Term;
 
 import java.io.IOException;
 import java.util.List;
 
-public interface LuceneCompounder {
+public interface Compounder {
 
-    List<CompoundTerm> combine(Term[] terms, final IndexReader indexReader, boolean reverse) throws IOException;
+    List<CompoundTerm> combine(Term[] terms, TermCorpus termCorpus, boolean reverse) throws IOException;
 
     class CompoundTerm {
 
@@ -36,6 +35,5 @@ public interface LuceneCompounder {
             this.value = value;
             this.originalTerms = originalTerms;
         }
-
     }
 }

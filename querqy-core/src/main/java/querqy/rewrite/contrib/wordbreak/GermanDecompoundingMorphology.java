@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
 import java.util.Collections;
 
@@ -39,13 +39,13 @@ public abstract class GermanDecompoundingMorphology {
      */
 
     // count of the most frequent strategy (no morphological change)
-    final static float NORM_PRIOR = 22759f;
+    public final static float NORM_PRIOR = 22759f;
 
     final static float PRIOR_0 = 1f;
 
     final static float PRIOR_PLUS_E = 87f / NORM_PRIOR;
     final static float PRIOR_PLUS_N = 5307f / NORM_PRIOR;
-    final static float PRIOR_PLUS_S = 9637f / NORM_PRIOR;
+    public final static float PRIOR_PLUS_S = 9637f / NORM_PRIOR;
     final static float PRIOR_PLUS_UMLAUT_E = 73f / NORM_PRIOR;
 
     final static float PRIOR_PLUS_EN = 4316f / NORM_PRIOR;
@@ -72,7 +72,7 @@ public abstract class GermanDecompoundingMorphology {
     // -us +a
     final static float PRIOR_MINUS_UM_PLUS_A = 255f / NORM_PRIOR;
 
-    static final WordGenerator GENERATOR_NOOP = NoopWordGenerator.INSTANCE;
+    public static final WordGenerator GENERATOR_NOOP = NoopWordGenerator.INSTANCE;
     static final WordGenerator GENERATOR_A = new SuffixWordGenerator("a");
     static final WordGenerator GENERATOR_E = new SuffixWordGenerator("e");
     static final WordGenerator GENERATOR_EN = new SuffixWordGenerator("en");

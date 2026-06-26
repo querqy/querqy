@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
+import querqy.rewrite.contrib.wordbreak.*;
 
 public class GermanUmlautCompoundingWordGeneratorTest {
     @Test

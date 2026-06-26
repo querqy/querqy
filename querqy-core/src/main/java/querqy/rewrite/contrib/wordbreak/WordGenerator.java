@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
 import java.util.Optional;
 
@@ -35,6 +35,4 @@ public interface WordGenerator {
      * @return An optional modifier word.
      */
     Optional<CharSequence> generateModifier(CharSequence reducedModifier);
-
-
 }

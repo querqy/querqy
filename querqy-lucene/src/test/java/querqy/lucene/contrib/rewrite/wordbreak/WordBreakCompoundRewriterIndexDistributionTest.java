@@ -37,7 +37,9 @@ import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
+import querqy.lucene.LuceneTermCorpus;
 import querqy.model.Query;
+import querqy.rewrite.contrib.wordbreak.WordBreakCompoundRewriterFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -99,8 +101,10 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
             final IndexReader reader = DirectoryReader.open(directory);
 
             try {
-                rewritten = new ClassicWordBreakCompoundRewriterFactory("WordBreakCompoundRewriter", () -> reader, "dict",
-                        false, 1, 2, 1, Collections.emptyList(), false, 2, true, Collections.emptyList())
+                rewritten = new WordBreakCompoundRewriterFactory("WordBreakCompoundRewriter",
+                        new LuceneTermCorpus(() -> reader, "dict"),
+                        false, 1, 1, Collections.emptyList(), false, 2, true, Collections.emptyList(),
+                        "DEFAULT", "DEFAULT")
                         .createRewriter(expandedQuery, new EmptySearchEngineRequestAdapter())
                         .rewrite(expandedQuery, null).getExpandedQuery();
             } finally {

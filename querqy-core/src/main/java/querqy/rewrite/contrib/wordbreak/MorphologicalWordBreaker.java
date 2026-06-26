@@ -15,37 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.util.BytesRef;
 import querqy.LowerCaseCharSequence;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 
-public class MorphologicalWordBreaker implements LuceneWordBreaker {
+public class MorphologicalWordBreaker implements WordBreaker {
 
     public static final float DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN = 0.8f;
     private final int minBreakLength;
     private final int maxEvaluations;
     private final boolean lowerCaseInput;
-    private final String dictionaryField;
     private final int minSuggestionFrequency;
     final float weightDfObservation;
     private final Morphology morphology;
 
-    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
+    public MorphologicalWordBreaker(final Morphology morphology,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations) {
-        this(morphology, dictionaryField, lowerCaseInput, minSuggestionFrequency, minBreakLength, maxEvaluations,
+        this(morphology, lowerCaseInput, minSuggestionFrequency, minBreakLength, maxEvaluations,
                 DEFAULT_WEIGHT_MORPHOLOGICAL_PATTERN);
     }
 
-    public MorphologicalWordBreaker(final Morphology morphology, final String dictionaryField,
+    public MorphologicalWordBreaker(final Morphology morphology,
                                     final boolean lowerCaseInput, final int minSuggestionFrequency,
                                     final int minBreakLength, final int maxEvaluations,
                                     final float weightMorphologicalPattern) {
@@ -53,7 +48,6 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
         this.minBreakLength = minBreakLength;
         this.maxEvaluations = maxEvaluations;
         this.lowerCaseInput = lowerCaseInput;
-        this.dictionaryField = dictionaryField;
         this.minSuggestionFrequency = minSuggestionFrequency;
 
         weightDfObservation = 1f - weightMorphologicalPattern;
@@ -64,26 +58,26 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
 
     @Override
     public List<CharSequence[]> breakWord(final CharSequence word,
-                                          final IndexReader indexReader,
+                                          final TermCorpus termCorpus,
                                           final int maxDecompoundExpansions,
-                                          final boolean verifyCollation) {
+                                          final boolean verifyCollation) throws IOException {
 
         if (maxDecompoundExpansions < 1) {
             return Collections.emptyList();
         }
 
         final Collector collector = new Collector(minSuggestionFrequency, maxDecompoundExpansions, maxEvaluations,
-                verifyCollation, indexReader, dictionaryField, weightDfObservation);
+                verifyCollation, termCorpus, weightDfObservation);
 
-        collectSuggestions(word, indexReader, collector);
+        collectSuggestions(word, termCorpus, collector);
 
         return collector.flushResults();
 
     }
 
 
-    private void collectSuggestions(final CharSequence word, final IndexReader indexReader,
-                                    final Collector collector) throws UncheckedIOException {
+    private void collectSuggestions(final CharSequence word, final TermCorpus termCorpus,
+                                    final Collector collector) {
         final int termLength = Character.codePointCount(word, 0, word.length());
         if (termLength < minBreakLength) {
             return;
@@ -92,21 +86,13 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
         final CharSequence input = lowerCaseInput && (!(word instanceof LowerCaseCharSequence))
                 ? new LowerCaseCharSequence(word) : word;
 
-
         // the original left term can be longer than rightOfs because the compounding might have removed characters
         // TODO: find min left size (based on linking morphemes and minBreakLength)
         // Generation of suggestions happens here -
         final List<WordBreak> suggestedWordBreaks = morphology.suggestWordBreaks(input, minBreakLength);
 
         for (final WordBreak suggestedWordBreak : suggestedWordBreaks) {
-            //iterate through break suggest
-            final Term rightTerm = new Term(dictionaryField, new BytesRef(suggestedWordBreak.originalRight));
-            final int rightDf;
-            try {
-                rightDf = indexReader.docFreq(rightTerm);
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            final int rightDf = termCorpus.docFreq(suggestedWordBreak.originalRight);
 
             if (rightDf < minSuggestionFrequency) {
                 continue;
@@ -116,7 +102,6 @@ public class MorphologicalWordBreaker implements LuceneWordBreaker {
                 final Collector.CollectionState collectionState = collector.collect(
                         suggestion.sequence[0],
                         suggestedWordBreak.originalRight,
-                        rightTerm,
                         rightDf,
                         suggestion.score);
                 if (collectionState.isMaxEvaluationsReached()) {

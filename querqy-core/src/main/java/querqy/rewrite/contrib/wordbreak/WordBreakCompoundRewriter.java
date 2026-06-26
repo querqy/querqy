@@ -15,9 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
-import org.apache.lucene.index.IndexReader;
 import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
@@ -45,18 +44,17 @@ import java.util.Objects;
 
 public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
-    private final LuceneWordBreaker wordBreaker;
-    private final LuceneCompounder compounder;
-    private final IndexReader indexReader;
+    private final WordBreaker wordBreaker;
+    private final Compounder compounder;
+    private final TermCorpus termCorpus;
     private final boolean lowerCaseInput;
 
-    // We are not using this as a map but as a kind of a set to look up CharSequences quickly
+    // We are not using this as a map but as a kind of set to look up CharSequences quickly
     private final TrieMap<Boolean> reverseCompoundTriggerWords;
 
     private ArrayDeque<Term> previousTerms = null;
     private ArrayDeque<Term> termsToDelete = null;
 
-    //
     private List<Node> nodesToAdd = null;
 
     private final boolean alwaysAddReverseCompounds;
@@ -69,16 +67,16 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
     /**
      * @param wordBreaker The word breaker to use
      * @param compounder The compounder to use
-     * @param indexReader The index reader
-     * @param lowerCaseInput Iff true, lowercase input before matching it against the dictionary field.
+     * @param termCorpus The term corpus for dictionary lookups
+     * @param lowerCaseInput Iff true, lowercase input before matching it against the term corpus.
      * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
      * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
      * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
-     * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in the corpus after decompounding
      * @param protectedWords The "false-positive" set of terms that should never be split or be result of a combination
      */
-    public WordBreakCompoundRewriter(final LuceneWordBreaker wordBreaker, final LuceneCompounder compounder,
-                                     final IndexReader indexReader,
+    public WordBreakCompoundRewriter(final WordBreaker wordBreaker, final Compounder compounder,
+                                     final TermCorpus termCorpus,
                                      final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
                                      final int maxDecompoundExpansions, final boolean verifyDecompoundCollation,
@@ -90,12 +88,12 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
         this.wordBreaker = wordBreaker;
         this.compounder = compounder;
+        this.termCorpus = termCorpus;
 
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;
         this.reverseCompoundTriggerWords = reverseCompoundTriggerWords;
         this.maxDecompoundExpansions = maxDecompoundExpansions;
         this.verifyDecompoundCollation = verifyDecompoundCollation;
-        this.indexReader = indexReader;
         this.lowerCaseInput = lowerCaseInput;
         this.protectedWords = protectedWords;
     }
@@ -193,7 +191,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         // determine the nodesToAdd based on the term
         try {
 
-            for (final CharSequence[] decompounded : wordBreaker.breakWord(term, indexReader, maxDecompoundExpansions,
+            for (final CharSequence[] decompounded : wordBreaker.breakWord(term, termCorpus, maxDecompoundExpansions,
                     verifyDecompoundCollation)) {
 
                 if (decompounded != null && decompounded.length > 0) {
@@ -256,7 +254,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
     private void addCompounds(final Term[] terms, final boolean reverse) throws IOException {
 
-        for (final LuceneCompounder.CompoundTerm compoundTerm : compounder.combine(terms, indexReader, reverse)) {
+        for (final Compounder.CompoundTerm compoundTerm : compounder.combine(terms, termCorpus, reverse)) {
             if (!isProtectedWord(compoundTerm.value)) {
                 for (final Term sibling: compoundTerm.originalTerms) {
                     nodesToAdd.add(new Term(sibling.getParent(), sibling.getField(), compoundTerm.value, true));
