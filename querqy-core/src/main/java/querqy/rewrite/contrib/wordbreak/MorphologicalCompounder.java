@@ -15,34 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
-import org.apache.lucene.index.IndexReader;
 import querqy.model.Term;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static querqy.lucene.LuceneQueryUtil.toLuceneTerm;
-
-public class MorphologicalCompounder implements LuceneCompounder {
+public class MorphologicalCompounder implements Compounder {
 
     private static final int DEFAULT_MAX_COMPOUND_EXPANSIONS = 10;
-    private final String dictionaryField;
     private final boolean lowerCaseInput;
     private final int minSuggestionFrequency;
-    private final Morphology morphology;// move to constructor
+    private final Morphology morphology;
     private final int maxCompoundExpansions;
 
 
     public MorphologicalCompounder(final Morphology morphology,
-                                   final String dictionaryField,
                                    final boolean lowerCaseInput,
                                    final int minSuggestionFrequency,
                                    final int maxCompoundExpansions) {
-        this.dictionaryField = dictionaryField;
         this.lowerCaseInput = lowerCaseInput;
         this.minSuggestionFrequency = minSuggestionFrequency;
         this.morphology = morphology;
@@ -50,15 +43,14 @@ public class MorphologicalCompounder implements LuceneCompounder {
     }
 
     public MorphologicalCompounder(final Morphology morphology,
-                                   final String dictionaryField,
                                    final boolean lowercaseInput,
                                    final int minSuggestionFrequency) {
-        this(morphology, dictionaryField, lowercaseInput, minSuggestionFrequency, DEFAULT_MAX_COMPOUND_EXPANSIONS);
+        this(morphology, lowercaseInput, minSuggestionFrequency, DEFAULT_MAX_COMPOUND_EXPANSIONS);
     }
 
 
     @Override
-    public List<CompoundTerm> combine(final Term[] terms, final IndexReader indexReader, final boolean reverse) {
+    public List<CompoundTerm> combine(final Term[] terms, final TermCorpus termCorpus, final boolean reverse) throws IOException {
         if (terms.length < 2) {
             return Collections.emptyList();
         }
@@ -77,16 +69,7 @@ public class MorphologicalCompounder implements LuceneCompounder {
                 .sorted(Comparator.reverseOrder())
                 .limit(maxCompoundExpansions)
                 .map(compound -> new CompoundTerm(compound.compound, terms))
-                .filter(compound -> {
-                    final org.apache.lucene.index.Term compoundTerm = toLuceneTerm(dictionaryField, compound.value, false);
-                    final int compoundDf;
-                    try {
-                        compoundDf = indexReader.docFreq(compoundTerm);
-                    } catch (final IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                    return (compoundDf >= minSuggestionFrequency);
-                })
+                .filter(compound -> termCorpus.docFreq(compound.value) >= minSuggestionFrequency)
                 .collect(Collectors.toList());
     }
 }

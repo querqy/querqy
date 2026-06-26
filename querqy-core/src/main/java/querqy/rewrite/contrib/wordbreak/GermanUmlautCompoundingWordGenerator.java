@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
 import querqy.CompoundCharSequence;
 
@@ -61,11 +61,8 @@ public class GermanUmlautCompoundingWordGenerator implements WordGenerator {
                     reducedModifier.subSequence(1, reducedModifier.length())));
         }
 
-
         return Optional.of(
                 new CompoundCharSequence(null, reducedModifier.subSequence(0, position), replacement,
                         reducedModifier.subSequence(position + 1, reducedModifier.length()), suffix));
-
-
     }
 }

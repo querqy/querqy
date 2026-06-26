@@ -15,74 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
-class Compound implements Comparable<Compound> {
-    final CharSequence[] terms;
-    final CharSequence compound;
-    final float probability;
-
-    public Compound(final CharSequence[] terms, final CharSequence compound, final float probability) {
-        this.terms = terms;
-        this.compound = compound;
-        this.probability = probability;
-    }
-
-
-    @Override
-    public int compareTo(final Compound other) {
-        if (other == this) {
-            return 0;
-        }
-        final int c = Float.compare(probability, other.probability); // greater is better
-        if (c == 0) {
-            return Integer.compare(compound.length(), other.compound.length()); // shorter is better
-        }
-        return c;
-    }
-}
-
-class WordBreak {
-    public final CharSequence originalLeft;
-    public final CharSequence originalRight;
-    public final List<Suggestion> suggestions;
-
-    WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<Suggestion> suggestions) {
-        this.originalLeft = originalLeft;
-        this.originalRight = originalRight;
-        this.suggestions = suggestions;
-    }
-
-    @Override
-    public String toString() {
-        return "WordBreak{" +
-                "originalLeft=" + originalLeft +
-                ", originalRight=" + originalRight +
-                ", suggestions=" + suggestions +
-                '}';
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final WordBreak wordBreak = (WordBreak) o;
-        return Objects.equals(originalLeft, wordBreak.originalLeft) && Objects.equals(originalRight, wordBreak.originalRight) && Objects.equals(suggestions, wordBreak.suggestions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(originalLeft, originalRight, suggestions);
-    }
-}
 
 public class SuffixGroupMorphology implements Morphology {
 
@@ -91,13 +31,13 @@ public class SuffixGroupMorphology implements Morphology {
     private final Function<Float, SuffixGroup> compoundingMorphemeFactory;
 
 
-    SuffixGroupMorphology(final Function<Float, SuffixGroup> wordBreakMorphemeFactory,
+    public SuffixGroupMorphology(final Function<Float, SuffixGroup> wordBreakMorphemeFactory,
                           final Function<Float, SuffixGroup> compoundingMorphemeFactory) {
         this.morphemeFactory = wordBreakMorphemeFactory;
         this.compoundingMorphemeFactory = compoundingMorphemeFactory;
     }
 
-    SuffixGroupMorphology(final Function<Float, SuffixGroup> morphemeFactory) {
+    public SuffixGroupMorphology(final Function<Float, SuffixGroup> morphemeFactory) {
         this(morphemeFactory, morphemeFactory);
     }
 

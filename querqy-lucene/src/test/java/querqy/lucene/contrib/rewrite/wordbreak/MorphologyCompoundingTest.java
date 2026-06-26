@@ -27,7 +27,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
-import static querqy.lucene.contrib.rewrite.wordbreak.GermanDecompoundingMorphology.GENERATOR_NOOP;
+import static querqy.rewrite.contrib.wordbreak.GermanDecompoundingMorphology.GENERATOR_NOOP;
+import querqy.rewrite.contrib.wordbreak.*;
 
 public class MorphologyCompoundingTest {
 

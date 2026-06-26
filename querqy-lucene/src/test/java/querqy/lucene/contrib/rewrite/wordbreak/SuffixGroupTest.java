@@ -25,6 +25,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import querqy.rewrite.contrib.wordbreak.*;
 
 public class SuffixGroupTest {
     private static final float WEIGHT_PATTERN = 0f;

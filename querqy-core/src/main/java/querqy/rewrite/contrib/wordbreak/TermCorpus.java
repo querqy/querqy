@@ -15,22 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
-import java.util.Optional;
+/**
+ * Provides term lookup operations against a corpus (e.g. a Lucene index field).
+ * Implementations are responsible for any field-name and case-normalization details.
+ */
+public interface TermCorpus {
 
-public class NoopWordGenerator implements WordGenerator {
+    boolean exists(CharSequence term);
 
-    public static NoopWordGenerator INSTANCE = new NoopWordGenerator();
+    int docFreq(CharSequence term);
 
-    private NoopWordGenerator() {
-        // Use the singleton instance!
-    }
+    int numDocs();
 
-    @Override
-    public Optional<CharSequence> generateModifier(final CharSequence reducedModifier) {
-        return Optional.of(reducedModifier);
-    }
-
-
+    boolean coExist(CharSequence term1, CharSequence term2);
 }

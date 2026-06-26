@@ -25,7 +25,9 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.tests.index.RandomIndexWriter;
 import org.apache.lucene.tests.util.LuceneTestCase;
 import org.junit.Test;
+import querqy.lucene.LuceneTermCorpus;
 import querqy.model.Term;
+import querqy.rewrite.contrib.wordbreak.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,10 +47,10 @@ public class GermanCompounderTest extends LuceneTestCase {
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
 
             final String field = "f1";
-            final MorphologicalCompounder compounder = new MorphologicalCompounder(new MorphologyProvider().get("GERMAN").get(), field, true, 1);
+            final MorphologicalCompounder compounder = new MorphologicalCompounder(new MorphologyProvider().get("GERMAN").get(), true, 1);
             final querqy.model.Term left = new querqy.model.Term(null, field, "left", false);
             final querqy.model.Term right = new querqy.model.Term(null, field, "left", false);
-            final List<LuceneCompounder.CompoundTerm> sequences = compounder.combine(new Term[]{left, right}, indexReader, false);
+            final List<Compounder.CompoundTerm> sequences = compounder.combine(new Term[]{left, right}, new LuceneTermCorpus(() -> indexReader, field), false);
             assertNotNull(sequences);
             assertTrue(sequences.isEmpty());
 

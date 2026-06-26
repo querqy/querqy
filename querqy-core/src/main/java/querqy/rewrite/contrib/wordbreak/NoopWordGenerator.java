@@ -15,23 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.lucene.contrib.rewrite.wordbreak;
+package querqy.rewrite.contrib.wordbreak;
 
 import java.util.Optional;
 
-public class WordGeneratorAndWeight {
+public class NoopWordGenerator implements WordGenerator {
 
-    public final WordGenerator generator;
-    public final float weight;
+    public static NoopWordGenerator INSTANCE = new NoopWordGenerator();
 
-    public WordGeneratorAndWeight(final WordGenerator generator, final float weight) {
-        this.generator = generator;
-        this.weight = weight;
+    private NoopWordGenerator() {
+        // Use the singleton instance!
     }
 
-    public Optional<Suggestion> generateSuggestion(final CharSequence reducedModifier) {
-        final Optional<CharSequence> modifier = generator.generateModifier(reducedModifier);
-        return modifier.map(charSequence -> new Suggestion(new CharSequence[]{charSequence}, weight));
+    @Override
+    public Optional<CharSequence> generateModifier(final CharSequence reducedModifier) {
+        return Optional.of(reducedModifier);
     }
-
 }

@@ -26,7 +26,11 @@ import org.apache.lucene.tests.index.RandomIndexWriter;
 import org.apache.lucene.tests.util.LuceneTestCase;
 import org.junit.Assert;
 import org.junit.Test;
+import querqy.lucene.LuceneTermCorpus;
 import querqy.model.Term;
+import querqy.rewrite.contrib.wordbreak.MorphologicalCompounder;
+import querqy.rewrite.contrib.wordbreak.MorphologicalWordBreaker;
+import querqy.rewrite.contrib.wordbreak.WordBreakCompoundRewriterFactory;
 import querqy.trie.TrieMap;
 
 import java.util.Arrays;
@@ -40,7 +44,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputTrue() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT", "DEFAULT");
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", new LuceneTermCorpus(() -> null, "field1"), true, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT", "DEFAULT");
 
         final TrieMap<Boolean> triggerWords = factory.getReverseCompoundTriggerWords();
         assertTrue(triggerWords.get("word1").getStateForCompleteSequence().isFinal());
@@ -50,7 +54,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatTriggerWordsAreTurnedToLowerCaseForFlagLowerCaseInputFalse() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT", "DEFAULT");
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", new LuceneTermCorpus(() -> null, "field1"), false, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT", "DEFAULT");
 
         final TrieMap<Boolean> triggerWords = factory.getReverseCompoundTriggerWords();
         Assert.assertFalse(triggerWords.get("word1").getStateForCompleteSequence().isFinal());
@@ -60,7 +64,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatProtectedWordsAreMatchedCaseInsensitiveForFlagLowerCaseInputTrue() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", () -> null, "field1", true, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w1", new LuceneTermCorpus(() -> null, "field1"), true, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false,
                 Collections.singletonList("Protected"), "DEFAULT", "DEFAULT");
 
         final TrieMap<Boolean> protectedWords = factory.getProtectedWords();
@@ -70,7 +74,7 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
 
     @Test
     public void testThatProtectedWordsAreMatchedCaseSensitiveForFlagLowerCaseInputFalse() {
-        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false,
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", new LuceneTermCorpus(() -> null, "field1"), false, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false,
                 Collections.singletonList("Protected"), "GERMAN", "DEFAULT");
 
         final TrieMap<Boolean> protectedWords = factory.getProtectedWords();
@@ -94,12 +98,12 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
         addNumDocsWithTextField("field1", "büchere", indexWriter, 1);
         indexWriter.close();
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
-            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 2, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "GERMAN", "DEFAULT");
+            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", new LuceneTermCorpus(() -> null, "field1"), false, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "GERMAN", "DEFAULT");
 
-            assertTrue(factory.wordBreaker instanceof MorphologicalWordBreaker);
+            assertTrue(factory.getWordBreaker() instanceof MorphologicalWordBreaker);
             final String word = "bücherregal";
 
-            assertThat(factory.wordBreaker.breakWord(word, indexReader, 10, false).stream()
+            assertThat(factory.getWordBreaker().breakWord(word, new LuceneTermCorpus(() -> indexReader, "field1"), 10, false).stream()
                             .map(charSequences -> charSequences[0])
                             .map(CharSequence::toString)
                             .collect(Collectors.toList()),
@@ -121,12 +125,12 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
         addNumDocsWithTextField("field1", "buchregal", indexWriter, 1);
         indexWriter.close();
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
-            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 20, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "GERMAN", "DEFAULT");
+            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", new LuceneTermCorpus(() -> null, "field1"), false, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "GERMAN", "DEFAULT");
 
-            assertTrue(factory.compounder instanceof SpellCheckerCompounder);
+            assertTrue(factory.getCompounder() instanceof MorphologicalCompounder);
             Term leftTerm = new Term(null, "field1", "buch");
             Term rightTerm = new Term(null, "field1", "regal");
-            assertThat(factory.compounder.combine(new Term[]{leftTerm, rightTerm,}, indexReader, false).stream()
+            assertThat(factory.getCompounder().combine(new Term[]{leftTerm, rightTerm,}, new LuceneTermCorpus(() -> indexReader, "field1"), false).stream()
                     .map(compoundTerm -> compoundTerm.value)
                     .map(CharSequence::toString)
                     .collect(Collectors.toList()),
@@ -146,12 +150,12 @@ public class WordBreakCompoundRewriterFactoryTest extends LuceneTestCase {
         addNumDocsWithTextField("field1", "bücherregal", indexWriter, 1);
         indexWriter.close();
         try (final IndexReader indexReader = DirectoryReader.open(directory)) {
-            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", () -> null, "field1", false, 1, 20, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT", "GERMAN");
+            final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory("w2", new LuceneTermCorpus(() -> null, "field1"), false, 1, 1, Arrays.asList("Word1", "word2"), false, 2, false, Collections.emptyList(), "DEFAULT", "GERMAN");
 
-            assertTrue(factory.compounder instanceof MorphologicalCompounder);
+            assertTrue(factory.getCompounder() instanceof MorphologicalCompounder);
             Term leftTerm = new Term(null, "field1", "büch");
             Term rightTerm = new Term(null, "field1", "regal");
-            assertThat(factory.compounder.combine(new Term[]{leftTerm, rightTerm,}, indexReader, false).stream()
+            assertThat(factory.getCompounder().combine(new Term[]{leftTerm, rightTerm,}, new LuceneTermCorpus(() -> indexReader, "field1"), false).stream()
                         .map(compoundTerm -> compoundTerm.value)
                         .map(CharSequence::toString)
                         .collect(Collectors.toList()),
