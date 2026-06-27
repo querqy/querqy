@@ -29,5 +29,21 @@ public interface TermCorpus {
 
     int numDocs();
 
-    boolean coExist(CharSequence term1, CharSequence term2);
+    /**
+     * Returns {@code true} if this corpus can answer co-occurrence queries via {@link #coExist}.
+     * Implementations that do not carry co-occurrence data must return {@code false} and rely on
+     * the default {@link #coExist} implementation, which throws {@link UnsupportedOperationException}.
+     */
+    boolean isCollationSupported();
+
+    /**
+     * Returns {@code true} if {@code term1} and {@code term2} co-occur in at least one document.
+     * Only valid when {@link #isCollationSupported()} returns {@code true}.
+     *
+     * @throws UnsupportedOperationException if this corpus does not support co-occurrence lookup
+     */
+    default boolean coExist(CharSequence term1, CharSequence term2) {
+        throw new UnsupportedOperationException(
+                "This TermCorpus implementation does not support co-occurrence lookup");
+    }
 }

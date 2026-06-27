@@ -32,10 +32,9 @@ public class GermanCompounderTest {
     @Test
     public void testWithEmptyCorpus() throws IOException {
         final String field = "f1";
-        final TsvTermCorpus corpus = TsvTermCorpus.builder()
+        final TsvDfCoocTermCorpus corpus = TsvDfCoocTermCorpus.builder()
                 .reader(new StringReader(""))
                 .hashFunctions(7)
-                .numDocs(0)
                 .build();
 
         final MorphologicalCompounder compounder =
