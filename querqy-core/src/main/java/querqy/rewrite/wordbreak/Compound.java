@@ -34,9 +34,19 @@ public class Compound implements Comparable<Compound> {
             return 0;
         }
         final int c = Float.compare(probability, other.probability); // greater is better
-        if (c == 0) {
-            return Integer.compare(compound.length(), other.compound.length()); // shorter is better
+        if (c != 0) {
+            return c;
         }
-        return c;
+        final int lenCmp = Integer.compare(compound.length(), other.compound.length()); // shorter is better
+        if (lenCmp != 0) {
+            return lenCmp;
+        }
+        for (int i = 0, len = compound.length(); i < len; i++) {
+            final int charCmp = Character.compare(compound.charAt(i), other.compound.charAt(i));
+            if (charCmp != 0) {
+                return charCmp;
+            }
+        }
+        return 0;
     }
 }
