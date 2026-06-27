@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
-import querqy.rewrite.contrib.wordbreak.*;
+import querqy.rewrite.wordbreak.*;
 
 public class GermanUmlautCompoundingWordGeneratorTest {
     @Test

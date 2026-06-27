@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 /**
  * Provides term lookup operations against a corpus (e.g. a Lucene index field).

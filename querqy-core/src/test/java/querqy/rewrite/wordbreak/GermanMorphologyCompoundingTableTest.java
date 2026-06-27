@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import querqy.rewrite.contrib.wordbreak.*;
+import querqy.rewrite.wordbreak.*;
 
 
 @RunWith(Parameterized.class)

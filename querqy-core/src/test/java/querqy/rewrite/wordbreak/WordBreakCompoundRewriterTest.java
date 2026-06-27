@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +28,10 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.RewriterOutput;
-import querqy.rewrite.contrib.wordbreak.Compounder;
-import querqy.rewrite.contrib.wordbreak.TermCorpus;
-import querqy.rewrite.contrib.wordbreak.WordBreaker;
-import querqy.rewrite.contrib.wordbreak.WordBreakCompoundRewriter;
+import querqy.rewrite.wordbreak.Compounder;
+import querqy.rewrite.wordbreak.TermCorpus;
+import querqy.rewrite.wordbreak.WordBreaker;
+import querqy.rewrite.wordbreak.WordBreakCompoundRewriter;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;

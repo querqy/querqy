@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -27,8 +27,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
-import static querqy.rewrite.contrib.wordbreak.GermanDecompoundingMorphology.GENERATOR_NOOP;
-import querqy.rewrite.contrib.wordbreak.*;
+import static querqy.rewrite.wordbreak.GermanDecompoundingMorphology.GENERATOR_NOOP;
+import querqy.rewrite.wordbreak.*;
 
 public class MorphologyCompoundingTest {
 
