@@ -32,7 +32,7 @@ import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.commonrules.model.DecorateInstruction;
 import querqy.rewrite.commonrules.select.ExpressionCriteriaSelectionStrategyFactory;
-import querqy.rewrite.contrib.ReplaceRewriterFactory;
+import querqy.rewrite.replace.ReplaceRewriterFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 
 import java.io.ByteArrayInputStream;
