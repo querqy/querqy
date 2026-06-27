@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import querqy.rewrite.contrib.wordbreak.*;
+import querqy.rewrite.wordbreak.*;
 
 public class SuffixGroupCompoundTest {
     private static final float WEIGHT_PATTERN = 0f;

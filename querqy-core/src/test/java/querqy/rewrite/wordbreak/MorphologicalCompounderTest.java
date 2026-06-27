@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package querqy.rewrite.contrib.wordbreak;
+package querqy.rewrite.wordbreak;
 
 
 import org.junit.Test;
 import querqy.model.Term;
-import querqy.rewrite.contrib.wordbreak.*;
+import querqy.rewrite.wordbreak.*;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static querqy.rewrite.contrib.wordbreak.Compounder.CompoundTerm;
+import static querqy.rewrite.wordbreak.Compounder.CompoundTerm;
 
 public class MorphologicalCompounderTest {
     private final Morphology morphologyMock = mock(Morphology.class);
