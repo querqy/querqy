@@ -70,6 +70,11 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                             final String decompoundMorphologyName,
                                             final String compoundMorphologyName) {
         super(rewriterId);
+        if (verifyDecompoundCollation && !termCorpus.isCollationSupported()) {
+            throw new IllegalArgumentException(
+                    "verifyDecompoundCollation=true requires a TermCorpus that supports co-occurrence lookup " +
+                    "(isCollationSupported() must return true)");
+        }
         this.termCorpus = termCorpus;
         this.lowerCaseInput = lowerCaseInput;
         this.alwaysAddReverseCompounds = alwaysAddReverseCompounds;

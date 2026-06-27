@@ -57,6 +57,11 @@ public class LuceneTermCorpus implements TermCorpus {
     }
 
     @Override
+    public boolean isCollationSupported() {
+        return true;
+    }
+
+    @Override
     public boolean exists(final CharSequence term) {
         return docFreq(term) > 0;
     }

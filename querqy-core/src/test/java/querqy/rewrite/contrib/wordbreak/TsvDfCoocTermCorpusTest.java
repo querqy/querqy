@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class TsvTermCorpusTest {
+public class TsvDfCoocTermCorpusTest {
 
     private static final int HASH_FUNCTIONS = 3;
     private static final int BLOOM_BITS = 64;
@@ -43,15 +43,15 @@ public class TsvTermCorpusTest {
         return term + "\t" + df + "\t" + bf.toHex();
     }
 
-    private static TsvTermCorpus load(final String tsv) throws IOException {
-        return TsvTermCorpus.builder()
+    private static TsvDfCoocTermCorpus load(final String tsv) throws IOException {
+        return TsvDfCoocTermCorpus.builder()
                 .reader(new StringReader(tsv))
                 .hashFunctions(HASH_FUNCTIONS)
                 .build();
     }
 
-    private static TsvTermCorpus load(final String tsv, final int numDocs) throws IOException {
-        return TsvTermCorpus.builder()
+    private static TsvDfCoocTermCorpus load(final String tsv, final int numDocs) throws IOException {
+        return TsvDfCoocTermCorpus.builder()
                 .reader(new StringReader(tsv))
                 .hashFunctions(HASH_FUNCTIONS)
                 .numDocs(numDocs)
@@ -60,31 +60,31 @@ public class TsvTermCorpusTest {
 
     @Test
     public void existsReturnsTrueForKnownTerm() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
         assertTrue(corpus.exists("shoe"));
     }
 
     @Test
     public void existsReturnsFalseForUnknownTerm() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
         assertFalse(corpus.exists("rack"));
     }
 
     @Test
     public void docFreqReturnsCorrectValue() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 42, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 42, "rack"));
         assertEquals(42, corpus.docFreq("shoe"));
     }
 
     @Test
     public void docFreqReturnsZeroForUnknownTerm() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 42, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 42, "rack"));
         assertEquals(0, corpus.docFreq("rack"));
     }
 
     @Test
     public void numDocsUsesExplicitValueWhenSet() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 10, "rack"), 5000);
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 10, "rack"), 5000);
         assertEquals(5000, corpus.numDocs());
     }
 
@@ -93,32 +93,32 @@ public class TsvTermCorpusTest {
         final String tsv = tsvLine("shoe", 10, "rack") + "\n"
                 + tsvLine("rack", 8, "shoe") + "\n"
                 + tsvLine("shelf", 5);
-        final TsvTermCorpus corpus = load(tsv);
+        final TsvDfCoocTermCorpus corpus = load(tsv);
         assertEquals(300, corpus.numDocs());
     }
 
     @Test
     public void coExistReturnsTrueWhenTerm2IsInBloomFilterOfTerm1() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
         assertTrue(corpus.coExist("shoe", "rack"));
     }
 
     @Test
     public void coExistReturnsFalseWhenTerm2IsNotInBloomFilterOfTerm1() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
         assertFalse(corpus.coExist("shoe", "shelf"));
     }
 
     @Test
     public void coExistReturnsFalseForUnknownTerm1() throws IOException {
-        final TsvTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
+        final TsvDfCoocTermCorpus corpus = load(tsvLine("shoe", 10, "rack"));
         assertFalse(corpus.coExist("rack", "shoe"));
     }
 
     @Test
     public void emptyLinesAreSkipped() throws IOException {
         final String tsv = "\n" + tsvLine("shoe", 10, "rack") + "\n\n";
-        final TsvTermCorpus corpus = load(tsv);
+        final TsvDfCoocTermCorpus corpus = load(tsv);
         assertTrue(corpus.exists("shoe"));
         assertEquals(100, corpus.numDocs());
     }
@@ -128,7 +128,7 @@ public class TsvTermCorpusTest {
         final BloomFilter bf = new BloomFilter(BLOOM_BITS, HASH_FUNCTIONS);
         bf.add("rack");
         final String tsv = " shoe \t 7 \t " + bf.toHex() + " ";
-        final TsvTermCorpus corpus = load(tsv);
+        final TsvDfCoocTermCorpus corpus = load(tsv);
         assertTrue(corpus.exists("shoe"));
         assertEquals(7, corpus.docFreq("shoe"));
         assertTrue(corpus.coExist("shoe", "rack"));
@@ -139,7 +139,7 @@ public class TsvTermCorpusTest {
         final String tsv = tsvLine("shoe", 10, "rack") + "\n"
                 + tsvLine("rack", 8, "shoe") + "\n"
                 + tsvLine("shelf", 5, "rack", "shoe");
-        final TsvTermCorpus corpus = load(tsv);
+        final TsvDfCoocTermCorpus corpus = load(tsv);
         assertTrue(corpus.exists("shoe"));
         assertTrue(corpus.exists("rack"));
         assertTrue(corpus.exists("shelf"));
@@ -149,16 +149,36 @@ public class TsvTermCorpusTest {
 
     @Test(expected = IllegalStateException.class)
     public void builderThrowsWhenReaderIsMissing() throws IOException {
-        TsvTermCorpus.builder().hashFunctions(HASH_FUNCTIONS).build();
+        TsvDfCoocTermCorpus.builder().hashFunctions(HASH_FUNCTIONS).build();
     }
 
     @Test(expected = IllegalStateException.class)
     public void builderThrowsWhenHashFunctionsIsMissing() throws IOException {
-        TsvTermCorpus.builder().reader(new StringReader("")).build();
+        TsvDfCoocTermCorpus.builder().reader(new StringReader("")).build();
     }
 
     @Test(expected = IOException.class)
     public void buildThrowsOnMalformedLine() throws IOException {
         load("schuh\t10");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderThrowsOnZeroNumDocs() throws IOException {
+        TsvDfCoocTermCorpus.builder().hashFunctions(3).numDocs(0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderThrowsOnNegativeNumDocs() throws IOException {
+        TsvDfCoocTermCorpus.builder().hashFunctions(3).numDocs(-1);
+    }
+
+    @Test(expected = IOException.class)
+    public void buildThrowsOnZeroDocFreq() throws IOException {
+        load(tsvLine("shoe", 0, "rack"));
+    }
+
+    @Test(expected = IOException.class)
+    public void buildThrowsOnNegativeDocFreq() throws IOException {
+        load(tsvLine("shoe", -1, "rack"));
     }
 }

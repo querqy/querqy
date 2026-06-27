@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class WordBreakCompoundRewriterFactoryTest {
 
@@ -39,19 +40,18 @@ public class WordBreakCompoundRewriterFactoryTest {
         return term + "\t" + df + "\t" + "0000000000000000";
     }
 
-    private static TsvTermCorpus emptyCorpus() throws IOException {
-        return TsvTermCorpus.builder()
+    private static TsvDfCoocTermCorpus emptyCorpus() throws IOException {
+        return TsvDfCoocTermCorpus.builder()
                 .reader(new StringReader(""))
                 .hashFunctions(1)
-                .numDocs(0)
                 .build();
     }
 
-    private static TsvTermCorpus corpusOf(final String... terms) throws IOException {
+    private static TsvDfCoocTermCorpus corpusOf(final String... terms) throws IOException {
         final String tsv = Arrays.stream(terms)
                 .map(t -> termLine(t, 1))
                 .collect(Collectors.joining("\n"));
-        return TsvTermCorpus.builder()
+        return TsvDfCoocTermCorpus.builder()
                 .reader(new StringReader(tsv))
                 .hashFunctions(1)
                 .build();
@@ -107,7 +107,7 @@ public class WordBreakCompoundRewriterFactoryTest {
 
     @Test
     public void testLanguageDecompoundingMorphologyIsApplied() throws Exception {
-        final TsvTermCorpus corpus = corpusOf("regal", "buch", "büch", "bücher", "büchere");
+        final TsvDfCoocTermCorpus corpus = corpusOf("regal", "buch", "büch", "bücher", "büchere");
 
         final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
                 "w2", emptyCorpus(), false, 1, 1,
@@ -126,7 +126,7 @@ public class WordBreakCompoundRewriterFactoryTest {
 
     @Test
     public void testDefaultLanguageCompoundingMorphologyIsApplied() throws Exception {
-        final TsvTermCorpus corpus = corpusOf("buchregal");
+        final TsvDfCoocTermCorpus corpus = corpusOf("buchregal");
 
         final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
                 "w2", emptyCorpus(), false, 1, 1,
@@ -147,7 +147,7 @@ public class WordBreakCompoundRewriterFactoryTest {
 
     @Test
     public void testLanguageCompoundingMorphologyIsApplied() throws Exception {
-        final TsvTermCorpus corpus = corpusOf("bücherregal");
+        final TsvDfCoocTermCorpus corpus = corpusOf("bücherregal");
 
         final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
                 "w2", emptyCorpus(), false, 1, 1,
@@ -164,5 +164,21 @@ public class WordBreakCompoundRewriterFactoryTest {
                         .map(CharSequence::toString)
                         .collect(Collectors.toList()),
                 containsInAnyOrder("bücherregal"));
+    }
+
+    @Test
+    public void testThatFactoryThrowsWhenVerifyCollationRequiredButCorpusDoesNotSupportIt() throws IOException {
+        final TsvDfTermCorpus corpusWithoutCooc = TsvDfTermCorpus.builder()
+                .reader(new StringReader(""))
+                .build();
+        try {
+            new WordBreakCompoundRewriterFactory(
+                    "w1", corpusWithoutCooc, true, 1, 1,
+                    Collections.emptyList(), false, 2, true,
+                    Collections.emptyList(), "DEFAULT", "DEFAULT");
+            fail("expected IllegalArgumentException");
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
     }
 }

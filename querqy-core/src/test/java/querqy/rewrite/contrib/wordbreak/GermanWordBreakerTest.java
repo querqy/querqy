@@ -44,7 +44,7 @@ public class GermanWordBreakerTest {
     private final Morphology GERMAN = new MorphologyProvider().get("GERMAN").get();
 
     /**
-     * Accumulates term-pair entries (as used in addNumDocsWithTextField) and builds a TsvTermCorpus.
+     * Accumulates term-pair entries (as used in addNumDocsWithTextField) and builds a TsvDfCoocTermCorpus.
      * Each call to add(termsSpaceSep, count) contributes count documents, updating docFreq for each
      * term and recording co-occurrence between all terms in the space-separated group.
      */
@@ -69,7 +69,7 @@ public class GermanWordBreakerTest {
             return this;
         }
 
-        TsvTermCorpus build() throws IOException {
+        TsvDfCoocTermCorpus build() throws IOException {
             final StringBuilder sb = new StringBuilder();
             for (final Map.Entry<String, Integer> entry : df.entrySet()) {
                 final String term = entry.getKey();
@@ -80,7 +80,7 @@ public class GermanWordBreakerTest {
                 }
                 sb.append(term).append('\t').append(freq).append('\t').append(bf.toHex()).append('\n');
             }
-            return TsvTermCorpus.builder()
+            return TsvDfCoocTermCorpus.builder()
                     .reader(new StringReader(sb.toString()))
                     .hashFunctions(HASH_FUNCTIONS)
                     .numDocs(totalDocs)
@@ -88,11 +88,10 @@ public class GermanWordBreakerTest {
         }
     }
 
-    private static TsvTermCorpus emptyCorpus() throws IOException {
-        return TsvTermCorpus.builder()
+    private static TsvDfCoocTermCorpus emptyCorpus() throws IOException {
+        return TsvDfCoocTermCorpus.builder()
                 .reader(new StringReader(""))
                 .hashFunctions(HASH_FUNCTIONS)
-                .numDocs(0)
                 .build();
     }
 
@@ -114,7 +113,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testNoLinkingMorpheme() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder()
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder()
                 .add("abc def", 4)
                 .add("ab cdef", 10)
                 .add("abcd ef", 5)
@@ -128,7 +127,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeE() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("hund futter", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("hund futter", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 2, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("hundefutter", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"hund", "futter"})));
@@ -136,7 +135,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeN() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("matte laden", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("matte laden", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 2, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("mattenladen", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"matte", "laden"})));
@@ -144,7 +143,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeS() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("arbeit matten", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("arbeit matten", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 2, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("arbeitsmatten", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"arbeit", "matten"})));
@@ -152,7 +151,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSingleLetterCandidateS() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("s chiller", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("s chiller", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 1, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("schiller", corpus, 2, true);
         // We don't care which strategy produces this but let's make sure, we don't crash.
@@ -161,7 +160,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testNoLinkingMorphemeIsPreferredOverMorphemeSForSameCollationFrequency() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder()
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder()
                 .add("fan shirt", 20)
                 .add("fan hirt", 20)
                 .build();
@@ -174,7 +173,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testThatHighDfObservatioWeightWeighsMoreThanMorphoSyntaxPrior() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder()
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder()
                 .add("fan shirt", 1)
                 .add("fan hirt", 10)
                 .build();
@@ -194,7 +193,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testMinBreakSizeAtLinkingMorphemeS() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("arbeit verträge", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("arbeit verträge", 1).build();
         // minBreakLength must relate to prefix word w/o linking morpheme
         assertTrue(
                 new MorphologicalWordBreaker(GERMAN, true, 1, 7, 100)
@@ -206,7 +205,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEn() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("strauß ei", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("strauß ei", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 2, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("straußenei", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"strauß", "ei"})));
@@ -214,7 +213,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeNen() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("wöchnerin heim", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("wöchnerin heim", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 2, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("wöchnerinnenheim", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"wöchnerin", "heim"})));
@@ -222,7 +221,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeIen() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("prinzip reiter", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("prinzip reiter", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 2, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("prinzipienreiter", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"prinzip", "reiter"})));
@@ -230,7 +229,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEs() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("tag zeit", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("tag zeit", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("tageszeit", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"tag", "zeit"})));
@@ -238,7 +237,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testMinBreakSizeAtLinkingMorphemeEs() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("tag zeit", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("tag zeit", 1).build();
         // minBreakLength must relate to prefix word w/o linking morpheme
         assertTrue(
                 new MorphologicalWordBreaker(GERMAN, true, 1, 4, 100)
@@ -250,7 +249,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEr() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("geist stunde", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("geist stunde", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("geisterstunde", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"geist", "stunde"})));
@@ -258,7 +257,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeUmlautEr() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder()
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder()
                 .add("buch regal", 1)
                 .add("blatt wald", 1)
                 .add("korn brötchen", 1)
@@ -275,7 +274,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeUmlautE() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder()
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder()
                 .add("gans klein", 1)
                 .add("laus kamm", 1)
                 .add("korb macher", 1)
@@ -292,7 +291,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEnRemovingUs() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("aphorismus sammlung", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("aphorismus sammlung", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("aphorismensammlung", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"aphorismus", "sammlung"})));
@@ -300,7 +299,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEnRemovingUm() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("museum verwaltung", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("museum verwaltung", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("museenverwaltung", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"museum", "verwaltung"})));
@@ -308,7 +307,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEnRemovingA() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("madonna kult", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("madonna kult", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("madonnenkult", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"madonna", "kult"})));
@@ -316,7 +315,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeEnRemovingOnPlusEn() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("stadion verbot", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("stadion verbot", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("stadienverbot", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"stadion", "verbot"})));
@@ -324,7 +323,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeRemovingOnPlusA() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("pharmakon analyse", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("pharmakon analyse", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("pharmakaanalyse", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"pharmakon", "analyse"})));
@@ -332,7 +331,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeRemovingEPlusI() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("carabiniere schule", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("carabiniere schule", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("carabinierischule", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"carabiniere", "schule"})));
@@ -340,7 +339,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitRemovingE() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("baumwolle tuch", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("baumwolle tuch", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("baumwolltuch", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"baumwolle", "tuch"})));
@@ -348,7 +347,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitRemovingEn() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("süden wind", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("süden wind", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("südwind", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"süden", "wind"})));
@@ -356,7 +355,7 @@ public class GermanWordBreakerTest {
 
     @Test
     public void testSplitAtLinkingMorphemeARemovingUm() throws IOException {
-        final TsvTermCorpus corpus = new TestCorpusBuilder().add("aphrodisiakum verkäufer", 1).build();
+        final TsvDfCoocTermCorpus corpus = new TestCorpusBuilder().add("aphrodisiakum verkäufer", 1).build();
         final MorphologicalWordBreaker wordBreaker = new MorphologicalWordBreaker(GERMAN, true, 1, 3, 100);
         final List<CharSequence[]> sequences = wordBreaker.breakWord("aphrodisiakaverkäufer", corpus, 2, true);
         assertThat(sequences, contains(equalTo(new CharSequence[]{"aphrodisiakum", "verkäufer"})));

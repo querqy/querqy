@@ -17,7 +17,6 @@
  */
 package querqy.rewrite.contrib.wordbreak;
 
-import querqy.BloomFilter;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;
@@ -30,24 +29,25 @@ import java.util.Optional;
 /**
  * {@link TermCorpus} implementation backed by a TSV file with lines of the form:
  * <pre>
- *   term TAB docFreq TAB bloomHex
+ *   term TAB docFreq
  * </pre>
- * where {@code bloomHex} is a lowercase hex string encoding the bits of a
- * {@link BloomFilter} that represents co-occurrence of the term with other terms.
+ *
+ * <p>Co-occurrence information is not available; {@link #isCollationSupported()} returns
+ * {@code false} and {@link #coExist} throws {@link UnsupportedOperationException}.
+ * This implementation is suitable when the word-break rewriter is configured with
+ * {@code verifyCollation=false}.</p>
  *
  * <p>The corpus is loaded eagerly from the supplied {@link Reader} and stored in
  * a {@link TrieMap} for O(k) lookups where k is the term length.</p>
  *
  * <p>Use {@link Builder} to create instances.</p>
  */
-public class TsvTermCorpus implements TermCorpus {
+public class TsvDfTermCorpus implements TermCorpus {
 
-    private record TermEntry(int docFreq, BloomFilter bloomFilter) {}
-
-    private final TrieMap<TermEntry> trie;
+    private final TrieMap<Integer> trie;
     private final int numDocs;
 
-    private TsvTermCorpus(final TrieMap<TermEntry> trie, final int numDocs) {
+    private TsvDfTermCorpus(final TrieMap<Integer> trie, final int numDocs) {
         this.trie = trie;
         this.numDocs = numDocs;
     }
@@ -56,10 +56,15 @@ public class TsvTermCorpus implements TermCorpus {
         return new Builder();
     }
 
-    private Optional<TermEntry> lookup(final CharSequence term) {
-        final States<TermEntry> states = trie.get(term);
-        final State<TermEntry> state = states.getStateForCompleteSequence();
+    private Optional<Integer> lookup(final CharSequence term) {
+        final States<Integer> states = trie.get(term);
+        final State<Integer> state = states.getStateForCompleteSequence();
         return state.isFinal() ? Optional.of(state.getValue()) : Optional.empty();
+    }
+
+    @Override
+    public boolean isCollationSupported() {
+        return false;
     }
 
     @Override
@@ -69,7 +74,7 @@ public class TsvTermCorpus implements TermCorpus {
 
     @Override
     public int docFreq(final CharSequence term) {
-        return lookup(term).map(TermEntry::docFreq).orElse(0);
+        return lookup(term).orElse(0);
     }
 
     @Override
@@ -77,15 +82,9 @@ public class TsvTermCorpus implements TermCorpus {
         return numDocs;
     }
 
-    @Override
-    public boolean coExist(final CharSequence term1, final CharSequence term2) {
-        return lookup(term1).map(e -> e.bloomFilter().contains(term2)).orElse(false);
-    }
-
     public static class Builder {
 
         private Reader reader;
-        private int hashFunctions = -1;
         private int numDocs = -1;
 
         private Builder() {}
@@ -96,30 +95,24 @@ public class TsvTermCorpus implements TermCorpus {
             return this;
         }
 
-        /** Number of hash functions used when building the bloom filters. */
-        public Builder hashFunctions(final int hashFunctions) {
-            this.hashFunctions = hashFunctions;
-            return this;
-        }
-
         /**
          * Total number of documents in the corpus, used for decompound scoring.
          * If not set, the value is estimated as {@code numberOfTerms * 100}.
          */
         public Builder numDocs(final int numDocs) {
+            if (numDocs <= 0) {
+                throw new IllegalArgumentException("numDocs must be > 0, got: " + numDocs);
+            }
             this.numDocs = numDocs;
             return this;
         }
 
-        public TsvTermCorpus build() throws IOException {
+        public TsvDfTermCorpus build() throws IOException {
             if (reader == null) {
                 throw new IllegalStateException("reader must be set");
             }
-            if (hashFunctions < 1) {
-                throw new IllegalStateException("hashFunctions must be set to a value >= 1");
-            }
 
-            final TrieMap<TermEntry> trie = new TrieMap<>();
+            final TrieMap<Integer> trie = new TrieMap<>();
             final BufferedReader br = reader instanceof BufferedReader
                     ? (BufferedReader) reader
                     : new BufferedReader(reader);
@@ -133,23 +126,21 @@ public class TsvTermCorpus implements TermCorpus {
                 if (line.isEmpty()) {
                     continue;
                 }
-                final int tab1 = line.indexOf('\t');
-                if (tab1 < 0) {
-                    throw new IOException("Missing first TAB on line " + lineNumber + ": " + line);
+                final int tab = line.indexOf('\t');
+                if (tab < 0) {
+                    throw new IOException("Missing TAB on line " + lineNumber + ": " + line);
                 }
-                final int tab2 = line.indexOf('\t', tab1 + 1);
-                if (tab2 < 0) {
-                    throw new IOException("Missing second TAB on line " + lineNumber + ": " + line);
+                final String term = line.substring(0, tab).trim();
+                final int df = Integer.parseInt(line.substring(tab + 1).trim());
+                if (df <= 0) {
+                    throw new IOException("docFreq must be > 0 on line " + lineNumber + ": " + line);
                 }
-                final String term = line.substring(0, tab1).trim();
-                final int df = Integer.parseInt(line.substring(tab1 + 1, tab2).trim());
-                final String hex = line.substring(tab2 + 1).trim();
-                trie.put(term, new TermEntry(df, BloomFilter.fromHex(hex, hashFunctions)));
+                trie.put(term, df);
                 termCount++;
             }
 
             final int resolvedNumDocs = numDocs >= 0 ? numDocs : termCount * 100;
-            return new TsvTermCorpus(trie, resolvedNumDocs);
+            return new TsvDfTermCorpus(trie, resolvedNumDocs);
         }
     }
 }
