@@ -21,11 +21,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import querqy.model.Input;
-import querqy.rewrite.commonrules.LineParser;
-import querqy.rewrite.commonrules.model.InstructionsSupplier;
-import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
-import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement;
-import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewriter.commonrules.LineParser;
+import querqy.rewriter.commonrules.model.InstructionsSupplier;
+import querqy.rewriter.commonrules.select.booleaninput.BooleanInputParser;
+import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
+import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.rule.Rule;
 

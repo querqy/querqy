@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NonNull;
-import querqy.rewrite.commonrules.model.RulesCollectionBuilder;
+import querqy.rewriter.commonrules.model.RulesCollectionBuilder;
 
 @Builder
 @Getter

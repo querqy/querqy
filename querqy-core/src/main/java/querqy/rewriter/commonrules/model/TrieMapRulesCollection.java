@@ -1,0 +1,297 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2014 Querqy Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package querqy.rewriter.commonrules.model;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import querqy.CompoundCharSequence;
+import querqy.model.InputSequenceElement;
+import querqy.model.Term;
+import querqy.rewriter.commonrules.select.TopRewritingActionCollector;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
+import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
+import querqy.trie.State;
+import querqy.trie.States;
+import querqy.trie.TrieMap;
+
+/**
+ * @author René Kriegler, @renekrie
+ *
+ */
+@Deprecated
+public class TrieMapRulesCollection implements RulesCollection {
+    
+    public static final String BOUNDARY_WORD = "\u0002";
+    
+    final TrieMap<InstructionsSupplier> trieMap;
+    private final LookupPreprocessor lookupPreprocessor;
+    
+    public TrieMapRulesCollection(final TrieMap<InstructionsSupplier> trieMap,
+                                  final LookupPreprocessor lookupPreprocessor) {
+        if (trieMap == null) {
+            throw new IllegalArgumentException("trieMap must not be null");
+        }
+        this.trieMap = trieMap;
+        this.lookupPreprocessor = lookupPreprocessor;
+    }
+
+    /* (non-Javadoc)
+     * @see querqy.rewriter.commonrules.model.RulesCollection#collectRewriteActions(querqy.rewriter.commonrules.model.PositionSequence, querqy.rewriter.commonrules.select.FlatTopRewritingActionCollector)
+     */
+    @Override
+    public void collectRewriteActions(final PositionSequence<InputSequenceElement> sequence,
+                                      final TopRewritingActionCollector collector) {
+
+        if (sequence.isEmpty()) {
+            return;
+        }
+
+        // We have a list of terms (resulting from DisMax alternatives) per
+        // position. We now find all the combinations of terms in different 
+        // positions and look them up as rules input in the dictionary
+
+        if (sequence.size() == 1) {
+
+            sequence.getFirst().stream()
+                    .filter(Term.class::isInstance)
+                    .map(Term.class::cast).forEach(term -> {
+
+                final States<InstructionsSupplier> states = trieMap.get(createLookupCharSequence(term));
+
+                final State<InstructionsSupplier> stateExactMatch = states.getStateForCompleteSequence();
+                if (stateExactMatch.isFinal() && stateExactMatch.value != null) {
+
+                    collector.collect(stateExactMatch.value,
+                            instructions -> new Action(instructions, new TermMatches(new TermMatch(term)), 0, 1));
+
+                }
+
+                final List<State<InstructionsSupplier>> statesForPrefixes = states.getPrefixes();
+                if (statesForPrefixes != null) {
+                    for (final State<InstructionsSupplier> stateForPrefix: statesForPrefixes) {
+
+                        if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
+                            collector.collect(stateForPrefix.value,
+                                    instructions -> new Action(instructions, new TermMatches(
+                                            new TermMatch(term, true,
+                                                    term.subSequence(stateForPrefix.index + 1, term.length()))), 0, 1));
+
+                        }
+                    }
+                }
+            });
+        } else {
+
+            List<Prefix<InstructionsSupplier>> prefixes = new LinkedList<>();
+            List<Prefix<InstructionsSupplier>> newPrefixes = new LinkedList<>();
+
+            int pos = 0;
+
+            for (final List<InputSequenceElement> position : sequence) {
+
+                final int pos1 = pos;
+                
+                boolean anyTermAtPosition = false;
+
+                for (final InputSequenceElement element : position) {
+
+                    final boolean isTerm = element instanceof Term;
+                    anyTermAtPosition |= isTerm;
+
+                    final CharSequence charSequenceForLookup;
+                    if (isTerm) {
+                        charSequenceForLookup = createLookupCharSequence((Term) element);
+                    } else if (element instanceof InputBoundary) {
+                        charSequenceForLookup = BOUNDARY_WORD;
+                    } else {
+                        throw new IllegalArgumentException("Cannot handle type of element in sequence " + element);
+                    }
+
+                    // combine term with prefixes (= sequences of terms) that brought us here
+                    for (final Prefix<InstructionsSupplier> prefix : prefixes) {
+
+                        final States<InstructionsSupplier> states = trieMap.get(
+                                new CompoundCharSequence(null, " ", charSequenceForLookup), prefix.stateInfo);
+
+                        final int ofs = isTerm ? 1 : 0;
+                        
+                        // exact matches 
+                        final State<InstructionsSupplier> stateExactMatch = states.getStateForCompleteSequence();
+                        if (stateExactMatch.isKnown()) {
+                            if (stateExactMatch.isFinal()) {
+                                final int start;
+                                if (isTerm) {
+                                    start = pos - (prefix.matches.size() + 1) + ofs;
+                                } else {
+                                    start = pos - prefix.matches.size() + ofs;
+                                }
+
+                                collector.collect(stateExactMatch.value, instructions -> {
+                                    final TermMatches matches = new TermMatches(prefix.matches);
+                                    if (isTerm) {
+                                        matches.add(new TermMatch((Term) element));
+                                    }
+                                    return new Action(instructions, matches, start, pos1 + ofs);
+                                });
+
+                            }
+                            final Prefix<InstructionsSupplier> newPrefix = new Prefix<>(prefix, stateExactMatch);
+                            if (isTerm) {
+                                newPrefix.addTerm(new TermMatch((Term) element));
+                            }
+                            newPrefixes.add(newPrefix);
+                            
+                        }
+                        
+                        // matches for prefixes (= beginnings of terms)
+                        final List<State<InstructionsSupplier>> statesForPrefixes = states.getPrefixes();
+                        if (statesForPrefixes != null) {
+                            for (final State<InstructionsSupplier> stateForPrefix: statesForPrefixes) {
+                                
+                                if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
+                                    final int start;
+                                    if (isTerm) {
+                                        start = pos - (prefix.matches.size() + 1) + ofs;
+                                    } else {
+                                        start = pos - prefix.matches.size() + ofs;
+                                    }
+
+
+                                    collector.collect(stateForPrefix.value, instructions -> {
+                                        final TermMatches matches = new TermMatches(prefix.matches);
+                                        if (isTerm) {
+                                            final Term term = (Term) element;
+                                            matches.add(
+                                                    new TermMatch(term,
+                                                            true,
+                                                            term.subSequence(stateForPrefix.index + 1, term.length())));
+                                        }
+                                        return new Action(instructions, matches, start, pos1 + ofs);
+                                    });
+
+                                }
+                                
+                                // TODO: continue with next match after prefix match
+                            }
+                        }
+                    }
+
+                    // now see whether the term matches on its own...
+                    final States<InstructionsSupplier> states = trieMap.get(charSequenceForLookup);
+
+                    final State<InstructionsSupplier> stateExactMatch = states.getStateForCompleteSequence();
+                    if (stateExactMatch.isKnown()) {
+                        if (stateExactMatch.isFinal()) {
+                            // we do not let match the boundary on its own:
+                            if (isTerm) {
+                                collector.collect(stateExactMatch.value,
+                                        instructions ->
+                                                new Action(instructions, new TermMatches(new TermMatch((Term) element)),
+                                                        pos1, pos1 + 1));
+                            }
+                        }
+                        // ... and save it as a prefix to the following term
+                        final Prefix<InstructionsSupplier> newPrefix = isTerm
+                                ? new Prefix<>(new TermMatch((Term) element), stateExactMatch)
+                                : new Prefix<>(stateExactMatch);
+                        newPrefixes.add(new Prefix<>(newPrefix, stateExactMatch));
+                    }
+
+                    final List<State<InstructionsSupplier>> statesForPrefixes = states.getPrefixes();
+                    if (statesForPrefixes != null) {
+                        for (final State<InstructionsSupplier> stateForPrefix: statesForPrefixes) {
+                            if (stateForPrefix.isFinal() && stateForPrefix.value != null) {
+                                if (isTerm) {
+                                    collector.collect(stateForPrefix.value, instructions -> {
+                                                final Term term = (Term) element;
+                                                return new Action(instructions,
+                                                        new TermMatches(
+                                                                new TermMatch(term, true,
+                                                                term.subSequence(stateForPrefix.index + 1,
+                                                                        term.length()))), pos1, pos1 + 1);
+                                            });
+                                    // TODO: continue with next match after prefix match
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                prefixes = newPrefixes;
+                newPrefixes = new LinkedList<>();
+
+                if (anyTermAtPosition) {
+                    pos++;
+                }
+            }
+
+        }
+
+    }
+    
+    @Override
+    public Set<Instruction> getInstructions() {
+
+        final Set<Instruction> result = new HashSet<>();
+        
+        for (InstructionsSupplier instructionsSupplier : trieMap) {
+            for (Instructions instructions : instructionsSupplier.getInstructionsList()) {
+                result.addAll(instructions);
+            }
+        }
+        
+        return result;
+    }
+
+    private CharSequence createLookupCharSequence(final Term term) {
+        final CharSequence value = lookupPreprocessor.process(term);
+        final String field = term.getField();
+        return (field == null) ? value : new CompoundCharSequence(":", field, value);
+    }
+
+    public static class Prefix<T> {
+        final State<T> stateInfo;
+        final List<TermMatch> matches;
+
+        public Prefix(final Prefix<T> prefix, final State<T> stateInfo) {
+            matches = new LinkedList<>(prefix.matches);
+            this.stateInfo = stateInfo;
+        }
+
+        public Prefix(final TermMatch match, final State<T> stateInfo) {
+            matches = new LinkedList<>();
+            matches.add(match);
+            this.stateInfo = stateInfo;
+        }
+        
+        public Prefix(final State<T> stateInfo) {
+            matches = new LinkedList<>();
+            this.stateInfo = stateInfo;
+        }
+
+        private void addTerm(final TermMatch term) {
+            matches.add(term);
+        }
+
+     }
+
+}

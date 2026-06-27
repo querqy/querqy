@@ -23,8 +23,8 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import querqy.rewrite.commonrules.model.PrefixTerm;
-import querqy.rewrite.commonrules.model.Term;
+import querqy.rewriter.commonrules.model.PrefixTerm;
+import querqy.rewriter.commonrules.model.Term;
 import querqy.rewrite.rules.RuleParseException;
 
 import java.util.ArrayList;
@@ -32,8 +32,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static querqy.rewrite.commonrules.EscapeUtil.endsWithSpecialChar;
-import static querqy.rewrite.commonrules.EscapeUtil.unescape;
+import static querqy.rewriter.commonrules.EscapeUtil.endsWithSpecialChar;
+import static querqy.rewriter.commonrules.EscapeUtil.unescape;
 
 @RequiredArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
 public class TermsParser {

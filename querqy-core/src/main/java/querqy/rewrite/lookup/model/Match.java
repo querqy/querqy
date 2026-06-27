@@ -17,7 +17,7 @@
  */
 package querqy.rewrite.lookup.model;
 
-import querqy.rewrite.commonrules.model.TermMatches;
+import querqy.rewriter.commonrules.model.TermMatches;
 
 import java.util.Objects;
 

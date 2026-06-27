@@ -39,7 +39,7 @@ import querqy.lucene.rewrite.prms.PRMSDisjunctionMaxQuery;
 import querqy.lucene.rewrite.prms.PRMSQuery;
 import querqy.lucene.rewrite.prms.PRMSTermQuery;
 import querqy.model.Term;
-import querqy.rewrite.commonrules.model.PositionSequence;
+import querqy.rewriter.commonrules.model.PositionSequence;
 
 
 /**
