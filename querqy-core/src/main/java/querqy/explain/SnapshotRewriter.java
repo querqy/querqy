@@ -20,10 +20,12 @@ package querqy.explain;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanQuery;
 import querqy.model.BoostQuery;
+import querqy.model.BoostedPhraseQuery;
 import querqy.model.BoostedTerm;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.model.PhraseQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.RawQuery;
@@ -48,6 +50,7 @@ public class SnapshotRewriter implements QueryRewriter {
     public static final String TYPE_BOOLEAN_QUERY = "BOOL";
     public static final String TYPE_DISMAX = "DISMAX";
     public static final String TYPE_MATCH_ALL = "MATCH_ALL";
+    public static final String TYPE_PHRASE_QUERY = "PHRASE";
     public static final String TYPE_RAW_QUERY = "RAW_QUERY";
     public static final String TYPE_TERM = "TERM";
 
@@ -68,6 +71,8 @@ public class SnapshotRewriter implements QueryRewriter {
     public static final String PROP_FIELD = "field";
     public static final String PROP_GENERATED = "generated";
     public static final String PROP_VALUE = "value";
+    public static final String PROP_TERMS = "terms";
+    public static final String PROP_SLOP = "slop";
 
     private Map<String, Object> snapshot;
 
@@ -163,6 +168,8 @@ public class SnapshotRewriter implements QueryRewriter {
                 visit((BooleanQuery) querqyQuery);
             } else if (querqyQuery instanceof MatchAllQuery) {
                 visit((MatchAllQuery) querqyQuery);
+            } else if (querqyQuery instanceof PhraseQuery) {
+                visit((PhraseQuery) querqyQuery);
             } else if (querqyQuery instanceof RawQuery) {
                 visit((RawQuery) querqyQuery);
             } else {
@@ -235,6 +242,23 @@ public class SnapshotRewriter implements QueryRewriter {
             props.put(PROP_VALUE, term.getValue());
             props.put(PROP_GENERATED, term.isGenerated());
             add(TYPE_TERM, props);
+            return null;
+        }
+
+        @Override
+        public Void visit(final PhraseQuery phraseQuery) {
+            final Map<String, Object> props = new LinkedHashMap<>();
+            props.put(PROP_OCCUR, phraseQuery.occur.name());
+            props.put(PROP_GENERATED, phraseQuery.isGenerated());
+            if (phraseQuery.getField() != null) {
+                props.put(PROP_FIELD, phraseQuery.getField());
+            }
+            props.put(PROP_TERMS, phraseQuery.getTerms());
+            props.put(PROP_SLOP, phraseQuery.getSlop());
+            if (phraseQuery instanceof BoostedPhraseQuery) {
+                props.put(PROP_BOOST, ((BoostedPhraseQuery) phraseQuery).getBoost());
+            }
+            add(TYPE_PHRASE_QUERY, props);
             return null;
         }
 

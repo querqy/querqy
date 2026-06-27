@@ -19,10 +19,12 @@ package querqy.explain;
 
 import org.junit.Test;
 import querqy.model.BooleanQuery;
+import querqy.model.BoostedPhraseQuery;
 import querqy.model.BoostQuery;
 import querqy.model.Clause;
 import querqy.model.ExpandedQuery;
 import querqy.model.MatchAllQuery;
+import querqy.model.PhraseQuery;
 import querqy.model.StringRawQuery;
 import querqy.model.convert.builder.BooleanQueryBuilder;
 
@@ -33,15 +35,70 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static querqy.explain.SnapshotRewriter.BOOST_QUERIES;
 import static querqy.explain.SnapshotRewriter.DOWN;
 import static querqy.explain.SnapshotRewriter.FILTER_QUERIES;
 import static querqy.explain.SnapshotRewriter.MATCHING_QUERY;
 import static querqy.explain.SnapshotRewriter.MULT;
+import static querqy.explain.SnapshotRewriter.PROP_BOOST;
+import static querqy.explain.SnapshotRewriter.PROP_FIELD;
+import static querqy.explain.SnapshotRewriter.PROP_GENERATED;
+import static querqy.explain.SnapshotRewriter.PROP_OCCUR;
+import static querqy.explain.SnapshotRewriter.PROP_SLOP;
+import static querqy.explain.SnapshotRewriter.PROP_TERMS;
+import static querqy.explain.SnapshotRewriter.TYPE_PHRASE_QUERY;
 import static querqy.explain.SnapshotRewriter.UP;
 
+import static java.util.Arrays.asList;
+
 public class SnapshotRewriterTest {
+    @Test
+    public void testPhraseQuerySnapshot() {
+        final PhraseQuery pq = new PhraseQuery(null, Clause.Occur.MUST, false, "f1", asList("hello", "world"), 2);
+        final ExpandedQuery eq = new ExpandedQuery(pq);
+
+        final SnapshotRewriter rewriter = new SnapshotRewriter();
+        rewriter.rewrite(eq, null);
+
+        final Map<String, Object> snapshot = rewriter.getSnapshot();
+        final Map<String, Object> matchingQuery = (Map<String, Object>) snapshot.get(MATCHING_QUERY);
+        final Map<String, Object> phrase = (Map<String, Object>) matchingQuery.get(TYPE_PHRASE_QUERY);
+
+        assertNotNull(phrase);
+        assertEquals("MUST", phrase.get(PROP_OCCUR));
+        assertEquals(false, phrase.get(PROP_GENERATED));
+        assertEquals("f1", phrase.get(PROP_FIELD));
+        assertEquals(asList("hello", "world"), phrase.get(PROP_TERMS));
+        assertEquals(2, phrase.get(PROP_SLOP));
+        assertFalse(phrase.containsKey(PROP_BOOST));
+    }
+
+    @Test
+    public void testBoostedPhraseQuerySnapshot() {
+        final BoostedPhraseQuery bpq = new BoostedPhraseQuery(null, Clause.Occur.SHOULD, null,
+                asList("red", "shoes"), 0, 1.5f);
+        final ExpandedQuery eq = new ExpandedQuery(BooleanQueryBuilder.bq("dummy").build());
+        eq.addBoostUpQuery(new BoostQuery(bpq, 1.5f));
+
+        final SnapshotRewriter rewriter = new SnapshotRewriter();
+        rewriter.rewrite(eq, null);
+
+        final List<Map<String, Object>> upQueries =
+                (List<Map<String, Object>>) ((Map<?, ?>) rewriter.getSnapshot().get(BOOST_QUERIES)).get(UP);
+        assertNotNull(upQueries);
+        assertEquals(1, upQueries.size());
+
+        final Map<String, Object> phrase = (Map<String, Object>)
+                ((Map<?, ?>) upQueries.get(0).get("query")).get(TYPE_PHRASE_QUERY);
+        assertNotNull(phrase);
+        assertEquals(asList("red", "shoes"), phrase.get(PROP_TERMS));
+        assertEquals(0, phrase.get(PROP_SLOP));
+        assertEquals(1.5f, (float) phrase.get(PROP_BOOST), 0f);
+        assertFalse(phrase.containsKey(PROP_FIELD));
+    }
+
     @Test
     public void testBooleanSnapshot() {
         BooleanQuery bq = BooleanQueryBuilder.bq("a", "b", "a", "b").build();
