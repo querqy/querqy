@@ -1,0 +1,394 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2015 Querqy Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package querqy.rewriter;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import querqy.model.*;
+import querqy.rewrite.RewriterOutput;
+import querqy.rewriter.commonrules.AbstractCommonRulesTest;
+import querqy.rewriter.commonrules.CommonRulesRewriter;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static querqy.QuerqyMatchers.*;
+
+/**
+ * Test for ShingleRewriter.
+ */
+public class ShingleRewriteTest extends AbstractCommonRulesTest {
+
+    @Test
+    public void testShinglingForTwoTokens() {
+        Query query = new Query();
+        addTerm(query, "cde");
+        addTerm(query, "ajk");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk")
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testThatShinglingDoesNotTriggerExceptionOnSingleTerm() {
+        Query query = new Query();
+        addTerm(query, "t1");
+        
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("t1")
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testShinglingForTwoTokensWithSameField() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde");
+        addTerm(query, "f1", "ajk");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("f1", "cde"),
+                                term("f1", "cdeajk")
+                        ),
+                        dmq(
+                                term("f1", "ajk"),
+                                term("f1", "cdeajk")
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testShinglingForTwoTokensWithSameFieldAndGeneratedFlag() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde", true);
+        addTerm(query, "f1", "ajk", true);
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(true);
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("f1", "cde"),
+                                term("f1", "cdeajk")
+                        ),
+                        dmq(
+                                term("f1", "ajk"),
+                                term("f1", "cdeajk")
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testShinglingForTwoTokensWithDifferentFieldsDontShingle() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde");
+        addTerm(query, "f2", "ajk");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(), bq(dmq(term("cde")), dmq(term("ajk"))));
+    }
+    
+    @Test
+    public void testShinglingForTwoTokensWithOnFieldNameNullDontShingle() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde");
+        addTerm(query, "ajk");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(), bq(dmq(term("f1", "cde")), dmq(term("ajk"))));
+    }
+
+    @Test
+    public void testShinglingForThreeTokens() {
+        Query query = new Query();
+        addTerm(query, "cde");
+        addTerm(query, "ajk");
+        addTerm(query, "xyz");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk"),
+                                term("ajkxyz")
+                        ),
+                        dmq(
+                                term("xyz"),
+                                term("ajkxyz")
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testShinglingForThreeTokensWithThreeTokenGenerated() {
+        Query query = new Query();
+        addTerm(query, "cde", true);
+        addTerm(query, "ajk", true);
+        addTerm(query, "xyz", true);
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(true);
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk"),
+                                term("ajkxyz")
+                        ),
+                        dmq(
+                                term("xyz"),
+                                term("ajkxyz")
+                        )
+                )
+        );
+    }
+
+
+
+    @Test
+    public void testShinglingForThreeTokensWithOneTokenGeneratedIgnoringGenerated() {
+        Query query = new Query();
+        addTerm(query, "cde", false);
+        addTerm(query, "ajk", false);
+        addTerm(query, "xyz", true);
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(false);
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("ajk"),
+                                term("cdeajk")
+                        ),
+                        dmq(
+                                term("xyz")
+                        )
+                )
+        );
+    }
+
+
+    @Test
+    public void testShinglingForThreeTokensWithMixedFields() {
+        Query query = new Query();
+        addTerm(query, "f1", "cde");
+        addTerm(query, "f1", "ajk");
+        addTerm(query, "f2", "xyz");
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter();
+        rewriter.rewrite(expandedQuery, null);
+
+        assertThat((Query) expandedQuery.getUserQuery(),
+                bq(
+                        dmq(
+                                term("f1", "cde"),
+                                term("f1", "cdeajk")
+                        ),
+                        dmq(    
+                                term("f1", "ajk"),
+                                term("f1", "cdeajk")
+                        ),
+                        dmq(term("f2", "xyz"))
+                )
+        );
+    }
+    
+    @Test
+    public void testChainingWithWildCard() {
+
+        final CommonRulesRewriter commonRulesRewriter = rewriter(
+                rule(
+                        input("p1*"),
+                        synonym("p1", "$1")
+                )
+        );
+
+        ShingleRewriter shingleRewriter = new ShingleRewriter(false);
+
+        ExpandedQuery query = makeQuery("p1xyz t2");
+        query = commonRulesRewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery();
+        query = shingleRewriter.rewrite(query, null).getExpandedQuery();
+        
+        assertThat((Query) query.getUserQuery(),
+                bq(
+                        dmq(
+                                term("p1xyz", false),
+                                bq(
+                                        dmq(must(), term ("p1", true)),
+                                        dmq(must(), term ("xyz", true))
+                                        
+                                        ),
+                                term("p1xyzt2", true)
+                        ),
+                        dmq(
+                                term("t2", false),
+                                term("p1xyzt2", true)
+                                )
+                )
+        );
+        
+        
+
+    }
+    
+    @Test
+    public void testShingleWithHyphens() {
+        
+        Query query = new Query();
+        addTerm(query, "cde-fgh", false);
+        addTerm(query, "-", false);
+        addTerm(query, "xyz", false);
+        
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+        ShingleRewriter rewriter = new ShingleRewriter(false);
+        ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("cde-fgh", false),
+                                term ("cde-fgh-", true)
+                        ),
+                        dmq(
+                                term("-", false),
+                                term("cde-fgh-", true),
+                                term("-xyz", true)
+                                ),
+                        dmq(
+                                term("xyz", false),
+                                term ("-xyz", true)
+                        )
+                                
+                )
+        );
+        
+    }
+
+    @Test
+    public void testVisitDMQCanHandleNoNonGeneratedClause() {
+        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(null, Clause.Occur.SHOULD, false);
+
+        // we cannot use Mockito mock objects as Mockito doesn't mock Term.isGenerated() (due to the primitive boolean
+        // return type)
+        Term term1 = new Term(dmq, null, "value1", true) {
+            @Override
+            public <T> T accept(NodeVisitor<T> visitor) {
+                Assert.fail("Generated node must not be visited");
+                return null;
+            }
+        };
+        dmq.addClause(term1);
+
+        Term term2 = new Term(dmq, null, "value2", true) {
+            @Override
+            public <T> T accept(NodeVisitor<T> visitor) {
+                Assert.fail("Generated node must not be visited");
+                return null;
+            }
+        };
+        dmq.addClause(term2);
+
+        ShingleRewriter rewriter = new ShingleRewriter(false);
+        rewriter.visit(dmq);
+
+    }
+
+    @Test
+    public void testThatRawQueryAsUserQueryIsJustPassedUnchanged() {
+
+        final StringRawQuery userQuery = new StringRawQuery(null, "{!terms f=id}123", Clause.Occur.MUST, false);
+        final ExpandedQuery query = new ExpandedQuery(userQuery);
+
+        final ShingleRewriter rewriter = new ShingleRewriter();
+        final RewriterOutput output = rewriter.rewrite(query, new EmptySearchEngineRequestAdapter());
+        assertEquals(userQuery, output.getExpandedQuery().getUserQuery());
+
+    }
+
+    private void addTerm(Query query, String value) {
+        addTerm(query, null, value);
+    }
+
+    private void addTerm(Query query, String field, String value) {
+        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, true);
+        query.addClause(dmq);
+        Term term = new Term(dmq, field, value);
+        dmq.addClause(term);
+    }
+
+    private void addTerm(Query query, String value, boolean isGenerated) {
+        addTerm(query, null, value, isGenerated);
+    }
+
+    private void addTerm(Query query, String field, String value, boolean isGenerated) {
+        DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(query, Clause.Occur.SHOULD, true);
+        query.addClause(dmq);
+        Term term = new Term(dmq, field, value, isGenerated);
+        dmq.addClause(term);
+    }
+
+}

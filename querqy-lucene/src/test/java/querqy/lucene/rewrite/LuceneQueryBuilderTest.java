@@ -76,10 +76,10 @@ import querqy.parser.FieldAwareWhiteSpaceQuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewrite.commonrules.SimpleCommonRulesRewriterFactory;
-import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
-import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
-import querqy.rewrite.commonrules.select.SelectionStrategyFactory;
+import querqy.rewriter.commonrules.SimpleCommonRulesRewriterFactory;
+import querqy.rewriter.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewriter.commonrules.model.BoostInstruction.BoostMethod;
+import querqy.rewriter.commonrules.select.SelectionStrategyFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 
 @RunWith(MockitoJUnitRunner.class)

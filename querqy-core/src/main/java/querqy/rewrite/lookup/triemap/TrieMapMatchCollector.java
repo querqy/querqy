@@ -17,8 +17,8 @@
  */
 package querqy.rewrite.lookup.triemap;
 
-import querqy.rewrite.commonrules.model.TermMatch;
-import querqy.rewrite.commonrules.model.TermMatches;
+import querqy.rewriter.commonrules.model.TermMatch;
+import querqy.rewriter.commonrules.model.TermMatches;
 import querqy.rewrite.lookup.model.Match;
 import querqy.rewrite.lookup.triemap.model.TrieMapEvaluation;
 import querqy.trie.State;

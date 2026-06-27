@@ -20,9 +20,9 @@ package querqy.rewrite.rules.factory.config;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
-import querqy.rewrite.commonrules.QuerqyParserFactory;
-import querqy.rewrite.commonrules.WhiteSpaceQuerqyParserFactory;
-import querqy.rewrite.commonrules.model.BoostInstruction.BoostMethod;
+import querqy.rewriter.commonrules.QuerqyParserFactory;
+import querqy.rewriter.commonrules.WhiteSpaceQuerqyParserFactory;
+import querqy.rewriter.commonrules.model.BoostInstruction.BoostMethod;
 import querqy.rewrite.rules.instruction.InstructionType;
 
 import java.util.Set;

@@ -27,7 +27,7 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.BytesRef;
-import querqy.rewrite.wordbreak.TermCorpus;
+import querqy.rewriter.wordbreak.TermCorpus;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

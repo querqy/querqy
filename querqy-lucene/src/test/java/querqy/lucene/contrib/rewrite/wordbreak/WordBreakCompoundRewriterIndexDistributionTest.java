@@ -39,7 +39,7 @@ import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.lucene.LuceneTermCorpus;
 import querqy.model.Query;
-import querqy.rewrite.wordbreak.WordBreakCompoundRewriterFactory;
+import querqy.rewriter.wordbreak.WordBreakCompoundRewriterFactory;
 
 import java.io.IOException;
 import java.util.Arrays;

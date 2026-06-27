@@ -20,10 +20,10 @@ package querqy.rewrite.rules.input;
 import lombok.Builder;
 import lombok.Getter;
 import querqy.model.Input;
-import querqy.rewrite.commonrules.model.Instructions;
-import querqy.rewrite.commonrules.model.Term;
-import querqy.rewrite.commonrules.select.booleaninput.BooleanInputParser;
-import querqy.rewrite.commonrules.select.booleaninput.model.BooleanInputElement;
+import querqy.rewriter.commonrules.model.Instructions;
+import querqy.rewriter.commonrules.model.Term;
+import querqy.rewriter.commonrules.select.booleaninput.BooleanInputParser;
+import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
 import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.instruction.InstructionType;
 
@@ -61,7 +61,7 @@ public class InputAdapter {
             try {
                 booleanInputParser.createInputBuilder(elements, inputSkeleton).withInstructions(instructions).build();
 
-            } catch (querqy.rewrite.commonrules.RuleParseException e) {
+            } catch (querqy.rewriter.commonrules.RuleParseException e) {
                 throw new RuleParseException(e.getMessage());
             }
         }

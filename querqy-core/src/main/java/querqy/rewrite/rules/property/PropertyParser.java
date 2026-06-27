@@ -22,7 +22,7 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.NoArgsConstructor;
-import querqy.rewrite.commonrules.model.InstructionsProperties;
+import querqy.rewriter.commonrules.model.InstructionsProperties;
 
 import java.util.HashMap;
 import java.util.Map;
