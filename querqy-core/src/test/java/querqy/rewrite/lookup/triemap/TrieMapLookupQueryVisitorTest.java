@@ -28,6 +28,7 @@ import querqy.model.convert.builder.TermBuilder;
 import querqy.rewrite.lookup.LookupConfig;
 import querqy.rewrite.lookup.triemap.model.TrieMapEvaluation;
 import querqy.rewrite.lookup.triemap.model.TrieMapSequence;
+import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRules;
 import querqy.trie.State;
 import querqy.trie.States;
 
@@ -235,11 +236,13 @@ public class TrieMapLookupQueryVisitorTest {
             final BooleanQuery booleanQuery,
             final boolean hasBoundaries
     ) {
+        final LookupConfig lookupConfig = LookupConfig.builder().hasBoundaries(hasBoundaries).build();
         return new TrieMapLookupQueryVisitor<>(
                 booleanQuery,
-                LookupConfig.builder().hasBoundaries(hasBoundaries).build(),
+                lookupConfig,
                 trieMapSequenceLookup,
-                trieMapMatchCollector
+                trieMapMatchCollector,
+                new SuffixWildcardMatcher<>(SuffixWildcardRules.empty(), lookupConfig.getPreprocessor())
         );
     }
 

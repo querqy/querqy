@@ -306,4 +306,209 @@ public class SynonymInstructionTest extends AbstractCommonRulesTest {
                          )
               ));
     }
+
+    @Test
+    public void testThatLeadingWildcardIsMatchedAndPlaceHolderGetsReplaced() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("*p1"),
+                        synonym("$1", "p1")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("xyzp1");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("xyzp1", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("p1", true))
+                              )
+                         )
+              ));
+    }
+
+    @Test
+    public void testThatLeadingWildcardDoesNotMatchZeroChars() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("*p1"),
+                        synonym("$1", "p1")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("p1");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("p1", false)
+                         )
+              ));
+    }
+
+    @Test
+    public void testThatLeadingWildcardIsMatchedAsLastOfTwoTerms() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("p1 *p2"),
+                        synonym("$1", "p2")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("p1 xyzp2");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("p1", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("p2", true))
+                              )
+                         ),
+                      dmq(
+                              term("xyzp2", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("p2", true))
+                              )
+                         )
+              ));
+    }
+
+    @Test
+    public void testThatLeadingWildcardIsMatchedAsFirstOfTwoTerms() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("*p1 p2"),
+                        synonym("$1", "p1")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("xyzp1 p2");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("xyzp1", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("p1", true))
+                              )
+                         ),
+                      dmq(
+                              term("p2", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("p1", true))
+                              )
+                         )
+              ));
+    }
+
+    @Test
+    public void testThatLeadingWildcardIsMatchedBetweenTwoFixedTerms() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("abc *hemd def"),
+                        synonym("$1", "hemd")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("abc xyzhemd def");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("abc", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("hemd", true))
+                              )
+                         ),
+                      dmq(
+                              term("xyzhemd", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("hemd", true))
+                              )
+                         ),
+                      dmq(
+                              term("def", false),
+                              bq(
+                                      dmq(must(), term("xyz", true)),
+                                      dmq(must(), term("hemd", true))
+                              )
+                         )
+              ));
+    }
+
+    @Test
+    public void testThatLeadingWildcardDoesNotMatchWithoutRequiredLeftContext() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("abc *hemd"),
+                        synonym("$1", "hemd")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("xyzhemd");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("xyzhemd", false)
+                         )
+              ));
+    }
+
+    @Test
+    public void testThatPlainRuleAndLeadingWildcardRuleBothApplyToSameTerm() {
+
+        final CommonRulesRewriter rewriter = rewriter(
+                rule(
+                        input("abc"),
+                        synonym("klm")
+                ),
+                rule(
+                        input("abc *hemd def"),
+                        synonym("$1shirt")
+                )
+        );
+
+        ExpandedQuery query = makeQuery("abc xyzhemd def");
+        Query rewritten = (Query) rewriter.rewrite(query, new EmptySearchEngineRequestAdapter()).getExpandedQuery().getUserQuery();
+
+        assertThat(rewritten,
+              bq(
+                      dmq(
+                              term("abc", false),
+                              term("klm", true),
+                              term("xyzshirt", true)
+                         ),
+                      dmq(
+                              term("xyzhemd", false),
+                              term("xyzshirt", true)
+                         ),
+                      dmq(
+                              term("def", false),
+                              term("xyzshirt", true)
+                         )
+              ));
+    }
 }

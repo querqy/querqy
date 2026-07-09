@@ -19,6 +19,7 @@ package querqy.rewriter.commonrules.model;
 
 import querqy.model.Input;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRules;
 import querqy.rewrite.rules.rule.Rule;
 import querqy.trie.TrieMap;
 
@@ -33,5 +34,7 @@ public interface RulesCollectionBuilder {
     RulesCollection build();
 
     TrieMap<InstructionsSupplier> getTrieMap();
+
+    SuffixWildcardRules<InstructionsSupplier> getSuffixWildcardRules();
 
 }

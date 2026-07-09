@@ -56,6 +56,7 @@ import querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewriter.commonrules.select.TopRewritingActionCollector;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInput;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
+import querqy.rewrite.lookup.LookupConfig;
 import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
 import querqy.rewrite.rules.input.InputParserAdapter;
 
@@ -106,7 +107,10 @@ public abstract class AbstractCommonRulesTest {
                 builder.addRule(rule.input, rule.literal);
             }
         });
-        return new CommonRulesRewriter(TrieMapLookupQueryVisitorFactory.of(builder.getTrieMap()), DEFAULT_SELECTION_STRATEGY);
+        return new CommonRulesRewriter(
+                TrieMapLookupQueryVisitorFactory.of(
+                        builder.getTrieMap(), LookupConfig.defaultConfig(), builder.getSuffixWildcardRules()),
+                DEFAULT_SELECTION_STRATEGY);
     }
 
     public BooleanQueryBuilder rewrite(BooleanQueryBuilder queryBuilder, CommonRulesRewriter rewriter) {

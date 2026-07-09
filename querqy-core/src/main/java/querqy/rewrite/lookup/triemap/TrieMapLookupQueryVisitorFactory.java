@@ -19,6 +19,7 @@ package querqy.rewrite.lookup.triemap;
 
 import querqy.model.BooleanQuery;
 import querqy.rewrite.lookup.LookupConfig;
+import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRules;
 import querqy.trie.TrieMap;
 
 
@@ -26,13 +27,16 @@ public class TrieMapLookupQueryVisitorFactory<ValueT> {
 
     private final TrieMap<ValueT> trieMap;
     private final LookupConfig lookupConfig;
+    private final SuffixWildcardRules<ValueT> suffixWildcardRules;
 
     private TrieMapLookupQueryVisitorFactory(
             final TrieMap<ValueT> trieMap,
-            final LookupConfig lookupConfig
+            final LookupConfig lookupConfig,
+            final SuffixWildcardRules<ValueT> suffixWildcardRules
     ) {
         this.trieMap = trieMap;
         this.lookupConfig = lookupConfig;
+        this.suffixWildcardRules = suffixWildcardRules;
     }
 
     public TrieMapLookupQueryVisitor<ValueT> createTrieMapLookup(final BooleanQuery booleanQuery) {
@@ -40,7 +44,8 @@ public class TrieMapLookupQueryVisitorFactory<ValueT> {
                 booleanQuery,
                 lookupConfig,
                 createAutomatonWrapper(),
-                new TrieMapMatchCollector<>()
+                new TrieMapMatchCollector<>(),
+                new SuffixWildcardMatcher<>(suffixWildcardRules, lookupConfig.getPreprocessor())
         );
     }
 
@@ -52,8 +57,14 @@ public class TrieMapLookupQueryVisitorFactory<ValueT> {
         return trieMap;
     }
 
+    public static <ValueT> TrieMapLookupQueryVisitorFactory<ValueT> of(final TrieMap<ValueT> trieMap,
+                                                                      final LookupConfig lookupConfig,
+                                                                      final SuffixWildcardRules<ValueT> suffixWildcardRules) {
+        return new TrieMapLookupQueryVisitorFactory<>(trieMap, lookupConfig, suffixWildcardRules);
+    }
+
     public static <ValueT> TrieMapLookupQueryVisitorFactory<ValueT> of(final TrieMap<ValueT> trieMap, final LookupConfig lookupConfig) {
-        return new TrieMapLookupQueryVisitorFactory<>(trieMap, lookupConfig);
+        return of(trieMap, lookupConfig, SuffixWildcardRules.empty());
     }
 
     public static <ValueT> TrieMapLookupQueryVisitorFactory<ValueT> of(final TrieMap<ValueT> trieMap) {
