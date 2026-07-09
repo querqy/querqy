@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,6 +50,7 @@ import querqy.rewriter.commonrules.model.DeleteInstruction;
 import querqy.rewriter.commonrules.model.FilterInstruction;
 import querqy.rewriter.commonrules.model.InstructionDescription;
 import querqy.rewriter.commonrules.model.PrefixTerm;
+import querqy.rewriter.commonrules.model.SuffixTerm;
 import querqy.rewriter.commonrules.model.SynonymInstruction;
 import querqy.rewriter.commonrules.model.Term;
 
@@ -424,22 +426,97 @@ public class LineParser {
             s = s.substring(0, s.length() - 1).trim();
         }
 
-        int pos = indexOfWildcard(s);
-        if (pos > -1) {
-            if (pos < (s.length() - 1)) {
-                return new ValidationError(WILDCARD + " is only allowed at the end of the input: " + s);
-            } else if (requiresRightBoundary) {
-                return new ValidationError(WILDCARD + " cannot be combined with right boundary");
-            }
+        final Optional<ValidationError> wildcardValidation =
+                validateWildcardPlacement(s, requiresLeftBoundary, requiresRightBoundary);
+        if (wildcardValidation.isPresent()) {
+            return wildcardValidation.get();
         }
+
         final Object expr = parseTermExpression(s);
         if (expr instanceof ValidationError) {
             return expr;
-        } else {
-            return new Input.SimpleInput((List<Term>) expr, requiresLeftBoundary, requiresRightBoundary,
-                    trimmed);
         }
 
+        final List<Term> terms = (List<Term>) expr;
+        final Optional<ValidationError> fieldNameValidation = validateSuffixTermFieldNames(terms, s);
+        if (fieldNameValidation.isPresent()) {
+            return fieldNameValidation.get();
+        }
+
+        return new Input.SimpleInput(terms, requiresLeftBoundary, requiresRightBoundary, trimmed);
+
+    }
+
+    /**
+     * A rule input containing a leading-wildcard term ({@link SuffixTerm}) does not support field names on any
+     * *other* term of the same input: the fixed terms surrounding the wildcard are matched via a dedicated,
+     * field-name-agnostic lookup (see {@code querqy.rewrite.lookup.triemap.suffix}), so a field restriction on one
+     * of them cannot currently be honored. Reject explicitly rather than silently ignoring the restriction.
+     */
+    private static Optional<ValidationError> validateSuffixTermFieldNames(final List<Term> terms, final String s) {
+
+        final boolean hasSuffixTerm = terms.stream().anyMatch(SuffixTerm.class::isInstance);
+        if (!hasSuffixTerm) {
+            return Optional.empty();
+        }
+
+        final boolean hasFieldNamesOnOtherTerm = terms.stream()
+                .anyMatch(term -> !(term instanceof SuffixTerm) && term.hasFieldNames());
+        if (hasFieldNamesOnOtherTerm) {
+            return Optional.of(new ValidationError(
+                    "Field names are not supported on terms other than the wildcard term itself in an input "
+                            + "with a leading wildcard: " + s));
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Validates that the input string contains at most one wildcard and that it is placed either at the very
+     * start of a term (leading wildcard, e.g. {@code *hemd}, allowed on any term of the input) or at the very
+     * end of the whole input (trailing wildcard, e.g. {@code shirt*}, only allowed on the last term - unchanged
+     * legacy restriction).
+     *
+     * @return a {@link ValidationError} if the input is invalid, or an empty {@link Optional} if the wildcard
+     * placement is fine (including the case where there is no wildcard at all).
+     */
+    static Optional<ValidationError> validateWildcardPlacement(final String s, final boolean requiresLeftBoundary,
+                                                               final boolean requiresRightBoundary) {
+
+        final int pos = indexOfWildcard(s);
+        if (pos == -1) {
+            return Optional.empty();
+        }
+
+        if (indexOfWildcard(s.substring(pos + 1)) > -1) {
+            return Optional.of(new ValidationError("Only one " + WILDCARD + " is allowed per rule input: " + s));
+        }
+
+        final boolean atStartOfTerm = (pos == 0) || Character.isWhitespace(s.charAt(pos - 1));
+        final boolean atEndOfTerm = (pos == s.length() - 1) || Character.isWhitespace(s.charAt(pos + 1));
+
+        if (atStartOfTerm && atEndOfTerm) {
+            return Optional.of(new ValidationError("Missing term text for wildcard " + WILDCARD + ": " + s));
+        }
+
+        if (atEndOfTerm) {
+            if (pos < (s.length() - 1)) {
+                return Optional.of(new ValidationError(WILDCARD + " is only allowed at the end of the input: " + s));
+            }
+            if (requiresRightBoundary) {
+                return Optional.of(new ValidationError(WILDCARD + " cannot be combined with right boundary"));
+            }
+            return Optional.empty();
+        }
+
+        if (atStartOfTerm) {
+            if (pos == 0 && requiresLeftBoundary) {
+                return Optional.of(new ValidationError(WILDCARD + " cannot be combined with left boundary"));
+            }
+            return Optional.empty();
+        }
+
+        return Optional.of(new ValidationError(WILDCARD + " is only allowed at the start or end of a term: " + s));
     }
 
     static Object parseTermExpression(final String s) {
@@ -490,6 +567,11 @@ public class LineParser {
         String remaining = fieldNamesPossible ? s.substring(pos + 1).trim() : s;
         if (fieldNamesPossible && remaining.length() == 1 && remaining.charAt(0) == WILDCARD) {
             throw new IllegalArgumentException("Missing prefix for wildcard " + WILDCARD);
+        }
+
+        if (remaining.charAt(0) == WILDCARD) {
+            final String suffixUnescaped = unescape(remaining.substring(1));
+            return new SuffixTerm(suffixUnescaped.toCharArray(), 0, suffixUnescaped.length(), fieldNames);
         }
 
         final String remainingUnescaped = unescape(remaining);

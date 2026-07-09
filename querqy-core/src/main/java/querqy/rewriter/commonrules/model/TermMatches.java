@@ -97,7 +97,9 @@ public class TermMatches extends LinkedList<TermMatch> {
     @Override
     public boolean addAll(final Collection<? extends TermMatch> c) {
         for (final TermMatch match: c) {
-            updateReplacements(match);
+            if (match.isPrefix) {
+                updateReplacements(match);
+            }
         }
         return super.addAll(c);
     }

@@ -52,6 +52,7 @@ public class TrieMapLookupQueryVisitor<T> extends AbstractNodeVisitor<Void> {
 
     private final TrieMapSequenceLookup<T> trieMapSequenceLookup;
     private final TrieMapMatchCollector<T> matchCollector;
+    private final SuffixWildcardMatcher<T> suffixWildcardMatcher;
 
     private List<TrieMapSequence<T>> previousSequences = List.of();
     private List<TrieMapSequence<T>> sequences = new ArrayList<>();
@@ -60,17 +61,20 @@ public class TrieMapLookupQueryVisitor<T> extends AbstractNodeVisitor<Void> {
             final BooleanQuery booleanQuery,
             final LookupConfig lookupConfig,
             final TrieMapSequenceLookup<T> trieMapSequenceLookup,
-            final TrieMapMatchCollector<T> matchCollector
+            final TrieMapMatchCollector<T> matchCollector,
+            final SuffixWildcardMatcher<T> suffixWildcardMatcher
     ) {
         this.booleanQuery = booleanQuery;
         this.lookupConfig = lookupConfig;
         this.trieMapSequenceLookup = trieMapSequenceLookup;
         this.matchCollector = matchCollector;
+        this.suffixWildcardMatcher = suffixWildcardMatcher;
     }
 
     public List<Match<T>> lookupAndCollect() {
         lookup();
-        return matchCollector.getMatches();
+        return Stream.concat(matchCollector.getMatches().stream(), suffixWildcardMatcher.getMatches().stream())
+                .collect(Collectors.toList());
     }
 
     private void lookup() {
@@ -101,6 +105,8 @@ public class TrieMapLookupQueryVisitor<T> extends AbstractNodeVisitor<Void> {
         } else if (!previousSequences.isEmpty()) {
             previousSequences = new ArrayList<>();
         }
+
+        suffixWildcardMatcher.nextPosition();
     }
 
     @Override
@@ -108,7 +114,7 @@ public class TrieMapLookupQueryVisitor<T> extends AbstractNodeVisitor<Void> {
         // TODO: return all full sequences from bq to enable cross-hierarchy lookups
 
         final TrieMapLookupQueryVisitor<T> nestedTrieMapLookupQueryVisitor = new TrieMapLookupQueryVisitor<>(
-                booleanQuery, lookupConfig, trieMapSequenceLookup, matchCollector
+                booleanQuery, lookupConfig, trieMapSequenceLookup, matchCollector, suffixWildcardMatcher
         );
 
         nestedTrieMapLookupQueryVisitor.lookup();
@@ -123,6 +129,9 @@ public class TrieMapLookupQueryVisitor<T> extends AbstractNodeVisitor<Void> {
         if (!previousSequences.isEmpty()) {
             visitTermWithPreviousSequences(term);
         }
+
+        suffixWildcardMatcher.visitTerm(term);
+
         return null;
     }
 

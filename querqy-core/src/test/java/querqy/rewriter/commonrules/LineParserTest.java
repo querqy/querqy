@@ -283,6 +283,93 @@ public class LineParserTest {
     }
     
     @Test
+    public void testParseSuffixOnly() {
+        Term term = LineParser.parseTerm("*abc");
+        assertEquals(3, term.length());
+        assertArrayEquals(new char[] {'a', 'b', 'c'},new char[] {term.charAt(0), term.charAt(1), term.charAt(2)});
+        assertTrue(term instanceof SuffixTerm);
+        assertNull(term.getFieldNames());
+    }
+
+    @Test
+    public void testParseSingleLetterSuffix() {
+        assertThat(LineParser.parseTerm("*a"), suffix("a"));
+    }
+
+    @Test
+    public void testParseSuffixWithFieldName() {
+        assertThat(LineParser.parseTerm("f1:*abc"), suffix("abc", "f1"));
+    }
+
+    @Test
+    public void testParseSuffixWithFieldNames() {
+        assertThat(LineParser.parseTerm("{f1,f2}:*abc"), suffix("abc", "f1", "f2"));
+    }
+
+    @Test
+    public void testThatLeadingWildcardCanBeAtStartOfInput() {
+        Object parseResult = LineParser.parseInput("*abc");
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertThat(input.getInputTerms(), contains(suffix("abc")));
+    }
+
+    @Test
+    public void testThatLeadingWildcardCanBeOnLastOfTwoTerms() {
+        Object parseResult = LineParser.parseInput("abc *def");
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertThat(input.getInputTerms(), contains(term("abc"), suffix("def")));
+    }
+
+    @Test
+    public void testThatLeadingWildcardCanBeOnMiddleTerm() {
+        Object parseResult = LineParser.parseInput("abc *def ghi");
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertThat(input.getInputTerms(), contains(term("abc"), suffix("def"), term("ghi")));
+    }
+
+    @Test
+    public void testThatOnlyOneWildcardIsAllowedPerInput() {
+        assertTrue(LineParser.parseInput("*abc *def") instanceof ValidationError);
+        assertTrue(LineParser.parseInput("abc* *def") instanceof ValidationError);
+    }
+
+    @Test
+    public void testThatLeadingWildcardOnlyTermIsNotAllowed() {
+        assertTrue(LineParser.parseInput("abc * def") instanceof ValidationError);
+    }
+
+    @Test
+    public void testThatLeadingWildcardCannotBeCombinedWithLeftBoundaryOnFirstTerm() {
+        Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "*abc");
+        assertEquals(new ValidationError(LineParser.WILDCARD + " cannot be combined with left boundary"),
+                parseResult);
+    }
+
+    @Test
+    public void testThatLeadingWildcardCanBeCombinedWithLeftBoundaryWhenNotOnFirstTerm() {
+        Object parseResult = LineParser.parseInput(LineParser.BOUNDARY + "abc *def");
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresLeftBoundary());
+    }
+
+    @Test
+    public void testThatLeadingWildcardCanBeCombinedWithRightBoundaryOnLastTerm() {
+        Object parseResult = LineParser.parseInput("abc *def" + LineParser.BOUNDARY);
+        assertTrue(parseResult instanceof Input.SimpleInput);
+        Input.SimpleInput input = (Input.SimpleInput) parseResult;
+        assertTrue(input.isRequiresRightBoundary());
+    }
+
+    @Test
+    public void testThatFieldNamesAreNotAllowedOnOtherTermsWithLeadingWildcard() {
+        assertTrue(LineParser.parseInput("f1:abc *def") instanceof ValidationError);
+    }
+
+    @Test
     public void testThatWildcardOnlyTermIsNotAllowed() {
         try {
             LineParser.parseTerm("*");
@@ -539,6 +626,10 @@ public class LineParserTest {
     
     TermMatcher prefix(String value, String...fieldNames) {
         return new TermMatcher(PrefixTerm.class, value, fieldNames);
+    }
+
+    TermMatcher suffix(String value, String...fieldNames) {
+        return new TermMatcher(SuffixTerm.class, value, fieldNames);
     }
     
     private static class TermMatcher extends TypeSafeMatcher<Term> {

@@ -125,6 +125,9 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
 
             final LookupPreprocessor lookupPreprocessor = LookupPreprocessorFactory.fromType(lookupPreprocessorType);
 
+            final TrieMapRulesCollectionBuilder rulesCollectionBuilder =
+                    new TrieMapRulesCollectionBuilder(lookupPreprocessor);
+
             final RulesParserConfig config = RulesParserConfig.builder()
                     .textParserConfig(TextParserConfig.builder()
                             .rulesContentReader(querqyTemplateEngine.renderedRules.reader)
@@ -137,7 +140,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .querqyParserFactory(querqyParserFactory)
                             .allowedInstructionTypes(ALLOWED_TYPES)
                             .build())
-                    .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(lookupPreprocessor))
+                    .rulesCollectionBuilder(rulesCollectionBuilder)
                     .build();
 
             final RulesParser rulesParser = RulesParserFactory.textParser(config);
@@ -148,7 +151,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                     LookupConfig.builder()
                             .hasBoundaries(true)
                             .preprocessor(lookupPreprocessor)
-                            .build()
+                            .build(),
+                    rulesCollectionBuilder.getSuffixWildcardRules()
             );
 
             // should be closed already in RulesParser - passing Readers as arguments should be avoided

@@ -17,12 +17,17 @@
  */
 package querqy.rewriter.commonrules.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import querqy.CompoundCharSequence;
 import querqy.model.Input;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
+import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRules;
+import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRulesBuilder;
 import querqy.rewrite.rules.rule.Rule;
 import querqy.trie.State;
 import querqy.trie.States;
@@ -35,6 +40,8 @@ import querqy.trie.TrieMap;
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     
     final TrieMap<InstructionsSupplier> map = new TrieMap<>();
+    private final SuffixWildcardRulesBuilder<InstructionsSupplier> suffixWildcardRulesBuilder =
+            new SuffixWildcardRulesBuilder<>();
 
     // we keep this just for the deprecated build() method
     @Deprecated
@@ -68,8 +75,15 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     public void addOrMergeInstructionsSupplier(final Input.SimpleInput input,
                                                final InstructionsSupplier instructionsSupplier) {
 
-        final List<CharSequence> seqs = inputSequenceNormalizer.getNormalizedInputSequences(input);
         final List<Term> inputTerms = input.getInputTerms();
+
+        final int suffixTermIndex = indexOfSuffixTerm(inputTerms);
+        if (suffixTermIndex >= 0) {
+            addSuffixWildcardRule(input, inputTerms, suffixTermIndex, instructionsSupplier);
+            return;
+        }
+
+        final List<CharSequence> seqs = inputSequenceNormalizer.getNormalizedInputSequences(input);
 
         final boolean isPrefix = (!inputTerms.isEmpty()) &&  inputTerms.get(inputTerms.size() -1) instanceof PrefixTerm;
         for (final CharSequence seq : seqs) {
@@ -120,6 +134,66 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
     @Override
     public TrieMap<InstructionsSupplier> getTrieMap() {
         return map;
+    }
+
+    @Override
+    public SuffixWildcardRules<InstructionsSupplier> getSuffixWildcardRules() {
+        return suffixWildcardRulesBuilder.build();
+    }
+
+    private int indexOfSuffixTerm(final List<Term> inputTerms) {
+        for (int i = 0; i < inputTerms.size(); i++) {
+            if (inputTerms.get(i) instanceof SuffixTerm) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // Note: unlike the main trie path above, registering the exact same leading-wildcard rule input more than
+    // once does not merge InstructionsSuppliers into a single rule - each registration produces its own separate
+    // match/action. This is an accepted limitation for the (rare) case of duplicate rule definitions.
+    private void addSuffixWildcardRule(final Input.SimpleInput input, final List<Term> inputTerms,
+                                       final int suffixTermIndex, final InstructionsSupplier instructionsSupplier) {
+
+        final SuffixTerm suffixTerm = (SuffixTerm) inputTerms.get(suffixTermIndex);
+        final List<Term> leftTerms = inputTerms.subList(0, suffixTermIndex);
+        final List<Term> rightTerms = inputTerms.subList(suffixTermIndex + 1, inputTerms.size());
+
+        final List<CharSequence> leftContextParts = new ArrayList<>();
+        if (input.isRequiresLeftBoundary()) {
+            leftContextParts.add(TrieMapRulesCollection.BOUNDARY_WORD);
+        }
+        for (final Term term : leftTerms) {
+            leftContextParts.add(lookupPreprocessor.process(term));
+        }
+        final CharSequence leftContextKey = leftContextParts.isEmpty()
+                ? null : new CompoundCharSequence(" ", leftContextParts);
+
+        final List<CharSequence> rightTermKeys = new ArrayList<>();
+        for (final Term term : rightTerms) {
+            rightTermKeys.add(lookupPreprocessor.process(term));
+        }
+        if (input.isRequiresRightBoundary()) {
+            rightTermKeys.add(TrieMapRulesCollection.BOUNDARY_WORD);
+        }
+
+        for (final CharSequence suffixKey : suffixKeys(suffixTerm)) {
+            suffixWildcardRulesBuilder.addRule(suffixKey, leftContextKey, rightTermKeys, instructionsSupplier);
+        }
+    }
+
+    private List<CharSequence> suffixKeys(final SuffixTerm suffixTerm) {
+        final CharSequence value = lookupPreprocessor.process(suffixTerm);
+        if (!suffixTerm.hasFieldNames()) {
+            return Collections.singletonList(value);
+        }
+
+        final List<CharSequence> keys = new ArrayList<>();
+        for (final String fieldName : suffixTerm.getFieldNames()) {
+            keys.add(new CompoundCharSequence(Term.FIELD_CHAR, fieldName, value));
+        }
+        return keys;
     }
 
 }
