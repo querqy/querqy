@@ -167,6 +167,51 @@ public class WordBreakCompoundRewriterFactoryTest {
     }
 
     @Test
+    public void testDutchLanguageDecompoundingMorphologyIsApplied() throws Exception {
+        final TsvDfCoocTermCorpus corpus = corpusOf("hok", "duif", "duiv");
+
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
+                "w2", emptyCorpus(), false, 1, 1,
+                Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.emptyList(), "DUTCH", "DEFAULT");
+
+        assertTrue(factory.getWordBreaker() instanceof MorphologicalWordBreaker);
+
+        // "duiv" (plain, no alternation) and "duif" (devoicing) are both Dutch-specific candidates for the
+        // -en- linker; neither GERMAN nor DEFAULT would produce "duif" here, so this also confirms DUTCH is
+        // the morphology actually wired in, not just that some morphology is.
+        assertThat(
+                factory.getWordBreaker().breakWord("duivenhok", corpus, 10, false).stream()
+                        .map(charSequences -> charSequences[0])
+                        .map(CharSequence::toString)
+                        .collect(Collectors.toList()),
+                containsInAnyOrder("duif", "duiv"));
+    }
+
+    @Test
+    public void testDutchLanguageCompoundingMorphologyIsApplied() throws Exception {
+        final TsvDfCoocTermCorpus corpus = corpusOf("paddenpoel");
+
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
+                "w2", emptyCorpus(), false, 1, 1,
+                Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.emptyList(), "DEFAULT", "DUTCH");
+
+        assertTrue(factory.getCompounder() instanceof MorphologicalCompounder);
+
+        // "pad" + "poel" -> "paddenpoel" requires the Dutch-specific gemination compounding generator
+        // (pad -> padd); DEFAULT/GERMAN would only produce "padpoel".
+        final Term leftTerm  = new Term(null, "field1", "pad");
+        final Term rightTerm = new Term(null, "field1", "poel");
+        assertThat(
+                factory.getCompounder().combine(new Term[]{leftTerm, rightTerm}, corpus, false).stream()
+                        .map(compoundTerm -> compoundTerm.value)
+                        .map(CharSequence::toString)
+                        .collect(Collectors.toList()),
+                containsInAnyOrder("paddenpoel"));
+    }
+
+    @Test
     public void testThatFactoryThrowsWhenVerifyCollationRequiredButCorpusDoesNotSupportIt() throws IOException {
         final TsvDfTermCorpus corpusWithoutCooc = TsvDfTermCorpus.builder()
                 .reader(new StringReader(""))
