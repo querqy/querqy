@@ -1,6 +1,6 @@
 # ADR-0002: Dutch decompounding morphology for the WordBreakCompoundRewriter
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-06-28
 - **Area:** Querqy `WordBreakCompoundRewriter` — `querqy.rewriter.wordbreak`
 - **Supersedes / relates to:** the existing `GERMAN` morphology (Langer 1998) and the `DEFAULT` (zero-linker) morphology.
@@ -58,9 +58,21 @@ Each is an independent `WordGenerator` returning a single candidate; they sit al
 
 **Degemination rule:** if the stripped remainder ends in a doubled *doublable* consonant (`b d f g k l m n p r s t`), drop the duplicate. `v`/`z` are excluded because they never surface as written geminates in Dutch (they appear as `f`/`s` and are the devoicing generator's job). Returns `Optional.empty()` otherwise, so it never duplicates the `NOOP` candidate. This is exactly the pattern issue #1045 asked for: `paddenpoel` (`pad` + `-en-` + `poel`, strip `-en-` → `padd` → degeminate → `pad`) and `zonnebril` (`zon` + `-e-` + `bril`, strip `-e-` → `zonn` → degeminate → `zon`).
 
-### 4. Priors are placeholders
+### 4. Priors are calibrated from CompoundPiece
 
-The `PRIOR_*` constants currently encode only a rough ordering of linker frequency. They must be calibrated against Dutch data before the ranking can be trusted: compute `count(linker) / count(∅)` from CELEX Dutch (DMW/DML) or from our own index, exactly as the German class divides Langer's counts by the most frequent strategy (22759). Because candidates are dictionary-validated, miscalibrated priors only affect suggestion **order**, not correctness.
+We do not have CELEX access. Instead, `PRIOR_*` was calibrated from the CompoundPiece dataset (Minixhofer, Pfeiffer & Vulić, EMNLP 2023 Findings) — specifically the Dutch subset of its `wiktionary` split, which gives, per real compound, both `norm` (the dictionary lemma of each part) and `segmentation` (the part's actual compound-internal spelling). That pairing lets us classify each entry directly: run the modifier lemma through the real compounding-direction `WordGenerator`s and check which one's output exactly matches the gold surface form — no dictionary lookup or `TermCorpus` involved, so no over-generation ambiguity in the classification step itself. Counts were combined across `train.csv` and `valid.csv` (checked first for distributional consistency: the zero-linker share was 83.4% vs. 83.9%, `-s-` 8.8% vs. 8.6%, `-en-` 3.8% vs. 3.7%, matching within each pattern) to get a larger, more stable sample: 12,692 classified 2-part compounds in total, zero ambiguous (no entry matched more than one generator).
+
+| Linker | Count | `PRIOR_*` |
+|---|---|---|
+| ∅ (zero linker) | 10,591 | `PRIOR_0 = 1f` (defines `NORM_PRIOR`) |
+| `-s-` | 1,114 | `PRIOR_PLUS_S = 1114/10591 ≈ 0.1052` |
+| `-e-` (all alternations combined) | 123 | `PRIOR_PLUS_E = 123/10591 ≈ 0.0116` |
+| `-en-` (all alternations combined) | 800 | `PRIOR_PLUS_EN = 800/10591 ≈ 0.0755` |
+| `-er-` | 64 | `PRIOR_PLUS_ER = 64/10591 ≈ 0.0060` |
+
+Counts for `-e-`/`-en-` sum across every alternation within that linker (plain, degeminated, shortened, voiced, combined), matching the granularity our `SuffixGroup` tree actually uses (one shared weight per linker node, not per alternation). Because candidates are still dictionary-validated in production, calibration only affects suggestion **order**, not correctness — but the real distribution is much more skewed toward the zero linker than the original placeholder guesses assumed.
+
+The ~14% of entries with no matching generator were excluded rather than force-fit, and this is *not* a gap in the generators. Almost all of them are deverbal nouns, e.g. `roven → roof`: CompoundPiece's `norm` traces the noun back to the verb infinitive it derives from via ablaut (`roven` "to rob" → `roof` "plunder"; the same pattern as English `to bear` → `birth`), which is derivation, not linking — no generator here is *supposed* to produce it. Our morphology only ever needs the noun `roof` itself in `TermCorpus`, never a relationship back to `roven`: decompounding `roofbouw` still resolves correctly at the split `roof`|`bouw` via the plain zero-linker `NOOP` candidate (verified directly against the code), regardless of `roof`'s own etymology. The remaining unmatched entries are a handful of irregular stems (`schip → scheeps`) and a few dataset hyphenation artifacts.
 
 ## Consequences
 
@@ -76,10 +88,10 @@ The `PRIOR_*` constants currently encode only a rough ordering of linker frequen
 ### Required follow-ups before production use
 
 1. ~~Register the language in `MorphologyProvider`.~~ Done.
-2. **Calibrate priors** from CELEX or our index (see Decision §4). The current `PRIOR_*` constants in `DutchDecompoundingMorphology` are placeholders — a rough ordering, not calibrated frequencies.
+2. ~~Calibrate priors~~ Done — see Decision §4.
 3. ~~Implement the remaining generators (vowel lengthening, devoicing, combined case).~~ Done.
 4. ~~Compounding direction: geminating, vowel-shortening, voicing, and combined shortening+voicing compounding generators.~~ Done.
-5. **Evaluate** against a held-out gold set — the CompoundPiece Dutch split set is the natural choice — via a larger parameterised harness, rather than only the hand-checked rows.
+5. **Evaluate** against a held-out gold set. The calibration pass above already validates the compounding-direction generators against CompoundPiece by construction, but only the generator classification step, not the full split-and-dictionary-validate pipeline (`WordBreakCompoundRewriter`/`TermCorpus`) end to end, and not the decompounding direction. A proper evaluation still needs a real Dutch `TermCorpus` (dictionary/index) to run `suggestWordBreaks` against and compare to CompoundPiece's gold segmentations — via a larger parameterised harness, rather than only the hand-checked rows.
 
 ### Trade-offs / known limitations
 
@@ -87,8 +99,8 @@ The `PRIOR_*` constants currently encode only a rough ordering of linker frequen
   - *Modifier:* a diminutive modifier already surfaces correctly via the `-s` linker (`koekjesfabriek` → strip `-s` → `koekje`), provided the diminutive lexeme is in `TermCorpus`. Adding a `-jes` rule would overshoot to the bare base (`koekje → koek`), discarding meaning and conflating distinct terms (`koekje ≠ koek`, `meisje ≠ meid`).
   - *Head:* the head is matched verbatim, never reduced, so `tafellampje` → `tafel | lampje` preserves the diminutive for free. Because Dutch is right-headed, a head diminutive scopes over the whole compound (`tafellampje` = diminutive of `tafellamp`), so reducing it to `lamp` would strip the compound's own meaning.
   - If diminutive→base bridging is ever wanted for recall (e.g. `tafellampje` queries reaching `tafellamp` documents), it is a separate, lossy normalization step (a diminutive-aware stemmer or synonym/expansion rule), kept out of the decompounding morphology. The corresponding corpus-side fix for a missing diminutive lexeme is to index it, not to add a stripping rule.
+  - *Deverbal nouns:* the same principle applies to nouns formed from a verb via ablaut (e.g. `roven` "to rob" → `roof` "plunder", surfaced during prior calibration — see Decision §4). `roof` is matched as its own dictionary entry; nothing needs to relate it back to `roven`.
 - Irregular stem alternations (e.g. `schip → scheeps-`, learned Latin/Greek plurals) are out of scope; they will simply fail to split unless added explicitly.
-- Without calibrated priors, ambiguous tokens may rank plausible-but-wrong splits above the intended one even though all surface in the candidate list.
 
 ## References
 
@@ -96,7 +108,7 @@ The `PRIOR_*` constants currently encode only a rough ordering of linker frequen
 - G. Booij. *The Morphology of Dutch.* Oxford University Press. (Linker inventory and the spelling alternations to reverse.)
 - G. Booij. *Compounding in Dutch.* 1992. (Linked directly from issue #1045 as a starting point; earlier and narrower than the OUP monograph above, same author.)
 - Taalportaal, "Linking elements" topic pages — taalportaal.org. (Descriptive reference.)
-- CELEX Dutch lexical database (DMW/DML, via LDC). (Compound segmentations + frequencies for prior calibration and a gold set.)
-- B. Minixhofer, J. Pfeiffer & I. Vulić. *CompoundPiece: Evaluating and Improving Decompounding Performance of Language Models.* EMNLP 2023 (Findings). (Multilingual decompounding dataset incl. Dutch; evaluation gold standard.)
+- CELEX Dutch lexical database (DMW/DML, via LDC). (Would have been the preferred prior-calibration source; not accessible to us — see Decision §4 for the CompoundPiece-based alternative actually used.)
+- B. Minixhofer, J. Pfeiffer & I. Vulić. *CompoundPiece: Evaluating and Improving Decompounding Performance of Language Models.* EMNLP 2023 (Findings). (Multilingual decompounding dataset incl. Dutch; used for prior calibration in Decision §4, and still the natural gold set for the full-pipeline evaluation in Consequences item 5.)
 - OpenTaal Dutch Hunspell `nl.aff`/`nl.dic`. (Affix rules encoding degemination / vowel-doubling / voicing — directly mirrors what the generators must do.)
 - A. Krott, R. H. Baayen & R. Schreuder. *Analogy in morphology: modeling the choice of linking morphemes in Dutch.* Linguistics 39 (2001). (Linker *prediction*; relevant to compounding and priors, not to decompounding — see Decision §1.)

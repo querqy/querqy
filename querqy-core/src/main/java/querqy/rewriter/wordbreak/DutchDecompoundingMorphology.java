@@ -33,16 +33,30 @@ import static java.util.Collections.singletonList;
 public abstract class DutchDecompoundingMorphology {
 
     /**
-     * <p>Placeholder priors: they only encode a rough ordering of linker frequency (zero linker &gt; -s- &gt; -en-
-     * &gt; -e- &gt; -er-) and must be calibrated against real Dutch data (e.g. CELEX or our own index) before the
-     * ranking can be trusted. Since every candidate is validated against {@code TermCorpus}, miscalibration only
-     * affects suggestion order, never correctness.</p>
+     * <p>Priors calibrated from the CompoundPiece dataset (Minixhofer, Pfeiffer &amp; Vulić, EMNLP 2023 Findings),
+     * Dutch subset of the {@code wiktionary} split (train + validation combined, 12,692 classified 2-part
+     * compounds): each entry's {@code norm} (dictionary lemma per part) and {@code segmentation} (compound-internal
+     * spelling per part) were compared by running the modifier lemma through the actual compounding-direction
+     * {@code WordGenerator}s and checking which one's output exactly matches the gold surface form. Counts were
+     * summed across every alternation within a linker (e.g. {@code +e} covers plain, degeminated, shortened,
+     * voiced, and combined), exactly as the German class divides Langer's counts by the most frequent strategy.
+     * Entries with no matching generator were excluded rather than force-fit; none were ambiguous (matched more than
+     * one generator). Most of the unmatched entries are deverbal nouns, e.g. {@code roven -> roof}: CompoundPiece's
+     * {@code norm} traces the noun back to the verb infinitive it derives from via ablaut ({@code roven} "to rob"
+     * &rarr; {@code roof} "plunder"), which is derivation, not linking, so no generator here is expected to produce
+     * it &mdash; {@code roof} itself still decompounds correctly via the zero linker once it, not {@code roven}, is
+     * the modifier being matched against a real dictionary. The rest are a handful of irregular stems. As elsewhere,
+     * because every candidate is validated against {@code TermCorpus}, calibration only affects suggestion order,
+     * never correctness.</p>
      */
+    // count of the most frequent strategy (zero linker)
+    public final static float NORM_PRIOR = 10591f;
+
     static final float PRIOR_0 = 1f;
-    static final float PRIOR_PLUS_S = 0.6f;
-    static final float PRIOR_PLUS_E = 0.05f;
-    static final float PRIOR_PLUS_EN = 0.3f;
-    static final float PRIOR_PLUS_ER = 0.02f;
+    static final float PRIOR_PLUS_S = 1114f / NORM_PRIOR;
+    static final float PRIOR_PLUS_E = 123f / NORM_PRIOR;
+    static final float PRIOR_PLUS_EN = 800f / NORM_PRIOR;
+    static final float PRIOR_PLUS_ER = 64f / NORM_PRIOR;
 
     public static final WordGenerator GENERATOR_NOOP = NoopWordGenerator.INSTANCE;
     static final WordGenerator GENERATOR_S = new SuffixWordGenerator("s");
