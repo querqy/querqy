@@ -31,6 +31,7 @@ public class MorphologyProvider {
     static {
         morphologies.put(DEFAULT_KEY, Optional.of(DEFAULT));
         morphologies.put("german", Optional.of(new SuffixGroupMorphology(GermanDecompoundingMorphology::createDecompoundingMorphemes, GermanDecompoundingMorphology::createCompoundingMorphemes)));
+        morphologies.put("dutch", Optional.of(new SuffixGroupMorphology(DutchDecompoundingMorphology::createDecompoundingMorphemes, DutchDecompoundingMorphology::createCompoundingMorphemes)));
     }
 
     public Optional<Morphology> get(final String name) {
