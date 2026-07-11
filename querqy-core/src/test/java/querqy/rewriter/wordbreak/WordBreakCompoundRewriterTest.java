@@ -21,12 +21,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import querqy.model.BooleanQuery;
+import querqy.model.BoostedTerm;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxQuery;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.StringRawQuery;
+import querqy.model.Term;
 import querqy.rewrite.RewriterOutput;
 import querqy.rewriter.wordbreak.Compounder;
 import querqy.rewriter.wordbreak.TermCorpus;
@@ -40,6 +43,8 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -113,6 +118,110 @@ public class WordBreakCompoundRewriterTest {
                         )
                 )
         );
+    }
+
+    @Test
+    public void testDecompoundWithOptionalFirstPart() throws IOException {
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}));
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS, new OptionalModifierConfig(OptionalModifierPosition.FIRST, 1f));
+        Query query = new Query();
+        addTerm(query, "w1w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1w2", false),
+                                bq(
+                                        dmq(should(), term("w1", true)),
+                                        dmq(must(), term("w2", true))
+                                )
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testDecompoundWithOptionalLastPart() throws IOException {
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}));
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS, new OptionalModifierConfig(OptionalModifierPosition.LAST, 1f));
+        Query query = new Query();
+        addTerm(query, "w1w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
+
+        assertThat((Query) rewritten.getUserQuery(),
+                bq(
+                        dmq(
+                                term("w1w2", false),
+                                bq(
+                                        dmq(must(), term("w1", true)),
+                                        dmq(should(), term("w2", true))
+                                )
+                        )
+                )
+        );
+    }
+
+    @Test
+    public void testDecompoundOptionalPartIsPlainTermWhenBoostIsNeutral() throws IOException {
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}));
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS, new OptionalModifierConfig(OptionalModifierPosition.FIRST, 1f));
+        Query query = new Query();
+        addTerm(query, "w1w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
+
+        final Term optionalTerm = optionalPartTerm(rewritten);
+        assertFalse(optionalTerm instanceof BoostedTerm);
+    }
+
+    @Test
+    public void testDecompoundOptionalPartIsBoostedTermWhenBoostIsNotNeutral() throws IOException {
+        when(wordBreaker.breakWord(any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(List.<CharSequence[]>of(new CharSequence[]{"w1", "w2"}));
+
+        WordBreakCompoundRewriter rewriter = new WordBreakCompoundRewriter(
+                wordBreaker, compounder, termCorpus, false, false, NO_TRIGGERWORDS, 5, false,
+                NO_PROTECTEDWORDS, new OptionalModifierConfig(OptionalModifierPosition.FIRST, 2.5f));
+        Query query = new Query();
+        addTerm(query, "w1w2", false);
+
+        ExpandedQuery expandedQuery = new ExpandedQuery(query);
+
+        final ExpandedQuery rewritten = rewriter.rewrite(expandedQuery, null).getExpandedQuery();
+
+        final Term optionalTerm = optionalPartTerm(rewritten);
+        assertTrue(optionalTerm instanceof BoostedTerm);
+        assertEquals(2.5f, ((BoostedTerm) optionalTerm).getBoost(), 0.0001f);
+    }
+
+    /** Navigates to the term for the (always first, in these tests) optional decompounded part. */
+    private Term optionalPartTerm(final ExpandedQuery rewritten) {
+        final Query userQuery = (Query) rewritten.getUserQuery();
+        final DisjunctionMaxQuery outerDmq = (DisjunctionMaxQuery) userQuery.getClauses().get(0);
+        final BooleanQuery decompoundBq = (BooleanQuery) outerDmq.getClauses().get(1);
+        final DisjunctionMaxQuery firstPartDmq = (DisjunctionMaxQuery) decompoundBq.getClauses().get(0);
+        return (Term) firstPartDmq.getClauses().get(0);
     }
 
     @Test

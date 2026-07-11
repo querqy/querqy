@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -209,6 +210,63 @@ public class WordBreakCompoundRewriterFactoryTest {
                         .map(CharSequence::toString)
                         .collect(Collectors.toList()),
                 containsInAnyOrder("paddenpoel"));
+    }
+
+    @Test
+    public void testThatLegacyConstructorDisablesOptionalModifier() throws IOException {
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
+                "w1", emptyCorpus(), true, 1, 1,
+                Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.emptyList(), "DEFAULT", "DEFAULT");
+
+        assertEquals(OptionalModifierConfig.DISABLED, factory.getOptionalModifierConfig());
+    }
+
+    @Test
+    public void testThatOptionalModifierPositionIsParsedCaseInsensitively() throws IOException {
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
+                "w1", emptyCorpus(), true, 1, 1,
+                Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.emptyList(), "DEFAULT", "DEFAULT", "first", 2f);
+
+        assertEquals(new OptionalModifierConfig(OptionalModifierPosition.FIRST, 2f),
+                factory.getOptionalModifierConfig());
+    }
+
+    @Test
+    public void testThatNullOptionalModifierPositionDefaultsToNone() throws IOException {
+        final WordBreakCompoundRewriterFactory factory = new WordBreakCompoundRewriterFactory(
+                "w1", emptyCorpus(), true, 1, 1,
+                Arrays.asList("Word1", "word2"), false, 2, false,
+                Collections.emptyList(), "DEFAULT", "DEFAULT", null, 1f);
+
+        assertEquals(OptionalModifierConfig.DISABLED, factory.getOptionalModifierConfig());
+    }
+
+    @Test
+    public void testThatFactoryThrowsForUnknownOptionalModifierPosition() throws IOException {
+        try {
+            new WordBreakCompoundRewriterFactory(
+                    "w1", emptyCorpus(), true, 1, 1,
+                    Arrays.asList("Word1", "word2"), false, 2, false,
+                    Collections.emptyList(), "DEFAULT", "DEFAULT", "SIDEWAYS", 1f);
+            fail("expected IllegalArgumentException");
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testThatFactoryThrowsForNonNeutralBoostWithoutOptionalModifierPosition() throws IOException {
+        try {
+            new WordBreakCompoundRewriterFactory(
+                    "w1", emptyCorpus(), true, 1, 1,
+                    Arrays.asList("Word1", "word2"), false, 2, false,
+                    Collections.emptyList(), "DEFAULT", "DEFAULT", "NONE", 2f);
+            fail("expected IllegalArgumentException");
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
     }
 
     @Test
