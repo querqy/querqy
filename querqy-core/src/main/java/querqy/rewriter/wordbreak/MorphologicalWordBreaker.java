@@ -92,16 +92,16 @@ public class MorphologicalWordBreaker implements WordBreaker {
         final List<WordBreak> suggestedWordBreaks = morphology.suggestWordBreaks(input, minBreakLength);
 
         for (final WordBreak suggestedWordBreak : suggestedWordBreaks) {
-            final int rightDf = termCorpus.docFreq(suggestedWordBreak.originalRight);
+            final int rightDf = termCorpus.docFreq(suggestedWordBreak.originalRight());
 
             if (rightDf < minSuggestionFrequency) {
                 continue;
             }
 
-            for (final Suggestion suggestion : suggestedWordBreak.suggestions) {
+            for (final Suggestion suggestion : suggestedWordBreak.suggestions()) {
                 final Collector.CollectionState collectionState = collector.collect(
                         suggestion.sequence[0],
-                        suggestedWordBreak.originalRight,
+                        suggestedWordBreak.originalRight(),
                         rightDf,
                         suggestion.score);
                 if (collectionState.isMaxEvaluationsReached()) {

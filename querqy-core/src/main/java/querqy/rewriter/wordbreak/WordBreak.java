@@ -18,40 +18,6 @@
 package querqy.rewriter.wordbreak;
 
 import java.util.List;
-import java.util.Objects;
 
-public class WordBreak {
-    public final CharSequence originalLeft;
-    public final CharSequence originalRight;
-    public final List<Suggestion> suggestions;
-
-    WordBreak(final CharSequence originalLeft, final CharSequence originalRight, final List<Suggestion> suggestions) {
-        this.originalLeft = originalLeft;
-        this.originalRight = originalRight;
-        this.suggestions = suggestions;
-    }
-
-    @Override
-    public String toString() {
-        return "WordBreak{" +
-                "originalLeft=" + originalLeft +
-                ", originalRight=" + originalRight +
-                ", suggestions=" + suggestions +
-                '}';
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final WordBreak wordBreak = (WordBreak) o;
-        return Objects.equals(originalLeft, wordBreak.originalLeft)
-                && Objects.equals(originalRight, wordBreak.originalRight)
-                && Objects.equals(suggestions, wordBreak.suggestions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(originalLeft, originalRight, suggestions);
-    }
+public record WordBreak(CharSequence originalLeft, CharSequence originalRight, List<Suggestion> suggestions) {
 }
