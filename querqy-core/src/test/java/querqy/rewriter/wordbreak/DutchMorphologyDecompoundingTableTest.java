@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static querqy.rewriter.wordbreak.ExpectedWordBreak.wb;
 
 /**
  * <p>Table test for {@link DutchDecompoundingMorphology} candidate generation only (as in
@@ -87,9 +88,9 @@ public class DutchMorphologyDecompoundingTableTest {
         final List<WordBreak> wordBreaks = morphology.suggestWordBreaks(inputWord, MIN_BREAK_LENGTH);
 
         final List<String> suggestedWordBreaks = wordBreaks.stream()
-                .filter(wordBreak -> wordBreak.originalLeft.equals(expectedWordBreak.originalLeft))
-                .filter(wordBreak -> wordBreak.originalRight.equals(expectedWordBreak.originalRight))
-                .map(wordBreak -> wordBreak.suggestions.stream()
+                .filter(wordBreak -> wordBreak.originalLeft().equals(expectedWordBreak.originalLeft()))
+                .filter(wordBreak -> wordBreak.originalRight().equals(expectedWordBreak.originalRight()))
+                .map(wordBreak -> wordBreak.suggestions().stream()
                         .map(breakSuggestion -> breakSuggestion.sequence[0])
                         .map(String::valueOf)
                         .collect(Collectors.toList())
@@ -98,33 +99,9 @@ public class DutchMorphologyDecompoundingTableTest {
                 .collect(Collectors.toList());
 
         assertThat(String.format("No matching word break for terms left=%s right=%s",
-                        expectedWordBreak.originalLeft, expectedWordBreak.originalRight),
+                        expectedWordBreak.originalLeft(), expectedWordBreak.originalRight()),
                 suggestedWordBreaks.size(), greaterThanOrEqualTo(1));
-        assertThat("No matching suggested word breaks", suggestedWordBreaks, hasItem(expectedWordBreak.suggestion));
+        assertThat("No matching suggested word breaks", suggestedWordBreaks, hasItem(expectedWordBreak.suggestion()));
     }
 
-    static ExpectedWordBreak wb(final String left, final String right, final String expectedWordBreak) {
-        return new ExpectedWordBreak(left, right, expectedWordBreak);
-    }
-
-    static class ExpectedWordBreak {
-        private final String originalLeft;
-        private final String originalRight;
-        private final String suggestion;
-
-        ExpectedWordBreak(final String originalLeft, final String originalRight, final String suggestion) {
-            this.originalLeft = originalLeft;
-            this.originalRight = originalRight;
-            this.suggestion = suggestion;
-        }
-
-        @Override
-        public String toString() {
-            return "ExpectedWordBreak{" +
-                    "originalLeft='" + originalLeft + '\'' +
-                    ", originalRight='" + originalRight + '\'' +
-                    ", suggestions=" + suggestion +
-                    '}';
-        }
-    }
 }

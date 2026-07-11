@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright 2020 Querqy Contributors
+ * Copyright 2026 Querqy Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
  */
 package querqy.rewriter.wordbreak;
 
-import java.util.Optional;
+/**
+ * Expected-decompounding fixture shared by {@link GermanMorphologyDecompoundingTableTest} and
+ * {@link DutchMorphologyDecompoundingTableTest}.
+ */
+record ExpectedWordBreak(String originalLeft, String originalRight, String suggestion) {
 
-public record WordGeneratorAndWeight(WordGenerator generator, float weight) {
-
-    public Optional<Suggestion> generateSuggestion(final CharSequence reducedModifier) {
-        final Optional<CharSequence> modifier = generator.generateModifier(reducedModifier);
-        return modifier.map(charSequence -> new Suggestion(new CharSequence[]{charSequence}, weight));
+    static ExpectedWordBreak wb(final String left, final String right, final String expectedWordBreak) {
+        return new ExpectedWordBreak(left, right, expectedWordBreak);
     }
-
 }

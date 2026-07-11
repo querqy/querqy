@@ -42,9 +42,9 @@ public class GermanMorphologyDecompoundingTest {
     public void oneMinBreakLengthProduce_produceOneWordBreak() {
         final List<WordBreak> wordBreaks = morphology.suggestWordBreaks("ab", 1);
         assertThat(wordBreaks, hasSize(1));
-        assertThat(wordBreaks.get(0).originalLeft, is("a"));
-        assertThat(wordBreaks.get(0).originalRight, is("b"));
-        final List<String> breakSuggestions = wordBreaks.get(0).suggestions.stream()
+        assertThat(wordBreaks.get(0).originalLeft(), is("a"));
+        assertThat(wordBreaks.get(0).originalRight(), is("b"));
+        final List<String> breakSuggestions = wordBreaks.get(0).suggestions().stream()
                 .map(breakSuggestion -> breakSuggestion.sequence)
                 .flatMap(Stream::of)
                 .map(CharSequence::toString)
@@ -62,8 +62,8 @@ public class GermanMorphologyDecompoundingTest {
     public void rightTerm_minLengthCheck_singleSplitPoint() {
         final List<WordBreak> word = morphology.suggestWordBreaks("word", 2);
         assertThat(word, hasSize(1));
-        assertThat(word.get(0).originalRight, is("rd"));
-        assertThat(word.get(0).originalLeft, is("wo"));
+        assertThat(word.get(0).originalRight(), is("rd"));
+        assertThat(word.get(0).originalLeft(), is("wo"));
     }
 
     @Test
@@ -71,10 +71,10 @@ public class GermanMorphologyDecompoundingTest {
         final List<WordBreak> word = morphology.suggestWordBreaks("words", 2);
 
         assertThat(word, hasSize(2));
-        assertThat(word.get(0).originalLeft, is("wor"));
-        assertThat(word.get(0).originalRight, is("ds"));
+        assertThat(word.get(0).originalLeft(), is("wor"));
+        assertThat(word.get(0).originalRight(), is("ds"));
 
-        assertThat(word.get(1).originalLeft, is("wo"));
-        assertThat(word.get(1).originalRight, is("rds"));
+        assertThat(word.get(1).originalLeft(), is("wo"));
+        assertThat(word.get(1).originalRight(), is("rds"));
     }
 }
