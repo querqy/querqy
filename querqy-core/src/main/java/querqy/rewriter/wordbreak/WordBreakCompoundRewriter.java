@@ -21,6 +21,7 @@ import querqy.LowerCaseCharSequence;
 import querqy.model.AbstractNodeVisitor;
 import querqy.model.BooleanClause;
 import querqy.model.BooleanQuery;
+import querqy.model.BoostedTerm;
 import querqy.model.Clause;
 import querqy.model.DisjunctionMaxClause;
 import querqy.model.DisjunctionMaxQuery;
@@ -64,6 +65,8 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
 
     private final TrieMap<Boolean> protectedWords;
 
+    private final OptionalModifierConfig optionalModifierConfig;
+
     /**
      * @param wordBreaker The word breaker to use
      * @param compounder The compounder to use
@@ -81,6 +84,31 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
                                      final TrieMap<Boolean> reverseCompoundTriggerWords,
                                      final int maxDecompoundExpansions, final boolean verifyDecompoundCollation,
                                      final TrieMap<Boolean> protectedWords) {
+        this(wordBreaker, compounder, termCorpus, lowerCaseInput, alwaysAddReverseCompounds,
+                reverseCompoundTriggerWords, maxDecompoundExpansions, verifyDecompoundCollation, protectedWords,
+                OptionalModifierConfig.DISABLED);
+    }
+
+    /**
+     * @param wordBreaker The word breaker to use
+     * @param compounder The compounder to use
+     * @param termCorpus The term corpus for dictionary lookups
+     * @param lowerCaseInput Iff true, lowercase input before matching it against the term corpus.
+     * @param alwaysAddReverseCompounds Iff true, reverse shingles will be added to the query
+     * @param reverseCompoundTriggerWords Query tokens found as keys in this map will trigger the creation of a reverse compound of the surrounding tokens.
+     * @param maxDecompoundExpansions The maximum number of decompounds to add to the query
+     * @param verifyDecompoundCollation Iff true, verify that all parts of the compound cooccur in the corpus after decompounding
+     * @param protectedWords The "false-positive" set of terms that should never be split or be result of a combination
+     * @param optionalModifierConfig Which part of a decompounded token, if any, is optional rather than mandatory,
+     *                               and the boost to apply to it when present.
+     */
+    public WordBreakCompoundRewriter(final WordBreaker wordBreaker, final Compounder compounder,
+                                     final TermCorpus termCorpus,
+                                     final boolean lowerCaseInput, final boolean alwaysAddReverseCompounds,
+                                     final TrieMap<Boolean> reverseCompoundTriggerWords,
+                                     final int maxDecompoundExpansions, final boolean verifyDecompoundCollation,
+                                     final TrieMap<Boolean> protectedWords,
+                                     final OptionalModifierConfig optionalModifierConfig) {
 
         if (reverseCompoundTriggerWords == null) {
             throw new IllegalArgumentException("reverseCompoundTriggerWords must not be null");
@@ -96,6 +124,7 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
         this.verifyDecompoundCollation = verifyDecompoundCollation;
         this.lowerCaseInput = lowerCaseInput;
         this.protectedWords = protectedWords;
+        this.optionalModifierConfig = optionalModifierConfig == null ? OptionalModifierConfig.DISABLED : optionalModifierConfig;
     }
 
     @Override
@@ -197,11 +226,17 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
                 if (decompounded != null && decompounded.length > 0) {
 
                     final BooleanQuery bq = new BooleanQuery(term.getParent(), Clause.Occur.SHOULD, true);
+                    final int optionalIndex = optionalPartIndex(decompounded.length);
 
-                    for (final CharSequence word : decompounded) {
-                        final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq, Clause.Occur.MUST, true);
+                    for (int i = 0; i < decompounded.length; i++) {
+                        final CharSequence word = decompounded[i];
+                        final boolean isOptional = i == optionalIndex;
+                        final DisjunctionMaxQuery dmq = new DisjunctionMaxQuery(bq,
+                                isOptional ? Clause.Occur.SHOULD : Clause.Occur.MUST, true);
                         bq.addClause(dmq);
-                        dmq.addClause(new Term(dmq, term.getField(), word, true));
+                        dmq.addClause(isOptional
+                                ? optionalPartTerm(dmq, term.getField(), word)
+                                : new Term(dmq, term.getField(), word, true));
                     }
                     nodesToAdd.add(bq);
 
@@ -213,6 +248,29 @@ public class WordBreakCompoundRewriter extends AbstractNodeVisitor<Node> impleme
             // IO is broken, this looks serious -> throw as RTE
             throw new RuntimeException("Error decompounding " + term, e);
         }
+    }
+
+    /**
+     * @param numberOfParts The number of parts the decompounded token was split into
+     * @return The index into the decompounded parts that is optional, or -1 if none is (i.e. the feature is
+     * disabled).
+     */
+    private int optionalPartIndex(final int numberOfParts) {
+        switch (optionalModifierConfig.position()) {
+            case FIRST:
+                return 0;
+            case LAST:
+                return numberOfParts - 1;
+            default:
+                return -1;
+        }
+    }
+
+    private Term optionalPartTerm(final DisjunctionMaxQuery dmq, final String field, final CharSequence word) {
+        final float boost = optionalModifierConfig.boost();
+        return Float.compare(boost, 1f) == 0
+                ? new Term(dmq, field, word, true)
+                : new BoostedTerm(dmq, field, word, boost);
     }
 
     protected void compound(final Term term) {

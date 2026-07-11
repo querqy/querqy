@@ -24,10 +24,12 @@ import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.trie.TrieMap;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
@@ -42,6 +44,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     private final Compounder compounder;
     private final TrieMap<Boolean> protectedWords;
     private final TermCorpus termCorpus;
+    private final OptionalModifierConfig optionalModifierConfig;
 
     /**
      * @param rewriterId                  The id of the rewriter
@@ -69,6 +72,44 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                                             final List<String> protectedWords,
                                             final String decompoundMorphologyName,
                                             final String compoundMorphologyName) {
+        this(rewriterId, termCorpus, lowerCaseInput, minSuggestionFreq, minBreakLength, reverseCompoundTriggerWords,
+                alwaysAddReverseCompounds, maxDecompoundExpansions, verifyDecompoundCollation, protectedWords,
+                decompoundMorphologyName, compoundMorphologyName, OptionalModifierPosition.NONE.name(), 1f);
+    }
+
+    /**
+     * @param rewriterId                  The id of the rewriter
+     * @param termCorpus                  The term corpus for dictionary lookups
+     * @param lowerCaseInput              Iff true, lowercase input before matching it against the dictionary field.
+     * @param minSuggestionFreq           The minimum frequency of a suggestion in the dictionary field
+     * @param minBreakLength              The minimum word part length for decompounding
+     * @param reverseCompoundTriggerWords Query tokens in this list will trigger the creation of a reverse compound of the surrounding tokens.
+     * @param alwaysAddReverseCompounds   Iff true, reverse shingles will be added to the query
+     * @param maxDecompoundExpansions     The maximum number of decompounds to add to the query
+     * @param verifyDecompoundCollation   Iff true, verify that all parts of the compound cooccur in dictionaryField after decompounding
+     * @param protectedWords              Do not split these words
+     * @param decompoundMorphologyName    The name of decompounding morphology to use
+     * @param compoundMorphologyName      The name of compounding morphology to use
+     * @param optionalModifierPosition    Which part of a decompounded token, if any, is optional rather than
+     *                                    mandatory: one of {@link OptionalModifierPosition} (case-insensitive),
+     *                                    or {@code null}/empty for {@code NONE}.
+     * @param optionalModifierBoost       The boost applied to the optional part's term when it is present. Must
+     *                                    be {@code 1.0} if {@code optionalModifierPosition} is {@code NONE}.
+     */
+    public WordBreakCompoundRewriterFactory(final String rewriterId,
+                                            final TermCorpus termCorpus,
+                                            final boolean lowerCaseInput,
+                                            final int minSuggestionFreq,
+                                            final int minBreakLength,
+                                            final List<String> reverseCompoundTriggerWords,
+                                            final boolean alwaysAddReverseCompounds,
+                                            final int maxDecompoundExpansions,
+                                            final boolean verifyDecompoundCollation,
+                                            final List<String> protectedWords,
+                                            final String decompoundMorphologyName,
+                                            final String compoundMorphologyName,
+                                            final String optionalModifierPosition,
+                                            final float optionalModifierBoost) {
         super(rewriterId);
         if (verifyDecompoundCollation && !termCorpus.isCollationSupported()) {
             throw new IllegalArgumentException(
@@ -88,6 +129,9 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
         this.reverseCompoundTriggerWords = buildWordLookup(reverseCompoundTriggerWords, lowerCaseInput);
         this.protectedWords = buildWordLookup(protectedWords, lowerCaseInput);
 
+        this.optionalModifierConfig = new OptionalModifierConfig(
+                parseOptionalModifierPosition(optionalModifierPosition), optionalModifierBoost);
+
         final MorphologyProvider morphologyProvider = new MorphologyProvider();
         final Optional<Morphology> compoundMorphology = morphologyProvider.get(compoundMorphologyName);
         final Optional<Morphology> decompoundMorphology = morphologyProvider.get(decompoundMorphologyName);
@@ -101,12 +145,25 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
                 lowerCaseInput, minSuggestionFreq, minBreakLength, MAX_EVALUATIONS);
     }
 
+    private static OptionalModifierPosition parseOptionalModifierPosition(final String name) {
+        if (name == null || name.isEmpty()) {
+            return OptionalModifierPosition.NONE;
+        }
+        try {
+            return OptionalModifierPosition.valueOf(name.trim().toUpperCase());
+        } catch (final IllegalArgumentException e) {
+            throw new IllegalArgumentException("No such optionalModifierPosition " + name + ". Valid values: "
+                    + Arrays.stream(OptionalModifierPosition.values())
+                            .map(Enum::name).collect(Collectors.joining(", ")));
+        }
+    }
+
     @Override
     public QueryRewriter createRewriter(final ExpandedQuery input,
                                         final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new WordBreakCompoundRewriter(wordBreaker, compounder, termCorpus,
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
-                verifyDecompoundCollation, protectedWords);
+                verifyDecompoundCollation, protectedWords, optionalModifierConfig);
     }
 
     @Override
@@ -128,6 +185,10 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
 
     public TrieMap<Boolean> getProtectedWords() {
         return protectedWords;
+    }
+
+    public OptionalModifierConfig getOptionalModifierConfig() {
+        return optionalModifierConfig;
     }
 
     private static TrieMap<Boolean> buildWordLookup(final Collection<String> words, final boolean lowerCase) {
