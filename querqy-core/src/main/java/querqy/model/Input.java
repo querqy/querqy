@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.ToString;
 import querqy.ComparableCharSequence;
 import querqy.CompoundCharSequence;
-import querqy.rewriter.commonrules.LineParser;
+import querqy.rewriter.commonrules.InputTermParser;
 import querqy.rewriter.commonrules.RuleParseException;
 import querqy.rewriter.commonrules.model.Instructions;
 import querqy.rewriter.commonrules.model.RulesCollectionBuilder;
@@ -50,27 +50,8 @@ public abstract class Input {
         return inputString;
     }
 
-    public static Object fromString(final String inputString, final BooleanInputParser booleanInputParser) {
-
-        if (booleanInputParser == null) {
-            return parseSimpleInput(inputString);
-        }
-
-        final List<BooleanInputElement> elements = booleanInputParser.parseInputStringToElements(inputString);
-        // not all instructions can have boolean input -> use boolean input only if we have boolean predicates.
-        if (elements.stream().noneMatch(element -> (element.type == BooleanInputElement.Type.OR)
-                || (element.type == BooleanInputElement.Type.AND)
-                || (element.type == BooleanInputElement.Type.NOT))) {
-            return parseSimpleInput(inputString);
-        } else {
-            return new BooleanInput(elements, booleanInputParser, inputString);
-        }
-
-    }
-
-    public static Object parseSimpleInput(final String inputString) {
-        final Object parseResult = LineParser.parseInput(inputString);
-        return (parseResult instanceof SimpleInput) ? (SimpleInput) parseResult : parseResult;
+    public static SimpleInput parseSimpleInput(final String inputString) {
+        return InputTermParser.parseInput(inputString);
     }
 
     /**

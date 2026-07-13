@@ -42,10 +42,7 @@ import querqy.rewriter.commonrules.AbstractCommonRulesTest;
 import querqy.rewriter.commonrules.CommonRulesRewriter;
 import querqy.model.Input;
 import querqy.rewriter.commonrules.model.Instructions;
-import querqy.rewriter.commonrules.model.RulesCollection;
-import querqy.rewriter.commonrules.model.RulesCollectionBuilder;
 import querqy.rewriter.commonrules.model.SynonymInstruction;
-import querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder;
 
 public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 
