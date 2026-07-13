@@ -19,7 +19,7 @@ package querqy.rewriter.commonrules.rules.rule.skeleton;
 
 import lombok.Builder;
 import lombok.Singular;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.RuleSkeletonParser;
 
 import java.io.BufferedReader;

@@ -20,7 +20,7 @@ package querqy.rewriter.commonrules.rules.factory;
 import org.junit.Test;
 import querqy.rewriter.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewriter.commonrules.model.InstructionsSupplier;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.trie.TrieMap;
 
 import java.io.IOException;

@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
-import querqy.rewriter.commonrules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement.Type;
 

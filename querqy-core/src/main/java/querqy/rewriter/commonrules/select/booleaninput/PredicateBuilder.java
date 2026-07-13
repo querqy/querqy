@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
-import querqy.rewriter.commonrules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement.Type;
 
@@ -35,7 +35,7 @@ public class PredicateBuilder {
     private int indexOfNextHighestPriorityElement = -1;
 
     protected PredicateBuilder(final List<BooleanInputElement> elements,
-                            final ToIntFunction<List<String>> createReferenceIdFunction) throws RuleParseException {
+                            final ToIntFunction<List<String>> createReferenceIdFunction) {
         this.elements = removeEncapsulatingParentheses(elements);
         this.createReferenceIdFunction = createReferenceIdFunction;
 
@@ -49,13 +49,12 @@ public class PredicateBuilder {
     }
 
     public static Predicate<boolean[]> build(final List<BooleanInputElement> elements,
-                                             final ToIntFunction<List<String>> createReferenceIdFunction)
-            throws RuleParseException {
+                                             final ToIntFunction<List<String>> createReferenceIdFunction) {
         return new PredicateBuilder(elements, createReferenceIdFunction).build();
     }
 
 
-    public Predicate<boolean[]> build() throws RuleParseException {
+    public Predicate<boolean[]> build() {
         switch (nextHighestPriorityElement.type) {
             case AND:
             case OR:

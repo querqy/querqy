@@ -17,7 +17,7 @@
  */
 package querqy.rewriter.commonrules.select.booleaninput;
 
-import querqy.rewriter.commonrules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInput;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInput.BooleanInputBuilder;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
@@ -54,7 +54,7 @@ public class BooleanInputParser {
     private static final String MSG_BOOLEAN_ERR_BASE = "Cannot parse boolean expression '%s'. %s";
 
     public BooleanInputBuilder createInputBuilder(final List<BooleanInputElement> elements,
-                                                  final String inputString) throws RuleParseException {
+                                                  final String inputString) {
 
         validateBooleanInput(elements, inputString);
 
@@ -94,8 +94,7 @@ public class BooleanInputParser {
                 element.split("(?<=(?<!\\\\)\\()|(?=(?<!\\\\)\\()|(?<=(?<!\\\\)\\))|(?=(?<!\\\\)\\))"));
     }
 
-    public void validateBooleanInput(final List<BooleanInputElement> elements, final String booleanInput)
-            throws RuleParseException {
+    public void validateBooleanInput(final List<BooleanInputElement> elements, final String booleanInput) {
 
 
         if (elements.isEmpty()) {

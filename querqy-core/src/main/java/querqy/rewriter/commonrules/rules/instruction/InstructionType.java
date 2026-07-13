@@ -17,7 +17,7 @@
  */
 package querqy.rewriter.commonrules.rules.instruction;
 
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 
 import java.util.Arrays;
 import java.util.Locale;

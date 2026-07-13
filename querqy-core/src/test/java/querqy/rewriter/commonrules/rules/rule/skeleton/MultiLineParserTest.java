@@ -20,7 +20,7 @@ package querqy.rewriter.commonrules.rules.rule.skeleton;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.input.skeleton.InputSkeletonParser;
 import querqy.rewriter.commonrules.rules.instruction.skeleton.InstructionSkeleton;
 import querqy.rewriter.commonrules.rules.instruction.InstructionType;

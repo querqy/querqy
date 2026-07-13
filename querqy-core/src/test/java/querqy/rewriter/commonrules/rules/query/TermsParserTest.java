@@ -20,7 +20,7 @@ package querqy.rewriter.commonrules.rules.query;
 import org.junit.Test;
 import querqy.rewriter.commonrules.model.PrefixTerm;
 import querqy.rewriter.commonrules.model.Term;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 
 import java.util.Arrays;
 import java.util.List;

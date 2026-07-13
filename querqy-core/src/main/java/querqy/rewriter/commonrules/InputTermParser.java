@@ -28,7 +28,7 @@ import querqy.model.Input;
 import querqy.rewriter.commonrules.model.PrefixTerm;
 import querqy.rewriter.commonrules.model.SuffixTerm;
 import querqy.rewriter.commonrules.model.Term;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 
 import java.util.Collections;
 import java.util.LinkedList;

@@ -18,7 +18,7 @@
 package querqy.rewriter.commonrules.rules.rule;
 
 import org.junit.Test;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.factory.config.RuleParserConfig;
 import querqy.rewriter.commonrules.rules.factory.RuleParserFactory;
 import querqy.rewriter.commonrules.rules.property.PropertyParser;
