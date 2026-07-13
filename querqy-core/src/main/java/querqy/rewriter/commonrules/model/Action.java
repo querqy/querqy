@@ -34,12 +34,6 @@ public class Action {
    final Instructions instructions;
    final TermMatches termMatches;
 
-   @Deprecated
-   public Action(final Instructions instructions, final TermMatches termMatches, final int startPosition,
-                 final int endPosition) {
-      this(instructions, termMatches);
-   }
-
    public Action(final Instructions instructions, final TermMatches termMatches) {
       this.instructions = Objects.requireNonNull(instructions, "instructions must not be null");
       this.termMatches = termMatches;

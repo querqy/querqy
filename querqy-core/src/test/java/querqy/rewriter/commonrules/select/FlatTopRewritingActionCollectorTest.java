@@ -43,10 +43,9 @@ public class FlatTopRewritingActionCollectorTest {
         final int numActions = 5 + new Random().nextInt(30);
 
         for (int i = 0; i < numActions; i++) {
-            final int pos = i;
             collector.offer(
                     Collections.singletonList(instructions(i)),
-                    instr -> new Action(instr, new TermMatches(), pos, pos + 2)
+                    instr -> new Action(instr, new TermMatches())
             );
         }
 
@@ -64,10 +63,9 @@ public class FlatTopRewritingActionCollectorTest {
                 = new FlatTopRewritingActionCollector(COMPARATORS, limit, Collections.emptyList());
 
         for (int i = 0; i < numActions; i++) {
-            final int pos = i;
             collector.offer(
                     Collections.singletonList(instructions(numActions - i - 1)), // reverse order
-                    instr -> new Action(instr, new TermMatches(), pos, pos + 2)
+                    instr -> new Action(instr, new TermMatches())
             );
         }
 
@@ -91,10 +89,9 @@ public class FlatTopRewritingActionCollectorTest {
         final int numActions = 5 + new Random().nextInt(30);
 
         for (int i = 0; i < numActions; i++) {
-            final int pos = i;
             collector.offer(
                     Collections.singletonList(instructions(i)),
-                    instr -> new Action(instr, new TermMatches(), pos, pos + 2)
+                    instr -> new Action(instr, new TermMatches())
             );
         }
 
@@ -113,10 +110,9 @@ public class FlatTopRewritingActionCollectorTest {
         final int numActions = 10;
 
         for (int i = 0; i < numActions; i++) {
-            final int pos = i;
             collector.offer(
                     Collections.singletonList(instructions(i)),
-                    instr -> new Action(instr, new TermMatches(), pos, pos + 2)
+                    instr -> new Action(instr, new TermMatches())
             );
         }
 

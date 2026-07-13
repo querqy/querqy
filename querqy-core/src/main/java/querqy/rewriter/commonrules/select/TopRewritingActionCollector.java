@@ -44,7 +44,7 @@ public abstract class TopRewritingActionCollector {
         booleanInputQueryHandler.evaluate().forEach(
                 instructionsFromBooleanInput -> offer(
                         Collections.singletonList(instructionsFromBooleanInput),
-                        instructions -> new Action(instructions, TermMatches.empty(), 0, 0)));
+                        instructions -> new Action(instructions, TermMatches.empty())));
 
         return this;
     }
