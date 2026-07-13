@@ -53,7 +53,7 @@ import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInput;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.lookup.LookupConfig;
 import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
-import querqy.rewrite.rules.input.InputParserAdapter;
+import querqy.rewriter.commonrules.rules.input.InputParserAdapter;
 
 public abstract class AbstractCommonRulesTest {
 

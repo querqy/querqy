@@ -48,21 +48,21 @@ import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
-import querqy.rewrite.rules.RuleParseException;
-import querqy.rewrite.rules.RulesParser;
-import querqy.rewrite.rules.factory.RulesParserFactory;
-import querqy.rewrite.rules.factory.config.RuleParserConfig;
-import querqy.rewrite.rules.factory.config.RulesParserConfig;
-import querqy.rewrite.rules.factory.config.TextParserConfig;
-import querqy.rewrite.rules.instruction.InstructionType;
+import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewriter.commonrules.rules.RulesParser;
+import querqy.rewriter.commonrules.rules.factory.RulesParserFactory;
+import querqy.rewriter.commonrules.rules.factory.config.RuleParserConfig;
+import querqy.rewriter.commonrules.rules.factory.config.RulesParserConfig;
+import querqy.rewriter.commonrules.rules.factory.config.TextParserConfig;
+import querqy.rewriter.commonrules.rules.instruction.InstructionType;
 import querqy.trie.TrieMap;
 
-import static querqy.rewrite.rules.instruction.InstructionType.DECORATE;
-import static querqy.rewrite.rules.instruction.InstructionType.DELETE;
-import static querqy.rewrite.rules.instruction.InstructionType.DOWN;
-import static querqy.rewrite.rules.instruction.InstructionType.FILTER;
-import static querqy.rewrite.rules.instruction.InstructionType.SYNONYM;
-import static querqy.rewrite.rules.instruction.InstructionType.UP;
+import static querqy.rewriter.commonrules.rules.instruction.InstructionType.DECORATE;
+import static querqy.rewriter.commonrules.rules.instruction.InstructionType.DELETE;
+import static querqy.rewriter.commonrules.rules.instruction.InstructionType.DOWN;
+import static querqy.rewriter.commonrules.rules.instruction.InstructionType.FILTER;
+import static querqy.rewriter.commonrules.rules.instruction.InstructionType.SYNONYM;
+import static querqy.rewriter.commonrules.rules.instruction.InstructionType.UP;
 
 /**
  * @author René Kriegler, @renekrie

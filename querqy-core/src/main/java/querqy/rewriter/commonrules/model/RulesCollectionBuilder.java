@@ -20,7 +20,7 @@ package querqy.rewriter.commonrules.model;
 import querqy.model.Input;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRules;
-import querqy.rewrite.rules.rule.Rule;
+import querqy.rewriter.commonrules.rules.rule.Rule;
 import querqy.trie.TrieMap;
 
 public interface RulesCollectionBuilder {
