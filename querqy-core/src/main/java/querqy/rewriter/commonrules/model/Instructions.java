@@ -18,9 +18,7 @@
 package querqy.rewriter.commonrules.model;
 
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;

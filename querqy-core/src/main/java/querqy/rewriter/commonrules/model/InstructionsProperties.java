@@ -24,7 +24,6 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import java.util.List;
 import java.util.Map;

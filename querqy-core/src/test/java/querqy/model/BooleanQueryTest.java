@@ -25,7 +25,6 @@ import static querqy.model.Clause.Occur.MUST_NOT;
 import static querqy.model.Clause.Occur.SHOULD;
 import static querqy.QuerqyMatchers.*;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**

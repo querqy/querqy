@@ -31,7 +31,6 @@ import static org.hamcrest.Matchers.contains;
 
 import java.util.HashSet;
 import java.util.Arrays;
-import java.util.List;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;

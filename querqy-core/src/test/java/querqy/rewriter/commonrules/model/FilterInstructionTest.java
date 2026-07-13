@@ -17,13 +17,11 @@
  */
 package querqy.rewriter.commonrules.model;
 
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import querqy.model.*;
 import querqy.rewriter.commonrules.AbstractCommonRulesTest;
 import querqy.rewriter.commonrules.CommonRulesRewriter;
-import querqy.model.Input;
 
 import java.util.Collection;
 
@@ -34,7 +32,6 @@ import static org.junit.Assert.assertTrue;
 import static querqy.QuerqyMatchers.*;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
-import static querqy.rewriter.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 /**
  * Created by rene on 08/12/2015.

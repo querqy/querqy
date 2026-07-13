@@ -17,7 +17,6 @@
  */
 package querqy.rewrite.lookup.triemap.suffix;
 
-import querqy.CompoundCharSequence;
 import querqy.ReverseComparableCharSequence;
 import querqy.trie.State;
 import querqy.trie.States;

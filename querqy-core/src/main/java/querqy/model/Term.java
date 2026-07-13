@@ -20,7 +20,6 @@ package querqy.model;
 import querqy.CharSequenceUtil;
 import querqy.ComparableCharSequence;
 import querqy.ComparableCharSequenceWrapper;
-import querqy.CompoundCharSequence;
 import querqy.LowerCaseCharSequence;
 import querqy.SimpleComparableCharSequence;
 

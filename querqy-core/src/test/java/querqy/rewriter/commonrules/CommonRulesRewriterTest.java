@@ -17,17 +17,13 @@
  */
 package querqy.rewriter.commonrules;
 
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.term;
-import static querqy.rewriter.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 import org.junit.Test;
 
@@ -37,12 +33,8 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.model.StringRawQuery;
 import querqy.rewrite.RewriterOutput;
-import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.rewriter.commonrules.AbstractCommonRulesTest;
 import querqy.rewriter.commonrules.CommonRulesRewriter;
-import querqy.model.Input;
-import querqy.rewriter.commonrules.model.Instructions;
-import querqy.rewriter.commonrules.model.SynonymInstruction;
 
 public class CommonRulesRewriterTest extends AbstractCommonRulesTest {
 
