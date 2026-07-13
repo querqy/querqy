@@ -23,7 +23,6 @@ import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
 
-import java.util.Map;
 import java.util.Set;
 
 /**

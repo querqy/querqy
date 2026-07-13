@@ -29,7 +29,6 @@ import static querqy.QuerqyMatchers.bq;
 import static querqy.QuerqyMatchers.dmq;
 import static querqy.QuerqyMatchers.must;
 import static querqy.QuerqyMatchers.term;
-import static querqy.rewriter.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
 
 public class SynonymAndDeleteInteractionTest extends AbstractCommonRulesTest {
 

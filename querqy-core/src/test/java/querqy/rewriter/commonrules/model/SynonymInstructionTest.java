@@ -17,12 +17,8 @@
  */
 package querqy.rewriter.commonrules.model;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static querqy.QuerqyMatchers.*;
-import static querqy.rewriter.commonrules.select.SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY;
-
-import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -31,7 +27,6 @@ import querqy.model.ExpandedQuery;
 import querqy.model.Query;
 import querqy.rewriter.commonrules.AbstractCommonRulesTest;
 import querqy.rewriter.commonrules.CommonRulesRewriter;
-import querqy.model.Input;
 
 public class SynonymInstructionTest extends AbstractCommonRulesTest {
     
