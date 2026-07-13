@@ -68,6 +68,18 @@ public class InstructionParserTest {
     }
 
     @Test
+    public void testThat_exceptionIsThrown_forFilterWithEmptyRawQuery() {
+        assertThrows(RuleParseException.class,
+                () -> parseInstruction(FILTER, "*"));
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forFilterWithBlankRawQuery() {
+        assertThrows(RuleParseException.class,
+                () -> parseInstruction(FILTER, "*   "));
+    }
+
+    @Test
     public void testThat_instructionIsParsedProperly_forUpWithRawQuery() {
         assertThat(parseInstruction(UP, "* a:b")).isEqualTo(
                 new BoostInstruction(

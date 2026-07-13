@@ -79,7 +79,12 @@ public class QuerqyQueryParser {
             return parseAsParameterizedRawQuery();
 
         } else {
-            return new StringRawQuery(null, value.substring(1).trim(), occur, false);
+            final String rawQuery = value.substring(1).trim();
+            if (rawQuery.isEmpty()) {
+                throw new RuleParseException("Missing raw query after " + RAW_QUERY_INDICATOR + " in value: "
+                        + value);
+            }
+            return new StringRawQuery(null, rawQuery, occur, false);
         }
     }
 
