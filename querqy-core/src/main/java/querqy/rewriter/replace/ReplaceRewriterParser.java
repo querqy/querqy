@@ -23,7 +23,7 @@ import querqy.model.DisjunctionMaxQuery;
 import querqy.model.Query;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
-import querqy.rewriter.commonrules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.trie.SequenceLookup;
 
 import java.io.BufferedReader;
@@ -165,7 +165,7 @@ public class ReplaceRewriterParser {
         return seq.stream().map(this::lc).collect(Collectors.toList());
     }
 
-    private void throwIfTrue(final boolean bool, final String message) throws RuleParseException {
+    private void throwIfTrue(final boolean bool, final String message) {
         if (bool) {
             throw new RuleParseException(message);
         }
@@ -175,7 +175,7 @@ public class ReplaceRewriterParser {
         return parseQuery(this.querqyParser.parse(term));
     }
 
-    private List<LinkedList<String>> parseInput(final String fullInput) throws RuleParseException {
+    private List<LinkedList<String>> parseInput(final String fullInput) {
         final List<String> inputs = Arrays.stream(fullInput.split(this.inputDelimiter))
                 .map(String::trim)
                 .filter(term -> !term.isEmpty())

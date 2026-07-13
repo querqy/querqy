@@ -18,7 +18,7 @@
 package querqy.rewriter.commonrules.rules.instruction.skeleton;
 
 import org.junit.Test;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.instruction.InstructionType;
 
 import static org.assertj.core.api.Assertions.assertThat;

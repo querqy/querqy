@@ -24,7 +24,7 @@ import querqy.rewriter.commonrules.model.Instructions;
 import querqy.rewriter.commonrules.model.Term;
 import querqy.rewriter.commonrules.select.booleaninput.BooleanInputParser;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.instruction.InstructionType;
 
 import java.util.Collections;
@@ -58,12 +58,7 @@ public class InputAdapter {
     public void createBooleanInputLiterals(final Instructions instructions) {
         if (booleanInputParser != null && isBooleanInput()) {
             final List<BooleanInputElement> elements = ((Input.BooleanInput) input).getElements();
-            try {
-                booleanInputParser.createInputBuilder(elements, inputSkeleton).withInstructions(instructions).build();
-
-            } catch (querqy.rewriter.commonrules.RuleParseException e) {
-                throw new RuleParseException(e.getMessage());
-            }
+            booleanInputParser.createInputBuilder(elements, inputSkeleton).withInstructions(instructions).build();
         }
     }
 

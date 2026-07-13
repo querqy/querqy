@@ -85,7 +85,7 @@ public class InputParserAdapter {
                 || (element.type == BooleanInputElement.Type.AND)
                 || (element.type == BooleanInputElement.Type.NOT))) {
 
-            input = new Input.BooleanInput(elements, booleanInputParser, inputSkeleton);
+            input = new Input.BooleanInput(elements, inputSkeleton);
 
         } else {
             parseAsSingleInput();

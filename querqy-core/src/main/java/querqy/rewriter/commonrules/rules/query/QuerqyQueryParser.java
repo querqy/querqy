@@ -27,7 +27,7 @@ import querqy.model.RawQuery;
 import querqy.model.StringRawQuery;
 import querqy.parser.QuerqyParser;
 import querqy.rewriter.commonrules.QuerqyParserFactory;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -48,7 +48,7 @@ import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorType;
 import querqy.rewrite.lookup.triemap.TrieMapLookupQueryVisitorFactory;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.RulesParser;
 import querqy.rewriter.commonrules.rules.factory.RulesParserFactory;
 import querqy.rewriter.commonrules.rules.factory.config.RuleParserConfig;

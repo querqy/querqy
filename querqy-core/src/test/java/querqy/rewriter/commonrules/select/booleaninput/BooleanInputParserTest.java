@@ -18,7 +18,7 @@
 package querqy.rewriter.commonrules.select.booleaninput;
 
 import org.junit.Test;
-import querqy.rewriter.commonrules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
 
 import java.util.Arrays;

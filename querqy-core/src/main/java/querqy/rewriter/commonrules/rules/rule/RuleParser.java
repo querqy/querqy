@@ -25,7 +25,7 @@ import querqy.rewriter.commonrules.model.Instruction;
 import querqy.rewriter.commonrules.model.Instructions;
 import querqy.rewriter.commonrules.model.InstructionsProperties;
 import querqy.rewriter.commonrules.model.InstructionsSupplier;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.input.InputAdapter;
 import querqy.rewriter.commonrules.rules.input.InputParserAdapter;
 import querqy.rewriter.commonrules.rules.instruction.InstructionParser;

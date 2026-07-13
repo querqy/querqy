@@ -20,18 +20,11 @@ package querqy.model;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import querqy.ComparableCharSequence;
-import querqy.CompoundCharSequence;
 import querqy.rewriter.commonrules.InputTermParser;
-import querqy.rewriter.commonrules.RuleParseException;
-import querqy.rewriter.commonrules.model.Instructions;
-import querqy.rewriter.commonrules.model.RulesCollectionBuilder;
 import querqy.rewriter.commonrules.model.Term;
-import querqy.rewriter.commonrules.select.booleaninput.BooleanInputParser;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 @EqualsAndHashCode
@@ -43,8 +36,6 @@ public abstract class Input {
         this.inputString = inputString;
     }
     public abstract List<Term> getInputTerms();
-
-    public abstract void applyInstructions(final Instructions instructions, final RulesCollectionBuilder builder) throws RuleParseException;
 
     public String getIdPrefix() {
         return inputString;
@@ -101,37 +92,21 @@ public abstract class Input {
 
         }
 
-        public void applyInstructions(final Instructions instructions, final RulesCollectionBuilder builder) {
-            builder.addRule(this, instructions);
-        }
-
-
-
     }
 
     public static class BooleanInput extends Input {
 
         @Getter
         private final List<BooleanInputElement> elements;
-        private final BooleanInputParser booleanInputParser;
 
-        public BooleanInput(final List<BooleanInputElement> elements, final BooleanInputParser booleanInputParser,
-                            final String inputString) {
+        public BooleanInput(final List<BooleanInputElement> elements, final String inputString) {
             super(inputString);
             this.elements = elements;
-            this.booleanInputParser = booleanInputParser;
-
         }
 
         public List<Term> getInputTerms() {
             return Collections.emptyList();
         }
-
-        public void applyInstructions(final Instructions instructions, final RulesCollectionBuilder builder)
-                throws RuleParseException {
-            booleanInputParser.createInputBuilder(elements, inputString).withInstructions(instructions).build();
-        }
-
 
     }
 }

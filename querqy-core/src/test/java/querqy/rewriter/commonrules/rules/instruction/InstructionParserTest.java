@@ -30,7 +30,7 @@ import querqy.rewriter.commonrules.model.FilterInstruction;
 import querqy.rewriter.commonrules.model.Instruction;
 import querqy.rewriter.commonrules.model.SynonymInstruction;
 import querqy.rewriter.commonrules.model.Term;
-import querqy.rewriter.commonrules.rules.RuleParseException;
+import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.instruction.skeleton.InstructionSkeleton;
 import querqy.rewriter.commonrules.rules.query.QuerqyQueryParser;
 import querqy.rewriter.commonrules.rules.query.TermsParser;
