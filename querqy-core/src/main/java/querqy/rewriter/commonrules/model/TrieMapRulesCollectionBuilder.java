@@ -28,7 +28,7 @@ import querqy.rewrite.lookup.preprocessing.LookupPreprocessor;
 import querqy.rewrite.lookup.preprocessing.LookupPreprocessorFactory;
 import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRules;
 import querqy.rewrite.lookup.triemap.suffix.SuffixWildcardRulesBuilder;
-import querqy.rewrite.rules.rule.Rule;
+import querqy.rewriter.commonrules.rules.rule.Rule;
 import querqy.trie.State;
 import querqy.trie.States;
 import querqy.trie.TrieMap;

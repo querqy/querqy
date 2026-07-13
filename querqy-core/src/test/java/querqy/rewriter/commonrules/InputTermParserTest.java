@@ -41,7 +41,7 @@ import querqy.model.Input;
 import querqy.rewriter.commonrules.model.PrefixTerm;
 import querqy.rewriter.commonrules.model.SuffixTerm;
 import querqy.rewriter.commonrules.model.Term;
-import querqy.rewrite.rules.RuleParseException;
+import querqy.rewriter.commonrules.rules.RuleParseException;
 
 public class InputTermParserTest {
 
