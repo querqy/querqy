@@ -19,8 +19,14 @@ package querqy.rewrite.rules.factory;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import querqy.rewriter.commonrules.QuerqyParserFactory;
+import querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewrite.rules.RulesParser;
+import querqy.rewrite.rules.factory.config.RuleParserConfig;
 import querqy.rewrite.rules.factory.config.RulesParserConfig;
+import querqy.rewrite.rules.factory.config.TextParserConfig;
+
+import java.io.Reader;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RulesParserFactory {
@@ -34,5 +40,32 @@ public class RulesParserFactory {
                 .rulesCollectionBuilder(
                         rulesParserConfig.getRulesCollectionBuilder())
                 .build();
+    }
+
+    /**
+     * Convenience entry point for parsing (or just validating) a self-contained piece of common-rules text,
+     * without having to assemble a {@link RulesParserConfig} by hand. Use the {@link #textParser(RulesParserConfig)}
+     * overload instead if you need control over line-number mappings, allowed instruction types, boost method,
+     * or a custom {@link querqy.rewriter.commonrules.model.RulesCollectionBuilder}.
+     *
+     * @param rulesContentReader The rules text to parse.
+     * @param querqyParserFactory A parser for the right-hand side of rules.
+     * @param allowBooleanInput Iff true, rule input can have boolean expressions.
+     * @param ignoreCase Iff true, rule input matching is case-insensitive.
+     */
+    public static RulesParser textParser(final Reader rulesContentReader,
+                                         final QuerqyParserFactory querqyParserFactory,
+                                         final boolean allowBooleanInput,
+                                         final boolean ignoreCase) {
+        return textParser(RulesParserConfig.builder()
+                .textParserConfig(TextParserConfig.builder()
+                        .rulesContentReader(rulesContentReader)
+                        .build())
+                .ruleParserConfig(RuleParserConfig.builder()
+                        .querqyParserFactory(querqyParserFactory)
+                        .isAllowedToParseBooleanInput(allowBooleanInput)
+                        .build())
+                .rulesCollectionBuilder(new TrieMapRulesCollectionBuilder(ignoreCase))
+                .build());
     }
 }
