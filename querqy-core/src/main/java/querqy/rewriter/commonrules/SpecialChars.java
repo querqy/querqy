@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright 2021 Querqy Contributors
+ * Copyright 2026 Querqy Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,18 @@
  */
 package querqy.rewriter.commonrules;
 
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-
 /**
- * Just as simple wrapper that marks a String as 'input'.
+ * Characters that have special syntactic meaning in the Common Rules format (rule input patterns and rule
+ * file comments), and can therefore be escaped - see {@link EscapeUtil}.
  */
-@RequiredArgsConstructor
-@EqualsAndHashCode
-@ToString
-@Deprecated
-public class InputString {
+public final class SpecialChars {
 
-    @NonNull
-    public final String value;
+    public static final char ESCAPE = '\\';
+    public static final char BOUNDARY = '"';
+    public static final char WILDCARD = '*';
+    public static final char COMMENT_START = '#';
+
+    private SpecialChars() {
+    }
 
 }

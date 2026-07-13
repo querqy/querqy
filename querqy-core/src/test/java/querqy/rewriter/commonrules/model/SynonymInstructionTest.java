@@ -32,7 +32,6 @@ import querqy.model.Query;
 import querqy.rewriter.commonrules.AbstractCommonRulesTest;
 import querqy.rewriter.commonrules.CommonRulesRewriter;
 import querqy.model.Input;
-import querqy.rewriter.commonrules.LineParser;
 
 public class SynonymInstructionTest extends AbstractCommonRulesTest {
     

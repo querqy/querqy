@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static querqy.rewriter.commonrules.model.TrieMapRulesCollection.*;
+import static querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder.BOUNDARY_WORD;
 
 public class InputSequenceNormalizer {
 

@@ -33,7 +33,6 @@ import querqy.model.*;
 import querqy.rewriter.commonrules.AbstractCommonRulesTest;
 import querqy.rewriter.commonrules.CommonRulesRewriter;
 import querqy.model.Input;
-import querqy.rewriter.commonrules.LineParser;
 
 public class DeleteInstructionTest extends AbstractCommonRulesTest {
 

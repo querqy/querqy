@@ -29,7 +29,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static querqy.rewriter.commonrules.model.TrieMapRulesCollection.BOUNDARY_WORD;
+import static querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder.BOUNDARY_WORD;
 
 public class InputSequenceNormalizerTest {
 

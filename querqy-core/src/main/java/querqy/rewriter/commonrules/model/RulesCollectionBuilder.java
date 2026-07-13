@@ -31,8 +31,6 @@ public interface RulesCollectionBuilder {
 
     void addRule(final Rule rule);
 
-    RulesCollection build();
-
     TrieMap<InstructionsSupplier> getTrieMap();
 
     SuffixWildcardRules<InstructionsSupplier> getSuffixWildcardRules();

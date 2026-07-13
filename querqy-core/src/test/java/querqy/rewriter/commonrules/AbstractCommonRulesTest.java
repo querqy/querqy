@@ -32,13 +32,11 @@ import java.util.stream.IntStream;
 import querqy.model.EmptySearchEngineRequestAdapter;
 import querqy.model.ExpandedQuery;
 import querqy.model.Input;
-import querqy.model.InputSequenceElement;
 import querqy.model.QuerqyQuery;
 import querqy.model.Query;
 import querqy.model.convert.builder.BooleanQueryBuilder;
 import querqy.parser.WhiteSpaceQuerqyParser;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewriter.commonrules.model.Action;
 import querqy.rewriter.commonrules.model.BoostInstruction;
 import querqy.rewriter.commonrules.model.DecorateInstruction;
 import querqy.rewriter.commonrules.model.DeleteInstruction;
@@ -47,13 +45,10 @@ import querqy.rewriter.commonrules.model.Instruction;
 import querqy.rewriter.commonrules.model.InstructionDescription;
 import querqy.rewriter.commonrules.model.Instructions;
 import querqy.rewriter.commonrules.model.InstructionsProperties;
-import querqy.rewriter.commonrules.model.PositionSequence;
-import querqy.rewriter.commonrules.model.RulesCollection;
 import querqy.rewriter.commonrules.model.RulesCollectionBuilder;
 import querqy.rewriter.commonrules.model.SynonymInstruction;
 import querqy.rewriter.commonrules.model.Term;
 import querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder;
-import querqy.rewriter.commonrules.select.TopRewritingActionCollector;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInput;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
 import querqy.rewrite.lookup.LookupConfig;
@@ -78,13 +73,6 @@ public abstract class AbstractCommonRulesTest {
 
     protected Term mkTerm(String s, String... fieldName) {
         return new Term(s.toCharArray(), 0, s.length(), Arrays.asList(fieldName));
-    }
-
-    public static List<Action> getActions(final RulesCollection rules,
-                                          final PositionSequence<InputSequenceElement> seq) {
-        final TopRewritingActionCollector collector = DEFAULT_SELECTION_STRATEGY.createTopRewritingActionCollector();
-        rules.collectRewriteActions(seq, collector);
-        return collector.createActions();
     }
 
     public void addRule(RulesCollectionBuilder builder, Input.SimpleInput input, Instruction... instructions) {

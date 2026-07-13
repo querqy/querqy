@@ -17,14 +17,13 @@
  */
 package querqy.rewriter.commonrules;
 
-import static querqy.rewriter.commonrules.LineParser.BOUNDARY;
-import static querqy.rewriter.commonrules.LineParser.WILDCARD;
-import static querqy.rewriter.commonrules.SimpleCommonRulesParser.COMMENT_START;
+import static querqy.rewriter.commonrules.SpecialChars.BOUNDARY;
+import static querqy.rewriter.commonrules.SpecialChars.COMMENT_START;
+import static querqy.rewriter.commonrules.SpecialChars.ESCAPE;
+import static querqy.rewriter.commonrules.SpecialChars.WILDCARD;
 
 // TODO: should be refactored to be usable in a more generic manner & should not be static references
 public class EscapeUtil {
-
-    static final char ESCAPE = '\\';
 
     public static int indexOfComment(final String s) {
         return indexIfNotEscaped(s, COMMENT_START);

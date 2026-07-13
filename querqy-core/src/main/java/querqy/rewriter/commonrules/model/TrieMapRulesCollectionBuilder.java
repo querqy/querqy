@@ -38,16 +38,16 @@ import querqy.trie.TrieMap;
  *
  */
 public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
-    
+
+    public static final String BOUNDARY_WORD = "\u0002";
+
     final TrieMap<InstructionsSupplier> map = new TrieMap<>();
     private final SuffixWildcardRulesBuilder<InstructionsSupplier> suffixWildcardRulesBuilder =
             new SuffixWildcardRulesBuilder<>();
 
-    // we keep this just for the deprecated build() method
-    @Deprecated
     private final LookupPreprocessor lookupPreprocessor;
     private final InputSequenceNormalizer inputSequenceNormalizer;
-    
+
     public TrieMapRulesCollectionBuilder(boolean ignoreCase) {
         this(ignoreCase ? LookupPreprocessorFactory.lowercase() : LookupPreprocessorFactory.identity());
     }
@@ -87,15 +87,15 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
 
         final boolean isPrefix = (!inputTerms.isEmpty()) &&  inputTerms.get(inputTerms.size() -1) instanceof PrefixTerm;
         for (final CharSequence seq : seqs) {
-                
+
             final States<InstructionsSupplier> states = map.get(seq);
-                
+
             if (isPrefix) {
-                    
+
                 boolean added = false;
 
                 final List<State<InstructionsSupplier>> prefixes = states.getPrefixes();
-                    
+
                 if (prefixes != null) {
                     for (final State<InstructionsSupplier> state: prefixes) {
                         if (state.isFinal() && state.index == (seq.length() - 1) && state.value != null) {
@@ -103,10 +103,10 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                             added = true;
                             break;
                         }
-                            
+
                     }
                 }
-                    
+
                 if (!added) {
                     map.putPrefix(seq, instructionsSupplier);
                 }
@@ -118,17 +118,9 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
                     map.put(seq, instructionsSupplier);
                 }
             }
-                
+
         }
 
-    }
-
-    /* (non-Javadoc)
-     * @see querqy.rewriter.commonrules.model.RulesCollectionBuilder#build()
-     */
-    @Override
-    public RulesCollection build() {
-        return new TrieMapRulesCollection(map, lookupPreprocessor);
     }
 
     @Override
@@ -162,7 +154,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
 
         final List<CharSequence> leftContextParts = new ArrayList<>();
         if (input.isRequiresLeftBoundary()) {
-            leftContextParts.add(TrieMapRulesCollection.BOUNDARY_WORD);
+            leftContextParts.add(BOUNDARY_WORD);
         }
         for (final Term term : leftTerms) {
             leftContextParts.add(lookupPreprocessor.process(term));
@@ -175,7 +167,7 @@ public class TrieMapRulesCollectionBuilder implements RulesCollectionBuilder {
             rightTermKeys.add(lookupPreprocessor.process(term));
         }
         if (input.isRequiresRightBoundary()) {
-            rightTermKeys.add(TrieMapRulesCollection.BOUNDARY_WORD);
+            rightTermKeys.add(BOUNDARY_WORD);
         }
 
         for (final CharSequence suffixKey : suffixKeys(suffixTerm)) {

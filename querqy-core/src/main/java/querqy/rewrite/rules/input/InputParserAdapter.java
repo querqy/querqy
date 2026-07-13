@@ -21,12 +21,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import querqy.model.Input;
-import querqy.rewriter.commonrules.LineParser;
+import querqy.rewriter.commonrules.InputTermParser;
 import querqy.rewriter.commonrules.model.InstructionsSupplier;
 import querqy.rewriter.commonrules.select.booleaninput.BooleanInputParser;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputElement;
 import querqy.rewriter.commonrules.select.booleaninput.model.BooleanInputLiteral;
-import querqy.rewrite.rules.RuleParseException;
 import querqy.rewrite.rules.rule.Rule;
 
 import java.util.Collections;
@@ -34,8 +33,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 // TODO: This adapter is only a temporary solution to allow a stepwise migration to a new parsing solution
-//  To make the structure of this parser comparable to the other parsers, several refactorings for code in Input,
-//  BooleanInputParser and LineParser are required.
+//  To make the structure of this parser comparable to the other parsers, several refactorings for code in Input
+//  and BooleanInputParser are required.
 @RequiredArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
 public class InputParserAdapter {
 
@@ -94,13 +93,7 @@ public class InputParserAdapter {
     }
 
     private void parseAsSingleInput() {
-        final Object inputParseResult = Input.parseSimpleInput(inputSkeleton);
-        if (inputParseResult instanceof Input.SimpleInput) {
-            input = (Input) inputParseResult;
-
-        } else {
-            throw new RuleParseException("Could not parse input " + inputSkeleton);
-        }
+        input = Input.parseSimpleInput(inputSkeleton);
     }
 
     public List<Rule> createRulesFromLiterals() {
@@ -124,14 +117,7 @@ public class InputParserAdapter {
 
     private Input.SimpleInput parseLiteral(final BooleanInputLiteral literal) {
         final String termString = String.join(" ", literal.getTerms());
-        final Object literalParseResult = LineParser.parseInput(termString);
-
-        if (literalParseResult instanceof Input.SimpleInput) {
-            return (Input.SimpleInput) literalParseResult;
-
-        } else {
-            throw new RuleParseException("Could not parse boolean literal " + termString);
-        }
+        return InputTermParser.parseInput(termString);
     }
 
 }

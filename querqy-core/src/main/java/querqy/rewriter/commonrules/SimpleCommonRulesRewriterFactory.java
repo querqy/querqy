@@ -73,7 +73,6 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
             SYNONYM, UP, DOWN, FILTER, DELETE, DECORATE
     ).collect(Collectors.toSet());
 
-//    private final RulesCollection rules;
     private final Map<String, SelectionStrategyFactory> selectionStrategyFactories;
     private final String strategyParam;
     private final SelectionStrategyFactory defaultSelectionStrategyFactory;
