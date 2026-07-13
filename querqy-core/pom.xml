@@ -90,7 +90,7 @@
         <mockito.version>5.23.0</mockito.version>
         <assertj.version>3.27.7</assertj.version>
 
-        <jackson.version>2.22.0</jackson.version>
+        <jackson.version>2.22.1</jackson.version>
         <json-path.version>3.0.0</json-path.version>
     </properties>
 
