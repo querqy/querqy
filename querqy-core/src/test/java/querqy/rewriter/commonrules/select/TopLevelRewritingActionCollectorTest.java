@@ -119,10 +119,9 @@ public class TopLevelRewritingActionCollectorTest {
         final int numActions = 10;
 
         for (int i = 0; i < numActions; i++) {
-            final int pos = i;
             collector.offer(
                     Collections.singletonList(instructions(i)),
-                    instr -> new Action(instr, new TermMatches(), pos, pos + 2)
+                    instr -> new Action(instr, new TermMatches())
             );
         }
 
