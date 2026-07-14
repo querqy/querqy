@@ -17,7 +17,6 @@
  */
 package querqy.rewriter;
 
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -43,7 +42,7 @@ public class ShingleRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new ShingleRewriter(acceptGeneratedTerms);
     }
 

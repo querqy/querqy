@@ -17,7 +17,6 @@
  */
 package querqy.rewriter.regexreplace;
 
-import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -38,8 +37,7 @@ public class RegexReplaceRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input,
-                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         return new RegexReplaceRewriter(replacing);
     }

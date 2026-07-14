@@ -17,7 +17,6 @@
  */
 package querqy.explain;
 
-import querqy.model.ExpandedQuery;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -38,8 +37,7 @@ public class SnapshotRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public synchronized QueryRewriter createRewriter(final ExpandedQuery input,
-                                                     final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public synchronized QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         if (rewriter != null) {
             throw new IllegalStateException("This factory can only be used once!");
         }

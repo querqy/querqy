@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QuerqyTemplateEngine;
 import querqy.rewrite.QueryRewriter;
@@ -170,8 +169,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input,
-                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
 
         final SelectionStrategy selectionStrategy = searchEngineRequestAdapter
                 .getRequestParam(strategyParam)

@@ -17,7 +17,6 @@
  */
 package querqy.rewriter.replace;
 
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.parser.QuerqyParser;
 import querqy.rewrite.QueryRewriter;
@@ -46,7 +45,7 @@ public class ReplaceRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(ExpandedQuery input, SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new ReplaceRewriter(sequenceLookup);
     }
 

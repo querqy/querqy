@@ -17,7 +17,6 @@
  */
 package querqy.rewriter.numberunit;
 
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -73,8 +72,7 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input,
-                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
     }
 

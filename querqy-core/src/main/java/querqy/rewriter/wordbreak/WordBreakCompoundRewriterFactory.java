@@ -17,7 +17,6 @@
  */
 package querqy.rewriter.wordbreak;
 
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -159,8 +158,7 @@ public class WordBreakCompoundRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input,
-                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new WordBreakCompoundRewriter(wordBreaker, compounder, termCorpus,
                 lowerCaseInput, alwaysAddReverseCompounds, reverseCompoundTriggerWords, maxDecompoundExpansions,
                 verifyDecompoundCollation, protectedWords, optionalModifierConfig);
