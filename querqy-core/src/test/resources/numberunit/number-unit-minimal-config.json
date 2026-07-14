@@ -1,0 +1,8 @@
+{
+  "numberUnitDefinitions": [
+    {
+      "units": [ { "term": "term" } ],
+      "fields": [ { "fieldName": "fieldName" } ]
+    }
+  ]
+}
