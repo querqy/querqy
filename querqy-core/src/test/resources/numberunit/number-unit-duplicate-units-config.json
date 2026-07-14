@@ -1,0 +1,8 @@
+{
+  "numberUnitDefinitions": [
+    {
+      "units": [ { "term": "cm" }, { "term": "cm" } ],
+      "fields": [ { "fieldName": "fieldName" } ]
+    }
+  ]
+}

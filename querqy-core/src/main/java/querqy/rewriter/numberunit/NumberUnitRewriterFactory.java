@@ -21,27 +21,44 @@ import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
 import querqy.rewrite.SearchEngineRequestAdapter;
-import querqy.rewriter.numberunit.NumberUnitQueryCreator;
 import querqy.rewriter.numberunit.model.NumberUnitDefinition;
 import querqy.rewriter.numberunit.model.PerUnitNumberUnitDefinition;
 import querqy.trie.State;
 import querqy.trie.TrieMap;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntFunction;
 
 public class NumberUnitRewriterFactory extends RewriterFactory {
 
     private final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap;
     private final NumberUnitQueryCreator numberUnitQueryCreator;
 
+    /**
+     * @param id                  The id of the rewriter
+     * @param config              The rewriter's JSON configuration
+     * @param queryCreatorFactory Builds the search-engine-specific {@link NumberUnitQueryCreator} from the
+     *                            {@code scaleForLinearFunctions} value parsed out of {@code config}
+     * @throws IOException if {@code config} is not valid JSON
+     * @throws IllegalArgumentException if {@code config} does not satisfy the rewriter's validation rules
+     */
     public NumberUnitRewriterFactory(final String id,
-                                     final List<NumberUnitDefinition> numberUnitDefinitions,
-                                     final NumberUnitQueryCreator numberUnitQueryCreator) {
+                                     final String config,
+                                     final IntFunction<NumberUnitQueryCreator> queryCreatorFactory) throws IOException {
         super(id);
-        this.numberUnitMap = createNumberUnitMap(numberUnitDefinitions);
-        this.numberUnitQueryCreator = numberUnitQueryCreator;
+        final ParsedNumberUnitConfig parsedConfig = NumberUnitRewriterConfigParser.parse(config);
+        this.numberUnitMap = createNumberUnitMap(parsedConfig.numberUnitDefinitions);
+        this.numberUnitQueryCreator = queryCreatorFactory.apply(parsedConfig.scaleForLinearFunctions);
+    }
+
+    /**
+     * @return a list of human-readable error messages; empty if {@code config} is valid
+     */
+    public static List<String> validateConfiguration(final String config) {
+        return NumberUnitRewriterConfigParser.validate(config);
     }
 
     private TrieMap<List<PerUnitNumberUnitDefinition>> createNumberUnitMap(
