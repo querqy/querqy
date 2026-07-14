@@ -361,7 +361,7 @@ public class PhraseBoostRewriterTest {
                 0.1f);
 
         ExpandedQuery eq = new ExpandedQuery(queryOf("A", "B", "C"));
-        RewriterOutput out = factory.createRewriter(eq, null).rewrite(eq, null);
+        RewriterOutput out = factory.createRewriter(null).rewrite(eq, null);
         assertSame(eq, out.getExpandedQuery());
 
         DisjunctionMaxQuery dmq = singleBoostDmq(out.getExpandedQuery());
@@ -373,7 +373,6 @@ public class PhraseBoostRewriterTest {
     public void testFactoryReturnsSameRewriterInstance() {
         PhraseBoostRewriterFactory factory = PhraseBoostRewriterFactory.create(
                 "id", Arrays.asList("title"), 0, null, 0, null, 0, 0.0f);
-        ExpandedQuery eq = new ExpandedQuery(queryOf("A", "B"));
-        assertSame(factory.createRewriter(eq, null), factory.createRewriter(eq, null));
+        assertSame(factory.createRewriter(null), factory.createRewriter(null));
     }
 }

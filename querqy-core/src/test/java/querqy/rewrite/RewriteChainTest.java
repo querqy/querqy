@@ -67,8 +67,8 @@ public class RewriteChainTest {
 
         final InOrder inOrder = Mockito.inOrder(queryRewriter1, queryRewriter2);
 
-        verify(rewriterFactory1).createRewriter(any(), any());
-        verify(rewriterFactory2).createRewriter(any(), any());
+        verify(rewriterFactory1).createRewriter(any());
+        verify(rewriterFactory2).createRewriter(any());
 
         inOrder.verify(queryRewriter1).rewrite(any(), any());
         inOrder.verify(queryRewriter2).rewrite(any(), any());
@@ -194,8 +194,8 @@ public class RewriteChainTest {
         when(rewriterFactory1.getRewriterId()).thenReturn(id1);
         when(rewriterFactory2.getRewriterId()).thenReturn(id2);
 
-        when(rewriterFactory1.createRewriter(any(), any())).thenReturn(queryRewriter1);
-        when(rewriterFactory2.createRewriter(any(), any())).thenReturn(queryRewriter2);
+        when(rewriterFactory1.createRewriter(any())).thenReturn(queryRewriter1);
+        when(rewriterFactory2.createRewriter(any())).thenReturn(queryRewriter2);
     }
 
     private void setupRewriter() {

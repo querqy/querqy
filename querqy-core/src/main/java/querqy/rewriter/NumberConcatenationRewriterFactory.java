@@ -17,7 +17,6 @@
  */
 package querqy.rewriter;
 
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -52,8 +51,7 @@ public class NumberConcatenationRewriterFactory extends RewriterFactory {
     }
 
     @Override
-    public QueryRewriter createRewriter(final ExpandedQuery input,
-                                        final SearchEngineRequestAdapter searchEngineRequestAdapter) {
+    public QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
         return new NumberConcatenationRewriter(acceptGeneratedTerms, minimumLengthOfResultingQueryTerm);
     }
 

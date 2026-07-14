@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import querqy.model.ExpandedQuery;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -63,9 +62,6 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
     @Mock
     SelectionStrategy namedSelectionStrategy;
-
-    @Mock
-    ExpandedQuery query;
 
     @Mock
     SearchEngineRequestAdapter requestAdapter;
@@ -132,7 +128,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = commonRulesFactory("input =>\n DECORATE: deco1");
 
-        final QueryRewriter rewriter = factory.createRewriter(query, requestAdapter);
+        final QueryRewriter rewriter = factory.createRewriter(requestAdapter);
         assertTrue(rewriter instanceof CommonRulesRewriter);
 
         final CommonRulesRewriter commonRulesRewriter = (CommonRulesRewriter) rewriter;
@@ -146,7 +142,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = commonRulesFactory("input =>\n DECORATE: deco1");
 
-        final QueryRewriter rewriter = factory.createRewriter(query, requestAdapter);
+        final QueryRewriter rewriter = factory.createRewriter(requestAdapter);
         assertTrue(rewriter instanceof CommonRulesRewriter);
 
         final CommonRulesRewriter commonRulesRewriter = (CommonRulesRewriter) rewriter;
@@ -161,7 +157,7 @@ public class SimpleCommonRulesRewriterFactoryTest {
 
         final SimpleCommonRulesRewriterFactory factory = commonRulesFactory("input =>\n DECORATE: deco1");
 
-        factory.createRewriter(query, requestAdapter);
+        factory.createRewriter(requestAdapter);
 
     }
 

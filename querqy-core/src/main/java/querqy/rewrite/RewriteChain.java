@@ -115,7 +115,7 @@ public class RewriteChain {
         }
 
         private RewriterOutput applyFactory(final RewriterFactory factory) {
-            final QueryRewriter rewriter = factory.createRewriter(expandedQuery, searchEngineRequestAdapter);
+            final QueryRewriter rewriter = factory.createRewriter(searchEngineRequestAdapter);
             return rewriter.rewrite(expandedQuery, searchEngineRequestAdapter);
         }
 

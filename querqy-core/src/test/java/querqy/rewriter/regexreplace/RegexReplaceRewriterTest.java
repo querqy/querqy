@@ -48,7 +48,7 @@ public class RegexReplaceRewriterTest {
                 """);
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("pref abc"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -58,7 +58,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                                 .rewrite(query("abc"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -67,7 +67,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("yxz"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -76,7 +76,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("abc klm"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -86,7 +86,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("abc yxz"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -106,7 +106,7 @@ public class RegexReplaceRewriterTest {
                 """);
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("abc"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -116,7 +116,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("abc yxz"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -129,7 +129,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("pref lmn abc 1234 567"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -154,7 +154,7 @@ public class RegexReplaceRewriterTest {
                 """);
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("a1c"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
@@ -163,7 +163,7 @@ public class RegexReplaceRewriterTest {
         );
 
         assertThat((Query) factory
-                        .createRewriter(null, null)
+                        .createRewriter(null)
                         .rewrite(query("d1f"), new EmptySearchEngineRequestAdapter()).getExpandedQuery()
                         .getUserQuery(),
                 bq(
