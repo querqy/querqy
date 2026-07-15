@@ -53,6 +53,20 @@ public class CompoundCharSequenceTest {
     }
 
     @Test
+    public void testCharAtOutOfOrderAccess() {
+        CompoundCharSequence seq = new CompoundCharSequence(" ", Arrays.asList("cde", "-fgh", "-", "ijklm"));
+        String expected = "cde -fgh - ijklm";
+        assertEquals(expected.length(), seq.length());
+
+        // deliberately jumps back and forth across segment boundaries instead of walking left-to-right,
+        // to exercise charAt()'s segment-index cache under non-sequential access
+        int[] order = {15, 0, 7, 3, 15, 8, 1, 14, 4, 0, 9, 6, 2, 10, 5, 11, 12, 13};
+        for (int i : order) {
+            assertEquals("mismatch at index " + i, expected.charAt(i), seq.charAt(i));
+        }
+    }
+
+    @Test
     public void testSubSequenceOnlyOnePart() {
         ComparableCharSequence seq;
 
