@@ -36,6 +36,13 @@ public class CompoundCharSequence implements ComparableCharSequence {
     private final int seqOffset;
     private final int partsOffset;
 
+    // Mutable cache of the most recently resolved segment index. Real consumers (TrieMap traversal,
+    // tokenizers, hashCode/equals/compareTo) walk charAt() in ascending order, so caching the last hit
+    // turns repeated linear scans into an O(1) check per call for that access pattern. It's just a hint:
+    // charAt() always re-validates it against the requested index before use, so a stale read under
+    // concurrent access can only cost a few extra loop iterations, never an incorrect character.
+    private int lastPartsIndex;
+
     public CompoundCharSequence(final List<? extends CharSequence> parts) {
        this(null, parts);
     }
@@ -81,6 +88,7 @@ public class CompoundCharSequence implements ComparableCharSequence {
         this.length = this.indexOffsets[arrayLength - 1] + this.parts[arrayLength - 1].length();
         this.partsOffset = 0;
         this.seqOffset = 0;
+        this.lastPartsIndex = this.partsOffset;
     }
 
     private CompoundCharSequence(CharSequence[] parts, int[] indexOffsets, int length, int seqOffset, int partsOffset) {
@@ -90,6 +98,7 @@ public class CompoundCharSequence implements ComparableCharSequence {
         this.length = length;
         this.seqOffset = seqOffset;
         this.partsOffset = partsOffset;
+        this.lastPartsIndex = partsOffset;
     }
 
     /*
@@ -120,10 +129,16 @@ public class CompoundCharSequence implements ComparableCharSequence {
             return parts[0].charAt(absoluteIndex);
         }
 
-        final int partsIndex = getPartsIndex(absoluteIndex);
-        final int baseOffset = indexOffsets[partsIndex];
+        int partsIndex = lastPartsIndex;
+        while (partsIndex + 1 < indexOffsets.length && absoluteIndex >= indexOffsets[partsIndex + 1]) {
+            partsIndex++;
+        }
+        while (partsIndex > partsOffset && absoluteIndex < indexOffsets[partsIndex]) {
+            partsIndex--;
+        }
+        lastPartsIndex = partsIndex;
 
-        return parts[partsIndex].charAt(absoluteIndex - baseOffset);
+        return parts[partsIndex].charAt(absoluteIndex - indexOffsets[partsIndex]);
     }
 
     private int getPartsIndex(final int index) {
