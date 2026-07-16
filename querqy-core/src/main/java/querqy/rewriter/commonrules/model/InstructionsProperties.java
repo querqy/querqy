@@ -25,6 +25,7 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.EqualsAndHashCode;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +54,10 @@ public class InstructionsProperties {
 
     public Optional<Object> getProperty(final String name) {
         return Optional.ofNullable(propertyMap.get(name));
+    }
+
+    public Map<String, Object> getPropertyMap() {
+        return Collections.unmodifiableMap(propertyMap);
     }
 
     public boolean matches(final String jsonPath) {
