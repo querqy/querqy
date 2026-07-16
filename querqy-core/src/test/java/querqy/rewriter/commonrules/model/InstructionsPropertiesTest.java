@@ -47,6 +47,27 @@ public class InstructionsPropertiesTest {
     }
 
     @Test
+    public void testGetPropertyMap() {
+
+        final Map<String, Object> props = new HashMap<>();
+        props.put("p1", 1);
+        props.put("p2", "2");
+        final InstructionsProperties instructionsProperties = new InstructionsProperties(props);
+
+        assertEquals(props, instructionsProperties.getPropertyMap());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testGetPropertyMapIsUnmodifiable() {
+
+        final Map<String, Object> props = new HashMap<>();
+        props.put("p1", 1);
+        final InstructionsProperties instructionsProperties = new InstructionsProperties(props);
+
+        instructionsProperties.getPropertyMap().put("p2", "2");
+    }
+
+    @Test
     public void testMatches() {
 
         final Map<String, Object> props = new HashMap<>();
