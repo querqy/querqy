@@ -1,0 +1,12 @@
+@defaultMessage Do not enable Jackson polymorphic default typing or type-info annotations. querqy-core's Jackson usage is deliberately restricted to fixed-POJO / no-default-typing databinding, which is what makes it safe from the classic jackson-databind gadget-chain deserialization RCE. Enabling default typing (or @JsonTypeInfo) reopens that vulnerability class.
+
+com.fasterxml.jackson.databind.ObjectMapper#enableDefaultTyping()
+com.fasterxml.jackson.databind.ObjectMapper#enableDefaultTyping(com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping)
+com.fasterxml.jackson.databind.ObjectMapper#enableDefaultTyping(com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping, com.fasterxml.jackson.annotation.JsonTypeInfo$As)
+com.fasterxml.jackson.databind.ObjectMapper#enableDefaultTypingAsProperty(com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping, java.lang.String)
+com.fasterxml.jackson.databind.ObjectMapper#activateDefaultTyping(com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator)
+com.fasterxml.jackson.databind.ObjectMapper#activateDefaultTyping(com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator, com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping)
+com.fasterxml.jackson.databind.ObjectMapper#activateDefaultTyping(com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator, com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping, com.fasterxml.jackson.annotation.JsonTypeInfo$As)
+com.fasterxml.jackson.databind.ObjectMapper#activateDefaultTypingAsProperty(com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator, com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping, java.lang.String)
+com.fasterxml.jackson.databind.ObjectMapper#setDefaultTyping(com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder)
+com.fasterxml.jackson.annotation.JsonTypeInfo
