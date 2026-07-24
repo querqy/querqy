@@ -78,6 +78,8 @@
         <hamcrest.version>3.0</hamcrest.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <mockito.version>5.23.0</mockito.version>
+        <jackson.version>2.22.1</jackson.version>
+        <jackson-annotations.version>2.22</jackson-annotations.version>
     </properties>
 
     <dependencies>
@@ -114,6 +116,31 @@
             <artifactId>lucene-queries</artifactId>
             <version>${lucene.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>${lucene.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-annotations.version}</version>
         </dependency>
 
         <dependency>
