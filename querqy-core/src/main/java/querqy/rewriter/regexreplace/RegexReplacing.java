@@ -108,21 +108,32 @@ public class RegexReplacing {
     }
 
     public Optional<ReplacementResult> replace(final CharSequence input) {
-        return replace(input, 0);
+        final CharSequence inputSeq = ignoreCase ? new LowerCaseCharSequence(input) : input;
+        final List<PositionedMatch> sortedMatches = computeSortedMatches(inputSeq);
+        return replace(inputSeq, 0, 0, sortedMatches);
     }
 
-    private Optional<ReplacementResult> replace(final CharSequence input, final int depth) {
+    /**
+     * Recursive core of {@link #replace(CharSequence)}. {@code originOffset} is the position, in
+     * the coordinates of the original top-level input that {@code sortedMatches} was computed
+     * from, that corresponds to position 0 of {@code input} - i.e. {@code input} is understood as
+     * the window {@code [originOffset, originOffset + input.length())} of that original input.
+     * This lets every recursive call reuse the single, already-computed {@code sortedMatches}
+     * (via {@link #matchesInWindow(List, int, int)}) instead of re-scanning its own substring.
+     */
+    private Optional<ReplacementResult> replace(final CharSequence input, final int depth, final int originOffset,
+                                                final List<PositionedMatch> sortedMatches) {
         if (depth >= MAX_REPLACEMENT_DEPTH) {
             return Optional.empty();
         }
 
-        final CharSequence inputSeq = ignoreCase ? new LowerCaseCharSequence(input) : input;
-        final Set<MatchResult<Replacement>> all = findAllMatches(inputSeq);
+        final Set<MatchResult<Replacement>> all = matchesInWindow(sortedMatches, originOffset, input.length());
         if (all.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(applyReplacement(Collections.min(all, WEIGHT_COMPARATOR), inputSeq, depth));
+        return Optional.of(applyReplacement(Collections.min(all, WEIGHT_COMPARATOR), input, depth, originOffset,
+                sortedMatches));
 
     }
 
@@ -196,6 +207,81 @@ public class RegexReplacing {
         return new MatchResult<>(matchResult.value(), shifted);
     }
 
+    /**
+     * A match found by {@link #findAllMatches(CharSequence)}, indexed by its overall [start, end)
+     * span (the pattern's own outer wrapping group - raw group 1, before
+     * {@link #adjustGroupIndexes(Map)} is applied) so it can be located by position without
+     * re-matching.
+     */
+    private record PositionedMatch(int start, int end, MatchResult<Replacement> matchResult) {}
+
+    /**
+     * Computes every match in {@code input} once and indexes it by position, sorted by start, so
+     * that {@link #matchesInWindow(List, int, int)} can look up matches for any sub-range of
+     * {@code input} without re-running {@link #findAllMatches(CharSequence)}.
+     */
+    private List<PositionedMatch> computeSortedMatches(final CharSequence input) {
+        final Set<MatchResult<Replacement>> all = findAllMatches(input);
+        final List<PositionedMatch> positioned = new ArrayList<>(all.size());
+        for (final MatchResult<Replacement> matchResult : all) {
+            final GroupMatch whole = matchResult.groups().get(1);
+            final int start = whole.position();
+            positioned.add(new PositionedMatch(start, start + whole.match().length(), matchResult));
+        }
+        positioned.sort(Comparator.comparingInt(PositionedMatch::start));
+        return positioned;
+    }
+
+    /**
+     * Returns every match in {@code sortedMatches} that lies entirely within the window
+     * {@code [originOffset, originOffset + windowLength)}, with positions shifted to be relative
+     * to the window's own start (i.e. as if freshly computed by {@link #findAllMatches} on that
+     * window alone). A match that starts inside the window but extends past its end is excluded -
+     * it belongs to a sibling window (e.g. a longer pattern spanning past a split point chosen by
+     * an ancestor call), not this one.
+     */
+    private static Set<MatchResult<Replacement>> matchesInWindow(final List<PositionedMatch> sortedMatches,
+                                                                  final int originOffset, final int windowLength) {
+        final int windowEnd = originOffset + windowLength;
+        final Set<MatchResult<Replacement>> result = new HashSet<>();
+
+        for (int idx = lowerBound(sortedMatches, originOffset); idx < sortedMatches.size(); idx++) {
+            final PositionedMatch positioned = sortedMatches.get(idx);
+            if (positioned.start() >= windowEnd) {
+                break;
+            }
+            if (positioned.end() <= windowEnd) {
+                result.add(shiftPositions(positioned.matchResult(), -originOffset));
+            }
+        }
+
+        return result;
+    }
+
+    /** Returns the index of the first entry in {@code sortedMatches} with start >= target. */
+    private static int lowerBound(final List<PositionedMatch> sortedMatches, final int target) {
+        int lo = 0;
+        int hi = sortedMatches.size();
+        while (lo < hi) {
+            final int mid = (lo + hi) >>> 1;
+            if (sortedMatches.get(mid).start() < target) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        return lo;
+    }
+
+    /** Counts leading characters with code point &lt;= ' ', matching {@link String#trim()}. */
+    private static int countLeadingWhitespace(final String s) {
+        int i = 0;
+        while (i < s.length() && s.charAt(i) <= ' ') {
+            i++;
+        }
+        return i;
+    }
+
     static Map<Integer, GroupMatch> adjustGroupIndexes(final Map<Integer, GroupMatch> groups) {
         final Map<Integer, GroupMatch> result = new HashMap<>();
         for (final Map.Entry<Integer, GroupMatch> entry: groups.entrySet()) {
@@ -205,11 +291,12 @@ public class RegexReplacing {
     }
 
     protected ReplacementResult applyReplacement(final MatchResult<Replacement> matchResult, final CharSequence input) {
-        return applyReplacement(matchResult, input, 0);
+        return applyReplacement(matchResult, input, 0, 0, computeSortedMatches(input));
     }
 
     private ReplacementResult applyReplacement(final MatchResult<Replacement> matchResult, final CharSequence input,
-                                               final int depth) {
+                                               final int depth, final int originOffset,
+                                               final List<PositionedMatch> sortedMatches) {
         final Map<Integer, GroupMatch> groups = adjustGroupIndexes(matchResult.groups());
         final String replacement = matchResult.value().apply(groups);
         final GroupMatch groupMatch = groups.get(0);
@@ -219,14 +306,17 @@ public class RegexReplacing {
 
         int matchStart = groupMatch.position();
         String prefix;
+        int prefixOriginOffset = originOffset;
         if (matchStart > 0) {
-            prefix = input.toString().substring(0, matchStart).trim();
+            final String rawPrefix = inputString.substring(0, matchStart);
+            prefixOriginOffset = originOffset + countLeadingWhitespace(rawPrefix);
+            prefix = rawPrefix.trim();
         } else {
             prefix = "";
         }
         if (!prefix.isEmpty()) {
-            prefix = replace(prefix, depth + 1).map(replacementResult -> replacementResult.replacement)
-                    .orElse(prefix).trim();
+            prefix = replace(prefix, depth + 1, prefixOriginOffset, sortedMatches)
+                    .map(replacementResult -> replacementResult.replacement).orElse(prefix).trim();
         }
 
         String result = (prefix.isEmpty() ? "" : prefix + " ") + replacement;
@@ -234,8 +324,8 @@ public class RegexReplacing {
         int matchEnd = matchStart + match.length() + 1; // incorporate whitespace
         if (matchEnd < input.length()) {
             String suffix = inputString.substring(matchEnd);
-            result += " " + replace(suffix, depth + 1).map(replacementResult -> replacementResult.replacement)
-                    .orElse(suffix);
+            result += " " + replace(suffix, depth + 1, originOffset + matchEnd, sortedMatches)
+                    .map(replacementResult -> replacementResult.replacement).orElse(suffix);
         }
 
         if (actionLogs != null) {
