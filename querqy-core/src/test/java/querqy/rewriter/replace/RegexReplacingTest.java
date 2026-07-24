@@ -17,6 +17,7 @@
  */
 package querqy.rewriter.replace;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -27,6 +28,21 @@ import querqy.rewriter.regexreplace.RegexReplacing;
 
 
 public class RegexReplacingTest {
+
+    @Test(timeout = 5_000)
+    public void testReplacementDoesNotStackOverflowOnManySegments() {
+        // A query with many independently matchable segments used to recurse once per
+        // segment with no depth limit, overflowing the stack. This must complete normally.
+        // Kept well below querqy.regex's matcher performance ceiling (tracked separately)
+        // so this test isolates the recursion-depth fix.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("a", "x");
+
+        final String input = String.join(" ", Collections.nCopies(300, "a"));
+        final Optional<RegexReplacing.ReplacementResult> result = regexReplacing.replace(input);
+
+        assertTrue(result.isPresent());
+    }
 
     @Test
     public void testReplacementWithoutPlaceholderConsideringCase() {
