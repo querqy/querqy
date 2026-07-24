@@ -71,6 +71,14 @@ public class RegexReplacing {
 
     public record ReplacementResult(CharSequence input, String replacement) {};
 
+    /**
+     * Caps how deeply {@link #replace(CharSequence)} may recurse into the prefix/suffix
+     * surrounding a match. Without this, a query containing many regex-matchable segments
+     * could recurse until the thread's stack overflows. No legitimate query comes anywhere
+     * near this many replaceable segments.
+     */
+    private static final int MAX_REPLACEMENT_DEPTH = 256;
+
     private final RegexMap<Replacement> regexMap = new RegexMap<>();
     private final boolean ignoreCase;
     private final List<ActionLog> actionLogs;
@@ -91,13 +99,21 @@ public class RegexReplacing {
     }
 
     public Optional<ReplacementResult> replace(final CharSequence input) {
+        return replace(input, 0);
+    }
+
+    private Optional<ReplacementResult> replace(final CharSequence input, final int depth) {
+        if (depth >= MAX_REPLACEMENT_DEPTH) {
+            return Optional.empty();
+        }
+
         final CharSequence inputSeq = ignoreCase ? new LowerCaseCharSequence(input) : input;
         final Set<MatchResult<Replacement>> all = regexMap.getAll(inputSeq);
         if (all.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(applyReplacement(Collections.min(all, WEIGHT_COMPARATOR), inputSeq));
+        return Optional.of(applyReplacement(Collections.min(all, WEIGHT_COMPARATOR), inputSeq, depth));
 
     }
 
@@ -110,6 +126,11 @@ public class RegexReplacing {
     }
 
     protected ReplacementResult applyReplacement(final MatchResult<Replacement> matchResult, final CharSequence input) {
+        return applyReplacement(matchResult, input, 0);
+    }
+
+    private ReplacementResult applyReplacement(final MatchResult<Replacement> matchResult, final CharSequence input,
+                                               final int depth) {
         final Map<Integer, GroupMatch> groups = adjustGroupIndexes(matchResult.groups());
         final String replacement = matchResult.value().apply(groups);
         final GroupMatch groupMatch = groups.get(0);
@@ -125,7 +146,8 @@ public class RegexReplacing {
             prefix = "";
         }
         if (!prefix.isEmpty()) {
-            prefix = replace(prefix).map(replacementResult -> replacementResult.replacement).orElse(prefix).trim();
+            prefix = replace(prefix, depth + 1).map(replacementResult -> replacementResult.replacement)
+                    .orElse(prefix).trim();
         }
 
         String result = (prefix.isEmpty() ? "" : prefix + " ") + replacement;
@@ -133,7 +155,8 @@ public class RegexReplacing {
         int matchEnd = matchStart + match.length() + 1; // incorporate whitespace
         if (matchEnd < input.length()) {
             String suffix = inputString.substring(matchEnd);
-            result += " " + replace(suffix).map(replacementResult -> replacementResult.replacement ).orElse(suffix);
+            result += " " + replace(suffix, depth + 1).map(replacementResult -> replacementResult.replacement)
+                    .orElse(suffix);
         }
 
         if (actionLogs != null) {
