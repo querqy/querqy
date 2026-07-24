@@ -180,8 +180,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                 true, LookupPreprocessorType.NONE);
 
-        QueryRewriter rewriter = factory.createRewriter(null,
-                searchEngineRequestAdapter);
+        QueryRewriter rewriter = factory.createRewriter(searchEngineRequestAdapter);
 
 
         final QuerqyQuery<?> userQuery = rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery();
@@ -838,8 +837,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
                true, LookupPreprocessorType.NONE);
 
-       QueryRewriter rewriter = factory.createRewriter(null,
-               searchEngineRequestAdapter);
+       QueryRewriter rewriter = factory.createRewriter(searchEngineRequestAdapter);
 
        Query query = builder.createQuery(rewriter.rewrite(new ExpandedQuery(q), searchEngineRequestAdapter).getExpandedQuery().getUserQuery());
        

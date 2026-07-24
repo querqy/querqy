@@ -105,7 +105,7 @@ public class WordBreakCompoundRewriterIndexDistributionTest extends LuceneTestCa
                         new LuceneTermCorpus(() -> reader, "dict"),
                         false, 1, 1, Collections.emptyList(), false, 2, true, Collections.emptyList(),
                         "DEFAULT", "DEFAULT")
-                        .createRewriter(expandedQuery, new EmptySearchEngineRequestAdapter())
+                        .createRewriter(new EmptySearchEngineRequestAdapter())
                         .rewrite(expandedQuery, null).getExpandedQuery();
             } finally {
                 reader.close();
