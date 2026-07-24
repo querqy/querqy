@@ -6,6 +6,7 @@
 target/*
 .DS_Store
 .vscode
+.mcp.json
 
 # modules
 **/.classpath
