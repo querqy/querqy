@@ -33,8 +33,6 @@ public class RegexReplacingTest {
     public void testReplacementDoesNotStackOverflowOnManySegments() {
         // A query with many independently matchable segments used to recurse once per
         // segment with no depth limit, overflowing the stack. This must complete normally.
-        // Kept well below querqy.regex's matcher performance ceiling (tracked separately)
-        // so this test isolates the recursion-depth fix.
         final RegexReplacing regexReplacing = new RegexReplacing(true, null);
         regexReplacing.put("a", "x");
 
@@ -42,6 +40,50 @@ public class RegexReplacingTest {
         final Optional<RegexReplacing.ReplacementResult> result = regexReplacing.replace(input);
 
         assertTrue(result.isPresent());
+    }
+
+    @Test(timeout = 5_000)
+    public void testReplacementScalesLinearlyWithManySegments() {
+        // Matching used to wrap every pattern in a "skip any number of leading/trailing words"
+        // regex so a single NFA simulation could find a match anywhere in the string. That
+        // caused the number of live simulation states (and so the total work) to grow with
+        // input length, making this exact scenario (a few thousand matchable segments) time
+        // out. Matching is now done by searching token-aligned candidate substrings directly,
+        // so this completes quickly.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("a", "x");
+
+        final String input = String.join(" ", Collections.nCopies(5_000, "a"));
+        final Optional<RegexReplacing.ReplacementResult> result = regexReplacing.replace(input);
+
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    public void testPatternDoesNotMatchWithinALongerWord() {
+        // Matches must still be aligned to whole-token boundaries, not just found anywhere
+        // as a substring.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("cat", "X");
+
+        assertNoReplacement(regexReplacing, "cats");
+        assertNoReplacement(regexReplacing, "scat");
+        assertNoReplacement(regexReplacing, "cats dog");
+    }
+
+    @Test
+    public void testReplacementToleratesIrregularWhitespace() {
+        // Tokens are found by splitting on runs of one or more spaces, so leading/trailing/
+        // repeated spaces around an otherwise-matchable token do not prevent a match.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("cat", "x");
+
+        assertReplacement(regexReplacing, " cat", "x");
+        assertReplacement(regexReplacing, "cat  dog", "x  dog");
+    }
+
+    private static void assertNoReplacement(final RegexReplacing regexReplacing, final String input) {
+        assertTrue(regexReplacing.replace(input).isEmpty());
     }
 
     @Test

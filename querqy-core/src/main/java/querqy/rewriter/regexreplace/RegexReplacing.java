@@ -25,9 +25,11 @@ import querqy.rewrite.logging.ActionLog;
 import querqy.rewrite.logging.InstructionLog;
 import querqy.rewrite.logging.MatchLog;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,6 +81,13 @@ public class RegexReplacing {
      */
     private static final int MAX_REPLACEMENT_DEPTH = 256;
 
+    /**
+     * Caps how many whitespace-separated tokens a single pattern match may span when searching
+     * for matches anywhere in the input (see {@link #findAllMatches(CharSequence)}). No realistic
+     * regexreplace rule needs to match more than this many consecutive tokens.
+     */
+    private static final int MAX_MATCH_SPAN_TOKENS = 32;
+
     private final RegexMap<Replacement> regexMap = new RegexMap<>();
     private final boolean ignoreCase;
     private final List<ActionLog> actionLogs;
@@ -95,7 +104,7 @@ public class RegexReplacing {
 
     public void put(final String pattern, final String replacement) {
         final String replacementString = ignoreCase ? replacement.trim().toLowerCase() : replacement.trim();
-        regexMap.put("(" + pattern + ")", Replacement.build(replacementString, addCount++), "([^ ]+ ){0,}", "( [^ ]+){0,}");
+        regexMap.put("(" + pattern + ")", Replacement.build(replacementString, addCount++));
     }
 
     public Optional<ReplacementResult> replace(final CharSequence input) {
@@ -108,7 +117,7 @@ public class RegexReplacing {
         }
 
         final CharSequence inputSeq = ignoreCase ? new LowerCaseCharSequence(input) : input;
-        final Set<MatchResult<Replacement>> all = regexMap.getAll(inputSeq);
+        final Set<MatchResult<Replacement>> all = findAllMatches(inputSeq);
         if (all.isEmpty()) {
             return Optional.empty();
         }
@@ -117,10 +126,80 @@ public class RegexReplacing {
 
     }
 
+    /**
+     * Finds every pattern match anywhere in {@code input}, aligned to whitespace token boundaries
+     * on both ends.
+     * <p>
+     * Patterns are registered as plain (unwrapped) regexes (see {@link #put(String, String)}), so
+     * {@link RegexMap#getAll(CharSequence)} only reports a match when a pattern consumes a
+     * candidate {@code CharSequence} <em>exactly</em>. To find matches anywhere in a longer input,
+     * this tokenizes the input once and tries each pattern against growing, token-aligned
+     * candidate substrings: for every token start position, it tries the substring ending at each
+     * subsequent token boundary (up to {@link #MAX_MATCH_SPAN_TOKENS} tokens ahead), keeping
+     * whatever matches. Positions in the resulting {@link MatchResult}s are shifted back to be
+     * relative to the original {@code input}.
+     */
+    private Set<MatchResult<Replacement>> findAllMatches(final CharSequence input) {
+        final List<int[]> tokens = tokenize(input);
+        final Set<MatchResult<Replacement>> results = new HashSet<>();
+
+        for (int startIdx = 0; startIdx < tokens.size(); startIdx++) {
+            final int startOffset = tokens.get(startIdx)[0];
+            final int maxEndIdx = Math.min(tokens.size(), startIdx + MAX_MATCH_SPAN_TOKENS);
+
+            for (int endIdx = startIdx; endIdx < maxEndIdx; endIdx++) {
+                final int endOffset = tokens.get(endIdx)[1];
+                final CharSequence candidate = input.subSequence(startOffset, endOffset);
+                for (final MatchResult<Replacement> matchResult : regexMap.getAll(candidate)) {
+                    results.add(shiftPositions(matchResult, startOffset));
+                }
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * Splits {@code input} into the [start, end) offsets of its maximal runs of non-space
+     * characters, treating one or more consecutive spaces as a single separator.
+     */
+    private static List<int[]> tokenize(final CharSequence input) {
+        final List<int[]> tokens = new ArrayList<>();
+        final int len = input.length();
+        int i = 0;
+        while (i < len) {
+            while (i < len && input.charAt(i) == ' ') {
+                i++;
+            }
+            if (i >= len) {
+                break;
+            }
+            final int start = i;
+            while (i < len && input.charAt(i) != ' ') {
+                i++;
+            }
+            tokens.add(new int[] {start, i});
+        }
+        return tokens;
+    }
+
+    private static MatchResult<Replacement> shiftPositions(final MatchResult<Replacement> matchResult,
+                                                            final int offset) {
+        if (offset == 0) {
+            return matchResult;
+        }
+        final Map<Integer, GroupMatch> shifted = new HashMap<>();
+        for (final Map.Entry<Integer, GroupMatch> entry : matchResult.groups().entrySet()) {
+            final GroupMatch groupMatch = entry.getValue();
+            shifted.put(entry.getKey(), new GroupMatch(groupMatch.match(), groupMatch.position() + offset));
+        }
+        return new MatchResult<>(matchResult.value(), shifted);
+    }
+
     static Map<Integer, GroupMatch> adjustGroupIndexes(final Map<Integer, GroupMatch> groups) {
         final Map<Integer, GroupMatch> result = new HashMap<>();
         for (final Map.Entry<Integer, GroupMatch> entry: groups.entrySet()) {
-            result.put(entry.getKey() - 2, entry.getValue());
+            result.put(entry.getKey() - 1, entry.getValue());
         }
         return result;
     }
