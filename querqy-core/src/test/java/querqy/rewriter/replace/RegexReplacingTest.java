@@ -86,6 +86,45 @@ public class RegexReplacingTest {
         assertTrue(regexReplacing.replace(input).isEmpty());
     }
 
+    @Test(timeout = 5_000)
+    public void testReplacementScalesLinearlyAcrossRecursiveSplits() {
+        // applyReplacement() used to recurse into a freshly re-scanned prefix/suffix substring
+        // after every match, which multiplied a full rescan by the recursion depth. Matches for
+        // the whole input are now computed once and looked up by position for each recursive
+        // split, so this completes quickly even for many independently matchable segments.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("a", "x");
+
+        final String input = String.join(" ", Collections.nCopies(100_000, "a"));
+        final Optional<RegexReplacing.ReplacementResult> result = regexReplacing.replace(input);
+
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    public void testMultiTokenMatchAtRecursiveSplitBoundary() {
+        // "c" is the best (only non-overlapping) match, splitting "a b c" into the prefix
+        // window "a b". The multi-token pattern "a b" must still be found there, exercising the
+        // case where a match's end lands exactly on the (trimmed) window boundary.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("a b", "y");
+        regexReplacing.put("c", "z");
+
+        assertReplacement(regexReplacing, "a b c", "y z");
+    }
+
+    @Test
+    public void testOverlappingCandidateAtTiedStartPositionIsNotDoubleMatched() {
+        // "a" and "a b" both start at position 0. Whichever the top-level pick is, the
+        // recursive split by position must not let a candidate spill across a split point.
+        final RegexReplacing regexReplacing = new RegexReplacing(true, null);
+        regexReplacing.put("a", "x");
+        regexReplacing.put("a b", "y");
+        regexReplacing.put("c", "z");
+
+        assertReplacement(regexReplacing, "a b c", "y z");
+    }
+
     @Test
     public void testReplacementWithoutPlaceholderConsideringCase() {
         RegexReplacing regexReplacing = new RegexReplacing(false, null);
