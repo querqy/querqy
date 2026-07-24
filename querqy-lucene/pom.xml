@@ -78,7 +78,6 @@
         <hamcrest.version>3.0</hamcrest.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <mockito.version>5.23.0</mockito.version>
-        <assertj-core.version>3.27.7</assertj-core.version>
     </properties>
 
     <dependencies>
@@ -118,13 +117,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-suggest</artifactId>
-            <version>${lucene.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
             <version>${hamcrest.version}</version>
@@ -148,13 +140,6 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>

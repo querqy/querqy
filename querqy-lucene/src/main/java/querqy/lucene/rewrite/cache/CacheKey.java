@@ -28,12 +28,10 @@ import querqy.model.Term;
 public class CacheKey {
     
     public final String fieldname;
-   // public final Term term;
     protected final ComparableCharSequence value;
-    
+
     public CacheKey(String fieldname, Term term) {
         this.fieldname = fieldname;
-       // this.term = term;
         value = term.getValue();
     }
 
