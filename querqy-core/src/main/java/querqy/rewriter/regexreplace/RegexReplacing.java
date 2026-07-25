@@ -306,17 +306,16 @@ public class RegexReplacing {
 
         int matchStart = groupMatch.position();
         String prefix;
-        int prefixOriginOffset = originOffset;
         if (matchStart > 0) {
             final String rawPrefix = inputString.substring(0, matchStart);
-            prefixOriginOffset = originOffset + countLeadingWhitespace(rawPrefix);
+            final int prefixOriginOffset = originOffset + countLeadingWhitespace(rawPrefix);
             prefix = rawPrefix.trim();
+            if (!prefix.isEmpty()) {
+                prefix = replace(prefix, depth + 1, prefixOriginOffset, sortedMatches)
+                        .map(replacementResult -> replacementResult.replacement).orElse(prefix).trim();
+            }
         } else {
             prefix = "";
-        }
-        if (!prefix.isEmpty()) {
-            prefix = replace(prefix, depth + 1, prefixOriginOffset, sortedMatches)
-                    .map(replacementResult -> replacementResult.replacement).orElse(prefix).trim();
         }
 
         String result = (prefix.isEmpty() ? "" : prefix + " ") + replacement;
