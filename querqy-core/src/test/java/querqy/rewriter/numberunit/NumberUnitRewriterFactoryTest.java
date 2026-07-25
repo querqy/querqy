@@ -21,12 +21,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import querqy.ComparableCharSequenceWrapper;
 
 import java.io.IOException;
+import java.math.RoundingMode;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NumberUnitRewriterFactoryTest {
@@ -64,6 +67,31 @@ public class NumberUnitRewriterFactoryTest {
         final String config = "{ \"numberUnitDefinitions\": [ {} ] }";
         assertThatThrownBy(() -> new NumberUnitRewriterFactory("rewriter_id", config, scale -> numberUnitQueryCreator))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void testCustomMaxNumberDigitsIsPassedToRewriter() throws IOException {
+        doReturn(3).when(numberUnitQueryCreator).getScale();
+        doReturn(RoundingMode.HALF_UP).when(numberUnitQueryCreator).getRoundingMode();
+
+        final NumberUnitRewriterFactory factory = new NumberUnitRewriterFactory(
+                "rewriter_id", MINIMAL_CONFIG, scale -> numberUnitQueryCreator, 3);
+
+        final NumberUnitRewriter rewriter = (NumberUnitRewriter) factory.createRewriter(null);
+
+        assertThat(rewriter.parseNumberAndUnit(new ComparableCharSequenceWrapper("123"))).isNotEmpty();
+        assertThat(rewriter.parseNumberAndUnit(new ComparableCharSequenceWrapper("1234"))).isEmpty();
+    }
+
+    @Test
+    public void testDefaultConstructorUsesDefaultMaxNumberDigits() throws IOException {
+        final NumberUnitRewriterFactory factory = new NumberUnitRewriterFactory(
+                "rewriter_id", MINIMAL_CONFIG, scale -> numberUnitQueryCreator);
+
+        final NumberUnitRewriter rewriter = (NumberUnitRewriter) factory.createRewriter(null);
+        final String tooManyDigits = "1".repeat(NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS + 1);
+
+        assertThat(rewriter.parseNumberAndUnit(new ComparableCharSequenceWrapper(tooManyDigits))).isEmpty();
     }
 
     @Test

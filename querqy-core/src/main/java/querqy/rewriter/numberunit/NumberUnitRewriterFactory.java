@@ -36,6 +36,7 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
 
     private final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap;
     private final NumberUnitQueryCreator numberUnitQueryCreator;
+    private final int maxNumberDigits;
 
     /**
      * @param id                  The id of the rewriter
@@ -48,10 +49,29 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
     public NumberUnitRewriterFactory(final String id,
                                      final String config,
                                      final IntFunction<NumberUnitQueryCreator> queryCreatorFactory) throws IOException {
+        this(id, config, queryCreatorFactory, NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS);
+    }
+
+    /**
+     * @param id                  The id of the rewriter
+     * @param config              The rewriter's JSON configuration
+     * @param queryCreatorFactory Builds the search-engine-specific {@link NumberUnitQueryCreator} from the
+     *                            {@code scaleForLinearFunctions} value parsed out of {@code config}
+     * @param maxNumberDigits     Caps how many digit characters a query term's numeric portion may
+     *                            contain before it is parsed as a number - see
+     *                            {@link NumberUnitRewriter#DEFAULT_MAX_NUMBER_DIGITS}
+     * @throws IOException if {@code config} is not valid JSON
+     * @throws IllegalArgumentException if {@code config} does not satisfy the rewriter's validation rules
+     */
+    public NumberUnitRewriterFactory(final String id,
+                                     final String config,
+                                     final IntFunction<NumberUnitQueryCreator> queryCreatorFactory,
+                                     final int maxNumberDigits) throws IOException {
         super(id);
         final ParsedNumberUnitConfig parsedConfig = NumberUnitRewriterConfigParser.parse(config);
         this.numberUnitMap = createNumberUnitMap(parsedConfig.numberUnitDefinitions);
         this.numberUnitQueryCreator = queryCreatorFactory.apply(parsedConfig.scaleForLinearFunctions);
+        this.maxNumberDigits = maxNumberDigits;
     }
 
     /**
@@ -90,7 +110,7 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
 
     @Override
     public QueryRewriter createRewriter(final SearchEngineRequestAdapter searchEngineRequestAdapter) {
-        return new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+        return new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator, maxNumberDigits);
     }
 
     @Override

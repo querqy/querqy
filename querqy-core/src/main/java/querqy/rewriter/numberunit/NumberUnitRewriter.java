@@ -43,8 +43,19 @@ import java.util.Set;
 
 public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements QueryRewriter {
 
+    /**
+     * Default cap on how many digit characters a single query term's numeric portion may contain
+     * before it is parsed into a {@link BigDecimal}. {@code BigDecimal}'s decimal-string parsing
+     * is quadratic in the number of digits, so an attacker-supplied query term consisting of a
+     * very long, unbroken run of digits could otherwise tie up a request thread for many seconds
+     * from a single, modestly-sized request. No legitimate numeric query term needs anywhere near
+     * this many digits.
+     */
+    public static final int DEFAULT_MAX_NUMBER_DIGITS = 100;
+
     private final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap;
     private final NumberUnitQueryCreator numberUnitQueryCreator;
+    private final int maxNumberDigits;
 
     private final Set<NumberUnitQueryInput> numberUnitQueryInputs = new HashSet<>();
     private NumberUnitQueryInput incompleteNumberUnitQueryInput = null;
@@ -55,8 +66,15 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
 
     public NumberUnitRewriter(final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap,
                               final NumberUnitQueryCreator numberUnitQueryCreator) {
+        this(numberUnitMap, numberUnitQueryCreator, DEFAULT_MAX_NUMBER_DIGITS);
+    }
+
+    public NumberUnitRewriter(final TrieMap<List<PerUnitNumberUnitDefinition>> numberUnitMap,
+                              final NumberUnitQueryCreator numberUnitQueryCreator,
+                              final int maxNumberDigits) {
         this.numberUnitMap = numberUnitMap;
         this.numberUnitQueryCreator = numberUnitQueryCreator;
+        this.maxNumberDigits = maxNumberDigits;
     }
 
     @Override
@@ -141,6 +159,7 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
 
         boolean isNumber = false;
         int floatDelimiter = -1;
+        int digitCount = 0;
 
         for (int i = 0, len = seq.length(); i < len; i++) {
 
@@ -148,6 +167,12 @@ public class NumberUnitRewriter extends AbstractNodeVisitor<Node> implements Que
 
             if (Character.isDigit(c)) {
                 isNumber = true;
+                digitCount++;
+                if (digitCount > maxNumberDigits) {
+                    // Bail out before ever parsing this into a BigDecimal: BigDecimal's
+                    // decimal-string parsing is quadratic in digit count.
+                    return Optional.empty();
+                }
 
             } else if (isFloatDelimiter(c)) {
                 if (floatDelimiter > -1) {

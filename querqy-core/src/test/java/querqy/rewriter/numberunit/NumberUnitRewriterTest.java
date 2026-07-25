@@ -267,6 +267,38 @@ public class NumberUnitRewriterTest {
         assertThat(result.get()).isEqualTo(new NumberUnitQueryInput(new BigDecimal("1")));
     }
 
+    @Test
+    public void testNumberAtDefaultDigitCapStillParses() {
+        // BigDecimal's decimal-string parsing is quadratic in digit count, so parseNumberAndUnit
+        // rejects numbers longer than NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS before ever
+        // constructing a BigDecimal. Exactly at the cap must still work.
+        final NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+        final String maxDigits = "1".repeat(NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS);
+
+        final Optional<NumberUnitQueryInput> result = numberUnitRewriter.parseNumberAndUnit(createSeq(maxDigits));
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.get()).isEqualTo(new NumberUnitQueryInput(new BigDecimal(maxDigits)));
+    }
+
+    @Test
+    public void testNumberOverDefaultDigitCapIsRejected() {
+        final NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator);
+        final String tooManyDigits = "1".repeat(NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS + 1);
+
+        assertThat(numberUnitRewriter.parseNumberAndUnit(createSeq(tooManyDigits))).isEmpty();
+        assertThat(numberUnitRewriter.parseNumberAndUnit(createSeq(tooManyDigits + "zoll"))).isEmpty();
+    }
+
+    @Test
+    public void testCustomMaxNumberDigitsIsEnforced() {
+        final NumberUnitRewriter numberUnitRewriter = new NumberUnitRewriter(numberUnitMap, numberUnitQueryCreator, 3);
+
+        assertThat(numberUnitRewriter.parseNumberAndUnit(createSeq("123"))).isNotEmpty();
+        assertThat(numberUnitRewriter.parseNumberAndUnit(createSeq("1234"))).isEmpty();
+        assertThat(numberUnitRewriter.parseNumberAndUnit(createSeq("1234zoll"))).isEmpty();
+    }
+
     private ComparableCharSequence createSeq(String input) {
         return new ComparableCharSequenceWrapper(input);
     }
