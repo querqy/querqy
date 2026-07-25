@@ -229,7 +229,7 @@ public class SnapshotRewriter implements QueryRewriter {
 
         @Override
         public Void visit(final Term term) {
-            final HashMap props = new HashMap<>();
+            final HashMap<String, Object> props = new HashMap<>();
 
             if (term instanceof BoostedTerm) {
                 props.put(PROP_BOOST, ((BoostedTerm) term).getBoost());
