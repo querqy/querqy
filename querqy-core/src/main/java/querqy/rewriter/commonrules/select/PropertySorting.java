@@ -79,13 +79,15 @@ public class PropertySorting implements Sorting {
 
 
         @Override
+        @SuppressWarnings("unchecked") // property values are untyped rule config; comparability across
+                                        // instructions with the same property name is a runtime assumption
         public int compare(Instructions instructions1, Instructions instructions2) {
             final Optional<Object> property1 = instructions1.getProperty(propertyName);
             final Optional<Object> property2 = instructions2.getProperty(propertyName);
 
             // p1 exist, p2 doesn't -> sort p1 before p2,  TODO: always sort missing last?
             return property1.map(o1Value ->
-                    property2.map(o2Value -> ((Comparable) o1Value).compareTo(o2Value) * factor)
+                    property2.map(o2Value -> ((Comparable<Object>) o1Value).compareTo(o2Value) * factor)
                             .orElse(-1)
             ).orElseGet(() -> property2.isPresent() ? 1 : 0);
         }

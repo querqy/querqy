@@ -17,8 +17,10 @@
  */
 package querqy.rewriter.commonrules.rules.property.skeleton;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NoArgsConstructor;
@@ -32,12 +34,14 @@ import java.util.Map;
 @NoArgsConstructor(staticName = "create")
 public class PropertySkeletonParser implements SkeletonComponentParser<Map<String, Object>> {
 
-    private final ObjectMapper mapper = new ObjectMapper()
+    private final ObjectMapper mapper = new ObjectMapper(
+            JsonFactory.builder()
+                    .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
+                    .enable(JsonReadFeature.ALLOW_LEADING_ZEROS_FOR_NUMBERS)
+                    .build())
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true)
             .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-            .configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true)
-            .configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true)
             .configure(JsonParser.Feature.STRICT_DUPLICATE_DETECTION, true);
 
     private final Map<String, Object> properties = new HashMap<>();
