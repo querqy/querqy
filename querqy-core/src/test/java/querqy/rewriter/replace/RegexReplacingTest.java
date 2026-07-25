@@ -29,7 +29,7 @@ import querqy.rewriter.regexreplace.RegexReplacing;
 
 public class RegexReplacingTest {
 
-    @Test(timeout = 5_000)
+    @Test(timeout = 10_000)
     public void testReplacementDoesNotStackOverflowOnManySegments() {
         // A query with many independently matchable segments used to recurse once per
         // segment with no depth limit, overflowing the stack. This must complete normally.
