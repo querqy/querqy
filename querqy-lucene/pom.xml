@@ -78,7 +78,7 @@
         <hamcrest.version>3.0</hamcrest.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <mockito.version>5.23.0</mockito.version>
-        <jackson.version>2.22.1</jackson.version>
+        <jackson.version>2.22.2</jackson.version>
         <jackson-annotations.version>2.22</jackson-annotations.version>
     </properties>
 
