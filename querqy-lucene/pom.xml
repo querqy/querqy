@@ -20,7 +20,7 @@
 
     <groupId>org.querqy</groupId>
     <artifactId>querqy-lucene</artifactId>
-    <version>5.13.lucene1040.0-SNAPSHOT</version>
+    <version>5.12.lucene1050.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Querqy library for query rewriting for Lucene</description>
@@ -73,7 +73,7 @@
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 
         <querqy.core.version>4.2.0</querqy.core.version>
-        <lucene.version>10.4.0</lucene.version>
+        <lucene.version>10.5.0</lucene.version>
         <junit.version>4.13.2</junit.version>
         <hamcrest.version>3.0</hamcrest.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
