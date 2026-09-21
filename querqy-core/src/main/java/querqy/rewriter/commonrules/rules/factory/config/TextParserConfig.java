@@ -17,7 +17,6 @@
  */
 package querqy.rewriter.commonrules.rules.factory.config;
 
-import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 
@@ -26,7 +25,7 @@ import java.io.StringReader;
 import java.util.Collections;
 import java.util.Map;
 
-@Builder(builderClassName = "Builder")
+@lombok.Builder(builderClassName = "Builder")
 @Getter
 public class TextParserConfig {
 

@@ -17,10 +17,9 @@
  */
 package querqy.rewriter.commonrules.rules.property.skeleton;
 
-import lombok.Builder;
 import lombok.Getter;
 
-@Builder(builderClassName = "Builder")
+@lombok.Builder(builderClassName = "Builder")
 @Getter
 public class PropertySkeletonInput {
 
