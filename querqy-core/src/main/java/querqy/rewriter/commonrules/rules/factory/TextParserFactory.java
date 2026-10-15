@@ -52,7 +52,7 @@ public class TextParserFactory {
         return MultiLineParser.builder()
                 .inputSkeletonParser(InputSkeletonParser.create())
                 .instructionSkeletonParser(InstructionSkeletonParser.create())
-                .propertySkeletonParser(PropertySkeletonParser.create())
+                .propertySkeletonParser(PropertySkeletonParser.create(textParserConfig.getJsonProvider()))
                 .build();
     }
 

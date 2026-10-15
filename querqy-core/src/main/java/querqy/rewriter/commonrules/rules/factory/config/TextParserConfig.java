@@ -19,6 +19,8 @@ package querqy.rewriter.commonrules.rules.factory.config;
 
 import lombok.Builder.Default;
 import lombok.Getter;
+import lombok.NonNull;
+import querqy.json.JsonProvider;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -33,9 +35,7 @@ public class TextParserConfig {
     @Default private final Map<Integer, Integer> lineNumberMappings = Collections.emptyMap();
     @Default private final boolean isMultiLineRulesConfig = true;
 
-    public static TextParserConfig defaultConfig() {
-        return TextParserConfig.builder().build();
-    }
+    @NonNull private final JsonProvider jsonProvider;
 
     private static Reader emtpyReader() {
         try (final StringReader stringReader = new StringReader("")) {

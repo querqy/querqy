@@ -21,9 +21,9 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.EqualsAndHashCode;
+import querqy.json.jsonpath.QuerqyJsonPathMappingProvider;
+import querqy.json.jsonpath.QuerqyJsonPathProvider;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,9 +33,11 @@ import java.util.Optional;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class InstructionsProperties {
 
-    private static final Configuration JACKSON_CONFIGURATION = Configuration.builder()
-            .jsonProvider(new JacksonJsonProvider())
-            .mappingProvider(new JacksonMappingProvider())
+    // Our own JsonProvider/MappingProvider (not Jackson, not json-smart) backs this JsonPath configuration
+    // deliberately - see PropertyParser and querqy.json.jsonpath.QuerqyJsonPathProvider for why.
+    private static final Configuration JSON_PATH_CONFIGURATION = Configuration.builder()
+            .jsonProvider(new QuerqyJsonPathProvider())
+            .mappingProvider(new QuerqyJsonPathMappingProvider())
             .build()
             .addOptions(Option.ALWAYS_RETURN_LIST);
 
@@ -48,7 +50,7 @@ public class InstructionsProperties {
     }
 
     public InstructionsProperties(final Map<String, Object> propertyMap) {
-        this(propertyMap, JACKSON_CONFIGURATION);
+        this(propertyMap, JSON_PATH_CONFIGURATION);
     }
 
 

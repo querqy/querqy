@@ -64,6 +64,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import querqy.json.JacksonJsonProvider;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
 import querqy.model.BooleanQuery;
 import querqy.model.Clause;
@@ -178,7 +179,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                         StandardCharsets.UTF_8)), true, BoostMethod.ADDITIVE,
                 new WhiteSpaceQuerqyParserFactory(), Collections.emptyMap(),
                 (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
-                true, LookupPreprocessorType.NONE);
+                true, LookupPreprocessorType.NONE, new JacksonJsonProvider());
 
         QueryRewriter rewriter = factory.createRewriter(searchEngineRequestAdapter);
 
@@ -835,7 +836,7 @@ public class LuceneQueryBuilderTest extends AbstractLuceneQueryTest {
                        StandardCharsets.UTF_8)), true, BoostMethod.ADDITIVE,
                new WhiteSpaceQuerqyParserFactory(), Collections.emptyMap(),
                (rewriterId, searchEngineRequestAdapter) -> SelectionStrategyFactory.DEFAULT_SELECTION_STRATEGY,
-               true, LookupPreprocessorType.NONE);
+               true, LookupPreprocessorType.NONE, new JacksonJsonProvider());
 
        QueryRewriter rewriter = factory.createRewriter(searchEngineRequestAdapter);
 

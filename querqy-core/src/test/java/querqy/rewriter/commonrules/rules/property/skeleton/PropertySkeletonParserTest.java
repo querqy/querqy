@@ -18,9 +18,15 @@
 package querqy.rewriter.commonrules.rules.property.skeleton;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonProvider;
+import querqy.json.ToyJsonProvider;
 import querqy.rewrite.RuleParseException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +35,27 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
+/**
+ * Runs the full suite against two independent {@link JsonProvider} implementations - a plain Jackson one
+ * and a hand-rolled, genuinely non-Jackson one - to prove the {@link PropertySkeletonParser}'s behavior
+ * really only depends on the {@link JsonProvider} abstraction, not on Jackson-specific quirks.
+ */
+@RunWith(Parameterized.class)
 public class PropertySkeletonParserTest {
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> jsonProviders() {
+        return Arrays.asList(
+                new Object[]{"Jackson", new JacksonJsonProvider()},
+                new Object[]{"Toy", new ToyJsonProvider()}
+        );
+    }
+
+    private final JsonProvider jsonProvider;
+
+    public PropertySkeletonParserTest(final String label, final JsonProvider jsonProvider) {
+        this.jsonProvider = jsonProvider;
+    }
 
     @Test
     public void testThat_exceptionIsThrown_forDuplicatePropertyKey() {
@@ -133,7 +159,7 @@ public class PropertySkeletonParserTest {
     }
 
     private Map<String, Object> parse(final String... lines) {
-        final PropertySkeletonParser parser = PropertySkeletonParser.create();
+        final PropertySkeletonParser parser = PropertySkeletonParser.create(jsonProvider);
         Arrays.stream(lines).forEach(line -> {
                 parser.setContent(line);
                 parser.parse();

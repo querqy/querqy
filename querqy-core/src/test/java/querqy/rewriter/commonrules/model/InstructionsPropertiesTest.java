@@ -94,6 +94,34 @@ public class InstructionsPropertiesTest {
     }
 
     @Test
+    public void testMatches_withDefaultConfiguration() {
+        // Exercises the class's own default Configuration (querqy.json.jsonpath.QuerqyJsonPathProvider/
+        // QuerqyJsonPathMappingProvider), not an explicitly-supplied one - testMatches() above only ever
+        // tests with an explicit Jackson-backed Configuration, so this is the only test proving the actual
+        // default path (used in production via PropertyParser) correctly backs filter/predicate matching.
+        final Map<String, Object> props = new HashMap<>();
+        props.put("p1", 1);
+        props.put("p2", "2");
+        props.put("p3", Arrays.asList("3", 33));
+
+        final Map<String, Object> p4 = new HashMap<>();
+        p4.put("p41", "41");
+        p4.put("p42", 42);
+        props.put("p4", p4);
+
+        final InstructionsProperties instructionsProperties = new InstructionsProperties(props);
+
+        assertTrue(instructionsProperties.matches("$[?(@.p2 == '2')]"));
+        assertFalse(instructionsProperties.matches("$.[?(@.p2 == 1)]"));
+
+        assertTrue(instructionsProperties.matches("$.p3[?(@ == '3')]"));
+        assertTrue(instructionsProperties.matches("$.p4[?(@.p42 == 42)]"));
+        assertTrue(instructionsProperties.matches("$.p4[?(@.p42 > 5)]"));
+
+        assertTrue(instructionsProperties.matches("$[?(@.p2 in [\"2\",\"11\"])]"));
+    }
+
+    @Test
     public void testInOperatorMatches() {
         // addresses #491
         final Map<String, Object> props = new HashMap<>();

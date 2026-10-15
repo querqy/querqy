@@ -20,6 +20,7 @@ package querqy.lucene;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import querqy.json.JsonProvider;
 import querqy.lucene.rewrite.infologging.InfoLoggingContext;
 import querqy.rewrite.SearchEngineRequestAdapter;
 import querqy.lucene.rewrite.SearchFieldsAndBoosting.FieldBoostModel;
@@ -309,6 +310,15 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
      * @return the InfoLoggingContext object
      */
     Optional<InfoLoggingContext> getInfoLoggingContext();
+
+    /**
+     * <p>Get the {@link JsonProvider} to use for any JSON (de)serialization {@link QueryParsingController}
+     * needs (e.g. converting rewrite-chain debug/logging data into a generic structure). querqy-lucene does
+     * not bring its own JSON library, so the host integration must supply one.</p>
+     *
+     * @return The JsonProvider.
+     */
+    JsonProvider getJsonProvider();
 
 
 

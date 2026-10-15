@@ -27,7 +27,7 @@ import querqy.rewriter.commonrules.model.RulesCollectionBuilder;
 @Getter
 public class RulesParserConfig {
 
-    @Default private final TextParserConfig textParserConfig = TextParserConfig.defaultConfig();
+    @NonNull private final TextParserConfig textParserConfig;
     @Default private final RuleParserConfig ruleParserConfig = RuleParserConfig.defaultConfig();
 
     @NonNull private final RulesCollectionBuilder rulesCollectionBuilder;

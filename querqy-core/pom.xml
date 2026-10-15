@@ -107,16 +107,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- Jackson is test-scoped only: querqy-core's production code depends solely on the
+             querqy.json.JsonProvider SPI (see querqy.json.JsonProvider) so the packaged jar never
+             bundles a JSON library of its own. querqy-core/src/test/java/querqy/json/JacksonJsonProvider.java
+             is a reference JsonProvider implementation used only in tests. -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -182,6 +188,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven-jar-plugin.version}</version>
+                <configuration>
+                    <!-- Maven embeds a full copy of this module's pom.xml inside every jar it builds by
+                         default, regardless of dependency scope - a scanner that reads that embedded POM's
+                         text for its dependency graph (without honoring <scope>) would still see
+                         jackson-databind/jackson-core listed even though they are test-scope only and never
+                         actually bundled. Disable the embedded descriptor so there is no such text anywhere
+                         in the jar. This has no effect on dependency resolution (which always uses the
+                         externally-fetched POM) or on compilation/tests. -->
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -201,9 +219,13 @@
                     <failOnUnsupportedJava>false</failOnUnsupportedJava>
                 </configuration>
                 <executions>
+                    <!-- jackson-databind is test-scope only now (production code has no Jackson dependency at
+                         all, via the querqy.json.JsonProvider SPI), so there is nothing for the "check" goal
+                         (main classes) to scan, and it can no longer even resolve ObjectMapper to parse the
+                         signatures file. Only "testCheck" (test classes, where JacksonJsonProvider lives)
+                         still applies. -->
                     <execution>
                         <goals>
-                            <goal>check</goal>
                             <goal>testCheck</goal>
                         </goals>
                     </execution>

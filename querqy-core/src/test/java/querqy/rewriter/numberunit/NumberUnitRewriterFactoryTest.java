@@ -22,6 +22,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import querqy.ComparableCharSequenceWrapper;
+import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonProvider;
 
 import java.io.IOException;
 import java.math.RoundingMode;
@@ -33,6 +35,8 @@ import static org.mockito.Mockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NumberUnitRewriterFactoryTest {
+
+    private static final JsonProvider JSON_PROVIDER = new JacksonJsonProvider();
 
     private static final String MINIMAL_CONFIG =
             "{ \"numberUnitDefinitions\": [ { \"units\": [ { \"term\": \"cm\" } ], " +
@@ -51,21 +55,21 @@ public class NumberUnitRewriterFactoryTest {
         new NumberUnitRewriterFactory("rewriter_id", config, scale -> {
             receivedScale.set(scale);
             return numberUnitQueryCreator;
-        });
+        }, JSON_PROVIDER);
 
         assertThat(receivedScale.get()).isEqualTo(7);
     }
 
     @Test
     public void testConstructorThrowsIOExceptionForMalformedJson() {
-        assertThatThrownBy(() -> new NumberUnitRewriterFactory("rewriter_id", "not json", scale -> numberUnitQueryCreator))
+        assertThatThrownBy(() -> new NumberUnitRewriterFactory("rewriter_id", "not json", scale -> numberUnitQueryCreator, JSON_PROVIDER))
                 .isInstanceOf(IOException.class);
     }
 
     @Test
     public void testConstructorThrowsIllegalArgumentExceptionForInvalidConfig() {
         final String config = "{ \"numberUnitDefinitions\": [ {} ] }";
-        assertThatThrownBy(() -> new NumberUnitRewriterFactory("rewriter_id", config, scale -> numberUnitQueryCreator))
+        assertThatThrownBy(() -> new NumberUnitRewriterFactory("rewriter_id", config, scale -> numberUnitQueryCreator, JSON_PROVIDER))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -75,7 +79,7 @@ public class NumberUnitRewriterFactoryTest {
         doReturn(RoundingMode.HALF_UP).when(numberUnitQueryCreator).getRoundingMode();
 
         final NumberUnitRewriterFactory factory = new NumberUnitRewriterFactory(
-                "rewriter_id", MINIMAL_CONFIG, scale -> numberUnitQueryCreator, 3);
+                "rewriter_id", MINIMAL_CONFIG, scale -> numberUnitQueryCreator, 3, JSON_PROVIDER);
 
         final NumberUnitRewriter rewriter = (NumberUnitRewriter) factory.createRewriter(null);
 
@@ -86,7 +90,7 @@ public class NumberUnitRewriterFactoryTest {
     @Test
     public void testDefaultConstructorUsesDefaultMaxNumberDigits() throws IOException {
         final NumberUnitRewriterFactory factory = new NumberUnitRewriterFactory(
-                "rewriter_id", MINIMAL_CONFIG, scale -> numberUnitQueryCreator);
+                "rewriter_id", MINIMAL_CONFIG, scale -> numberUnitQueryCreator, JSON_PROVIDER);
 
         final NumberUnitRewriter rewriter = (NumberUnitRewriter) factory.createRewriter(null);
         final String tooManyDigits = "1".repeat(NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS + 1);
@@ -96,8 +100,8 @@ public class NumberUnitRewriterFactoryTest {
 
     @Test
     public void testValidateConfigurationDelegatesToParser() {
-        assertThat(NumberUnitRewriterFactory.validateConfiguration(MINIMAL_CONFIG)).isEmpty();
-        assertThat(NumberUnitRewriterFactory.validateConfiguration("{ \"numberUnitDefinitions\": [ {} ] }"))
+        assertThat(NumberUnitRewriterFactory.validateConfiguration(MINIMAL_CONFIG, JSON_PROVIDER)).isEmpty();
+        assertThat(NumberUnitRewriterFactory.validateConfiguration("{ \"numberUnitDefinitions\": [ {} ] }", JSON_PROVIDER))
                 .isNotEmpty();
     }
 }

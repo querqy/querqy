@@ -17,32 +17,18 @@
  */
 package querqy.rewriter.commonrules.rules.property.skeleton;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.NoArgsConstructor;
+import querqy.json.JsonProvider;
 import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.SkeletonComponentParser;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-@NoArgsConstructor(staticName = "create")
 public class PropertySkeletonParser implements SkeletonComponentParser<Map<String, Object>> {
 
-    private final ObjectMapper mapper = new ObjectMapper(
-            JsonFactory.builder()
-                    .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
-                    .enable(JsonReadFeature.ALLOW_LEADING_ZEROS_FOR_NUMBERS)
-                    .build())
-            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
-            .configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true)
-            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-            .configure(JsonParser.Feature.STRICT_DUPLICATE_DETECTION, true);
+    private final JsonProvider jsonProvider;
 
     private final Map<String, Object> properties = new HashMap<>();
 
@@ -50,6 +36,13 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
     private StringBuilder multiLineInput = null;
     private PropertySkeletonInput currentPropertySkeletonInput = null;
 
+    private PropertySkeletonParser(final JsonProvider jsonProvider) {
+        this.jsonProvider = Objects.requireNonNull(jsonProvider, "jsonProvider must not be null");
+    }
+
+    public static PropertySkeletonParser create(final JsonProvider jsonProvider) {
+        return new PropertySkeletonParser(jsonProvider);
+    }
 
     public void setContent(final String content) {
         this.content = content;
@@ -120,10 +113,10 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
     }
 
     private Map<String, Object> deserializeJsonString(final String jsonString) {
-        final TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {};
+        final String normalized = LenientJsonNormalizer.normalize(jsonString);
 
         try {
-            return mapper.readValue(jsonString, typeRef);
+            return jsonProvider.readMap(normalized);
 
         } catch (IOException e) {
             throw new RuleParseException(
@@ -171,13 +164,12 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
         return "@" + key + ": " + value;
     }
 
-    public static String toTextDefinition(final Map<String, Object> properties) {
-        final ObjectMapper mapper = new ObjectMapper();
+    public static String toTextDefinition(final Map<String, Object> properties, final JsonProvider jsonProvider) {
         try {
-            final String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(properties);
+            final String jsonString = jsonProvider.writeValueAsString(properties);
             return "@" + jsonString + "@";
 
-        } catch (JsonProcessingException e) {
+        } catch (IOException e) {
             throw new RuleParseException("Could not transform properties to JSON", e);
         }
     }

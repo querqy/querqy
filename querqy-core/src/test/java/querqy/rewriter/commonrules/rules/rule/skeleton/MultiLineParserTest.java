@@ -20,6 +20,8 @@ package querqy.rewriter.commonrules.rules.rule.skeleton;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
+import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonProvider;
 import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.input.skeleton.InputSkeletonParser;
 import querqy.rewriter.commonrules.rules.instruction.skeleton.InstructionSkeleton;
@@ -40,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
 public class MultiLineParserTest {
+
+    private static final JsonProvider JSON_PROVIDER = new JacksonJsonProvider();
 
     @Test
     public void testThat_emptyListIsReturned_forFinishingWithoutParsing() {
@@ -120,7 +124,7 @@ public class MultiLineParserTest {
     }
 
     private String asText(final RuleSkeleton... ruleSkeletons) {
-        return MultiLineParser.toTextDefinition(Arrays.asList(ruleSkeletons));
+        return MultiLineParser.toTextDefinition(Arrays.asList(ruleSkeletons), JSON_PROVIDER);
     }
 
     private List<RuleSkeleton> parse(final String rulesAsText) {
@@ -139,7 +143,7 @@ public class MultiLineParserTest {
         return MultiLineParser.builder()
                 .inputSkeletonParser(InputSkeletonParser.create())
                 .instructionSkeletonParser(InstructionSkeletonParser.create())
-                .propertySkeletonParser(PropertySkeletonParser.create())
+                .propertySkeletonParser(PropertySkeletonParser.create(JSON_PROVIDER))
                 .build();
 
     }
