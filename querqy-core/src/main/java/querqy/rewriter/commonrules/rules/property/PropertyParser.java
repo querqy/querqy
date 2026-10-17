@@ -19,9 +19,9 @@ package querqy.rewriter.commonrules.rules.property;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.NoArgsConstructor;
+import querqy.json.jsonpath.QuerqyJsonPathMappingProvider;
+import querqy.json.jsonpath.QuerqyJsonPathProvider;
 import querqy.rewriter.commonrules.model.InstructionsProperties;
 
 import java.util.HashMap;
@@ -30,9 +30,13 @@ import java.util.Map;
 @NoArgsConstructor(staticName = "create")
 public class PropertyParser {
 
-    private static final Configuration JACKSON_CONFIGURATION = Configuration.builder()
-            .jsonProvider(new JacksonJsonProvider())
-            .mappingProvider(new JacksonMappingProvider())
+    // Our own JsonProvider/MappingProvider (not Jackson, not json-smart) backs this JsonPath configuration -
+    // querqy-core has no JSON-library dependency in production code at all (see querqy.json.JsonProvider and
+    // querqy.json.jsonpath.QuerqyJsonPathProvider for why a real parsing/serialization implementation isn't
+    // needed here).
+    private static final Configuration JSON_PATH_CONFIGURATION = Configuration.builder()
+            .jsonProvider(new QuerqyJsonPathProvider())
+            .mappingProvider(new QuerqyJsonPathMappingProvider())
             .build()
             .addOptions(Option.ALWAYS_RETURN_LIST);
 
@@ -46,6 +50,6 @@ public class PropertyParser {
         propertiesWithDefaults.putIfAbsent(ID, defaultId);
         propertiesWithDefaults.putIfAbsent(LOG_MESSAGE, propertiesWithDefaults.get(ID));
 
-        return new InstructionsProperties(propertiesWithDefaults, JACKSON_CONFIGURATION);
+        return new InstructionsProperties(propertiesWithDefaults, JSON_PATH_CONFIGURATION);
     }
 }

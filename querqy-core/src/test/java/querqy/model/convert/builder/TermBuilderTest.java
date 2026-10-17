@@ -17,8 +17,6 @@
  */
 package querqy.model.convert.builder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.Test;
 import querqy.model.Term;
 import querqy.model.convert.AbstractBuilderTest;
@@ -47,7 +45,6 @@ public class TermBuilderTest extends AbstractBuilderTest {
 
     @Test
     public void testSetAttributesFromMap() {
-        new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         assertThat(new TermBuilder(
                 map(
                         entry(TermBuilder.NAME_OF_QUERY_TYPE, map(

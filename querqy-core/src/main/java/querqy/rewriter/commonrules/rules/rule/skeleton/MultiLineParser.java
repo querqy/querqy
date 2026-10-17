@@ -19,6 +19,7 @@ package querqy.rewriter.commonrules.rules.rule.skeleton;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import querqy.json.JsonProvider;
 import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.input.skeleton.InputSkeletonParser;
 import querqy.rewriter.commonrules.rules.instruction.skeleton.InstructionSkeletonParser;
@@ -159,22 +160,23 @@ public class MultiLineParser implements LineParser {
         return ruleSkeletonBuilder != null;
     }
 
-    public static String toTextDefinition(final List<RuleSkeleton> ruleSkeletons) {
+    public static String toTextDefinition(final List<RuleSkeleton> ruleSkeletons, final JsonProvider jsonProvider) {
         final List<String> parts = ruleSkeletons.stream()
-                .map(MultiLineParser::toTextDefinition)
+                .map(ruleSkeleton -> toTextDefinition(ruleSkeleton, jsonProvider))
                 .collect(Collectors.toList());
 
         return String.join("\n", parts);
     }
 
-    public static String toTextDefinition(final RuleSkeleton ruleSkeleton) {
-        final RuleDefinitionSerializer serializer = RuleDefinitionSerializer.of(ruleSkeleton);
+    public static String toTextDefinition(final RuleSkeleton ruleSkeleton, final JsonProvider jsonProvider) {
+        final RuleDefinitionSerializer serializer = RuleDefinitionSerializer.of(ruleSkeleton, jsonProvider);
         return serializer.toTextDefinition();
     }
 
     @RequiredArgsConstructor(staticName = "of")
     public static class RuleDefinitionSerializer {
         private final RuleSkeleton ruleSkeleton;
+        private final JsonProvider jsonProvider;
         private final List<String> parts = new ArrayList<>();
 
         public String toTextDefinition() {
@@ -198,7 +200,7 @@ public class MultiLineParser implements LineParser {
 
         private void propertiesToText() {
             if (ruleSkeleton.hasProperties()) {
-                final String propertiesAsText = PropertySkeletonParser.toTextDefinition(ruleSkeleton.getProperties());
+                final String propertiesAsText = PropertySkeletonParser.toTextDefinition(ruleSkeleton.getProperties(), jsonProvider);
 
                 try (final BufferedReader bufferedReader = new BufferedReader(new StringReader(propertiesAsText))) {
                     bufferedReader.lines().forEach(parts::add);

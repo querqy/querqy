@@ -18,9 +18,15 @@
 package querqy.rewriter.commonrules.rules.property.skeleton;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import querqy.json.JsonProvider;
+import querqy.json.JsonSmartJsonProvider;
+import querqy.json.ToyJsonProvider;
 import querqy.rewrite.RuleParseException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +35,27 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
+/**
+ * Runs the full suite against two independent {@link JsonProvider} implementations - one backed by
+ * json-smart and a hand-rolled, fully dependency-free one - to prove the {@link PropertySkeletonParser}'s
+ * behavior really only depends on the {@link JsonProvider} abstraction, not on any one JSON library's quirks.
+ */
+@RunWith(Parameterized.class)
 public class PropertySkeletonParserTest {
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> jsonProviders() {
+        return Arrays.asList(
+                new Object[]{"JsonSmart", new JsonSmartJsonProvider()},
+                new Object[]{"Toy", new ToyJsonProvider()}
+        );
+    }
+
+    private final JsonProvider jsonProvider;
+
+    public PropertySkeletonParserTest(final String label, final JsonProvider jsonProvider) {
+        this.jsonProvider = jsonProvider;
+    }
 
     @Test
     public void testThat_exceptionIsThrown_forDuplicatePropertyKey() {
@@ -39,6 +65,46 @@ public class PropertySkeletonParserTest {
                                 "@d: false"
                         )
                 );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forDuplicateKeyWithinSingleObjectLiteral() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@{\"d\": true, \"d\": false}@"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forDuplicateKeyWithinNestedObjectLiteral() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@{",
+                                "outer: {",
+                                "  \"inner\": \"value1\",",
+                                "  \"inner\": \"value2\"",
+                                "}",
+                                "}@"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_duplicateKeysAtDifferentNestingLevelsAreNotFlagged() {
+        assertThat(
+                parse(
+                        "@{",
+                        "d: \"outer\",",
+                        "nested: { \"d\": \"inner\" }",
+                        "}@"
+                )
+        ).isEqualTo(
+                properties(
+                        "d", "outer",
+                        "nested", Collections.singletonMap("d", "inner")
+                )
+        );
     }
 
     @Test
@@ -116,6 +182,33 @@ public class PropertySkeletonParserTest {
     }
 
     @Test
+    public void testThat_exceptionIsThrown_forUnterminatedDoubleQuotedStringInProperty() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@a: \"oops, no closing quote"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forUnterminatedSingleQuotedStringInProperty() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@a: 'oops, no closing quote"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forTrailingBackslashInProperty() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@a: \"oops\\"
+                        )
+                );
+    }
+
+    @Test
     public void testThat_inputIsParsedProperly_forNestedJson() {
         assertThat(
                 parse(
@@ -133,7 +226,7 @@ public class PropertySkeletonParserTest {
     }
 
     private Map<String, Object> parse(final String... lines) {
-        final PropertySkeletonParser parser = PropertySkeletonParser.create();
+        final PropertySkeletonParser parser = PropertySkeletonParser.create(jsonProvider);
         Arrays.stream(lines).forEach(line -> {
                 parser.setContent(line);
                 parser.parse();

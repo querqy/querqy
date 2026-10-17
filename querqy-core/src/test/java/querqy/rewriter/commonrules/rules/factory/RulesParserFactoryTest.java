@@ -18,6 +18,8 @@
 package querqy.rewriter.commonrules.rules.factory;
 
 import org.junit.Test;
+import querqy.json.JsonSmartJsonProvider;
+import querqy.json.JsonProvider;
 import querqy.rewriter.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewriter.commonrules.model.InstructionsSupplier;
 import querqy.rewrite.RuleParseException;
@@ -31,13 +33,16 @@ import static org.junit.Assert.assertThrows;
 
 public class RulesParserFactoryTest {
 
+    private static final JsonProvider JSON_PROVIDER = new JsonSmartJsonProvider();
+
     @Test
     public void testThat_shorthandTextParser_parsesValidRules() throws IOException {
         final TrieMap<InstructionsSupplier> trieMap = RulesParserFactory.textParser(
                 new StringReader("a =>\n\tSYNONYM: b"),
                 new WhiteSpaceQuerqyParserFactory(),
                 false,
-                true
+                true,
+                JSON_PROVIDER
         ).parse();
 
         assertThat(trieMap.get("a").getStateForCompleteSequence().isFinal()).isTrue();
@@ -50,7 +55,8 @@ public class RulesParserFactoryTest {
                 new StringReader("a =>\n\tUNKNOWN_INSTRUCTION: b"),
                 new WhiteSpaceQuerqyParserFactory(),
                 false,
-                true
+                true,
+                JSON_PROVIDER
         ).parse());
     }
 
@@ -64,7 +70,8 @@ public class RulesParserFactoryTest {
                 new StringReader(rulesWithBooleanInput),
                 new WhiteSpaceQuerqyParserFactory(),
                 true,
-                true
+                true,
+                JSON_PROVIDER
         ).parse());
 
         // with boolean input disabled, "a AND b" is parsed as a literal (three-term) input instead,
@@ -73,7 +80,8 @@ public class RulesParserFactoryTest {
                 new StringReader(rulesWithBooleanInput),
                 new WhiteSpaceQuerqyParserFactory(),
                 false,
-                true
+                true,
+                JSON_PROVIDER
         ).parse();
     }
 
@@ -83,7 +91,8 @@ public class RulesParserFactoryTest {
                 new StringReader("Foo =>\n\tSYNONYM: bar"),
                 new WhiteSpaceQuerqyParserFactory(),
                 false,
-                true
+                true,
+                JSON_PROVIDER
         ).parse();
 
         assertThat(ignoreCaseTrieMap.get("foo").getStateForCompleteSequence().isFinal()).isTrue();
@@ -92,7 +101,8 @@ public class RulesParserFactoryTest {
                 new StringReader("Foo =>\n\tSYNONYM: bar"),
                 new WhiteSpaceQuerqyParserFactory(),
                 false,
-                false
+                false,
+                JSON_PROVIDER
         ).parse();
 
         assertThat(caseSensitiveTrieMap.get("foo").getStateForCompleteSequence().isFinal()).isFalse();

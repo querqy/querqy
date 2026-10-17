@@ -18,25 +18,52 @@
 package querqy.rewriter.numberunit;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import querqy.json.JsonProvider;
+import querqy.json.JsonSmartJsonProvider;
+import querqy.json.ToyJsonProvider;
 import querqy.rewriter.numberunit.model.NumberUnitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Runs the full suite against two independent {@link JsonProvider} implementations - one backed by
+ * json-smart and a hand-rolled, fully dependency-free one - to prove {@link NumberUnitRewriterConfigParser}'s
+ * behavior really only depends on the {@link JsonProvider} abstraction, not on any one JSON library's quirks.
+ */
+@RunWith(Parameterized.class)
 public class NumberUnitRewriterConfigParserTest {
 
     private static final String BASE_PATH = "numberunit/";
 
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> jsonProviders() {
+        return Arrays.asList(
+                new Object[]{"JsonSmart", new JsonSmartJsonProvider()},
+                new Object[]{"Toy", new ToyJsonProvider()}
+        );
+    }
+
+    private final JsonProvider jsonProvider;
+
+    public NumberUnitRewriterConfigParserTest(final String label, final JsonProvider jsonProvider) {
+        this.jsonProvider = jsonProvider;
+    }
+
     @Test
     public void testFullConfig() throws IOException {
         final ParsedNumberUnitConfig parsedConfig = NumberUnitRewriterConfigParser.parse(
-                readConfig("number-unit-full-config.json"));
+                readConfig("number-unit-full-config.json"), jsonProvider);
 
         assertThat(parsedConfig.scaleForLinearFunctions).isEqualTo(1001);
 
@@ -70,7 +97,7 @@ public class NumberUnitRewriterConfigParserTest {
     @Test
     public void testMinimalConfigAppliesDefaults() throws IOException {
         final ParsedNumberUnitConfig parsedConfig = NumberUnitRewriterConfigParser.parse(
-                readConfig("number-unit-minimal-config.json"));
+                readConfig("number-unit-minimal-config.json"), jsonProvider);
 
         assertThat(parsedConfig.scaleForLinearFunctions).isEqualTo(5);
 
@@ -99,31 +126,31 @@ public class NumberUnitRewriterConfigParserTest {
     @Test
     public void testParseThrowsOnInvalidConfig() throws IOException {
         final String config = readConfig("number-unit-invalid-config.json");
-        assertThatThrownBy(() -> NumberUnitRewriterConfigParser.parse(config))
+        assertThatThrownBy(() -> NumberUnitRewriterConfigParser.parse(config, jsonProvider))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void testValidateReturnsEmptyForValidConfig() throws IOException {
-        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-full-config.json"))).isEmpty();
-        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-minimal-config.json"))).isEmpty();
+        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-full-config.json"), jsonProvider)).isEmpty();
+        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-minimal-config.json"), jsonProvider)).isEmpty();
     }
 
     @Test
     public void testValidateReturnsErrorForInvalidConfig() throws IOException {
-        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-invalid-config.json")))
+        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-invalid-config.json"), jsonProvider))
                 .isNotEmpty();
     }
 
     @Test
     public void testValidateReturnsErrorForDuplicateUnits() throws IOException {
-        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-duplicate-units-config.json")))
+        assertThat(NumberUnitRewriterConfigParser.validate(readConfig("number-unit-duplicate-units-config.json"), jsonProvider))
                 .containsExactly("Units must only be defined once per NumberUnitDefinition");
     }
 
     @Test
     public void testValidateReturnsErrorForMalformedJson() {
-        assertThat(NumberUnitRewriterConfigParser.validate("not json")).isNotEmpty();
+        assertThat(NumberUnitRewriterConfigParser.validate("not json", jsonProvider)).isNotEmpty();
     }
 
     private static String readConfig(final String fileName) {

@@ -17,9 +17,6 @@
  */
 package querqy.lucene;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
@@ -47,11 +44,14 @@ import querqy.model.MatchAllQuery;
 import querqy.model.PhraseQuery;
 import querqy.model.QuerqyQuery;
 import querqy.model.RawQuery;
+import querqy.json.JsonProvider;
 import querqy.rewrite.logging.RewriteChainLog;
 import querqy.rewrite.RewriteChainOutput;
 import querqy.parser.QuerqyParser;
 import querqy.parser.WhiteSpaceQuerqyParser;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -96,9 +96,7 @@ public class QueryParsingController {
      */
     protected static final Class<? extends QuerqyParser> DEFAULT_PARSER_CLASS = WhiteSpaceQuerqyParser.class;
 
-    protected static final ObjectMapper REWRITE_LOGGING_OBJECT_MAPPER = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    protected final JsonProvider jsonProvider;
 
     protected final LuceneSearchEngineRequestAdapter requestAdapter;
     protected final String queryString;
@@ -115,6 +113,7 @@ public class QueryParsingController {
 
     public QueryParsingController(final LuceneSearchEngineRequestAdapter requestAdapter) {
         this.requestAdapter = requestAdapter;
+        this.jsonProvider = requestAdapter.getJsonProvider();
         this.queryString = getValidatedQueryString();
         needsScores = requestAdapter.needsScores();
         queryAnalyzer = requestAdapter.getQueryAnalyzer();
@@ -550,12 +549,45 @@ public class QueryParsingController {
                 infoLoggingContext -> rewriteChainLogging.getRewriteChain().forEach(
                         rewriteLoggingEntry -> {
                             infoLoggingContext.setRewriterId(rewriteLoggingEntry.getRewriterId());
-                            final List<Object> rewriteActions = REWRITE_LOGGING_OBJECT_MAPPER.convertValue(
-                                    rewriteLoggingEntry.getActions(), new TypeReference<>() {});
+                            final List<Object> rewriteActions = toGenericList(rewriteLoggingEntry.getActions());
                             infoLoggingContext.log(rewriteActions);
                         }
                 )
         );
+    }
+
+    /**
+     * Converts an arbitrary object graph (rewrite-chain log/debug data) into a generic, loosely-typed
+     * {@code List} by round-tripping it through the configured {@link JsonProvider} - the same thing
+     * Jackson's {@code ObjectMapper.convertValue} used to do internally, without depending on Jackson here.
+     * <p>
+     * The exact shape of the result - in particular, whether {@code null}/empty fields of the source object
+     * graph are included or omitted - depends entirely on the injected {@link JsonProvider}'s own
+     * serialization behavior; this SPI makes no guarantee either way (see
+     * {@link JsonProvider#writeValueAsString}). Before this SPI existed, this class used a hardcoded Jackson
+     * {@code ObjectMapper} configured with {@code NON_NULL}/{@code NON_EMPTY} inclusion to keep this output
+     * compact; a host integration that wants that same compact shape back must configure its own
+     * {@code JsonProvider} implementation to do so explicitly - it is not Jackson's (or any other library's)
+     * out-of-the-box default.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Object> toGenericList(final Object value) {
+        try {
+            return (List<Object>) jsonProvider.readValue(jsonProvider.writeValueAsString(value), List.class);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Same as {@link #toGenericList(Object)} but for a {@code Map} result.
+     */
+    private Map<String, Object> toGenericMap(final Object value) {
+        try {
+            return jsonProvider.readMap(jsonProvider.writeValueAsString(value));
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public Map<String, Object> getDebugInfo() {
@@ -569,10 +601,7 @@ public class QueryParsingController {
             }
 
             if (rewriteChainLogging != null && !rewriteChainLogging.getRewriteChain().isEmpty()) {
-                info.put(
-                        "rewrite",
-                        REWRITE_LOGGING_OBJECT_MAPPER.convertValue(rewriteChainLogging, new TypeReference<>() {})
-                );
+                info.put("rewrite", toGenericMap(rewriteChainLogging));
             }
             return info;
 

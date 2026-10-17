@@ -17,6 +17,7 @@
  */
 package querqy.rewriter.numberunit;
 
+import querqy.json.JsonProvider;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
 import querqy.rewrite.RewriterFactory;
@@ -43,13 +44,16 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
      * @param config              The rewriter's JSON configuration
      * @param queryCreatorFactory Builds the search-engine-specific {@link NumberUnitQueryCreator} from the
      *                            {@code scaleForLinearFunctions} value parsed out of {@code config}
+     * @param jsonProvider        The JSON implementation to parse {@code config} with - querqy-core no
+     *                            longer brings its own, so host integrations must supply one
      * @throws IOException if {@code config} is not valid JSON
      * @throws IllegalArgumentException if {@code config} does not satisfy the rewriter's validation rules
      */
     public NumberUnitRewriterFactory(final String id,
                                      final String config,
-                                     final IntFunction<NumberUnitQueryCreator> queryCreatorFactory) throws IOException {
-        this(id, config, queryCreatorFactory, NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS);
+                                     final IntFunction<NumberUnitQueryCreator> queryCreatorFactory,
+                                     final JsonProvider jsonProvider) throws IOException {
+        this(id, config, queryCreatorFactory, NumberUnitRewriter.DEFAULT_MAX_NUMBER_DIGITS, jsonProvider);
     }
 
     /**
@@ -60,15 +64,18 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
      * @param maxNumberDigits     Caps how many digit characters a query term's numeric portion may
      *                            contain before it is parsed as a number - see
      *                            {@link NumberUnitRewriter#DEFAULT_MAX_NUMBER_DIGITS}
+     * @param jsonProvider        The JSON implementation to parse {@code config} with - querqy-core no
+     *                            longer brings its own, so host integrations must supply one
      * @throws IOException if {@code config} is not valid JSON
      * @throws IllegalArgumentException if {@code config} does not satisfy the rewriter's validation rules
      */
     public NumberUnitRewriterFactory(final String id,
                                      final String config,
                                      final IntFunction<NumberUnitQueryCreator> queryCreatorFactory,
-                                     final int maxNumberDigits) throws IOException {
+                                     final int maxNumberDigits,
+                                     final JsonProvider jsonProvider) throws IOException {
         super(id);
-        final ParsedNumberUnitConfig parsedConfig = NumberUnitRewriterConfigParser.parse(config);
+        final ParsedNumberUnitConfig parsedConfig = NumberUnitRewriterConfigParser.parse(config, jsonProvider);
         this.numberUnitMap = createNumberUnitMap(parsedConfig.numberUnitDefinitions);
         this.numberUnitQueryCreator = queryCreatorFactory.apply(parsedConfig.scaleForLinearFunctions);
         this.maxNumberDigits = maxNumberDigits;
@@ -77,8 +84,8 @@ public class NumberUnitRewriterFactory extends RewriterFactory {
     /**
      * @return a list of human-readable error messages; empty if {@code config} is valid
      */
-    public static List<String> validateConfiguration(final String config) {
-        return NumberUnitRewriterConfigParser.validate(config);
+    public static List<String> validateConfiguration(final String config, final JsonProvider jsonProvider) {
+        return NumberUnitRewriterConfigParser.validate(config, jsonProvider);
     }
 
     private TrieMap<List<PerUnitNumberUnitDefinition>> createNumberUnitMap(

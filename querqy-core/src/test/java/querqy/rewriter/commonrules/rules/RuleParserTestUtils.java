@@ -20,6 +20,8 @@ package querqy.rewriter.commonrules.rules;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import querqy.json.JsonSmartJsonProvider;
+import querqy.json.JsonProvider;
 import querqy.model.Input;
 import querqy.rewriter.commonrules.model.Instruction;
 import querqy.rewriter.commonrules.model.Instructions;
@@ -42,6 +44,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RuleParserTestUtils {
+
+    public static final JsonProvider JSON_PROVIDER = new JsonSmartJsonProvider();
 
     public static List<Rule> rules(final Rule... rules) {
         return Arrays.asList(rules);
@@ -126,7 +130,7 @@ public class RuleParserTestUtils {
     }
 
     public static String asText(final RuleSkeleton... ruleSkeletons) {
-        return MultiLineParser.toTextDefinition(Arrays.asList(ruleSkeletons));
+        return MultiLineParser.toTextDefinition(Arrays.asList(ruleSkeletons), JSON_PROVIDER);
     }
 
 }

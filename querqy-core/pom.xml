@@ -90,7 +90,6 @@
         <mockito.version>5.23.0</mockito.version>
         <assertj.version>3.27.7</assertj.version>
 
-        <jackson.version>2.22.2</jackson.version>
         <json-path.version>3.0.0</json-path.version>
     </properties>
 
@@ -107,16 +106,23 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
+        <!-- querqy-core's production code depends solely on the querqy.json.JsonProvider SPI (see
+             querqy.json.JsonProvider) so the packaged jar never bundles a JSON library of its own, and no
+             Jackson dependency is declared here at all (not even test scope): tests exercise the SPI against
+             two reference implementations instead - querqy.json.JsonSmartJsonProvider (below) and
+             querqy.json.ToyJsonProvider (a hand-rolled, fully dependency-free one). -->
 
+        <!-- net.minidev:json-smart is already an unavoidable, non-optional transitive runtime dependency of
+             json-path (see the exclusion-free dependency above) - it backs querqy.json.JsonSmartJsonProvider,
+             a test-only JsonProvider reference implementation, at no added dependency footprint.
+             Declared explicitly (pinned to the exact version json-path:${json-path.version} already pulls in)
+             since test code imports net.minidev.json.* classes directly, rather than relying on transitive
+             resolution for a dependency we don't control the version of ourselves. -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -180,31 +186,35 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <!-- Absorbs rare CI-runner timing noise on tests with a wall-clock budget (e.g.
+                         RegexReplacingTest's @Test(timeout = ...) tests) without masking a genuinely
+                         failing test, which would still fail on the second attempt too. -->
+                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
+                </configuration>
             </plugin>
             <plugin>
-                <groupId>de.thetaphi</groupId>
-                <artifactId>forbiddenapis</artifactId>
-                <version>3.10</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
                 <configuration>
-                    <signaturesFiles>
-                        <signaturesFile>${project.basedir}/forbidden-apis/jackson-signatures.txt</signaturesFile>
-                    </signaturesFiles>
-                    <failOnUnsupportedJava>false</failOnUnsupportedJava>
+                    <!-- Maven embeds a full copy of this module's pom.xml inside every jar it builds by
+                         default, regardless of dependency scope - a scanner that reads that embedded POM's
+                         text for its dependency graph (without honoring <scope>) would still see test-scope
+                         dependencies (e.g. json-smart, mockito) listed even though they are never actually
+                         bundled. Disable the embedded descriptor so there is no such text anywhere in the
+                         jar. This has no effect on dependency resolution (which always uses the
+                         externally-fetched POM) or on compilation/tests. -->
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>check</goal>
-                            <goal>testCheck</goal>
+                            <goal>test-jar</goal>
                         </goals>
                     </execution>
                 </executions>

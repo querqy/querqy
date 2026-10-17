@@ -311,9 +311,6 @@ public interface LuceneSearchEngineRequestAdapter extends SearchEngineRequestAda
     Optional<InfoLoggingContext> getInfoLoggingContext();
 
 
-
-
-
     class SyntaxException extends Exception {
         public SyntaxException() {
             super();

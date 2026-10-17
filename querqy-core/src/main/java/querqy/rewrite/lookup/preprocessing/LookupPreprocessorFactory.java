@@ -33,19 +33,12 @@ public class LookupPreprocessorFactory {
 
     public static LookupPreprocessor fromType(final LookupPreprocessorType type) {
 
-        switch (type) {
-            case NONE:
-                return IDENTITY_PREPROCESSOR;
-
-            case GERMAN:
-                return GermanPreprocessorOnDemandClassHolder.GERMAN_PREPROCESSOR;
-
-            case LOWERCASE:
-                return LOWERCASE_PREPROCESSOR;
-
-            default:
-                throw new IllegalArgumentException("Preprocessor of type " + " is currently not supported");
-        }
+        return switch (type) {
+            case null -> throw new IllegalArgumentException("Preprocessor must not be null");
+            case NONE -> IDENTITY_PREPROCESSOR;
+            case GERMAN -> GermanPreprocessorOnDemandClassHolder.GERMAN_PREPROCESSOR;
+            case LOWERCASE -> LOWERCASE_PREPROCESSOR;
+        };
 
     }
 

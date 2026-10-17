@@ -17,7 +17,7 @@
  */
 package querqy.rewriter.numberunit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import querqy.json.JsonProvider;
 import querqy.rewriter.numberunit.NumberUnitConfigObject.NumberUnitDefinitionObject;
 import querqy.rewriter.numberunit.model.FieldDefinition;
 import querqy.rewriter.numberunit.model.NumberUnitDefinition;
@@ -75,8 +75,8 @@ class NumberUnitRewriterConfigParser {
      * @throws IllegalArgumentException if the parsed config does not satisfy the rewriter's
      *         validation rules (e.g. missing unit/field definitions, blank term/fieldName)
      */
-    static ParsedNumberUnitConfig parse(final String config) throws IOException {
-        final NumberUnitConfigObject configObject = readConfigObject(config);
+    static ParsedNumberUnitConfig parse(final String config, final JsonProvider jsonProvider) throws IOException {
+        final NumberUnitConfigObject configObject = readConfigObject(config, jsonProvider);
         final int scale = getOrDefaultInt(configObject::getScaleForLinearFunctions,
                 DEFAULT_SCALE_FOR_LINEAR_FUNCTIONS);
         return new ParsedNumberUnitConfig(scale, parseNumberUnitDefinitions(configObject));
@@ -85,10 +85,10 @@ class NumberUnitRewriterConfigParser {
     /**
      * @return a list of human-readable error messages; empty if {@code config} is valid
      */
-    static List<String> validate(final String config) {
+    static List<String> validate(final String config, final JsonProvider jsonProvider) {
         try {
             final List<NumberUnitDefinition> numberUnitDefinitions =
-                    parseNumberUnitDefinitions(readConfigObject(config));
+                    parseNumberUnitDefinitions(readConfigObject(config, jsonProvider));
 
             return numberUnitDefinitions.stream()
                     .filter(NumberUnitRewriterConfigParser::hasDuplicateUnitDefinition)
@@ -112,8 +112,9 @@ class NumberUnitRewriterConfigParser {
         return false;
     }
 
-    private static NumberUnitConfigObject readConfigObject(final String config) throws IOException {
-        return new ObjectMapper().readValue(config, NumberUnitConfigObject.class);
+    private static NumberUnitConfigObject readConfigObject(final String config, final JsonProvider jsonProvider)
+            throws IOException {
+        return jsonProvider.readValue(config, NumberUnitConfigObject.class);
     }
 
     private static List<NumberUnitDefinition> parseNumberUnitDefinitions(final NumberUnitConfigObject configObject) {

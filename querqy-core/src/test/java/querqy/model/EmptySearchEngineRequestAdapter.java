@@ -17,6 +17,7 @@
  */
 package querqy.model;
 
+import querqy.json.JsonProvider;
 import querqy.rewrite.RewriteLoggingConfig;
 import querqy.rewrite.RewriteChain;
 import querqy.rewrite.SearchEngineRequestAdapter;
@@ -75,6 +76,11 @@ public class EmptySearchEngineRequestAdapter implements SearchEngineRequestAdapt
     @Override
     public RewriteLoggingConfig getRewriteLoggingConfig() {
         return RewriteLoggingConfig.off();
+    }
+
+    @Override
+    public JsonProvider getJsonProvider() {
+        return null;
     }
 
 }

@@ -19,6 +19,7 @@ package querqy.rewriter.commonrules.rules.factory;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import querqy.json.JsonProvider;
 import querqy.rewriter.commonrules.QuerqyParserFactory;
 import querqy.rewriter.commonrules.model.TrieMapRulesCollectionBuilder;
 import querqy.rewriter.commonrules.rules.RulesParser;
@@ -52,14 +53,17 @@ public class RulesParserFactory {
      * @param querqyParserFactory A parser for the right-hand side of rules.
      * @param allowBooleanInput Iff true, rule input can have boolean expressions.
      * @param ignoreCase Iff true, rule input matching is case-insensitive.
+     * @param jsonProvider The JSON implementation to parse rule "property" blocks with.
      */
     public static RulesParser textParser(final Reader rulesContentReader,
                                          final QuerqyParserFactory querqyParserFactory,
                                          final boolean allowBooleanInput,
-                                         final boolean ignoreCase) {
+                                         final boolean ignoreCase,
+                                         final JsonProvider jsonProvider) {
         return textParser(RulesParserConfig.builder()
                 .textParserConfig(TextParserConfig.builder()
                         .rulesContentReader(rulesContentReader)
+                        .jsonProvider(jsonProvider)
                         .build())
                 .ruleParserConfig(RuleParserConfig.builder()
                         .querqyParserFactory(querqyParserFactory)

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import querqy.json.JsonProvider;
 import querqy.model.Term;
 import querqy.rewrite.QuerqyTemplateEngine;
 import querqy.rewrite.QueryRewriter;
@@ -92,6 +93,9 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      * @param defaultSelectionStrategyFactory The default {@link SelectionStrategyFactory} to be used if no strategy is
      *                                       specified as a request parameter
      * @param buildTermCache If true, build the term cache for terms from the rhs of rules
+     * @param lookupPreprocessorType The {@link LookupPreprocessorType} to apply to terms before building the
+     *                               rule lookup structure and at query time
+     * @param jsonProvider The JSON implementation to parse rule "property" blocks with
      * @throws IOException if rules cannot be read or parsed
      */
     public SimpleCommonRulesRewriterFactory(final String rewriterId,
@@ -102,7 +106,8 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                                             final Map<String, SelectionStrategyFactory> selectionStrategyFactories,
                                             final SelectionStrategyFactory defaultSelectionStrategyFactory,
                                             final boolean buildTermCache,
-                                            final LookupPreprocessorType lookupPreprocessorType
+                                            final LookupPreprocessorType lookupPreprocessorType,
+                                            final JsonProvider jsonProvider
     ) throws IOException {
 
         super(rewriterId);
@@ -131,6 +136,7 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
                             .rulesContentReader(querqyTemplateEngine.renderedRules.reader)
                             .isMultiLineRulesConfig(true)
                             .lineNumberMappings(querqyTemplateEngine.renderedRules.lineNumberMapping)
+                            .jsonProvider(jsonProvider)
                             .build())
                     .ruleParserConfig(RuleParserConfig.builder()
                             .isAllowedToParseBooleanInput(allowBooleanInput)
