@@ -90,7 +90,6 @@
         <mockito.version>5.23.0</mockito.version>
         <assertj.version>3.27.7</assertj.version>
 
-        <jackson.version>2.22.2</jackson.version>
         <json-path.version>3.0.0</json-path.version>
     </properties>
 
@@ -107,21 +106,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- Jackson is test-scoped only: querqy-core's production code depends solely on the
-             querqy.json.JsonProvider SPI (see querqy.json.JsonProvider) so the packaged jar never
-             bundles a JSON library of its own. querqy-core/src/test/java/querqy/json/JacksonJsonProvider.java
-             is a reference JsonProvider implementation used only in tests. -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- querqy-core's production code depends solely on the querqy.json.JsonProvider SPI (see
+             querqy.json.JsonProvider) so the packaged jar never bundles a JSON library of its own, and no
+             Jackson dependency is declared here at all (not even test scope): tests exercise the SPI against
+             two reference implementations instead - querqy.json.JsonSmartJsonProvider (below) and
+             querqy.json.ToyJsonProvider (a hand-rolled, fully dependency-free one). -->
 
+        <!-- net.minidev:json-smart is already an unavoidable, non-optional transitive runtime dependency of
+             json-path (see the exclusion-free dependency above) - it backs querqy.json.JsonSmartJsonProvider,
+             a test-only JsonProvider reference implementation, at no added dependency footprint.
+             Declared explicitly (pinned to the exact version json-path:${json-path.version} already pulls in)
+             since test code imports net.minidev.json.* classes directly, rather than relying on transitive
+             resolution for a dependency we don't control the version of ourselves. -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.6.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -191,10 +191,10 @@
                 <configuration>
                     <!-- Maven embeds a full copy of this module's pom.xml inside every jar it builds by
                          default, regardless of dependency scope - a scanner that reads that embedded POM's
-                         text for its dependency graph (without honoring <scope>) would still see
-                         jackson-databind/jackson-core listed even though they are test-scope only and never
-                         actually bundled. Disable the embedded descriptor so there is no such text anywhere
-                         in the jar. This has no effect on dependency resolution (which always uses the
+                         text for its dependency graph (without honoring <scope>) would still see test-scope
+                         dependencies (e.g. json-smart, mockito) listed even though they are never actually
+                         bundled. Disable the embedded descriptor so there is no such text anywhere in the
+                         jar. This has no effect on dependency resolution (which always uses the
                          externally-fetched POM) or on compilation/tests. -->
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
@@ -204,29 +204,6 @@
                     <execution>
                         <goals>
                             <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>de.thetaphi</groupId>
-                <artifactId>forbiddenapis</artifactId>
-                <version>3.10</version>
-                <configuration>
-                    <signaturesFiles>
-                        <signaturesFile>${project.basedir}/forbidden-apis/jackson-signatures.txt</signaturesFile>
-                    </signaturesFiles>
-                    <failOnUnsupportedJava>false</failOnUnsupportedJava>
-                </configuration>
-                <executions>
-                    <!-- jackson-databind is test-scope only now (production code has no Jackson dependency at
-                         all, via the querqy.json.JsonProvider SPI), so there is nothing for the "check" goal
-                         (main classes) to scan, and it can no longer even resolve ObjectMapper to parse the
-                         signatures file. Only "testCheck" (test classes, where JacksonJsonProvider lives)
-                         still applies. -->
-                    <execution>
-                        <goals>
-                            <goal>testCheck</goal>
                         </goals>
                     </execution>
                 </executions>

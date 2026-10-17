@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonSmartJsonProvider;
 import querqy.json.JsonProvider;
 import querqy.model.Term;
 import querqy.rewrite.QueryRewriter;
@@ -48,7 +48,7 @@ import java.util.Set;
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class SimpleCommonRulesRewriterFactoryTest {
 
-    private static final JsonProvider JSON_PROVIDER = new JacksonJsonProvider();
+    private static final JsonProvider JSON_PROVIDER = new JsonSmartJsonProvider();
 
     @Mock
     QuerqyParserFactory querqyParserFactory;

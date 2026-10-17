@@ -18,25 +18,21 @@
 package querqy.json;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * A second, genuinely non-Jackson, test-only {@link JsonProvider} implementation - a minimal hand-rolled
- * JSON parser plus a reflection-based POJO binder, with no third-party JSON library of its own. Used
- * purely to prove that querqy-core's refactored parsers really do work against the {@link JsonProvider}
- * abstraction and don't implicitly assume Jackson-specific behavior - if the exact same tests pass against
- * both this and {@link JacksonJsonProvider}, the SPI boundary is real.
+ * A fully dependency-free, test-only {@link JsonProvider} implementation - a minimal hand-rolled JSON parser,
+ * with no third-party JSON library of its own. Used alongside {@link JsonSmartJsonProvider} (library-backed)
+ * to prove that querqy-core's refactored parsers really do work against the {@link JsonProvider} abstraction
+ * and don't implicitly assume one particular JSON library's behavior - if the exact same tests pass against
+ * both, the SPI boundary is real.
  * <p>
- * Deliberately minimal: only supports what the two refactored parsers actually need (objects, arrays,
- * strings, numbers, booleans, null; binding into simple POJOs with public no-arg constructors and
- * getter/setter pairs, including nested POJOs and {@code List<SomeType>} fields).
+ * Deliberately minimal: only supports what the refactored parsers actually need (objects, arrays, strings,
+ * numbers, booleans, null). POJO binding (nested POJOs, {@code List<SomeType>} fields, package-private
+ * targets) is delegated to {@link ReflectiveBeanBinder}, shared with {@link JsonSmartJsonProvider}.
  */
 public class ToyJsonProvider implements JsonProvider {
 
@@ -55,7 +51,7 @@ public class ToyJsonProvider implements JsonProvider {
     public <T> T readValue(final String json, final Class<T> type) throws IOException {
         final Object parsed = parse(json);
         try {
-            return bind(parsed, type);
+            return ReflectiveBeanBinder.bind(parsed, type);
         } catch (final ReflectiveOperationException e) {
             throw new IOException("Could not bind JSON into " + type.getName(), e);
         }
@@ -76,81 +72,6 @@ public class ToyJsonProvider implements JsonProvider {
             throw new IOException("Trailing content after JSON value at position " + parser.pos);
         }
         return value;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T bind(final Object parsed, final Class<T> type) throws ReflectiveOperationException, IOException {
-        if (parsed == null) {
-            return null;
-        }
-        if (type.isInstance(parsed)) {
-            return (T) parsed;
-        }
-        if (!(parsed instanceof Map)) {
-            throw new IOException("Cannot bind " + parsed + " into " + type.getName());
-        }
-        final Map<?, ?> map = (Map<?, ?>) parsed;
-        final Constructor<T> constructor = type.getDeclaredConstructor();
-        constructor.setAccessible(true); // binding targets like NumberUnitConfigObject are package-private
-        final T instance = constructor.newInstance();
-        for (final Method method : type.getMethods()) {
-            if (!method.getName().startsWith("set") || method.getParameterCount() != 1) {
-                continue;
-            }
-            final String propertyName = decapitalize(method.getName().substring(3));
-            if (!map.containsKey(propertyName)) {
-                continue;
-            }
-            final Object coerced = coerce(map.get(propertyName), method.getGenericParameterTypes()[0]);
-            method.setAccessible(true);
-            method.invoke(instance, coerced);
-        }
-        return instance;
-    }
-
-    private Object coerce(final Object rawValue, final Type targetType)
-            throws ReflectiveOperationException, IOException {
-        if (rawValue == null) {
-            return null;
-        }
-        if (targetType instanceof Class) {
-            final Class<?> targetClass = (Class<?>) targetType;
-            if (targetClass == String.class) {
-                return rawValue.toString();
-            }
-            if ((targetClass == Integer.class || targetClass == int.class) && rawValue instanceof Number) {
-                return ((Number) rawValue).intValue();
-            }
-            if ((targetClass == Float.class || targetClass == float.class) && rawValue instanceof Number) {
-                return ((Number) rawValue).floatValue();
-            }
-            if ((targetClass == Double.class || targetClass == double.class) && rawValue instanceof Number) {
-                return ((Number) rawValue).doubleValue();
-            }
-            if (targetClass.isInstance(rawValue)) {
-                return rawValue;
-            }
-            return bind(rawValue, targetClass); // nested POJO
-        }
-        if (targetType instanceof ParameterizedType) {
-            final ParameterizedType parameterizedType = (ParameterizedType) targetType;
-            if (parameterizedType.getRawType() == List.class && rawValue instanceof List) {
-                final Type elementType = parameterizedType.getActualTypeArguments()[0];
-                final List<Object> result = new ArrayList<>();
-                for (final Object element : (List<?>) rawValue) {
-                    result.add(coerce(element, elementType));
-                }
-                return result;
-            }
-        }
-        return rawValue;
-    }
-
-    private static String decapitalize(final String s) {
-        if (s.isEmpty()) {
-            return s;
-        }
-        return Character.toLowerCase(s.charAt(0)) + s.substring(1);
     }
 
     private void write(final Object value, final StringBuilder sb) throws IOException {

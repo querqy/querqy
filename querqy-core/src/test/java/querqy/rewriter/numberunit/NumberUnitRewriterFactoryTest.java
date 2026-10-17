@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import querqy.ComparableCharSequenceWrapper;
-import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonSmartJsonProvider;
 import querqy.json.JsonProvider;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.doReturn;
 @RunWith(MockitoJUnitRunner.class)
 public class NumberUnitRewriterFactoryTest {
 
-    private static final JsonProvider JSON_PROVIDER = new JacksonJsonProvider();
+    private static final JsonProvider JSON_PROVIDER = new JsonSmartJsonProvider();
 
     private static final String MINIMAL_CONFIG =
             "{ \"numberUnitDefinitions\": [ { \"units\": [ { \"term\": \"cm\" } ], " +

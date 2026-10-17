@@ -20,9 +20,9 @@ package querqy.rewriter.commonrules.model;
 import static org.junit.Assert.*;
 
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import org.junit.Test;
+import querqy.json.jsonpath.QuerqyJsonPathMappingProvider;
+import querqy.json.jsonpath.QuerqyJsonPathProvider;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class InstructionsPropertiesTest {
         props.put("p4", p4);
 
         final InstructionsProperties instructionsProperties = new InstructionsProperties(props, Configuration.builder()
-                .jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build());
+                .jsonProvider(new QuerqyJsonPathProvider()).mappingProvider(new QuerqyJsonPathMappingProvider()).build());
 
         assertTrue(instructionsProperties.matches("$[?(@.p2 == '2')]"));
         assertFalse(instructionsProperties.matches("$.[?(@.p2 == 1)]"));
@@ -95,10 +95,11 @@ public class InstructionsPropertiesTest {
 
     @Test
     public void testMatches_withDefaultConfiguration() {
-        // Exercises the class's own default Configuration (querqy.json.jsonpath.QuerqyJsonPathProvider/
-        // QuerqyJsonPathMappingProvider), not an explicitly-supplied one - testMatches() above only ever
-        // tests with an explicit Jackson-backed Configuration, so this is the only test proving the actual
-        // default path (used in production via PropertyParser) correctly backs filter/predicate matching.
+        // Exercises the class's own default Configuration field (the no-arg constructor), rather than one
+        // explicitly passed in as testMatches()/testInOperatorMatches() do above (both now also backed by
+        // QuerqyJsonPathProvider/QuerqyJsonPathMappingProvider, but via the explicit two-arg constructor) -
+        // this is the test proving the actual default path (used in production via PropertyParser) correctly
+        // backs filter/predicate matching.
         final Map<String, Object> props = new HashMap<>();
         props.put("p1", 1);
         props.put("p2", "2");
@@ -135,7 +136,7 @@ public class InstructionsPropertiesTest {
         props.put("p4", p4);
 
         final InstructionsProperties instructionsProperties = new InstructionsProperties(props, Configuration.builder()
-                .jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build());
+                .jsonProvider(new QuerqyJsonPathProvider()).mappingProvider(new QuerqyJsonPathMappingProvider()).build());
 
         assertTrue(instructionsProperties.matches("$[?(@.p2 in [\"2\",\"11\"])]"));
 

@@ -20,7 +20,7 @@ package querqy.rewriter.numberunit;
 import java.util.List;
 
 /**
- * Jackson binding target for the NumberUnitRewriter's JSON configuration.
+ * {@link querqy.json.JsonProvider} binding target for the NumberUnitRewriter's JSON configuration.
  */
 class NumberUnitConfigObject {
 

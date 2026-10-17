@@ -20,8 +20,8 @@ package querqy.rewriter.numberunit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import querqy.json.JacksonJsonProvider;
 import querqy.json.JsonProvider;
+import querqy.json.JsonSmartJsonProvider;
 import querqy.json.ToyJsonProvider;
 import querqy.rewriter.numberunit.model.NumberUnitDefinition;
 
@@ -37,9 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Runs the full suite against two independent {@link JsonProvider} implementations - a plain Jackson one
- * and a hand-rolled, genuinely non-Jackson one - to prove {@link NumberUnitRewriterConfigParser}'s
- * behavior really only depends on the {@link JsonProvider} abstraction, not on Jackson-specific quirks.
+ * Runs the full suite against two independent {@link JsonProvider} implementations - one backed by
+ * json-smart and a hand-rolled, fully dependency-free one - to prove {@link NumberUnitRewriterConfigParser}'s
+ * behavior really only depends on the {@link JsonProvider} abstraction, not on any one JSON library's quirks.
  */
 @RunWith(Parameterized.class)
 public class NumberUnitRewriterConfigParserTest {
@@ -49,7 +49,7 @@ public class NumberUnitRewriterConfigParserTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> jsonProviders() {
         return Arrays.asList(
-                new Object[]{"Jackson", new JacksonJsonProvider()},
+                new Object[]{"JsonSmart", new JsonSmartJsonProvider()},
                 new Object[]{"Toy", new ToyJsonProvider()}
         );
     }

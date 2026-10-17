@@ -18,7 +18,7 @@
 package querqy.rewriter.commonrules.rules.factory;
 
 import org.junit.Test;
-import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonSmartJsonProvider;
 import querqy.json.JsonProvider;
 import querqy.rewriter.commonrules.WhiteSpaceQuerqyParserFactory;
 import querqy.rewriter.commonrules.model.InstructionsSupplier;
@@ -33,7 +33,7 @@ import static org.junit.Assert.assertThrows;
 
 public class RulesParserFactoryTest {
 
-    private static final JsonProvider JSON_PROVIDER = new JacksonJsonProvider();
+    private static final JsonProvider JSON_PROVIDER = new JsonSmartJsonProvider();
 
     @Test
     public void testThat_shorthandTextParser_parsesValidRules() throws IOException {

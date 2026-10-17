@@ -20,7 +20,7 @@ package querqy.rewriter.commonrules.rules.rule.skeleton;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
-import querqy.json.JacksonJsonProvider;
+import querqy.json.JsonSmartJsonProvider;
 import querqy.json.JsonProvider;
 import querqy.rewrite.RuleParseException;
 import querqy.rewriter.commonrules.rules.input.skeleton.InputSkeletonParser;
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertThrows;
 
 public class MultiLineParserTest {
 
-    private static final JsonProvider JSON_PROVIDER = new JacksonJsonProvider();
+    private static final JsonProvider JSON_PROVIDER = new JsonSmartJsonProvider();
 
     @Test
     public void testThat_emptyListIsReturned_forFinishingWithoutParsing() {

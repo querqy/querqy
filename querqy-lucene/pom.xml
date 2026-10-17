@@ -78,8 +78,6 @@
         <hamcrest.version>3.0</hamcrest.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <mockito.version>5.23.0</mockito.version>
-        <jackson.version>2.22.2</jackson.version>
-        <jackson-annotations.version>2.22</jackson-annotations.version>
     </properties>
 
     <dependencies>
@@ -125,30 +123,12 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jackson is test-scoped only: querqy-lucene's production code depends solely on the
-             querqy.json.JsonProvider SPI (see querqy.json.JsonProvider in querqy-core), so the packaged jar
-             never bundles a JSON library of its own. Host integrations supply their own JsonProvider via
-             LuceneSearchEngineRequestAdapter.getJsonProvider(). -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson-annotations.version}</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- querqy-lucene's production code depends solely on the querqy.json.JsonProvider SPI (see
+             querqy.json.JsonProvider in querqy-core), so the packaged jar never bundles a JSON library of its
+             own, and no Jackson dependency is declared here at all (not even test scope). Host integrations
+             supply their own JsonProvider via LuceneSearchEngineRequestAdapter.getJsonProvider(); tests here
+             reuse querqy-core's test-scoped JsonSmartJsonProvider/ToyJsonProvider reference implementations
+             via the test-jar dependency below. -->
 
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -185,11 +165,11 @@
                 <configuration>
                     <!-- Maven embeds a full copy of this module's pom.xml inside every jar it builds by
                          default, regardless of dependency scope - a scanner that reads that embedded POM's
-                         text for its dependency graph (without honoring <scope>) would still see
-                         jackson-databind/jackson-core/jackson-annotations listed even though they are
-                         test-scope only and never actually bundled. Disable the embedded descriptor so there
-                         is no such text anywhere in the jar. This has no effect on dependency resolution
-                         (which always uses the externally-fetched POM) or on compilation/tests. -->
+                         text for its dependency graph (without honoring <scope>) would still see test-scope
+                         dependencies (e.g. mockito) listed even though they are never actually bundled.
+                         Disable the embedded descriptor so there is no such text anywhere in the jar. This has
+                         no effect on dependency resolution (which always uses the externally-fetched POM) or
+                         on compilation/tests. -->
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
