@@ -53,8 +53,7 @@ public class RulesParserFactory {
      * @param querqyParserFactory A parser for the right-hand side of rules.
      * @param allowBooleanInput Iff true, rule input can have boolean expressions.
      * @param ignoreCase Iff true, rule input matching is case-insensitive.
-     * @param jsonProvider The JSON implementation to parse rule "property" blocks with - querqy-core no
-     *                     longer brings its own, so callers must supply one.
+     * @param jsonProvider The JSON implementation to parse rule "property" blocks with.
      */
     public static RulesParser textParser(final Reader rulesContentReader,
                                          final QuerqyParserFactory querqyParserFactory,
