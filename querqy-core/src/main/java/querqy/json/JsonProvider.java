@@ -41,17 +41,23 @@ public interface JsonProvider {
     Map<String, Object> readMap(String json) throws IOException;
 
     /**
-     * Parses {@code json} directly into an instance of {@code type} - a fixed, known POJO shape supplied
-     * by the caller (never resolved from the JSON payload itself - see the class-level polymorphic-typing
-     * restriction above).
+     * Parses {@code json} directly into an instance of {@code type} - a fixed, known shape supplied by the
+     * caller (never resolved from the JSON payload itself - see the class-level polymorphic-typing
+     * restriction above). {@code type} is usually a bean class with a no-arg constructor, but may also be a
+     * generic collection/map interface such as {@link java.util.List} or {@link Map} - querqy-lucene's
+     * {@code QueryParsingController} binds rewrite-chain debug/logging data this way (e.g.
+     * {@code readValue(json, List.class)}).
      *
      * @throws IOException if {@code json} is not valid JSON, or cannot be bound into {@code type}
      */
     <T> T readValue(String json, Class<T> type) throws IOException;
 
     /**
-     * Serializes {@code value} (typically a {@link Map} or {@link java.util.List}) to a pretty-printed
-     * JSON string.
+     * Serializes {@code value} to a pretty-printed JSON string. {@code value} is usually a {@link Map} or
+     * {@link java.util.List}, but implementations must also support serializing an arbitrary bean-shaped
+     * object graph: querqy-lucene's {@code QueryParsingController} serializes its own internal rewrite-chain
+     * log objects (e.g. {@code RewriteChainLog}, {@code ActionLog}) through this method as part of producing
+     * debug/logging output, not just plain {@code Map}/{@code List} structures.
      *
      * @throws IOException if {@code value} cannot be serialized
      */

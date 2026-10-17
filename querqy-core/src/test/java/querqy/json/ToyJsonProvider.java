@@ -106,7 +106,11 @@ public class ToyJsonProvider implements JsonProvider {
         } else if (value instanceof Boolean || value instanceof Number) {
             sb.append(value);
         } else {
-            throw new IOException("Cannot serialize value of type " + value.getClass());
+            // Deliberately unsupported, not a data/IO problem: this toy provider only handles the
+            // Map/List/String/Boolean/Number shapes querqy-core's config parsers produce, not arbitrary
+            // bean graphs (e.g. querqy-lucene's rewrite-chain log objects).
+            throw new UnsupportedOperationException("ToyJsonProvider cannot serialize values of type "
+                    + value.getClass().getName());
         }
     }
 
