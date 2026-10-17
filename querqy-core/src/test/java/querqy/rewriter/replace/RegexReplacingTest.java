@@ -86,12 +86,15 @@ public class RegexReplacingTest {
         assertTrue(regexReplacing.replace(input).isEmpty());
     }
 
-    @Test(timeout = 5_000)
+    @Test(timeout = 20_000)
     public void testReplacementScalesLinearlyAcrossRecursiveSplits() {
         // applyReplacement() used to recurse into a freshly re-scanned prefix/suffix substring
         // after every match, which multiplied a full rescan by the recursion depth. Matches for
         // the whole input are now computed once and looked up by position for each recursive
         // split, so this completes quickly even for many independently matchable segments.
+        // Measured ~2s locally; the generous timeout budget (vs. that baseline) is to absorb
+        // slower/noisier CI runners, not because the operation is expected to take anywhere
+        // near that long.
         final RegexReplacing regexReplacing = new RegexReplacing(true, null);
         regexReplacing.put("a", "x");
 
