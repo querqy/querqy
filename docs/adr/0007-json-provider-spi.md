@@ -175,6 +175,20 @@ Per touch point:
   Querqy's own Jackson usage but does not make `querqy-core` fully JSON-library-free; it trades one
   dependency (Jackson, actively problematic) for a narrower, already-present one (json-smart, not
   independently a known problem at the version in use).
+- **The SPI makes no guarantee about null/empty-field inclusion in serialized output**, which changes
+  the shape of `QueryParsingController`'s rewrite-chain debug/logging JSON. Before this SPI existed,
+  that class's hardcoded Jackson `ObjectMapper` was explicitly configured with `NON_NULL`/`NON_EMPTY`
+  inclusion to omit null/empty fields; `querqy.json.JsonProvider#writeValueAsString` carries no such
+  contract, so an implementation is free to include them instead. Confirmed concretely:
+  `JsonSmartJsonProvider` (`json-smart`'s `JSONValue.toJSONString`) does include nulls (e.g.
+  `{"message":"...","match":null,"instructions":null}`), making this debug/logging output more verbose
+  than before. **This is not restored automatically by a host integration choosing a Jackson-backed
+  `JsonProvider` either** — `NON_NULL`/`NON_EMPTY` was a deliberate configuration choice on that one old
+  `ObjectMapper`, not Jackson's own default (Jackson's default, like `json-smart`'s, is to include
+  nulls/empties). Any host integration wanting the old compact shape back must configure its own
+  `JsonProvider` implementation to do so explicitly; this repo can no longer even verify that behavior
+  itself, since Jackson isn't on its classpath at all anymore. Documented on `JsonProvider`,
+  `JsonSmartJsonProvider`, and `QueryParsingController.toGenericList` directly.
 
 ## References
 

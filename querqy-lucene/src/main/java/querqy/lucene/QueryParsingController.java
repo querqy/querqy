@@ -560,6 +560,15 @@ public class QueryParsingController {
      * Converts an arbitrary object graph (rewrite-chain log/debug data) into a generic, loosely-typed
      * {@code List} by round-tripping it through the configured {@link JsonProvider} - the same thing
      * Jackson's {@code ObjectMapper.convertValue} used to do internally, without depending on Jackson here.
+     * <p>
+     * The exact shape of the result - in particular, whether {@code null}/empty fields of the source object
+     * graph are included or omitted - depends entirely on the injected {@link JsonProvider}'s own
+     * serialization behavior; this SPI makes no guarantee either way (see
+     * {@link JsonProvider#writeValueAsString}). Before this SPI existed, this class used a hardcoded Jackson
+     * {@code ObjectMapper} configured with {@code NON_NULL}/{@code NON_EMPTY} inclusion to keep this output
+     * compact; a host integration that wants that same compact shape back must configure its own
+     * {@code JsonProvider} implementation to do so explicitly - it is not Jackson's (or any other library's)
+     * out-of-the-box default.
      */
     @SuppressWarnings("unchecked")
     private List<Object> toGenericList(final Object value) {

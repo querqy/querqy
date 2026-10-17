@@ -25,12 +25,12 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * A third, library-backed test-only {@link JsonProvider} implementation, backed by
- * {@code net.minidev:json-smart} - a library this module cannot avoid depending on regardless, since it's a
- * mandatory, non-optional transitive runtime dependency of {@code com.jayway.jsonpath:json-path} (see
- * querqy-core's {@code pom.xml}). Gives a second, independently-maintained-library cross-check on the
- * {@link JsonProvider} abstraction's JSON parsing/writing (as opposed to {@link ToyJsonProvider}'s hand-rolled
- * one) without adding any dependency this module doesn't already carry.
+ * A library-backed test-only {@link JsonProvider} implementation, backed by {@code net.minidev:json-smart}
+ * - a library this module cannot avoid depending on regardless, since it's a mandatory, non-optional
+ * transitive runtime dependency of {@code com.jayway.jsonpath:json-path} (see querqy-core's {@code pom.xml}).
+ * Gives an independently-maintained-library cross-check on the {@link JsonProvider} abstraction's JSON
+ * parsing/writing (as opposed to {@link ToyJsonProvider}'s hand-rolled one) without adding any dependency
+ * this module doesn't already carry.
  * <p>
  * Uses {@link JSONParser#MODE_RFC4627} (strict JSON) rather than json-smart's default lenient parsing, since
  * the lenient CommonRules property dialect is already normalized to strict JSON upstream (by
@@ -43,6 +43,14 @@ import java.util.Map;
  * fails with {@code IllegalAccessError} against querqy-core's package-private binding targets (e.g.
  * {@code NumberUnitConfigObject}) - the JVM's package-private access check requires the same defining
  * classloader, not just the same package name.
+ * <p>
+ * {@code writeValueAsString} ({@code JSONValue.toJSONString}) includes {@code null}-valued bean properties
+ * in its output (e.g. {@code {"message":"...","match":null,"instructions":null}}) rather than omitting them.
+ * This makes {@code querqy-lucene}'s rewrite-chain debug/logging output (see {@code QueryParsingController})
+ * more verbose than it was before the {@link JsonProvider} SPI existed, when a hardcoded Jackson
+ * {@code ObjectMapper} there explicitly suppressed nulls/empties - see {@link JsonProvider#writeValueAsString}
+ * for why that compact shape isn't something a {@code JsonProvider} implementation gets "for free" just by
+ * being Jackson-backed either.
  */
 public class JsonSmartJsonProvider implements JsonProvider {
 

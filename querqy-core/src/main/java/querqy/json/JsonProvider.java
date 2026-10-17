@@ -58,6 +58,15 @@ public interface JsonProvider {
      * object graph: querqy-lucene's {@code QueryParsingController} serializes its own internal rewrite-chain
      * log objects (e.g. {@code RewriteChainLog}, {@code ActionLog}) through this method as part of producing
      * debug/logging output, not just plain {@code Map}/{@code List} structures.
+     * <p>
+     * This SPI makes no guarantee about how {@code null}/empty fields of such an object graph are
+     * represented - whether they're included (e.g. {@code "field":null}) or omitted entirely is left to the
+     * implementation. Before this SPI existed, {@code QueryParsingController}'s hardcoded Jackson
+     * {@code ObjectMapper} explicitly configured {@code NON_NULL}/{@code NON_EMPTY} inclusion to omit them;
+     * that was a deliberate configuration choice on that one {@code ObjectMapper}, not Jackson's own default
+     * (Jackson's default is to include them), so it is NOT restored automatically just by an implementation
+     * being Jackson-backed - any implementation wanting compact, null/empty-free debug/logging output must
+     * configure that itself.
      *
      * @throws IOException if {@code value} cannot be serialized
      */
