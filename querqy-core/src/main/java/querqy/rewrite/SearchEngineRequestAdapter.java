@@ -17,6 +17,8 @@
  */
 package querqy.rewrite;
 
+import querqy.json.JsonProvider;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -94,5 +96,15 @@ public interface SearchEngineRequestAdapter {
     boolean isDebugQuery();
 
     RewriteLoggingConfig getRewriteLoggingConfig();
+
+    /**
+     * <p>Get the {@link JsonProvider} to use for any JSON (de)serialization querqy-core or a host
+     * integration needs (e.g. parsing rewriter configuration, or converting rewrite-chain debug/logging data
+     * into a generic structure). Neither querqy-core nor any host integration module brings its own JSON
+     * library, so the host integration must supply one.</p>
+     *
+     * @return The JsonProvider.
+     */
+    JsonProvider getJsonProvider();
 
 }
