@@ -93,8 +93,9 @@ public class SimpleCommonRulesRewriterFactory extends RewriterFactory {
      * @param defaultSelectionStrategyFactory The default {@link SelectionStrategyFactory} to be used if no strategy is
      *                                       specified as a request parameter
      * @param buildTermCache If true, build the term cache for terms from the rhs of rules
-     * @param jsonProvider The JSON implementation to parse rule "property" blocks with - querqy-core no
-     *                     longer brings its own, so host integrations must supply one
+     * @param lookupPreprocessorType The {@link LookupPreprocessorType} to apply to terms before building the
+     *                               rule lookup structure and at query time
+     * @param jsonProvider The JSON implementation to parse rule "property" blocks with
      * @throws IOException if rules cannot be read or parsed
      */
     public SimpleCommonRulesRewriterFactory(final String rewriterId,
