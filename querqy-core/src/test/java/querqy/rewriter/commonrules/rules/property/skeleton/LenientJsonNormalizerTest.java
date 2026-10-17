@@ -109,4 +109,42 @@ public class LenientJsonNormalizerTest {
         final String json = "{\"a\": \"ends with backslash\\\\\"}";
         assertThat(LenientJsonNormalizer.normalize(json)).isEqualTo(json);
     }
+
+    @Test
+    public void testThat_unterminatedDoubleQuotedStringIsPassedThroughWithNoClosingQuoteAdded() {
+        // No closing quote before end of input: copied through verbatim, with '#' and "'" inside the broken
+        // string correctly NOT treated as a comment/quote start. The result is syntactically invalid JSON
+        // (an unterminated string), so a downstream JsonProvider.readMap(...) reliably rejects it rather than
+        // silently accepting anything - this test pins that normalization behavior down explicitly.
+        final String json = "{\"a\": \"oops # not a comment and 'not a quote";
+        assertThat(LenientJsonNormalizer.normalize(json)).isEqualTo(json);
+    }
+
+    @Test
+    public void testThat_unterminatedSingleQuotedStringConsumesRestOfInputIncludingStructuralCharacters() {
+        // No closing single quote before end of input: everything up to EOF - including what should have
+        // been the object's own closing brace - is absorbed into the string value, and a closing double quote
+        // is appended unconditionally. The resulting text is syntactically invalid JSON (its closing brace
+        // was consumed into the string value instead of terminating the object), so a downstream
+        // JsonProvider.readMap(...) reliably rejects it rather than silently accepting corrupted structure.
+        assertThat(LenientJsonNormalizer.normalize("{\"a\": 'oops}"))
+                .isEqualTo("{\"a\": \"oops}\"");
+    }
+
+    @Test
+    public void testThat_trailingBackslashAtEndOfDoubleQuotedStringDoesNotThrow() {
+        final String json = "{\"a\": \"oops\\";
+        assertThat(LenientJsonNormalizer.normalize(json)).isEqualTo(json);
+    }
+
+    @Test
+    public void testThat_trailingBackslashAtEndOfSingleQuotedStringDoesNotThrow() {
+        // The trailing backslash is copied through literally, then the unconditional closing double quote is
+        // appended right after it - forming "\"" in the output, which a downstream JSON parser reads as an
+        // escaped quote rather than a string terminator. The string therefore still isn't properly closed
+        // from the downstream parser's point of view; this test only pins down that the normalizer itself
+        // never throws for this input, not what the ultimate parse outcome is.
+        assertThat(LenientJsonNormalizer.normalize("{\"a\": 'oops\\"))
+                .isEqualTo("{\"a\": \"oops\\\"");
+    }
 }

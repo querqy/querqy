@@ -68,6 +68,46 @@ public class PropertySkeletonParserTest {
     }
 
     @Test
+    public void testThat_exceptionIsThrown_forDuplicateKeyWithinSingleObjectLiteral() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@{\"d\": true, \"d\": false}@"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forDuplicateKeyWithinNestedObjectLiteral() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@{",
+                                "outer: {",
+                                "  \"inner\": \"value1\",",
+                                "  \"inner\": \"value2\"",
+                                "}",
+                                "}@"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_duplicateKeysAtDifferentNestingLevelsAreNotFlagged() {
+        assertThat(
+                parse(
+                        "@{",
+                        "d: \"outer\",",
+                        "nested: { \"d\": \"inner\" }",
+                        "}@"
+                )
+        ).isEqualTo(
+                properties(
+                        "d", "outer",
+                        "nested", Collections.singletonMap("d", "inner")
+                )
+        );
+    }
+
+    @Test
     public void testThat_exceptionIsThrown_forUnfinishedMultiLineProperties() {
         assertThrows(RuleParseException.class, () ->
                         parse(
@@ -139,6 +179,33 @@ public class PropertySkeletonParserTest {
                         "a", "b"
                 )
         );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forUnterminatedDoubleQuotedStringInProperty() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@a: \"oops, no closing quote"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forUnterminatedSingleQuotedStringInProperty() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@a: 'oops, no closing quote"
+                        )
+                );
+    }
+
+    @Test
+    public void testThat_exceptionIsThrown_forTrailingBackslashInProperty() {
+        assertThrows(RuleParseException.class, () ->
+                        parse(
+                                "@a: \"oops\\"
+                        )
+                );
     }
 
     @Test

@@ -114,6 +114,7 @@ public class PropertySkeletonParser implements SkeletonComponentParser<Map<Strin
 
     private Map<String, Object> deserializeJsonString(final String jsonString) {
         final String normalized = LenientJsonNormalizer.normalize(jsonString);
+        DuplicateJsonKeyChecker.check(normalized);
 
         try {
             return jsonProvider.readMap(normalized);
