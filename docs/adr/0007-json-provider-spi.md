@@ -2,8 +2,8 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-15
-- **Area:** Querqy core — `querqy.json`; also touches `querqy-lucene` (`QueryParsingController`,
-  `LuceneSearchEngineRequestAdapter`)
+- **Area:** Querqy core — `querqy.json`, `SearchEngineRequestAdapter`; also touches `querqy-lucene`
+  (`QueryParsingController`, `LuceneSearchEngineRequestAdapter`)
 - **Relates to:** querqy/querqy#1158, branch `issue1158`
 
 ## Context
@@ -45,10 +45,13 @@ Introduce `querqy.json.JsonProvider` (`readMap(String)`, `<T> T readValue(String
 allowed to use for JSON handling, with **no built-in implementation and no hidden default** — callers
 must supply one explicitly, the same way `QuerqyParserFactory` is already threaded through
 `RulesParserConfig`/`RuleParserConfig`. Implementations **must not** support polymorphic/default-typing
-deserialization (no `@JsonTypeInfo` equivalent) — the same constraint the existing `forbidden-apis`
-check (`forbidden-apis/jackson-signatures.txt`) already enforced against Jackson's own gadget-chain RCE
-class of vulnerability, now stated as a contract on the SPI itself so any implementation (not just a
-Jackson-backed one) stays safe.
+deserialization (no `@JsonTypeInfo` equivalent) — the same constraint a `forbidden-apis` check
+(`forbidden-apis/jackson-signatures.txt`) had already been enforcing against Jackson's own gadget-chain
+RCE class of vulnerability, now stated as a contract on the SPI itself so any implementation (not just a
+Jackson-backed one) stays safe. That `forbidden-apis` check was later removed once Jackson stopped being
+a dependency of either module at all (nothing left for it to scan against) — the contract now lives only
+in this Javadoc, which is why it's documented here rather than relying solely on a build-time check that
+can't exist anymore.
 
 Per touch point:
 
@@ -74,30 +77,38 @@ Per touch point:
   intentionally throw `UnsupportedOperationException` rather than implement an unexercised code path.
   This is **not** a full Jackson-to-`querqy.json.JsonProvider` delegation (deliberately, see Deferred
   below) — it needs no delegate at all for what this codebase actually does with JsonPath.
-- **`querqy-lucene`'s `QueryParsingController`**: a new `LuceneSearchEngineRequestAdapter.getJsonProvider()`
-  method (required, no default — breaking interface change) supplies the provider; the two Jackson
-  `convertValue`-style conversions become a `writeValueAsString` + `readMap`/`readValue` round trip
-  through the injected provider (the same thing Jackson's `convertValue` already does internally). This
-  is a host-integration-facing interface with no in-repo implementer (confirmed - only downstream
-  repos like `querqy-opensearch` implement it), so the breaking change only affects those downstream
-  repos' own adapter classes, not anything in this repo.
-- **`pom.xml` (both modules)**: `jackson-databind`/`jackson-core`(/`jackson-annotations` in
-  `querqy-lucene`) moved to `<scope>test</scope>`, backing a test-only reference implementation
-  (`JacksonJsonProvider`) plus a second, genuinely dependency-free, hand-rolled `ToyJsonProvider` — the
-  existing `PropertySkeletonParserTest`/`NumberUnitRewriterConfigParserTest` suites run against both,
-  proving the SPI boundary is real rather than a Jackson-shaped wrapper only ever exercised by Jackson
-  itself. `maven-jar-plugin`'s `addMavenDescriptor` is disabled on both modules: Maven embeds a full
-  copy of a module's `pom.xml` inside the jar it builds by default, *regardless of dependency scope* —
-  a scanner reading that embedded copy's declared dependencies without honoring `<scope>` would still
-  see `jackson-databind`/`jackson-core` listed even though they're test-only and never bundled. This
-  was found to matter in practice: it was the exact reason AWS's plugin-upload scan kept flagging
-  Jackson CVEs even after the actual dependency was correctly test-scoped and the real Jackson jars
-  were no longer bundled anywhere in the plugin zip.
+- **`querqy-lucene`'s `QueryParsingController`**: a new `getJsonProvider()` method (required, no default —
+  breaking interface change) supplies the provider; the two Jackson `convertValue`-style conversions
+  become a `writeValueAsString` + `readMap`/`readValue` round trip through the injected provider (the
+  same thing Jackson's `convertValue` already does internally). The method was initially added to
+  `LuceneSearchEngineRequestAdapter`, then moved up to the shared `SearchEngineRequestAdapter`
+  (`querqy-core`) once it became clear non-Lucene host integrations (e.g. Querqy Unplugged) need a
+  `JsonProvider` too and shouldn't have to implement the Lucene-specific interface to get one. This is a
+  host-integration-facing interface with no in-repo implementer (confirmed - only downstream repos like
+  `querqy-opensearch` implement it), so the breaking change only affects those downstream repos' own
+  adapter classes, not anything in this repo.
+- **`pom.xml` (both modules)**: Jackson is not a dependency of either module at all, at any scope —
+  `jackson-databind`/`jackson-core`(/`jackson-annotations` in `querqy-lucene`) were initially moved to
+  `<scope>test</scope>` to back a test-only reference implementation (`JacksonJsonProvider`), then
+  removed entirely once it turned out dependency scanners like Dependabot don't exempt test-scope
+  dependencies from CVE alerts — keeping Jackson around test-only didn't actually reduce scanner noise,
+  only reduce what actually shipped. The test-only reference implementations are now `JsonSmartJsonProvider`
+  (backed by `net.minidev:json-smart`, already a mandatory transitive dependency of `json-path` — adds no
+  new dependency footprint) and the hand-rolled, fully dependency-free `ToyJsonProvider`; the existing
+  `PropertySkeletonParserTest`/`NumberUnitRewriterConfigParserTest` suites run against both, proving the
+  SPI boundary is real rather than a wrapper only ever exercised by one specific library. `maven-jar-plugin`'s
+  `addMavenDescriptor` is disabled on both modules: Maven embeds a full copy of a module's `pom.xml`
+  inside the jar it builds by default, *regardless of dependency scope* — a scanner reading that embedded
+  copy's declared dependencies without honoring `<scope>` would still see test-only dependencies listed as
+  if bundled. This was found to matter in practice: it was the exact reason AWS's plugin-upload scan kept
+  flagging Jackson CVEs even when Jackson was (at the time) test-scoped and not actually bundled anywhere
+  in the plugin zip; the setting is now a general precaution against the same class of false positive for
+  any test-only dependency (e.g. `json-smart`, `mockito`), not specifically about Jackson.
 
 ### Explicitly deferred, not bundled into this change
 
 - **A production-quality `querqy.json.JsonProvider` implementation shipped from `querqy-core` itself.**
-  There is deliberately none — every implementation lives either in test sources (`JacksonJsonProvider`,
+  There is deliberately none — every implementation lives either in test sources (`JsonSmartJsonProvider`,
   `ToyJsonProvider`) or in a downstream host integration (`querqy-opensearch`'s
   `XContentJsonProvider`, backed by OpenSearch's own `XContent`). Each host engine is expected to supply
   its own, reusing whatever JSON-capable infrastructure it already has (XContent for
@@ -117,12 +128,14 @@ Per touch point:
   property-filter-matching use case).
 - **Migrating `querqy-solr`/`querqy-elasticsearch`/`querqy-unplugged`** to supply their own
   `JsonProvider` for the now-required parameters on `NumberUnitRewriterFactory`,
-  `SimpleCommonRulesRewriterFactory`, and `LuceneSearchEngineRequestAdapter`. Each is a separate
-  repository with its own release cadence (same precedent as ADR-0005) — this ships the capability;
-  those repos adopt it in their own follow-up PRs once they pull in a `querqy-core`/`querqy-lucene`
-  release containing this change. `querqy-opensearch` is the one integration already migrated and
-  verified end-to-end (including a successful AWS OpenSearch Service deployment with the resulting
-  Jackson-free plugin bundle).
+  `SimpleCommonRulesRewriterFactory`, and `SearchEngineRequestAdapter.getJsonProvider()`. Each is a
+  separate repository with its own release cadence (same precedent as ADR-0005) — this ships the
+  capability; those repos adopt it in their own follow-up PRs once they pull in a `querqy-core`/
+  `querqy-lucene` release containing this change. `querqy-opensearch` is the one integration already
+  migrated and verified end-to-end (including a successful AWS OpenSearch Service deployment with the
+  resulting Jackson-free plugin bundle). `getJsonProvider()` living on `SearchEngineRequestAdapter`
+  rather than the Lucene-specific `LuceneSearchEngineRequestAdapter` means `querqy-unplugged` (which
+  doesn't depend on `querqy-lucene`) can adopt it too.
 
 ## Consequences
 
@@ -135,21 +148,27 @@ Per touch point:
   no-arg), `NumberUnitRewriterFactory`'s two constructors and `validateConfiguration` gain a trailing
   `JsonProvider` parameter, `SimpleCommonRulesRewriterFactory`'s constructor gains a trailing
   `JsonProvider` parameter, `RulesParserFactory`'s convenience `textParser(...)` overload gains a
-  trailing `JsonProvider` parameter, and `querqy-lucene`'s `LuceneSearchEngineRequestAdapter` gains a
-  new required `getJsonProvider()` method. None of these have an in-repo caller outside this change's
-  own tests (confirmed per call site before changing each), so nothing in this repo needed a
-  compatibility shim — downstream repos adapt when they adopt the release.
-- `jackson-databind`/`jackson-core`(/`jackson-annotations`) are test-scope-only dependencies of both
-  modules now; `maven-jar-plugin`'s embedded-POM descriptor is disabled on both.
-- Full existing test suites (957+ tests in `querqy-core`) pass unchanged in behavior, run twice where
+  trailing `JsonProvider` parameter, and `SearchEngineRequestAdapter` (`querqy-core`) gains a new
+  required `getJsonProvider()` method (initially added to `LuceneSearchEngineRequestAdapter`, later
+  moved up — see Decision above). None of these have an in-repo caller outside this change's own tests
+  (confirmed per call site before changing each), so nothing in this repo needed a compatibility shim —
+  downstream repos adapt when they adopt the release.
+- Jackson is not a dependency of either module at all, at any scope (initially test-scope-only, then
+  removed entirely — see Decision above); `maven-jar-plugin`'s embedded-POM descriptor is disabled on
+  both as a general precaution against the same class of scanner false positive for any remaining
+  test-only dependency.
+- Full existing test suites (974 tests in `querqy-core`, 113 in `querqy-lucene`) pass, run twice where
   it matters (`PropertySkeletonParserTest`/`NumberUnitRewriterConfigParserTest`, parameterized across
-  `JacksonJsonProvider` and `ToyJsonProvider`) to prove the abstraction.
+  `JsonSmartJsonProvider` and `ToyJsonProvider`) to prove the abstraction. A security review of this
+  change also found and fixed a real regression (duplicate JSON object keys silently accepted instead
+  of rejected — see `DuplicateJsonKeyChecker`) and added test coverage for a previously-untested path
+  (`QueryParsingController`'s rewrite-chain debug/logging round trip, see `QueryParsingControllerTest`).
 
 ### Trade-offs
 
-- Every host integration must now supply its own `JsonProvider` (and, for `querqy-lucene`'s adapter
-  interface, its own `getJsonProvider()` implementation) — one extra small class per integration,
-  in exchange for no longer carrying a third-party JSON library as a hard production dependency.
+- Every host integration must now supply its own `JsonProvider` via `SearchEngineRequestAdapter.getJsonProvider()`
+  — one extra small class per integration, in exchange for no longer carrying a third-party JSON library
+  as a hard production dependency.
 - The CommonRules property-filter-matching path (`InstructionsProperties.matches(String)`) still
   pulls in `net.minidev:json-smart`/`accessors-smart` transitively via `com.jayway.jsonpath` itself,
   for reasons unrelated to and unfixable by this SPI (see Deferred above) — this change removes
@@ -160,13 +179,24 @@ Per touch point:
 ## References
 
 - `querqy-core/src/main/java/querqy/json/JsonProvider.java` — the SPI itself.
+- `querqy-core/src/main/java/querqy/rewrite/SearchEngineRequestAdapter.java` — declares
+  `getJsonProvider()` (moved here from `LuceneSearchEngineRequestAdapter` so non-Lucene host
+  integrations can supply one too).
 - `querqy-core/src/main/java/querqy/json/jsonpath/QuerqyJsonPathProvider.java`,
   `QuerqyJsonPathMappingProvider.java` — the dependency-free JsonPath SPI implementation.
 - `querqy-core/src/main/java/querqy/rewriter/commonrules/rules/property/skeleton/LenientJsonNormalizer.java`
   — the lenient-dialect-to-strict-JSON preprocessor.
-- `querqy-core/src/test/java/querqy/json/JacksonJsonProvider.java`,
-  `ToyJsonProvider.java` — the two test-only reference implementations.
+- `querqy-core/src/main/java/querqy/rewriter/commonrules/rules/property/skeleton/DuplicateJsonKeyChecker.java`
+  — rejects duplicate keys within a single JSON object literal, independent of whichever `JsonProvider`
+  is wired in (found missing, and added, during a later security review of this change).
+- `querqy-core/src/test/java/querqy/json/JsonSmartJsonProvider.java`, `ToyJsonProvider.java`,
+  `ReflectiveBeanBinder.java` — the two test-only reference implementations (`JsonSmartJsonProvider`
+  replaced the original `JacksonJsonProvider` once Jackson was dropped entirely), and the reflection-based
+  POJO binder they share.
 - `querqy-lucene/src/main/java/querqy/lucene/QueryParsingController.java`,
   `LuceneSearchEngineRequestAdapter.java` — the `querqy-lucene` side of this change.
+- `querqy-lucene/src/test/java/querqy/lucene/QueryParsingControllerTest.java` — test coverage for the
+  rewrite-chain debug/logging round trip (added during the later security review; this path had none
+  initially).
 - `querqy-opensearch`'s `core/src/main/java/querqy/opensearch/json/XContentJsonProvider.java` — the
   first downstream `JsonProvider` implementation, backed by OpenSearch's own `XContent`.
