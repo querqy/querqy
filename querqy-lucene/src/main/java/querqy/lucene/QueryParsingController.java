@@ -216,11 +216,9 @@ public class QueryParsingController {
 
         // additive boosts given e.g. by Solr URL parameters "bq" and "bf"
         final List<Query> additiveBoostsFromRequest = needsScores ? requestAdapter.getAdditiveBoosts(parsedInput.getUserQuery()) : Collections.emptyList();
-        final boolean hasAdditiveBoostsFromRequest = !additiveBoostsFromRequest.isEmpty();
 
         // multiplicative boosts, e.g. by Solr URL parameter "boost"
         final List<Query> multiplicativeBoostsFromRequest = needsScores ? requestAdapter.getMultiplicativeBoosts(parsedInput.getUserQuery()) : Collections.emptyList();
-        final boolean hasMultiplicativeBoostsFromRequest = !multiplicativeBoostsFromRequest.isEmpty();
 
         final RewriteChainOutput rewriteChainOutput = requestAdapter.getRewriteChain().rewrite(parsedInput, requestAdapter);
 
@@ -229,7 +227,44 @@ public class QueryParsingController {
             processRewriteLogging();
         }
 
-        final ExpandedQuery rewrittenExpandedQuery = rewriteChainOutput.getExpandedQuery();
+        return buildLuceneQueries(rewriteChainOutput.getExpandedQuery(), additiveBoostsFromRequest,
+                multiplicativeBoostsFromRequest);
+    }
+
+    /**
+     * Builds Lucene queries from an already-rewritten {@link ExpandedQuery} - the output of calling {@link
+     * #createExpandedQuery()} and then a {@link querqy.rewrite.RewriteChain}'s {@code rewrite(...)} elsewhere (e.g.
+     * once, on a coordinating node, before this controller's shard-local instance runs only this stage). Skips
+     * parsing and rewriting entirely; everything else - main query, filter queries, Querqy boost queries, and the
+     * boost/multiplicative-function assembly - is identical to what {@link #process()} does after its own rewrite
+     * call, reusing this controller's shard-local analyzer/field-boost-model/document-frequency-correction.
+     * <p>
+     * {@code originalUserQuery} must be the *unrewritten* user query {@code rewrittenExpandedQuery} was rewritten
+     * from (i.e. {@code createExpandedQuery().getUserQuery()}, before the rewrite chain ran) - request-level boosts
+     * (e.g. Solr's "bq"/"bf"/"boost", via {@link LuceneSearchEngineRequestAdapter#getAdditiveBoosts}/{@code
+     * getMultiplicativeBoosts}) are defined in terms of what the user actually typed, not of whatever a rewriter
+     * turned it into, and - like the rest of this method - they depend on this controller's shard-local analyzer, so
+     * a coordinator cannot compute them in advance either; a caller splitting parsing/rewriting (coordinator) from
+     * query building (shard) must therefore preserve and pass along the original, unrewritten user query alongside
+     * the rewritten model.
+     */
+    public LuceneQueries buildFromRewrittenQuery(final QuerqyQuery<?> originalUserQuery,
+                                                 final ExpandedQuery rewrittenExpandedQuery) throws SyntaxException {
+
+        final List<Query> additiveBoostsFromRequest = needsScores
+                ? requestAdapter.getAdditiveBoosts(originalUserQuery) : Collections.emptyList();
+        final List<Query> multiplicativeBoostsFromRequest = needsScores
+                ? requestAdapter.getMultiplicativeBoosts(originalUserQuery) : Collections.emptyList();
+
+        return buildLuceneQueries(rewrittenExpandedQuery, additiveBoostsFromRequest, multiplicativeBoostsFromRequest);
+    }
+
+    private LuceneQueries buildLuceneQueries(final ExpandedQuery rewrittenExpandedQuery,
+                                             final List<Query> additiveBoostsFromRequest,
+                                             final List<Query> multiplicativeBoostsFromRequest) throws SyntaxException {
+
+        final boolean hasAdditiveBoostsFromRequest = !additiveBoostsFromRequest.isEmpty();
+        final boolean hasMultiplicativeBoostsFromRequest = !multiplicativeBoostsFromRequest.isEmpty();
 
         Query mainQuery = transformUserQuery(rewrittenExpandedQuery.getUserQuery(), builder);
 
