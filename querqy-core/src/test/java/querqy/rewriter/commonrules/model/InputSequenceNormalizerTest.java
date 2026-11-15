@@ -255,6 +255,19 @@ public class InputSequenceNormalizerTest {
     }
 
     @Test
+    public void testThatGermanPreprocessorHandlesShortSZLigatureCandidate() {
+        // #1166: used to throw ArrayIndexOutOfBoundsException
+        char[] s1 = "Less".toCharArray();
+        Term term1 = new Term(s1, 0, s1.length, null);
+        Input.SimpleInput input = new Input.SimpleInput(Collections.singletonList(term1), false, false,
+                "Less");
+        List<CharSequence> sequences = GERMAN.getNormalizedInputSequences(input);
+        assertNotNull(sequences);
+        assertEquals(1, sequences.size());
+        assertEquals("less", sequences.get(0).toString());
+    }
+
+    @Test
     public void testThatLeftBoundaryIsAppliedToSingleTerm() {
         char[] s1 = "Glueck".toCharArray();
         Term term1 = new Term(s1, 0, s1.length, null);

@@ -139,6 +139,28 @@ public class GermanNounNormalizerTest {
                 .containsExactlyInAnyOrder("straßenmasse", "straßenmaße", "strassenmaße");
     }
 
+    @Test
+    public void testThatShortSZLigatureInputDoesNotThrow() {
+        // #1166: the ss->ß variant of these 4-char inputs is only 3 chars long
+        unchanged("less");
+        unchanged("ness");
+        unchanged("kiss");
+        unchanged("isse");
+        unchanged("ssab");
+        unchanged("ssss");
+    }
+
+    @Test
+    public void testThatShortSZLigatureVariantIsNotLookedUpAsCompound() {
+        assertThat(new GermanNounNormalizer().lookupCompoundInput("leß")).isEmpty();
+    }
+
+    @Test
+    public void testCompoundWithFourCharBaseWordKeepsPrefix() {
+        assertThat(new GermanNounNormalizer().process("xyzwhüte").toString()).isEqualTo("xyzwhut");
+        match("xyzwhüte", "xyzwhut");
+    }
+
     private void match(final String token1, final String token2) {
         assertTrue("Not matching: " + token1 + " vs " + token2,  isMatch(token1, token2));
     }
