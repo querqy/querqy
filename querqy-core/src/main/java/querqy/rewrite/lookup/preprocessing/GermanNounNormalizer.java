@@ -35,6 +35,8 @@ public class GermanNounNormalizer implements LookupPreprocessor {
 
     public static final int MIN_INPUT_LENGTH = 4;
     static final int MIN_INPUT_LENGTH_TO_STRIP_OFF_S = 5;
+    private static final int MIN_COMPOUND_BASE_WORD_LENGTH = 4;
+    private static final int MIN_COMPOUND_PREFIX_LENGTH = 3;
 
 
     private static final String IDENTITY = "";
@@ -203,36 +205,43 @@ public class GermanNounNormalizer implements LookupPreprocessor {
     }
 
     protected Optional<CharSequence> lookupCompoundInput(final CharSequence input) {
-        final int minBaseWordLength = 4;
-        final int minPrefixLength = 3;
+        final int inputLength = input.length();
+        // A compound needs a non-empty prefix in front of the base word. This also protects against inputs that
+        // are shorter than the base word, such as the ß variants created in trySZLigature (#1166).
+        if (inputLength <= MIN_COMPOUND_BASE_WORD_LENGTH) {
+            return Optional.empty();
+        }
+
         // find the longest input matching from the end
         final ReverseCharSequence seq = new ReverseCharSequence(input);
-        // start at the minBaseWordLength:
-        int baseWordPos = -1;
+        // number of chars of the longest base word found so far, matched from the end of the input
+        int baseWordLength = -1;
         State<String> baseWordState = null;
 
-        final CharSequence suffix = seq.subSequence(0, minBaseWordLength);
+        // start at the MIN_COMPOUND_BASE_WORD_LENGTH:
+        final CharSequence suffix = seq.subSequence(0, MIN_COMPOUND_BASE_WORD_LENGTH);
         State<String> state = REVERSE_MAP.get(suffix).getStateForCompleteSequence();
         if (state.isFinal()) {
             baseWordState = state;
-            baseWordPos = minBaseWordLength;
+            baseWordLength = MIN_COMPOUND_BASE_WORD_LENGTH;
         }
 
-        int pos = minBaseWordLength;
-        while (state.isKnown && pos < input.length() - minPrefixLength) {
+        int pos = MIN_COMPOUND_BASE_WORD_LENGTH;
+        while (state.isKnown && pos < inputLength - MIN_COMPOUND_PREFIX_LENGTH) {
             state = state.node.getNext(seq.charAt(pos)).getStateForCompleteSequence();
             if (state.isFinal()) {
                 baseWordState = state;
-                baseWordPos = pos;
+                baseWordLength = pos + 1;
             }
             pos++;
         }
 
         if (baseWordState != null) {
+            final int prefixLength = inputLength - baseWordLength;
             final CharSequence value = baseWordState.value == IDENTITY
-                    ? input.subSequence(input.length() - baseWordPos - 1, input.length())
+                    ? input.subSequence(prefixLength, inputLength)
                     : baseWordState.value;
-            return Optional.of(new CompoundCharSequence(null, input.subSequence(0, input.length() - baseWordPos - 1), value));
+            return Optional.of(new CompoundCharSequence(null, input.subSequence(0, prefixLength), value));
         }
 
         return Optional.empty();
